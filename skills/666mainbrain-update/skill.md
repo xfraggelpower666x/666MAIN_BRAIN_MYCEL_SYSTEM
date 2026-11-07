@@ -1,25 +1,26 @@
 ---
 name: 666mainbrain-update
-description: Perform governed repository-native updates for 666MAIN BRAIN MYCEL SYSTEM with pre-change recovery, body readback and pointer-last publication.
+description: Perform governed repository-native additive updates for 666MAIN BRAIN MYCEL SYSTEM with optimistic concurrency, host-impact separation and pointer-last publication.
 ---
 
 # 666MAIN BRAIN UPDATE
 
-Trigger:
-- `666MAIN BRAIN UPDATE`
-- legacy alias: `666MAINSYSTEM UPDATE`
+1. Rehydrate current MAIN BRAIN authority and current work scope.
+2. Read fresh HEAD and bind expected target blob SHAs.
+3. Extract material delta from direct user intent plus validated unconsumed native handoffs.
+4. Preserve active work and valid newer evolution.
+5. Peer input remains proposal until locally validated.
+6. Verify repository, branch, permissions, targets and recovery points.
+7. Use optimistic concurrency; unexpected movement → CONFLICT_QUARANTINE.
+8. Apply the smallest correct mutations.
+9. Direct-readback every changed body.
+10. Run semantic, causal, contradiction, currentness and authority checks.
+11. Evaluate host/plugin impact separately as SOURCE / DELIVERY / ADOPTION / HOST.
+12. Re-read HEAD before close; classify movement via Fresh HEAD Closeout.
+13. Update fingerprints/coverage/registry where relevant.
+14. Publish `CURRENT_POINTER.md` last.
+15. Direct pointer readback only; no mutation afterward.
 
-## Sequence
-
-1. Rehydrate current repository state.
-2. Extract material delta from current user intent plus verified unintegrated handoffs.
-3. Classify scope: OWN_SYSTEM | GLOBAL_COORDINATION_GOVERNANCE | CATALOG_ONLY | NO_MATERIAL_CHANGE.
-4. Verify repo, branch, permissions, HEAD and target paths.
-5. Create pre-change recovery evidence.
-6. Apply minimal body changes.
-7. Direct readback of every changed body.
-8. Run semantic, causal, contradiction and antidrift checks.
-9. Publish `CURRENT_POINTER.md` last.
-10. Read pointer back; no mutation afterward.
-
-Foreign native writes are forbidden unless the foreign system itself is directly triggered and authorizes them.
+UPDATE=ADDITIVE_CURRENT_REFRESH
+FOREIGN_PROPOSAL_AUTOADOPTION=FORBIDDEN
+SILENT_PLUGIN_DRIFT=FORBIDDEN
