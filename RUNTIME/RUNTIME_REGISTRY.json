@@ -38,9 +38,18 @@
     "SYSTEMSTART": "skills/666mainbrain-systemstart/skill.md",
     "UPDATE": "skills/666mainbrain-update/skill.md",
     "WEITER_NEW_CHAT": "skills/666mainbrain-continuity/skill.md",
-    "DASHBOARD": "skills/666mainbrain-dashboard/skill.md"
+    "DASHBOARD": "skills/666mainbrain-dashboard/skill.md",
+    "STATUS": "skills/666mainbrain-status/skill.md",
+    "HELP": "skills/666mainbrain-help/skill.md",
+    "VORNE": "skills/666mainbrain-vorne/skill.md"
   },
-  "drive_role": "HISTORY_ONLY",
+  "drive_role": "MIGRATION_SOURCE_RECOVERY",
   "foreign_autoload": false,
-  "cross_system_merge": false
+  "cross_system_merge": false,
+  "migration_state": "IN_PROGRESS_UNTIL_FINAL_COMPLETION_GATE",
+  "repo_first_auth": false,
+  "final_target": {
+    "repo_first_auth": true,
+    "drive_role": "HISTORY_ONLY"
+  }
 }
