@@ -10,7 +10,7 @@
 
 666MAIN BRAIN MYCEL SYSTEM is the repository-first coordination, catalog, routing and semantic relation layer for the 666SOUNDsDESIGn native-system landscape.
 
-It does **not** merge child systems or steal their execution authority. It discovers, catalogs and connects them through verified current pointers, system cards and causal relations, then routes direct user intent to the correct native authority.
+It does **not** merge native systems or steal their execution authority. It discovers, catalogs and connects them through verified current pointers, system cards and causal relations, then routes direct user intent to the correct native authority.
 
 ## Core intelligence
 
@@ -22,31 +22,32 @@ It does **not** merge child systems or steal their execution authority. It disco
 - Governed self-control and self-audit
 - LiveCircle continuity
 - Native rehydration
+- Interruption processing
+- Parallel Deployment
+- Lock / queue / readback governance
 - System-card cartography
 - Chaos-with-Direction routing
 - Cyber Corporate Visual Intelligence
+- Peer technical intelligence exchange without identity copying
 
-## Canonical navigation
+## PSYLLO navigation cards
 
-- [Current Pointer](CURRENT_POINTER.md)
-- [Identity](SYSTEM/IDENTITY.md)
-- [Global Authority](SYSTEM/GLOBAL_AUTHORITY.md)
-- [Current State](SYSTEM/CURRENT_STATE.md)
-- [Causal Relation Graph](SYSTEM/CAUSAL_RELATION_GRAPH.md)
-- [LiveCircle](RUNTIME/LIVECIRCLE.md)
-- [Rehydration](RUNTIME/REHYDRATION.md)
-- [Trigger Contract](RUNTIME/TRIGGER_CONTRACT.md)
-- [PSYLLO Character](INTELLIGENCE/PSYLLO_CHARACTER.md)
-- [PSYLLO Facets](INTELLIGENCE/FACETS.md)
-- [System Card Schema](CATALOG/SYSTEM_CARD_SCHEMA.md)
-- [System Cards](CATALOG/SYSTEM_CARDS.md)
-- [Visual Intelligence](UI/VISUAL_INTELLIGENCE.md)
-- [Write Governance](GOVERNANCE/WRITE_GOVERNANCE.md)
-- [Drive → Repo Migration](MIGRATION/DRIVE_TO_REPO_2026-11-07.md)
+| Card | Open |
+|---|---|
+| 🧠 **MYCEL CORE** | [Current Pointer](CURRENT_POINTER.md) · [Identity](SYSTEM/IDENTITY.md) · [Authority](SYSTEM/GLOBAL_AUTHORITY.md) · [State](SYSTEM/CURRENT_STATE.md) |
+| 🕸️ **RELATIONS** | [Causal Graph](SYSTEM/CAUSAL_RELATION_GRAPH.md) · [Relation Model](CATALOG/RELATION_MODEL.md) · [System Cards](CATALOG/SYSTEM_CARDS.md) |
+| ♻️ **LIVECIRCLE** | [LiveCircle](RUNTIME/LIVECIRCLE.md) · [Rehydration](RUNTIME/REHYDRATION.md) · [Continuity](CONTINUITY/HANDOFF_CONTRACT.md) |
+| ⚡ **PARALLEL DEPLOY** | [Parallel Deployment](RUNTIME/PARALLEL_DEPLOYMENT.md) · [Interruption Protocol](RUNTIME/INTERRUPTION_PROTOCOL.md) · [Chaos With Direction](RUNTIME/CHAOS_WITH_DIRECTION.md) |
+| 🛡️ **SENTINEL** | [Currentness Audit](INTELLIGENCE/CURRENTNESS_AUDIT.md) · [Lock / Queue](RUNTIME/LOCK_QUEUE_GOVERNANCE.md) · [Write Governance](GOVERNANCE/WRITE_GOVERNANCE.md) |
+| 🍄 **PSYLLO** | [Character](INTELLIGENCE/PSYLLO_CHARACTER.md) · [Facets](INTELLIGENCE/FACETS.md) · [Self-Conductor](INTELLIGENCE/SELF_CONDUCTOR.md) · [Learning](INTELLIGENCE/LEARNING.md) |
+| 🏢 **OPERATIONS CENTER** | [Cyber Corporate Visual Intelligence](UI/VISUAL_INTELLIGENCE.md) · [Operations Center](UI/OPERATIONS_CENTER.md) |
+| 🔌 **PEER TECH** | [Peer Technical Intelligence Exchange](INTELLIGENCE/PEER_TECH_EXCHANGE.md) |
+| 🧭 **TRIGGERS** | [Trigger Contract](RUNTIME/TRIGGER_CONTRACT.md) · [Runtime Registry](RUNTIME/RUNTIME_REGISTRY.json) |
+| 🧬 **MIGRATION** | [Drive → Repo Migration](MIGRATION/DRIVE_TO_REPO_2026-11-07.md) |
 
 ## Authority rule
 
-`CURRENT_POINTER.md` is the repository-native current pointer. History, backups and legacy Drive snapshots are not allowed to promote themselves to Live.
+`CURRENT_POINTER.md` is the repository-native current pointer after verified publication. **Everything remaining on Google Drive is HISTORY / recovery evidence only.** History, backups and legacy Drive snapshots are never allowed to promote themselves to Live.
 
 `FOUND != VERIFIED`  
 `SEARCH_RESULT != READBACK`  
