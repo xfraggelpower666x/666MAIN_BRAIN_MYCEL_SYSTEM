@@ -15,7 +15,8 @@
     "parallel_deployment": "RUNTIME/PARALLEL_DEPLOYMENT.md",
     "chaos_with_direction": "RUNTIME/CHAOS_WITH_DIRECTION.md",
     "lock_queue": "RUNTIME/LOCK_QUEUE_GOVERNANCE.md",
-    "handoff": "CONTINUITY/HANDOFF_CONTRACT.md"
+    "handoff": "CONTINUITY/HANDOFF_CONTRACT.md",
+    "host_oversteer_recovery": "RUNTIME/HOST_OVERSTEER_RECOVERY.md"
   },
   "intelligence": {
     "character": "INTELLIGENCE/PSYLLO_CHARACTER.md",
@@ -41,7 +42,8 @@
     "DASHBOARD": "skills/666mainbrain-dashboard/skill.md",
     "STATUS": "skills/666mainbrain-status/skill.md",
     "HELP": "skills/666mainbrain-help/skill.md",
-    "VORNE": "skills/666mainbrain-vorne/skill.md"
+    "VORNE": "skills/666mainbrain-vorne/skill.md",
+    "FUCK_HORST": "skills/666mainbrain-fuck-horst/skill.md"
   },
   "drive_role": "MIGRATION_SOURCE_RECOVERY",
   "foreign_autoload": false,
@@ -51,5 +53,9 @@
   "final_target": {
     "repo_first_auth": true,
     "drive_role": "HISTORY_ONLY"
-  }
+  },
+  "triggers": [
+    "FUCK HORST",
+    "666MAIN BRAIN FUCK HORST"
+  ]
 }
