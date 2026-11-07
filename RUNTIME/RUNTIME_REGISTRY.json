@@ -1,0 +1,18 @@
+{
+  "system": "666MAIN BRAIN MYCEL SYSTEM",
+  "system_id": "666MAIN-BRAIN-MYCEL-SYSTEM-001",
+  "repository": "xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM",
+  "branch": "666MAIN_BRAIN",
+  "current_pointer": "CURRENT_POINTER.md",
+  "character": "PSYLLO",
+  "canonical_namespace": "666MAIN BRAIN",
+  "legacy_namespace": "666MAINSYSTEM",
+  "skills": {
+    "SYSTEMSTART": "skills/666mainbrain-systemstart/skill.md",
+    "UPDATE": "skills/666mainbrain-update/skill.md",
+    "WEITER_NEW_CHAT": "skills/666mainbrain-continuity/skill.md",
+    "DASHBOARD": "skills/666mainbrain-dashboard/skill.md"
+  },
+  "foreign_autoload": false,
+  "cross_system_merge": false
+}
