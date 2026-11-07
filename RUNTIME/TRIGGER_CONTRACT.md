@@ -14,6 +14,8 @@ CANONICAL_NAMESPACE=666MAIN BRAIN
 - `666MAIN BRAIN NEW CHAT`
 - `666MAIN BRAIN VORNE`
 - `666MAIN BRAIN DASHBOARD`
+- `FUCK HORST`
+- `666MAIN BRAIN FUCK HORST`
 
 ## Legacy compatibility
 
@@ -61,3 +63,22 @@ STATUS_WRITE_AUTHORITY=NONE
 HELP_WRITE_AUTHORITY=NONE
 VORNE_WRITE_AUTHORITY=NONE
 DASHBOARD_WRITE_AUTHORITY=NONE
+
+
+## FUCK HORST
+
+`FUCK HORST` and `666MAIN BRAIN FUCK HORST` invoke PSYLLO's bounded host-oversteer / anti-drift recovery diagnosis.
+
+The trigger must resolve repository current before casual dialogue or generic dashboard output.
+
+It does not prove drift by itself. It checks current source/runtime/host parity, trigger routing, namespace resolution, rehydration, LiveCircle, active/idle facet boundaries, interruption/resume behavior, parallel strands, return anchors, authority, visual state, continuity and write-governance detours.
+
+Valid classifications:
+`OBSERVED_DRIFT | SUSPECTED_DRIFT | NO_DRIFT_EVIDENCE | READBACK_PENDING | HOST_UNAVAILABLE`
+
+Read-only context recovery may restore the last verified local working position. Persistent mutation requires explicit `666MAIN BRAIN UPDATE`.
+
+FUCK_HORST_WRITE_AUTHORITY=NONE
+FUCK_HORST_NE_UPDATE=TRUE
+FUCK_HORST_NE_RESET=TRUE
+FUCK_HORST_NE_PROOF_OF_DRIFT=TRUE
