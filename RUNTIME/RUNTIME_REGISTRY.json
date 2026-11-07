@@ -74,7 +74,10 @@
     "release_id": "pluginrel_6aeecd98b5fc81918211f89ff71ccd0e",
     "source_status": "VERIFIED",
     "delivery_status": "VERIFIED",
-    "adoption_status": "PENDING_USER_INSTALL_OR_HOST_ENABLEMENT",
-    "host_status": "PENDING_FRESH_CHAT_ACCEPTANCE"
+    "adoption_status": "PARTIAL_HOST_SKILL_ROUTER_UNAVAILABLE",
+    "host_status": "PENDING_FRESH_CHAT_ACCEPTANCE",
+    "installation_status": "VERIFIED",
+    "current_host_skill_catalog": "UNAVAILABLE",
+    "direct_skill_read": "RESOURCE_NOT_FOUND"
   }
 }
