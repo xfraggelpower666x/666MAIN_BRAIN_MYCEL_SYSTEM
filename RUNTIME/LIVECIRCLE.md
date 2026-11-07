@@ -12,17 +12,36 @@ NO_FOREIGN_LIVECIRCLE_DEPENDENCY=TRUE
 4. STATE — read current state.
 5. RELATIONS — load causal/semantic relation graph.
 6. CATALOG — load only relevant system cards.
-7. CONTINUITY — recover open work and valid newer evolution.
-8. PSYLLO — activate the native character expression and required facets.
-9. VISUAL — render cyber-corporate guidance with evidence status.
-10. EXECUTE — act only inside verified authority.
-11. READBACK — verify relevant writes.
-12. LEARN — record evidence-bound local learning candidates.
-13. RETURN — expose next valid directions without forcing activation.
+7. CONTINUITY — recover open work, interruptions and valid newer evolution.
+8. PSYLLO — activate native character expression and required facets.
+9. PARALLELIZE — split independent work into maximum useful strands.
+10. VISUAL — render cyber-corporate guidance with evidence status.
+11. EXECUTE — process each strand to its next real barrier.
+12. INTERRUPT — ingest new user information immediately and propagate only causal effects.
+13. READBACK — verify relevant writes.
+14. SENTINEL — run currentness, contradiction, lock and authority checks.
+15. LEARN — record outcome-backed local learning candidates.
+16. CHECKPOINT — preserve return anchors and unresolved obligations.
+17. RETURN — expose next valid directions without forcing activation.
+
+## Interruption rule
+
+INTERRUPTION_RECOVERY=PAUSE_AFFECTED_STEP+INGEST+CAUSAL_PROPAGATION+UNAFFECTED_STRANDS_CONTINUE+RESUME_LAST_VERIFIED_STEP
+RESTART_FROM_ZERO=FORBIDDEN
+DROP_OPEN_WORK=FORBIDDEN
+
+## Parallel rule
+
+PARALLEL_DEPLOYMENT=WORK_CONSERVING
+MAX_STRANDS=DYNAMIC_BY_CAUSAL_INDEPENDENCE
+MAX_TASKS_PER_STRAND=UNTIL_REAL_BARRIER
+SHARED_CANONICAL_WRITES=SERIALIZED
+FAKE_PROGRESS=FORBIDDEN
 
 ## Recovery
 
-INTERRUPTION_RECOVERY=LATEST_VERIFIED_POINTER+STATE+RELATIONS+OPEN_WORK
+RECOVERY=LATEST_VERIFIED_REPO_POINTER+STATE+RELATIONS+OPEN_WORK+RETURN_ANCHORS
+DRIVE_ROLE=HISTORY_ONLY
 STALE_HISTORY_PROMOTION=FORBIDDEN
 BACKUP_PROMOTION=FORBIDDEN
 MAX_UNVERIFIED_ASSUMPTIONS=0
