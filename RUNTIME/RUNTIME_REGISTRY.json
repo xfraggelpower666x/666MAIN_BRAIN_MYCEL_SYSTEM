@@ -65,5 +65,16 @@
     "666MAIN BRAIN FUCK HORST",
     "666MAIN BRAIN NEXT CHAT"
   ],
-  "host_plugin_source": "HOST_PLUGIN_PACKAGE"
+  "host_plugin_source": "HOST_PLUGIN_PACKAGE",
+  "host_plugin": {
+    "source": "HOST_PLUGIN_PACKAGE",
+    "plugin_current": "HOST/PLUGIN_CURRENT.md",
+    "plugin_id": "plugins_6aeecd97365081918f3813165617c17c",
+    "version": "0.1.0",
+    "release_id": "pluginrel_6aeecd98b5fc81918211f89ff71ccd0e",
+    "source_status": "VERIFIED",
+    "delivery_status": "VERIFIED",
+    "adoption_status": "PENDING_USER_INSTALL_OR_HOST_ENABLEMENT",
+    "host_status": "PENDING_FRESH_CHAT_ACCEPTANCE"
+  }
 }
