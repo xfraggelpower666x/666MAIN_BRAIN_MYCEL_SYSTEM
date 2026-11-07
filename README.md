@@ -47,7 +47,7 @@ It does **not** merge native systems or steal their execution authority. It disc
 
 ## Authority rule
 
-`CURRENT_POINTER.md` is the repository-native current pointer after verified publication. **Everything remaining on Google Drive is HISTORY / recovery evidence only.** History, backups and legacy Drive snapshots are never allowed to promote themselves to Live.
+`CURRENT_POINTER.md` is the repository-native migration pointer while construction is in progress. Google Drive remains **migration source + recovery evidence until FINAL_COMPLETION_GATE**. Only after that gate does the system switch to **REPO_FIRST_AUTH** and Drive becomes **HISTORY_ONLY**. History and backups may never self-promote to Live.
 
 `FOUND != VERIFIED`  
 `SEARCH_RESULT != READBACK`  
