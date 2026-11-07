@@ -16,7 +16,11 @@
     "chaos_with_direction": "RUNTIME/CHAOS_WITH_DIRECTION.md",
     "lock_queue": "RUNTIME/LOCK_QUEUE_GOVERNANCE.md",
     "handoff": "CONTINUITY/HANDOFF_CONTRACT.md",
-    "host_oversteer_recovery": "RUNTIME/HOST_OVERSTEER_RECOVERY.md"
+    "host_oversteer_recovery": "RUNTIME/HOST_OVERSTEER_RECOVERY.md",
+    "rehydration_monitor": "RUNTIME/REHYDRATION_MONITOR.md",
+    "host_acceptance_gate": "RUNTIME/HOST_ACCEPTANCE_GATE.md",
+    "fresh_head_closeout": "RUNTIME/FRESH_HEAD_CLOSEOUT.md",
+    "lineage_continuity": "CONTINUITY/LINEAGE_CONTINUITY.md"
   },
   "intelligence": {
     "character": "INTELLIGENCE/PSYLLO_CHARACTER.md",
@@ -24,7 +28,8 @@
     "self_conductor": "INTELLIGENCE/SELF_CONDUCTOR.md",
     "currentness_audit": "INTELLIGENCE/CURRENTNESS_AUDIT.md",
     "learning": "INTELLIGENCE/LEARNING.md",
-    "peer_tech_exchange": "INTELLIGENCE/PEER_TECH_EXCHANGE.md"
+    "peer_tech_exchange": "INTELLIGENCE/PEER_TECH_EXCHANGE.md",
+    "semantic_translator": "INTELLIGENCE/SEMANTIC_TRANSLATOR.md"
   },
   "catalog": {
     "card_schema": "CATALOG/SYSTEM_CARD_SCHEMA.md",
@@ -43,7 +48,8 @@
     "STATUS": "skills/666mainbrain-status/skill.md",
     "HELP": "skills/666mainbrain-help/skill.md",
     "VORNE": "skills/666mainbrain-vorne/skill.md",
-    "FUCK_HORST": "skills/666mainbrain-fuck-horst/skill.md"
+    "FUCK_HORST": "skills/666mainbrain-fuck-horst/skill.md",
+    "NEXT_CHAT": "skills/666mainbrain-continuity/skill.md"
   },
   "drive_role": "MIGRATION_SOURCE_RECOVERY",
   "foreign_autoload": false,
@@ -56,6 +62,8 @@
   },
   "triggers": [
     "FUCK HORST",
-    "666MAIN BRAIN FUCK HORST"
-  ]
+    "666MAIN BRAIN FUCK HORST",
+    "666MAIN BRAIN NEXT CHAT"
+  ],
+  "host_plugin_source": "HOST_PLUGIN_PACKAGE"
 }
