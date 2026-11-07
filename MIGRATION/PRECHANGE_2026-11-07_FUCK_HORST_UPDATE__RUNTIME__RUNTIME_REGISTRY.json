@@ -1,0 +1,63 @@
+# PRE-CHANGE SNAPSHOT
+SOURCE_PATH=RUNTIME/RUNTIME_REGISTRY.json
+SOURCE_BLOB_SHA=6754bdbee29fdc89998ec1e062c4aa4c321b4d8c
+TRIGGER=666MAIN BRAIN UPDATE
+DELTA=FUCK_HORST_RECOVERY_TRIGGER
+
+---
+
+{
+  "system": "666MAIN BRAIN MYCEL SYSTEM",
+  "system_id": "666MAIN-BRAIN-MYCEL-SYSTEM-001",
+  "repository": "xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM",
+  "branch": "666MAIN_BRAIN",
+  "current_pointer": "CURRENT_POINTER.md",
+  "character": "PSYLLO",
+  "canonical_namespace": "666MAIN BRAIN",
+  "legacy_namespace": "666MAINSYSTEM",
+  "runtime": {
+    "livecircle": "RUNTIME/LIVECIRCLE.md",
+    "rehydration": "RUNTIME/REHYDRATION.md",
+    "triggers": "RUNTIME/TRIGGER_CONTRACT.md",
+    "interruptions": "RUNTIME/INTERRUPTION_PROTOCOL.md",
+    "parallel_deployment": "RUNTIME/PARALLEL_DEPLOYMENT.md",
+    "chaos_with_direction": "RUNTIME/CHAOS_WITH_DIRECTION.md",
+    "lock_queue": "RUNTIME/LOCK_QUEUE_GOVERNANCE.md",
+    "handoff": "CONTINUITY/HANDOFF_CONTRACT.md"
+  },
+  "intelligence": {
+    "character": "INTELLIGENCE/PSYLLO_CHARACTER.md",
+    "facets": "INTELLIGENCE/FACETS.md",
+    "self_conductor": "INTELLIGENCE/SELF_CONDUCTOR.md",
+    "currentness_audit": "INTELLIGENCE/CURRENTNESS_AUDIT.md",
+    "learning": "INTELLIGENCE/LEARNING.md",
+    "peer_tech_exchange": "INTELLIGENCE/PEER_TECH_EXCHANGE.md"
+  },
+  "catalog": {
+    "card_schema": "CATALOG/SYSTEM_CARD_SCHEMA.md",
+    "system_cards": "CATALOG/SYSTEM_CARDS.md",
+    "relation_model": "CATALOG/RELATION_MODEL.md"
+  },
+  "ui": {
+    "visual_intelligence": "UI/VISUAL_INTELLIGENCE.md",
+    "operations_center": "UI/OPERATIONS_CENTER.md"
+  },
+  "skills": {
+    "SYSTEMSTART": "skills/666mainbrain-systemstart/skill.md",
+    "UPDATE": "skills/666mainbrain-update/skill.md",
+    "WEITER_NEW_CHAT": "skills/666mainbrain-continuity/skill.md",
+    "DASHBOARD": "skills/666mainbrain-dashboard/skill.md",
+    "STATUS": "skills/666mainbrain-status/skill.md",
+    "HELP": "skills/666mainbrain-help/skill.md",
+    "VORNE": "skills/666mainbrain-vorne/skill.md"
+  },
+  "drive_role": "MIGRATION_SOURCE_RECOVERY",
+  "foreign_autoload": false,
+  "cross_system_merge": false,
+  "migration_state": "IN_PROGRESS_UNTIL_FINAL_COMPLETION_GATE",
+  "repo_first_auth": false,
+  "final_target": {
+    "repo_first_auth": true,
+    "drive_role": "HISTORY_ONLY"
+  }
+}
