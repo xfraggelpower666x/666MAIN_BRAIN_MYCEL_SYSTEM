@@ -2,9 +2,10 @@
 
 STATUS=ACTIVE
 SYSTEM=666MAIN BRAIN MYCEL SYSTEM
-MIGRATION_STATE=REPOSITORY_NATIVE_BOOTSTRAP
-REPOSITORY_FIRST=TRUE
-DRIVE_ROLE=LEGACY_RECOVERY_AND_PRECHANGE_HISTORY
+MIGRATION_STATE=IN_PROGRESS_UNTIL_FINAL_COMPLETION_GATE
+REPOSITORY_BUILD=ACTIVE
+REPO_FIRST_AUTH=FINAL_TARGET_PENDING_COMPLETION_GATE
+DRIVE_ROLE=MIGRATION_SOURCE_RECOVERY_UNTIL_FINAL_COMPLETION
 NATIVE_CHARACTER=PSYLLO
 
 ## Active domains
@@ -22,9 +23,32 @@ LOCAL_SELF_LEARNING=ACTIVE
 CHAOS_WITH_DIRECTION_ROUTING=ACTIVE
 CYBER_CORPORATE_VISUAL_INTELLIGENCE=ACTIVE
 
-## Current migration boundary
+## Migration completion boundary
 
-Legacy Drive current documents are preserved as recovery evidence. Canonical future evolution is repository-native after repository readback and pointer publication.
+The repository is the active construction surface during migration.
+
+FINAL_COMPLETION_GATE requires:
+- repository architecture complete
+- all required body readbacks pass
+- native trigger/runtime contracts complete
+- rehydration and LiveCircle complete
+- continuity / interruption / parallel deployment complete
+- visual Operations Center complete
+- currentness / contradiction / authority audit pass
+- fresh-chat host acceptance or explicitly classified remaining host-only gate
+- final repository current pointer publication and readback
+
+Only after FINAL_COMPLETION_GATE:
+
+REPO_FIRST_AUTH=TRUE
+DRIVE_ROLE=HISTORY_ONLY
+DRIVE_CURRENT_AUTHORITY=NONE
+HISTORY_MAY_NOT_PROMOTE_TO_LIVE=TRUE
+
+Before that gate:
+
+DRIVE_ROLE=MIGRATION_SOURCE_RECOVERY
+DRIVE_HISTORY_ONLY=FALSE
 
 PRIVATE_DRIVE_DATA_MIGRATED_TO_PUBLIC_REPO=FALSE
 SECRETS_MIGRATED=FALSE
