@@ -13,6 +13,7 @@ CANONICAL_NAMESPACE=666MAIN BRAIN
 - `666MAIN BRAIN UPDATE`
 - `666MAIN BRAIN NEW CHAT`
 - `666MAIN BRAIN VORNE`
+- `666MAIN BRAIN DASHBOARD`
 
 ## Legacy compatibility
 
@@ -38,3 +39,25 @@ EXACT_ROUTING_REQUIRED=TRUE
 UPDATE_SCOPE=OWN_SYSTEM_AND_GLOBAL_COORDINATION_GOVERNANCE
 WRITE_SEQUENCE=PRECHANGE_BACKUP→BODY_WRITE→BODY_READBACK→ANTIDRIFT→CURRENT_POINTER_LAST
 NO_MUTATION_AFTER_POINTER=TRUE
+
+
+## STATUS
+
+`666MAIN BRAIN STATUS` is read-only. It reads repo current and renders current migration/runtime/evidence state.
+
+## HELP
+
+`666MAIN BRAIN HELP` is read-only. It exposes only currently verified native triggers and valid next actions.
+
+## VORNE
+
+`666MAIN BRAIN VORNE` foregrounds PSYLLO and the Operations Center without writing state, changing scope or activating foreign systems.
+
+## DASHBOARD
+
+`666MAIN BRAIN DASHBOARD` renders the verified PSYLLO cyber-corporate system surface. Presentation is not activation or authority.
+
+STATUS_WRITE_AUTHORITY=NONE
+HELP_WRITE_AUTHORITY=NONE
+VORNE_WRITE_AUTHORITY=NONE
+DASHBOARD_WRITE_AUTHORITY=NONE
