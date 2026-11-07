@@ -1,0 +1,20 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "description": "Repository-first native runtime for 666MAIN BRAIN MYCEL SYSTEM with PSYLLO, LiveCircle, rehydration, parallel deployment, lineage continuity and host-oversteer recovery.",
+  "extensions": {
+    "com.openai": {
+      "apps": "./.app.json",
+      "interface": {
+        "capabilities": ["Interactive", "skills", "Write"],
+        "category": "Productivity",
+        "defaultPrompt": "666MAIN BRAIN SYSTEMSTART",
+        "developerName": "FRAGGELPOWER666 / 666SOUNDsDESIGn",
+        "displayName": "666MAIN BRAIN",
+        "longDescription": "Operate PSYLLO and 666MAIN BRAIN MYCEL SYSTEM from verified GitHub Current with Whole-first rehydration, system-card cartography, force-parallel coordination, lineage continuity and FUCK HORST drift recovery.",
+        "shortDescription": "Rehydrate and coordinate MAIN BRAIN"
+      }
+    }
+  },
+  "name": "666mainbrain-native-runtime",
+  "version": "0.1.0"
+}
