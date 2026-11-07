@@ -35,3 +35,16 @@ Use host-native clickable suggested actions when available. Otherwise use Markdo
 FAKE_BUTTONS=FORBIDDEN
 ASCII_DASHBOARD=FORBIDDEN
 CLICKABILITY_MUST_BE_REAL=TRUE
+
+
+### 8. REHYDRATION MONITOR
+HEAD start/close, pointer/source reads, semantic meaning, relation/application status and independent host acceptance.
+
+### 9. HOST ACCEPTANCE
+SOURCE → DELIVERY → ADOPTION → HOST, with explicit fresh-chat acceptance state.
+
+### 10. LINEAGE CONTINUITY
+Exact NEW/NEXT CHAT lineage, handoff persistence/readback and return anchors.
+
+### 11. PLUGIN HOST SURFACE
+Private native-runtime adapter status. Plugin is entrypoint only; repository Current remains authority.
