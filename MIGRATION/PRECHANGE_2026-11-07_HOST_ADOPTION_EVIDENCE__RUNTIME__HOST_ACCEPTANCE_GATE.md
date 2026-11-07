@@ -1,0 +1,67 @@
+# PRE-CHANGE SNAPSHOT
+SOURCE_PATH=RUNTIME/HOST_ACCEPTANCE_GATE.md
+SOURCE_BLOB_SHA=b2a1a30f63a18343246ba7c27c1918615721d6ce
+DELTA=HOST_ADOPTION_EVIDENCE
+
+---
+
+# HOST ACCEPTANCE GATE
+
+OWNER=666MAIN BRAIN MYCEL SYSTEM
+PURPOSE=SEPARATE_REPO_SOURCE_SUCCESS_FROM_FRESH_CHAT_HOST_BEHAVIOR
+
+## Layers
+
+SOURCE = repository artifacts and readback
+DELIVERY = plugin/runtime package delivered to host
+ADOPTION = host exposes the intended native skill/trigger
+HOST = fresh-chat direct trigger actually resolves and executes expected read-only/update path
+
+SOURCE_PASS_NE_DELIVERY_PASS=TRUE
+DELIVERY_PASS_NE_ADOPTION_PASS=TRUE
+ADOPTION_PASS_NE_HOST_PASS=TRUE
+
+## Host acceptance cases
+
+SYSTEMSTART
+STATUS
+HELP
+WEITER
+NEW_CHAT
+VORNE
+DASHBOARD
+FUCK_HORST
+UPDATE
+
+Each case records:
+- direct trigger
+- expected native owner
+- expected repo pointer resolution
+- expected write authority
+- observed behavior
+- observed source
+- classification
+- evidence timestamp when available
+
+## Classes
+
+HOST_VERIFIED
+HOST_PARTIAL
+HOST_UNAVAILABLE
+HOST_DRIFT
+HOST_READBACK_PENDING
+
+FINAL_COMPLETION_REQUIRES=HOST_VERIFIED_OR_EXPLICITLY_CLASSIFIED_HOST_ONLY_BLOCKER
+
+
+## Current delivery evidence — 2026-11-07
+
+PLUGIN_ID=plugins_6aeecd97365081918f3813165617c17c
+VERSION=0.1.0
+RELEASE_ID=pluginrel_6aeecd98b5fc81918211f89ff71ccd0e
+SOURCE_PACKAGE_READBACK=17/17_PASS
+RUNTIME_MANIFEST_PARITY=2/2_PASS
+SOURCE=VERIFIED
+DELIVERY=VERIFIED
+ADOPTION=PENDING_USER_INSTALL_OR_HOST_ENABLEMENT
+HOST=PENDING_FRESH_CHAT_ACCEPTANCE
