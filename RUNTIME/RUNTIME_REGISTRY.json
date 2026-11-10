@@ -61,9 +61,17 @@
     "drive_role": "HISTORY_ONLY"
   },
   "triggers": [
+    "666MAIN BRAIN SYSTEMSTART",
+    "666MAIN BRAIN STATUS",
+    "666MAIN BRAIN HELP",
+    "666MAIN BRAIN WEITER",
+    "666MAIN BRAIN UPDATE",
+    "666MAIN BRAIN NEW CHAT",
+    "666MAIN BRAIN NEXT CHAT",
+    "666MAIN BRAIN VORNE",
+    "666MAIN BRAIN DASHBOARD",
     "FUCK HORST",
-    "666MAIN BRAIN FUCK HORST",
-    "666MAIN BRAIN NEXT CHAT"
+    "666MAIN BRAIN FUCK HORST"
   ],
   "host_plugin_source": "HOST_PLUGIN_PACKAGE",
   "host_plugin": {
@@ -74,10 +82,16 @@
     "release_id": "pluginrel_6aeecd98b5fc81918211f89ff71ccd0e",
     "source_status": "VERIFIED",
     "delivery_status": "VERIFIED",
-    "adoption_status": "PARTIAL_HOST_SKILL_ROUTER_UNAVAILABLE",
+    "adoption_status": "PARTIAL_SKILL_DISCOVERY_VERIFIED_FRESH_CHAT_ACCEPTANCE_PENDING",
     "host_status": "PENDING_FRESH_CHAT_ACCEPTANCE",
     "installation_status": "VERIFIED",
-    "current_host_skill_catalog": "UNAVAILABLE",
-    "direct_skill_read": "RESOURCE_NOT_FOUND"
-  }
+    "current_host_skill_catalog": "8_OF_8_LISTED_2026_11_10",
+    "direct_skill_read": "8_OF_8_PASS_2026_11_10",
+    "observation_scope": "THIS_HOST_SESSION_ONLY_NOT_TEN_TRIGGER_FRESH_CHAT_ACCEPTANCE"
+  },
+  "legacy_compatibility_triggers": [
+    "666MAINSYSTEM SYSTEMSTART",
+    "666MAINSYSTEM UPDATE",
+    "666MAINSYSTEM WEITER"
+  ]
 }
