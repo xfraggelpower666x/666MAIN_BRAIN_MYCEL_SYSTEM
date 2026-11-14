@@ -111,3 +111,13 @@ python3 INTEGRATIONS/CODEFORGE/compare_repo_card.py \
 ```
 
 Das Werkzeug liest Git-Objekte und meldet einen Netto-Dateidiff mit Umbenennungen sowie den Stand der Abstammung. Exit 0 gilt für gleiche oder nachweisbar vorwärts entwickelte Commits. Exit 1 meldet eine umgeschriebene oder nicht nachweisbare Abstammung. Exit 2 meldet ungültige oder fehlende Eingaben. Das Werkzeug führt keinen Remote-Readback aus. Der Workflow bindet diesen Nachweis vor dem Aufruf. Roharchive, fremde Pointer und Child-Sync gehören zur ursprünglichen 666CF-/PFS-Authority.
+
+## CLIC R02 · Laufbeleg und Rückkehranker
+
+Der optionale Modus `--run-claim run-claim.json --repository OWNER/REPO --execution-context CONTEXT` prüft einen vorgelegten Herkunftsbeleg gegen den Kandidaten. Die erwartete Ausführungskonfiguration bestimmt der native Auftrag. Der Beleg hat das Schema `codeforge-run-claim/v1` und die String-Felder `repository`, `checkout_commit`, `execution_context`, `receipt_sha256`, `run_id` und `artifact_id`. `checkout_commit` bezeichnet den tatsächlich behaupteten Checkout und keinen bloßen PR-Head. Ein abweichender Merge-Checkout bleibt ein Konflikt, bis eine gesonderte Bindung implementiert ist.
+
+Die CLI liest die exakten Receipt-Bytes einmal für Qualitätsprüfung und Hash. Sie meldet `run_provenance` getrennt vom lokalen Review. Fehlende oder übereinstimmende Angaben ergeben `READBACK_PENDING`. Abweichende Repository-, Checkout-, Kontext- oder Hashangaben ergeben `CONFLICT_QUARANTINE`. Im optionalen Modus signalisiert Exit 1 die offene Herkunft. Das bisherige Ausgabe- und Exit-Verhalten ohne Modus bleibt gültig.
+
+Zur Abnahme von Laufherkunft sind der direkt gelesene Run mit tatsächlich ausgechecktem Commit, Workflow oder Runner-Konfiguration, Jobabschluss, erwarteten Checks und die direkt von diesem Run gelesenen Artefaktbytes nötig. Provider-, fachliche und Fresh-Chat-Abnahme sind offen.
+
+Für die Wiederaufnahme gilt der [native Checkpoint-Vertrag](../../CONTINUITY/HANDOFF_CONTRACT.md#codeforge-checkpoint). Der Graph-Hash des RepoBrain-Exports belegt den Carrier. Die Herkunft eines Scanner-Laufs bleibt bis zum separaten Scanner- und Checkout-Readback offen.
