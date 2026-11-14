@@ -129,6 +129,8 @@ check(exists('docs/RADIO_WAVE_INTERRUPTED_WORK_CHECKPOINT_2026-10-24.md'),'inter
 check(/dialog:importMilkdropPersonalLibrary/.test(main)&&/personalMilkdropRoot/.test(main),'personal-milkdrop-persistent-library');
 check(/ZipFile\]::ExtractToDirectory/.test(main)&&/256\*1024\*1024/.test(main),'personal-milkdrop-bounded-zip-import');
 check(/personal_library_no_milk_presets/.test(main)&&/512\*1024\*1024/.test(main),'personal-milkdrop-extraction-bounds');
+check(/archive\.Entries/.test(main)&&/MAX_ARCHIVE_ENTRIES/.test(main)&&/MAX_ARCHIVE_UNCOMPRESSED_BYTES/.test(main)&&/personal_library_staging_cleanup_failed/.test(main),'personal-milkdrop-archive-preflight-and-cleanup');
+check(exists('tests/personal-milkdrop-archive.test.cjs')&&text('package.json').includes('tests/personal-milkdrop-archive.test.cjs'),'personal-milkdrop-archive-regression-tests');
 check(main.includes("docs[\\\\/]license\\.txt")&&main.includes("license:licenseFile"),'personal-milkdrop-license-retention');
 check(/top100\\.txt/.test(main)&&/top100Count/.test(main),'personal-milkdrop-top100-index');
 check(/importMilkdropPersonalLibrary/.test(text('preload.js'))&&/personalMilkdropLibrary/.test(text('preload.js')),'personal-milkdrop-preload-bridge');
