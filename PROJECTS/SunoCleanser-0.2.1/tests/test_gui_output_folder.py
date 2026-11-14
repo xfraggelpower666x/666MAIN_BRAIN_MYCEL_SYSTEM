@@ -43,3 +43,20 @@ def test_folder_launcher_result(monkeypatch, tmp_path, returncode):
 
     launch.assert_called_once_with(["xdg-open", Path(output).resolve()], check=False)
     assert showinfo.call_count == returncode
+
+
+def test_audio_picker_includes_mp3(monkeypatch):
+    view = Mock()
+    view._text.side_effect = lambda key: {
+        "select_audio": "Select audio",
+        "all_files": "All files",
+    }[key]
+    chooser = Mock(return_value="")
+    monkeypatch.setattr(app.filedialog, "askopenfilename", chooser)
+
+    app.SunoCleanserApp._browse(view)
+
+    chooser.assert_called_once_with(
+        title="Select audio",
+        filetypes=[("WAV and MP3", "*.wav *.mp3"), ("All files", "*.*")],
+    )

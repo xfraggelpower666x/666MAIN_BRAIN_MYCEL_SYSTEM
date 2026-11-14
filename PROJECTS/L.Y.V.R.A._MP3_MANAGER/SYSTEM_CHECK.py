@@ -121,6 +121,73 @@ def main():
         for doc in ('BEDIENUNGSANLEITUNG_DE.md','MANUAL_EN.md','README.txt',
                     'REPARATUR_AUDIO_TOOLS.bat', 'PORTABLE_VERIFY.bat','PORTABLE_VERIFY.ps1'):
             shutil.copy2(ROOT/doc,portable/doc)
+        optional_audio_apps=(
+            (ROOT.parent/'Suno-Song-Remaster-main'/'release'/'win-unpacked',
+             portable/'external-tools'/'Suno-Song-Remaster-main'),
+            (ROOT.parent/'Restoration-Lab-main'/'dist'/'Restoration Lab',
+             portable/'external-tools'/'Restoration-Lab-main'),
+            (ROOT.parent/'SunoCleanser-0.2.1',
+             portable/'external-tools'/'SunoCleanser-0.2.1'),
+        )
+        for source,destination in optional_audio_apps:
+            if source.is_dir():
+                shutil.copytree(
+                    source,
+                    destination,
+                    dirs_exist_ok=True,
+                    ignore=shutil.ignore_patterns('__pycache__','.pytest_cache','.venv','venv'),
+                )
+                print('OPTIONAL_AUDIO_LAB_BUNDLED:',destination.name)
+        mp3gain_project=ROOT.parent/'mp3gain-win-gui-1_3_4-src'
+        mp3gain_gui=mp3gain_project/'MP3GainGUI.exe'
+        mp3gain_runtime=mp3gain_project/'electron-bridge'/'release'/'win-unpacked'
+        mp3gain_destination=portable/'external-tools'/'mp3gain-win-gui-1_3_4-src'
+        required_bridge_files=(
+            mp3gain_runtime/'mp3gain.exe',
+            mp3gain_runtime/'resources'/'app.asar',
+            mp3gain_runtime/'resources'/'engine'/'mp3gain-worker.js',
+        )
+        if mp3gain_gui.is_file() and mp3gain_runtime.is_dir() and all(
+            path.is_file() for path in required_bridge_files
+        ):
+            shutil.copytree(mp3gain_runtime,mp3gain_destination,dirs_exist_ok=True)
+            shutil.copy2(mp3gain_gui,mp3gain_destination/'MP3GainGUI.exe')
+            print('OPTIONAL_AUDIO_LAB_BUNDLED: mp3gain-win-gui-1_3_4-src')
+        else:
+            print('OPTIONAL_AUDIO_LAB_NOT_BUNDLED: MP3Gain GUI and complete bridge build required')
+
+        sunscreen_project=ROOT.parent/'sunscreen-main'
+        sunscreen_binary=next((candidate for candidate in (
+            sunscreen_project/'target'/'release'/'sunscreen.exe',
+            sunscreen_project/'target'/'release'/'sunscreen',
+            sunscreen_project/'sunscreen.exe',
+            sunscreen_project/'sunscreen',
+        ) if candidate.is_file()),None)
+        if sunscreen_binary:
+            sunscreen_destination=(
+                portable/'external-tools'/'sunscreen-main'/'target'/'release'/
+                sunscreen_binary.name
+            )
+            sunscreen_destination.parent.mkdir(parents=True,exist_ok=True)
+            shutil.copy2(sunscreen_binary,sunscreen_destination)
+            print('OPTIONAL_AUDIO_LAB_BUNDLED: sunscreen-main')
+        else:
+            print('OPTIONAL_AUDIO_LAB_NOT_BUNDLED: Sunscreen release binary missing')
+        wav2mp3_project=ROOT.parent/'Wav2mp3-master'
+        wav2mp3_binary=next((candidate for candidate in (
+            wav2mp3_project/'wav2mp3.exe',
+            wav2mp3_project/'build'/'windows'/'wav2mp3.exe',
+            wav2mp3_project/'build'/'windows'/'wav2mp3',
+        ) if candidate.is_file()),None)
+        if wav2mp3_binary:
+            wav2mp3_destination=(
+                portable/'external-tools'/'Wav2mp3-master'/'wav2mp3.exe'
+            )
+            wav2mp3_destination.parent.mkdir(parents=True,exist_ok=True)
+            shutil.copy2(wav2mp3_binary,wav2mp3_destination)
+            print('OPTIONAL_AUDIO_LAB_BUNDLED: Wav2mp3-master')
+        else:
+            print('OPTIONAL_AUDIO_LAB_NOT_BUNDLED: wav2mp3 Windows binary missing')
         tools_out=portable/'tools';tools_out.mkdir(parents=True,exist_ok=True)
         missing=[]
         for name in ('ffmpeg','ffprobe'):

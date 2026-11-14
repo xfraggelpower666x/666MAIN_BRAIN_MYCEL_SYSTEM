@@ -8,6 +8,19 @@ All wav files in the folder `wav_folder_uri` will be encoded to mp3.
 Supports WAV files containing uncompressed audio (PCM) with no more than 2
 channels for now.
 
+The reader validates RIFF and chunk extents against both the declared WAV
+length and the actual file length, and rejects incomplete PCM frames. It
+supports integer PCM at 8, 16, 24, and 32 bits for mono and stereo; 24-bit
+stereo encoding is not implemented. Invalid/truncated input and thread,
+encoding, or output-write failures are reported and make the process exit
+nonzero.
+
+The parser regression tests do not require LAME:
+
+```sh
+make test-parser
+```
+
 It will be difficult to use multiple encoding threads on a single wav file,
 because it is not clear whether LAME library structures are thread-safe. Also
 stitching audio pieces together without degrading audio quality is not trivial.

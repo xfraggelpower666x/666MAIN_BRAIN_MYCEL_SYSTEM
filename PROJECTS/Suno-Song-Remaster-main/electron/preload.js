@@ -7,6 +7,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   saveFile: () => ipcRenderer.invoke('save-file'),
   readAudioFile: (filePath) => ipcRenderer.invoke('read-audio-file', filePath),
   writeFile: (filePath, data) => ipcRenderer.invoke('write-file', filePath, data),
+  writeBatchFile: (directory, baseName, data) =>
+    ipcRenderer.invoke('write-batch-file', directory, baseName, data),
   getPathForFile: (file) => webUtils.getPathForFile(file),
   getSystemInfo: () => ipcRenderer.invoke('get-system-info'),
   

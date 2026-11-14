@@ -26,6 +26,7 @@
 #include <string>
 #include <climits>
 #include <cstring>
+#include <stdexcept>
 #include <dirent.h>
 
 #include "SyncQueue.h"
@@ -46,14 +47,31 @@ namespace {
  * We can set it to 0 manually to flag a stop request.
  */
 int             gNFilesToProcess = INT_MAX;
+bool            gProcessingFailed = false;
 pthread_cond_t  gNFilesCVar;
 pthread_mutex_t gNFilesMutex;
+
+void setNFilesToProcess(int count)
+{
+    pthread_mutex_lock(&gNFilesMutex);
+    gNFilesToProcess = count;
+    if( count <= 0 ) pthread_cond_signal(&gNFilesCVar);
+    pthread_mutex_unlock(&gNFilesMutex);
+}
 
 
 void decNFilesToProcess()
 {
     pthread_mutex_lock(&gNFilesMutex);
-    if( --gNFilesToProcess <= 0 ) pthread_cond_signal(&gNFilesCVar);
+    if( gNFilesToProcess > 0 && --gNFilesToProcess == 0 )
+        pthread_cond_signal(&gNFilesCVar);
+    pthread_mutex_unlock(&gNFilesMutex);
+}
+
+void markProcessingFailed()
+{
+    pthread_mutex_lock(&gNFilesMutex);
+    gProcessingFailed = true;
     pthread_mutex_unlock(&gNFilesMutex);
 }
 
@@ -80,10 +98,16 @@ void* work_manager(void* arg)
                                   (SyncQueue< shared_ptr<WavFile> >*) arg;
     if( NULL == wavFileQueue ) pthread_exit((void*) 0);  // Signal CV before exit?
 
-    int numWavFiles = gWavFileURIs.size();
+    if( gWavFileURIs.size() > static_cast<size_t>(INT_MAX) )
+    {
+        LOG("Too many WAV files to process" << std::endl);
+        markProcessingFailed();
+        setNFilesToProcess(0);
+        return NULL;
+    }
+    int numWavFiles = static_cast<int>(gWavFileURIs.size());
 
-    // Set gNFilesToProcess. Workers are not active yet, so this is safe.
-    gNFilesToProcess = numWavFiles;
+    setNFilesToProcess(numWavFiles);
 
     // Enqueue wav files in the work queue until the list is empty (or stop is requested)
     int i=0;
@@ -93,17 +117,29 @@ void* work_manager(void* arg)
         std::string uri = gWavFileURIs[i];
         try {
             wavFile.reset(new WavFile(uri));  // Will be freed automatically
-            wavFile->readEntireFile();  // Should be more effective here than in workers
+            if( wavFile->readEntireFile() == 0 )
+                throw std::runtime_error("unable to read WAV file");
         } catch(...) {
             LOG("Error opening wav file " << uri << std::endl);
+            markProcessingFailed();
             decNFilesToProcess();
             continue;
         }
-        wavFileQueue->enqueue(wavFile);
+        try {
+            wavFileQueue->enqueue(wavFile);
+        } catch(const std::exception& error) {
+            LOG("Error queueing wav file " << uri << ": " << error.what() << std::endl);
+            markProcessingFailed();
+            decNFilesToProcess();
+        } catch(...) {
+            LOG("Unknown error queueing wav file " << uri << std::endl);
+            markProcessingFailed();
+            decNFilesToProcess();
+        }
     }
     LOG("Work manager is done" << std::endl);
 
-    return ((void*) (numWavFiles-i));  // The remaining files (should be 0)
+    return NULL;
 }
 
 
@@ -119,19 +155,45 @@ void* worker(void* arg)
     while( true )
     {
         // Dequeue wav file from work queue and encode it. Block if the queue is empty
-        shared_ptr<WavFile> wavFile = wavFileQueue->dequeue();
+        shared_ptr<WavFile> wavFile;
+        try {
+            wavFile = wavFileQueue->dequeue();
+        } catch(const std::exception& error) {
+            LOG("Error dequeuing wav file: " << error.what() << std::endl);
+            markProcessingFailed();
+            setNFilesToProcess(0);
+            break;
+        } catch(...) {
+            LOG("Unknown error dequeuing wav file" << std::endl);
+            markProcessingFailed();
+            setNFilesToProcess(0);
+            break;
+        }
 
         if( wavFile )
         {
             // Encode wav file
-            Encoder encoder(wavFile);
-            encoder.encode();
+            try {
+                Encoder encoder(wavFile);
+                if( encoder.encode() < 0 )
+                    markProcessingFailed();
+            } catch(const std::exception& error) {
+                LOG("Error encoding wav file " << wavFile->getURI() << ": " <<
+                    error.what() << std::endl);
+                markProcessingFailed();
+            } catch(...) {
+                LOG("Unknown error encoding wav file " << wavFile->getURI() << std::endl);
+                markProcessingFailed();
+            }
 
             numProcFiles++;
         }  // Resources will be freed here
         else
         {
-            LOG("Error in dequeue()!" << std::endl);
+            LOG("Received empty work item from queue" << std::endl);
+            markProcessingFailed();
+            decNFilesToProcess();
+            continue;
         }
 
         decNFilesToProcess();
@@ -153,7 +215,13 @@ int main(int argc, char* argv[])
     // Fill the list of wav file URIs
     std::string wavFolder(argv[1]);
     size_t len = wavFolder.length();
-    if( wavFolder[len-1] != '/' && wavFolder[len-1] != '\\' ) wavFolder += "/";
+    if( len == 0 )
+    {
+        std::cerr << "Folder URI cannot be empty" << std::endl;
+        return 1;
+    }
+    if( wavFolder[len-1] != '/' && wavFolder[len-1] != '\\' )
+        wavFolder += "/";
     DIR* dir;
     if( (dir = opendir (wavFolder.c_str())) == NULL )
     {
@@ -194,6 +262,7 @@ int main(int argc, char* argv[])
 #else  // POSIX
     numCores = sysconf(_SC_NPROCESSORS_ONLN);
 #endif
+    if( numCores < 1 ) numCores = 1;
     LOG("Number of CPU cores: " << numCores << std::endl);
 
     // Create work queue for wav files.
@@ -205,38 +274,64 @@ int main(int argc, char* argv[])
         wavFileQueuePtr(new SyncQueue<shared_ptr<WavFile> >(2*numCores));
 #endif  // c++11
 
-    // Create a manager thread to read wav files and fill the work queue
-    pthread_t managerThread;
-    pthread_create(&managerThread, 0, work_manager, wavFileQueuePtr.get());
-
-    // Wait until work queue is at least half full? Use a barier?
-
     // Create pool of encoding threads (workers) and point them to the work queue
-    pthread_t encoderThreads[numCores];
+    std::vector<pthread_t> encoderThreads;
+    encoderThreads.reserve(static_cast<size_t>(numCores));
     for( int i=0; i<numCores; i++ )
     {
-        pthread_create(&(encoderThreads[i]), 0, worker, wavFileQueuePtr.get());
+        pthread_t thread;
+        int rc = pthread_create(&thread, 0, worker, wavFileQueuePtr.get());
+        if( rc != 0 )
+        {
+            LOG("Error creating encoder thread: " << strerror(rc) << std::endl);
+            markProcessingFailed();
+            continue;
+        }
+        encoderThreads.push_back(thread);
     }
 
-    // Wait for all files to be processed
-    pthread_mutex_lock(&gNFilesMutex);
-    while( gNFilesToProcess > 0 ) pthread_cond_wait(&gNFilesCVar, &gNFilesMutex);
-    pthread_mutex_unlock(&gNFilesMutex);
-    LOG("Work end signaled" << std::endl);
-
-    // The manager theread should be done by now - join it
-    pthread_join(managerThread, NULL);
-    LOG("Work manager joined" << std::endl);
-
-    // Cancel and join worker threads
-    for( int i=0; i<numCores; i++ )
+    if( encoderThreads.empty() )
     {
+        LOG("No encoder threads could be started" << std::endl);
+        setNFilesToProcess(0);
+    }
+
+    bool managerStarted = false;
+    pthread_t managerThread;
+    if( !encoderThreads.empty() )
+    {
+        int rc = pthread_create(&managerThread, 0, work_manager, wavFileQueuePtr.get());
+        if( rc != 0 )
+        {
+            LOG("Error creating work manager thread: " << strerror(rc) << std::endl);
+            markProcessingFailed();
+            setNFilesToProcess(0);
+        }
+        else
+            managerStarted = true;
+    }
+
+    if( managerStarted )
+    {
+        pthread_mutex_lock(&gNFilesMutex);
+        while( gNFilesToProcess > 0 )
+            pthread_cond_wait(&gNFilesCVar, &gNFilesMutex);
+        pthread_mutex_unlock(&gNFilesMutex);
+        LOG("Work end signaled" << std::endl);
+        pthread_join(managerThread, NULL);
+        LOG("Work manager joined" << std::endl);
+    }
+
+    // Cancel and join only threads that were successfully created.
+    for( size_t i=0; i<encoderThreads.size(); i++ )
         pthread_cancel(encoderThreads[i]);
-        unsigned int res=0;
-        pthread_join(encoderThreads[i], (void**)&res);
-        //LOG("Worker thread " << i << " joined with result " << res << std::endl);
-    }
+    for( size_t i=0; i<encoderThreads.size(); i++ )
+        pthread_join(encoderThreads[i], NULL);
     LOG("Workers joined" << std::endl);
+
+    pthread_mutex_lock(&gNFilesMutex);
+    bool processingFailed = gProcessingFailed;
+    pthread_mutex_unlock(&gNFilesMutex);
 
     // Destroy work queue and globals
     wavFileQueuePtr.reset();
@@ -245,5 +340,5 @@ int main(int argc, char* argv[])
     pthread_mutex_destroy(&gNFilesMutex);
     pthread_mutex_destroy(&gLogMutex);  // Logs in destructors may crash. Leave this to the OS. Or don't use logs in destructors. Or destroy objects before tis point.
 
-    return 0;
+    return processingFailed ? 1 : 0;
 }

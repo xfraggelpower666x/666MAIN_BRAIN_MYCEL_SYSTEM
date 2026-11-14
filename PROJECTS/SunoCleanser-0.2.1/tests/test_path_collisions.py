@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 import soundfile as sf
 from sunocleanser.cli import main
-from sunocleanser.suno.pipeline import InvalidInputError, process_suno_wav
+from sunocleanser.suno.pipeline import InvalidInputError, process_suno_wav, wav_output_paths
 
 
 def _write_wav(path: Path, amplitude: float = 0.2) -> bytes:
@@ -12,6 +12,23 @@ def _write_wav(path: Path, amplitude: float = 0.2) -> bytes:
     samples = amplitude * np.sin(2 * np.pi * 440 * np.arange(4096) / 48000)
     sf.write(path, samples, 48000, subtype="PCM_24")
     return path.read_bytes()
+
+
+@pytest.mark.parametrize(
+    ("title", "filename_title"),
+    [
+        ("../outside", ".._outside"),
+        (r"..\outside", ".._outside"),
+        ("/tmp/outside", "_tmp_outside"),
+        (r"C:\outside\track", "C__outside_track"),
+        ("Live: Acoustic", "Live: Acoustic"),
+    ],
+)
+def test_title_path_syntax_stays_in_output_directory(tmp_path, title, filename_title):
+    out = tmp_path / "out"
+    outputs = wav_output_paths(tmp_path / "input.wav", out, title)
+    assert all(path.parent == out for path in outputs)
+    assert all(path.name.startswith(f"{filename_title} - ") for path in outputs)
 
 
 def test_report_cannot_replace_input(tmp_path, capsys):

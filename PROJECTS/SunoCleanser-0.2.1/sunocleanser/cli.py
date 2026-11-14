@@ -20,7 +20,7 @@ def build_parser() -> argparse.ArgumentParser:
         prog="suno-clean",
         description="Suno adaptive spectral denoise with phase-cancel verification.",
     )
-    parser.add_argument("input_wav", type=Path, nargs="+", help="Source WAV file(s); several files = batch")
+    parser.add_argument("input_wav", type=Path, nargs="+", help="Source WAV or MP3 file(s); several files = batch")
     parser.add_argument(
         "--out-dir",
         type=Path,
