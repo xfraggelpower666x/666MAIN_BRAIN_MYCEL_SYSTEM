@@ -30,7 +30,10 @@ Katalogabfrage mit Standard-Python aus diesem Verzeichnis
 ```sh
 python3 resolve.py sceeri/sceeri-uca-r02-integration
 python3 resolve.py --facet VISUAL --workflow visual
+python3 resolve.py --checkout ../.. sceeri/sceeri-uca-r02-integration
 ```
+
+Mit `--checkout` wird der Katalog aus Current Pointer und Runtime-Registry aufgelöst. Übergib dazu einen bereits auf den gewünschten Commit fixierten MAIN-BRAIN-Checkout. Eine Abweichung der Referenzen beendet die Abfrage. Die Standalone-Aufrufe oben lesen weiterhin den Katalog neben dem Skript.
 
 ## Quellbefunde
 

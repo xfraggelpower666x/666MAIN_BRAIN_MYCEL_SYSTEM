@@ -28,6 +28,7 @@ CURRENT_POINTER
 → RELATION_MODEL
 → PSYLLO_CHARACTER
 → RELEVANT_PSYLLO_FACETS
+→ RELEVANT_PLUGIN_CAPABILITY_GUIDANCE
 → SELF_CONDUCTOR
 → CURRENTNESS_AUDIT
 → LOCAL_LEARNING
@@ -61,3 +62,7 @@ REHYDRATION_PASS_REQUIRES:
 Every Whole rehydration exposes the evidence-based Rehydration Monitor.
 At close, re-read branch HEAD and classify movement using `RUNTIME/FRESH_HEAD_CLOSEOUT.md`.
 Repository source success never implies fresh-host acceptance; host status comes from `RUNTIME/HOST_ACCEPTANCE_GATE.md`.
+
+## Plugin capability guidance
+
+When the request calls for a cataloged capability, read the catalog and workflow paths from the Current Pointer and compare them with the runtime registry at the same pinned commit. Resolve the requested capability to its PSYLLO facet and workflow. For provider-dependent entries, verify the actual provider and its authority before execution. If the references disagree, stop the affected capability route and report the mismatch in the Rehydration Monitor. Other rehydration steps may continue. Record catalog readback and host behavior separately.

@@ -17,6 +17,7 @@ Trigger:
 6. Apply PSYLLO Semantic Translator only after source/currentness verification; translation has no authority.
 7. Render the mandatory Rehydration Monitor with SOURCE / MEANING / RELATIONS / APPLICATION / HOST separation.
 8. Rehydrate PSYLLO and only required facets. Showing a card/facet does not activate foreign systems.
+   For cataloged plugin capabilities, follow the Current-bound capability lookup in `RUNTIME/REHYDRATION.md`.
 9. Render contextual Operations Center; do not replace clear continuation with a generic menu.
 10. Re-read branch HEAD at close and classify movement through Fresh HEAD Closeout.
 11. Source readback alone cannot justify fresh-host FULL PASS.

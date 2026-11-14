@@ -4,6 +4,33 @@ import json
 from pathlib import Path
 
 REGISTRY = Path(__file__).with_name("CAPABILITIES_R01.json")
+CURRENT_KEY = "PLUGIN_CAPABILITIES_R01_REGISTRY"
+
+
+def current_registry(checkout):
+    """Resolve the catalog from an already selected MAIN BRAIN checkout."""
+    checkout = checkout.resolve()
+    runtime = json.loads(
+        (checkout / "RUNTIME/RUNTIME_REGISTRY.json").read_text(encoding="utf-8")
+    )
+    if runtime.get("system_id") != "666MAIN-BRAIN-MYCEL-SYSTEM-001":
+        raise ValueError("Checkout gehört nicht zu 666MAIN BRAIN")
+    reference = runtime["intelligence"]["plugin_capabilities"]
+    pointer = (checkout / "CURRENT_POINTER.md").read_text(encoding="utf-8")
+    declarations = [
+        line.split("=", 1)[1]
+        for line in pointer.splitlines()
+        if line.startswith(CURRENT_KEY + "=")
+    ]
+    if declarations != [reference]:
+        raise ValueError("Current-Pointer und Runtime-Registry weichen ab")
+    relative_path = Path(reference)
+    if relative_path.is_absolute() or ".." in relative_path.parts:
+        raise ValueError("Katalogpfad muss checkout-relativ sein")
+    catalog = (checkout / relative_path).resolve()
+    if not catalog.is_relative_to(checkout):
+        raise ValueError("Katalogpfad verlässt den Checkout")
+    return catalog
 
 
 def select(registry, capability_id=None, *, facet=None, workflow=None):
@@ -25,8 +52,13 @@ def main():
     parser.add_argument("capability_id", nargs="?")
     parser.add_argument("--facet")
     parser.add_argument("--workflow")
+    parser.add_argument("--checkout", type=Path, help="Katalog über MAIN BRAIN Current auflösen")
     args = parser.parse_args()
-    registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
+    try:
+        path = current_registry(args.checkout) if args.checkout is not None else REGISTRY
+        registry = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, KeyError) as error:
+        parser.error(f"Katalog nicht lesbar: {error}")
     try:
         rows = select(registry, args.capability_id, facet=args.facet, workflow=args.workflow)
     except KeyError:
