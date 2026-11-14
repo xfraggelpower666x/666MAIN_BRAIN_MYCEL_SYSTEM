@@ -7,7 +7,7 @@ Vor dem Menü prüft die Batch die Projektdateien, Node.js, npm,
 Windows PowerShell und die lokalen Electron- und Build-Werkzeuge.
 Sie führt automatisch die Quelltests und die beiden Release-Prüfungen aus.
 Node.js/npm und bestandene Quellprüfungen sind für das Menü erforderlich.
-Fehlende Electron- oder Build-Werkzeuge sperren nur die betroffenen Aktionen.
+Fehlende Electron- oder Build-Werkzeuge werden bei der jeweiligen Aktion automatisch installiert; schlägt das fehl, ist nur diese Aktion gesperrt.
 
 Ist Node.js bereits vorhanden und erkennt WinGet das installierte Paket
 als `OpenJS.NodeJS.LTS` oder `OpenJS.NodeJS`, prüft WinGet automatisch
@@ -28,8 +28,9 @@ die Startprüfung aus.
 
 ## Fehlende Projektabhängigkeiten manuell vorbereiten
 
-Der Launcher installiert keine fehlenden Programme oder npm-Pakete.
-Den folgenden Befehl bei Bedarf selbst im entpackten Projektordner ausführen.
+Der Launcher installiert fehlende npm-Pakete (Electron, electron-builder,
+electron-packager) beim Start einer Aktion automatisch per `npm ci --include=dev`
+und repariert bei Bedarf die Electron-Runtime. Schlägt das fehl, den folgenden Befehl selbst im entpackten Projektordner ausführen.
 
 ```cmd
 npm ci --include=dev --foreground-scripts
