@@ -510,6 +510,20 @@ function setupLocalLibrary(){
     if(!item)throw new Error('Create or select a playlist first.');
     return item;
   }
+  function ratingControl(item,scope){
+    const control=document.createElement('select');
+    control.id=`local-${scope}-rating-${item.id}`;
+    control.className='local-rating';
+    control.dataset.ratingId=item.id;
+    control.setAttribute('aria-label',`Rating for ${item.name}`);
+    for(let rating=0;rating<=5;rating++){
+      const option=document.createElement('option');option.value=String(rating);
+      option.textContent=rating?`${'★'.repeat(rating)} ${rating}/5`:'Unrated / clear';
+      control.appendChild(option);
+    }
+    control.value=String(item.rating||0);
+    return control;
+  }
   function render(next,preferred){
     snapshot=next;
     const chosen=preferred||select.value;
@@ -529,10 +543,10 @@ function setupLocalLibrary(){
     el('local-playlist-page-next').disabled=playlistPage>=playlistPages-1;
     tracks.replaceChildren();
     for(const item of playlistTracks.slice(playlistPage*pageSize,(playlistPage+1)*pageSize)){
-      const row=document.createElement('div');row.className='local-queue-row';
+      const row=document.createElement('div');row.className='local-queue-row local-library-track-row';
       const label=document.createElement('span');label.className='local-queue-track';label.textContent=item.name+(item.available?'':' · MISSING');
       const remove=document.createElement('button');remove.type='button';remove.id='local-playlist-remove-'+item.id;remove.className='local-queue-remove';remove.textContent='×';remove.title='Remove from playlist';remove.dataset.trackId=item.id;
-      row.append(label,remove);tracks.appendChild(row);
+      row.append(label,ratingControl(item,'playlist'),remove);tracks.appendChild(row);
     }
     const ids=new Set(next.pool.map(item=>item.id));
     for(const id of checked)if(!ids.has(id))checked.delete(id);
@@ -545,10 +559,11 @@ function setupLocalLibrary(){
     el('local-pool-page-next').disabled=poolPage>=poolPages-1;
     poolList.replaceChildren();
     for(const item of filtered.slice(poolPage*pageSize,(poolPage+1)*pageSize)){
+      const row=document.createElement('div');row.className='local-pool-row';
       const label=document.createElement('label');label.className='local-pool-track';
       const box=document.createElement('input');box.type='checkbox';box.id='local-pool-track-'+item.id;box.dataset.trackId=item.id;box.checked=checked.has(item.id);
       const text=document.createElement('span');text.textContent=item.name.length>240?'…'+item.name.slice(-239):item.name;
-      label.append(box,text);poolList.appendChild(label);
+      label.append(box,text);row.append(label,ratingControl(item,'pool'));poolList.appendChild(row);
     }
     el('local-pool-state').textContent=(next.folder?`${next.folder} · ${next.pool.length} tracks${next.scanning?' · scanning…':''}`:'No folder selected.')+
       (next.errors.length?' · '+next.errors.join(' · '):'');
@@ -593,8 +608,19 @@ function setupLocalLibrary(){
     const button=event.target.closest('[data-track-id]');if(!button)return;
     const item=requirePlaylist();render(await window.api.localPlaylistRemoveTrack(item.id,button.dataset.trackId),item.id);status.textContent='Track removed from playlist.';
   }));
+  async function changeRating(control){
+    const value=Number(control.value);
+    try {render(await window.api.localLibrarySetRating(control.dataset.ratingId,value===0?null:value));}
+    catch(error){render(snapshot);throw error;}
+    status.textContent=value?`Rating set to ${value} of 5 stars.`:'Rating cleared.';
+  }
+  tracks.addEventListener('change',event=>{
+    if(event.target.dataset.ratingId)action(()=>changeRating(event.target));
+  });
   poolList.addEventListener('change',event=>{
-    const box=event.target;if(!box.dataset.trackId)return;
+    const box=event.target;
+    if(box.dataset.ratingId){action(()=>changeRating(box));return;}
+    if(!box.dataset.trackId)return;
     if(box.checked)checked.add(box.dataset.trackId);else checked.delete(box.dataset.trackId);
     el('local-pool-page').textContent=el('local-pool-page').textContent.replace(/\d+ checked$/,`${checked.size} checked`);
   });
@@ -1118,6 +1144,9 @@ function drawFrame() {
     drawDummyWave();
   }
   ctx.restore();
+
+  // Composite VJ frames on the same canvas used for recording.
+  window.vjStudio?.draw(ctx, canvasWidth, canvasHeight, {bass, snare:mid, hihat:treble});
 
   // Typography overlay rendering
   drawTextOverlays(bass);
@@ -1708,6 +1737,7 @@ async function finishRecording(session) {
     recordingInterval = null;
   }
   audioElement.pause();
+  window.vjStudio?.setMicrophoneRecording(false);
   setPlayerUiPlaying(false);
   btnStopExport.disabled = true;
   exportStatusLabel.textContent = 'Finishing and saving…';
@@ -1844,6 +1874,7 @@ async function startRecordingPipeline() {
     session.recorder.start(1000);
     session.started = true;
     session.startedAt = performance.now();
+    if (session.microphoneOnly) window.vjStudio?.setMicrophoneRecording(true);
     if (session.recorder.mimeType && session.recorder.mimeType.split(';')[0].toLowerCase() !== mimeType.split(';')[0]) {
       throw new Error('Recorder format does not match the selected filename');
     }

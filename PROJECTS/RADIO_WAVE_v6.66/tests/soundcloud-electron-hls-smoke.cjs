@@ -7,7 +7,7 @@ const { randomUUID } = require('node:crypto');
 const root = path.resolve(__dirname, '..');
 
 if (!process.versions.electron) {
-  const ffmpeg = process.env.FFMPEG_PATH || String.raw`C:\Users\dirkm\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-9.0.2-full_build\bin\ffmpeg.exe`;
+  const ffmpeg = process.env.FFMPEG_PATH || 'ffmpeg';
   const work = path.join(root, `.soundcloud-hls-smoke-${randomUUID()}`);
   fs.mkdirSync(work);
   try {
@@ -24,7 +24,7 @@ if (!process.versions.electron) {
       '-ac', '2', '-c:a', 'aac', '-b:a', '128k', '-f', 'hls', '-hls_time', '1',
       '-hls_playlist_type', 'vod', '-hls_segment_filename', path.join(work, 'segment-%03d.ts'),
       path.join(work, 'manifest.m3u8')];
-    const generated = spawnSync(ffmpeg, args, { cwd: root, env, encoding: 'utf8', timeout: 30000, windowsHide: true });
+    const generated = spawnSync(ffmpeg, args, { cwd: root, env: { ...env, PATH: process.env.PATH || env.PATH }, encoding: 'utf8', timeout: 30000, windowsHide: true });
     if (generated.error || generated.status !== 0) throw new Error(`ffmpeg failed: ${generated.error?.message || generated.stderr || generated.status}`);
     const run = spawnSync(require('electron'), [__filename, '--child', work], {
       cwd: root, env, encoding: 'utf8', timeout: 45000, windowsHide: true
@@ -85,10 +85,13 @@ if (!process.versions.electron) {
     const ipcReplies = {
       'workspace:overlay-state': {}, 'workspace:overlay-sync': { ok: true }, 'app:version': 'offline-smoke',
       'display:list': [], 'display:status': {}, 'runtime:diagnostics': {},
-      'visual:frame': { ok: true },
+      'visual:frame': { ok: true }, 'vj:sync': { ok: true },
       'local:queue-state': { items: [], count: 0 }, 'local:library-state': { tracks: [], playlists: [] },
       'player-alert:current': { ok: true, current: null }, 'source:sync': { ok: true },
-      'milkdrop:personal-library': { items: [] }
+      'milkdrop:personal-library': { items: [] },
+      'runtime:remote-health': { admin: { ok: false }, skip: { ok: false }, messenger: { ok: false }, soundcloud: 'CONFIGURED' },
+      'soundcloud:status': { configured: true, source: 'environment', stored: false, encryptionAvailable: true },
+      'soundcloud:library': { playlists: [], tracks: [] }
     };
     for (const [channel, reply] of Object.entries(ipcReplies)) ipcMain.handle(channel, () => reply);
     const window = new BrowserWindow({

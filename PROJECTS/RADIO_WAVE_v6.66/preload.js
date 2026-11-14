@@ -22,6 +22,11 @@ window.addEventListener('drop', event => {
 }, true);
 
 contextBridge.exposeInMainWorld('api', {
+  vjChooseVideos: () => ipcRenderer.invoke('vj:choose-videos'),
+  vjClearVideos: () => ipcRenderer.invoke('vj:clear-videos'),
+  vjSyncState: (state) => ipcRenderer.invoke('vj:sync', state),
+  vjFollowerState: () => ipcRenderer.invoke('vj:state'),
+  onVjFollowerState: (fn) => ipcRenderer.on('vj:state', (_e, state) => fn(state)),
   openAudio: () => ipcRenderer.invoke('dialog:openAudio'),
   audioPermissionBegin: (kind) => {
     if (kind === 'microphone') {
@@ -39,6 +44,7 @@ contextBridge.exposeInMainWorld('api', {
   localQueueClear: () => ipcRenderer.invoke('local:queue-clear'),
   localQueueShuffle: () => ipcRenderer.invoke('local:queue-shuffle'),
   localLibraryState: () => ipcRenderer.invoke('local:library-state'),
+  localLibrarySetRating: (id, rating) => ipcRenderer.invoke('local:library-set-rating', id, rating),
   localLibraryRefresh: () => ipcRenderer.invoke('local:library-refresh'),
   localLibraryClearFolder: () => ipcRenderer.invoke('local:library-clear-folder'),
   localLibraryChooseFolder: () => ipcRenderer.invoke('local:library-choose-folder'),
@@ -62,6 +68,7 @@ contextBridge.exposeInMainWorld('api', {
   focusDetachedOverlay: (key) => ipcRenderer.invoke('workspace:overlay-focus', key),
   closeDetachedOverlay: (key) => ipcRenderer.invoke('workspace:overlay-close', key),
   appVersion: () => ipcRenderer.invoke('app:version'),
+  openVjData: (kind) => ipcRenderer.invoke('dialog:openVjData', kind),
   openApprovedWebsite: (key) => ipcRenderer.invoke('app:open-site', key),
   openDetachedVisualizer: () => ipcRenderer.invoke('display:open-detached-visualizer'),
   focusDetachedVisualizer: () => ipcRenderer.invoke('display:focus-detached-visualizer'),

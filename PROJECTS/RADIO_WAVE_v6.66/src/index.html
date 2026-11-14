@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RADIO WAVE v6.66</title>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob: https: swmedia: swsc:; connect-src 'self' swsc:; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob: https: swmedia: swsc: swvj:; connect-src 'self' swsc:; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -144,6 +144,7 @@
             <div id="local-queue-list" class="local-queue-list" aria-label="Local audio queue"></div>
             <div id="local-audio-library" class="local-library" aria-label="Audio Pool &amp; Playlists">
               <h3>Audio Pool &amp; Playlists</h3>
+              <div class="file-meta-tag">Rate tracks from 1–5 stars or choose Unrated to clear. Ratings are shared between the pool and playlists, including missing playlist tracks.</div>
               <h3>Named playlists</h3>
               <label for="local-playlist-name">Playlist name</label>
               <input id="local-playlist-name" class="custom-input" maxlength="100" placeholder="Enter a playlist name">
@@ -605,6 +606,7 @@
       <!-- Top header bar for quick diagnostics -->
       <div class="preview-top-bar">
         <button id="toggle-control-panel" class="preview-panel-toggle" type="button" aria-pressed="false">☰ CONTROLS</button>
+        <button id="vj-open" class="preview-panel-toggle" type="button" aria-controls="vj-studio">VJ STUDIO</button>
         <label class="rw-language-switch" for="app-language">
           <span>LANGUAGE</span>
           <select id="app-language" aria-label="Application language">
@@ -697,6 +699,58 @@
     <!-- Hidden audio element for Web Audio API input -->
     <audio id="audio-element" crossOrigin="anonymous"></audio>
 
+    <section id="vj-studio" class="vj-studio" aria-labelledby="vj-title">
+      <h2 id="vj-title">VJ STUDIO</h2>
+      <p>Muted local video on the main visualizer and export. Playback follows the shared audio player.</p>
+      <div class="vj-actions"><button type="button" id="vj-choose" class="btn btn-secondary">CHOOSE VIDEOS</button><button type="button" id="vj-clear" class="btn btn-secondary">CLEAR POOL</button></div>
+      <label for="vj-selection">Video sequence</label>
+      <select id="vj-selection" class="custom-select" aria-label="Selected video"></select>
+      <div class="vj-actions"><button type="button" id="vj-toggle" class="btn btn-secondary" aria-pressed="false">ENABLE VJ</button><button type="button" id="vj-next" class="btn btn-secondary">NEXT VIDEO</button></div>
+      <label for="vj-layout">Layout</label>
+      <select id="vj-layout" class="custom-select"><option value="1">Single pane</option><option value="2">Dual pane</option><option value="3">Three panes</option></select>
+      <label for="vj-opacity">Video opacity <span id="vj-opacity-value">70%</span></label>
+      <input id="vj-opacity" type="range" min="0" max="100" value="70">
+      <label><input id="vj-loop" type="checkbox" checked> Loop sequence</label>
+      <div class="vj-data">
+        <h3>Audio sync and parity selection</h3>
+        <p>Load optional CSV bands. Missing bands use live audio analysis.</p>
+        <div class="vj-actions">
+          <button type="button" class="btn btn-secondary" id="vj-data-bass">BASS CSV</button>
+          <button type="button" class="btn btn-secondary" id="vj-data-snare">SNARE CSV</button>
+          <button type="button" class="btn btn-secondary" id="vj-data-hihat">HIHAT CSV</button>
+          <button type="button" class="btn btn-secondary" id="vj-data-clear-audio">CLEAR CSV</button>
+        </div>
+        <label><input type="checkbox" id="vj-data-audio-enabled"> Use loaded audio sync</label>
+        <p id="vj-data-audio-status" role="status" aria-live="polite">Live analysis for all bands.</p>
+        <div class="vj-actions">
+          <button type="button" class="btn btn-secondary" id="vj-data-parity">LOAD PARITY JSON</button>
+          <button type="button" class="btn btn-secondary" id="vj-data-clear-parity">CLEAR PARITY</button>
+        </div>
+        <p>Classical 24-bit simulation; no quantum hardware is used.</p>
+        <label for="vj-data-inputs">Input bits (24 per line, up to 64 lines)</label>
+        <textarea id="vj-data-inputs" rows="4" spellcheck="false">000000000000000000000000
+111111111111111111111111
+010101010101010101010101
+101010101010101010101010</textarea>
+        <label for="vj-data-shots">Measurements per input</label>
+        <input id="vj-data-shots" type="number" min="1" max="10000" value="1000">
+        <div class="vj-actions">
+          <button type="button" class="btn btn-secondary" id="vj-data-simulate">SIMULATE</button>
+          <button type="button" class="btn btn-secondary" id="vj-data-cancel" disabled>CANCEL</button>
+        </div>
+        <progress id="vj-data-progress" max="1" value="0" aria-label="Simulation progress"></progress>
+        <label for="vj-data-limit">Maximum videos</label>
+        <input id="vj-data-limit" type="number" min="1" max="1000" value="12">
+        <div class="vj-actions">
+          <button type="button" class="btn btn-secondary" id="vj-data-select">APPLY PARITY ORDER</button>
+          <button type="button" class="btn btn-secondary" id="vj-data-reset">RESTORE FULL ORDER</button>
+        </div>
+        <p id="vj-data-status" role="status" aria-live="polite">No parity data loaded.</p>
+      </div>
+      <p id="vj-status" role="status" aria-live="polite">Choose local MP4 or WebM videos.</p>
+      <p>Separate visualizer outputs follow the primary VJ playback.</p>
+    </section>
+
     <!-- EXPORT MODAL overlay when writing to local disk -->
     <div id="export-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="export-modal-title">
       <div class="modal-card">
@@ -725,7 +779,7 @@
   <script src="vendor/cayatur/spectrum.js"></script>
   <script src="vendor/cayatur/formulas.js"></script>
   <script src="vendor/cayatur/solids.js"></script>
-  <script>window.SV=window.SV||{};window.SV.hexToRgb01=(h)=>{const x=String(h||'#3aa6ff').replace('#','');const v=parseInt(x.length===3?x.split('').map(c=>c+c).join(''):x.slice(0,6),16);return [(v>>16&255)/255,(v>>8&255)/255,(v&255)/255];};</script>
+  <script src="vendor/cayatur/color-helper.js"></script>
   <script src="vendor/cayatur/geometry3d.js"></script>
   <script src="vendor/cayatur/shaderhost.js"></script>
   <script src="vendor/cayatur/milkdrop-core.js"></script>
@@ -740,6 +794,13 @@
   <script src="audio-devices.js"></script>
   <script src="audio-eq.js"></script>
   <script src="audio-surround.js"></script>
+  <script src="vj-studio.js"></script>
+  <script src="vj-audio-sync.js"></script>
+  <script src="vj-parity-selector.js"></script>
+  <script src="vj-quantum-sampler.js"></script>
+  <script src="vj-data.js"></script>
+  <script src="vj-data-controls.js"></script>
+  <script src="vj-follower.js"></script>
   <script src="app.js"></script>
   <script src="../node_modules/hls.js/dist/hls.min.js"></script>
   <script src="soundcloud-playback.js"></script>

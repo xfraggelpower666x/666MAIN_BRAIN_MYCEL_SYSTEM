@@ -33,6 +33,7 @@
     {key:'text',title:'TEXT OVERLAYS',icon:'✏️',match:'Text Overlays',x:220,y:155,w:410,h:430},
     {key:'engines',title:'PRESENTATION & ENGINES',icon:'🖥️',match:'Presentation & Engines',x:260,y:105,w:440,h:610},
     {key:'milkdrop',title:'MILKDROP STUDIO',icon:'🌌',node:q('#milkdrop-studio'),x:300,y:120,w:430,h:470},
+    {key:'vjStudio',title:'VJ STUDIO',icon:'🎬',node:q('#vj-studio'),x:250,y:100,w:440,h:600},
     {key:'diagnostics',title:'DIAGNOSTICS',icon:'🩺',node:q('#rw-diagnostics'),x:330,y:125,w:500,h:600},
     {key:'export',title:'EXPORT STUDIO',icon:'📹',match:'Export Studio',x:360,y:145,w:410,h:420}
   ];
@@ -549,6 +550,7 @@
     const el=id?document.getElementById(id):(selector?win.querySelector(selector):null);
     if(!el||!win.contains(el))return;
     if(payload.kind==='click'&&el.tagName==='BUTTON'){el.click();return;}
+    if(payload.kind==='toggle'&&el.matches('details')){if(el.open!==!!payload.checked)el.open=!!payload.checked;return;}
     if(!el.matches('input,select,textarea'))return;
     if(el.type==='checkbox'||el.type==='radio')el.checked=!!payload.checked;
     else el.value=String(payload.value??'');
@@ -572,7 +574,7 @@
     for(const [key,win] of windows){
       const body=win.querySelector('.rw-floating-window-body');
       if(!body)continue;
-      new MutationObserver(()=>scheduleDetachedSync(key)).observe(body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class','disabled','aria-pressed','value']});
+      new MutationObserver(()=>scheduleDetachedSync(key)).observe(body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class','disabled','aria-pressed','value','open']});
       body.addEventListener('input',()=>scheduleDetachedSync(key),true);
       body.addEventListener('change',()=>scheduleDetachedSync(key),true);
     }

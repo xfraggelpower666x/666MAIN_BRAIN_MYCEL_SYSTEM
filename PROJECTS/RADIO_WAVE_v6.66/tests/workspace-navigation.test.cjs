@@ -32,6 +32,60 @@ test('dock toggles an inline overlay and closes a detached overlay', async () =>
   assert.deepEqual(closed, ['wave']);
 });
 
+test('detached detail sections forward and retain their open state', async () => {
+  const overlay = fs.readFileSync(path.join(__dirname, '../src/overlay-window.js'), 'utf8');
+  const listeners = {}, actions = [];
+  let init;
+  const root = { addEventListener: (type, fn) => { listeners[type] = fn; }, innerHTML: '' };
+  runInNewContext(overlay, {
+    document: { getElementById: id => id === 'overlay-root' ? root : null },
+    window: { rwOverlay: {
+      onInit: callback => { init = callback; }, onSync() {},
+      action: async payload => { actions.push(payload); }, ready: async () => ({})
+    } },
+    console
+  });
+  init({ key: 'radioAdmin', html: '', controls: [] });
+  listeners.toggle({ target: { id: 'rw-radio-discord', open: true, matches: selector => selector === 'details' } });
+  assert.equal(actions[0].kind, 'toggle');
+  assert.equal(actions[0].checked, true);
+
+  const workspace = fs.readFileSync(path.join(__dirname, '../src/workspace.js'), 'utf8');
+  const start = workspace.indexOf('  window.api?.onDetachedOverlayAction?.(');
+  const end = workspace.indexOf('  window.api?.onDetachedOverlayClosed?.(', start);
+  assert.ok(start >= 0 && end > start);
+  let receive, writes = 0, isOpen = false;
+  const details = {
+    tagName: 'DETAILS', matches: selector => selector === 'details',
+    get open() { return isOpen; },
+    set open(value) { writes++; isOpen = value; }
+  };
+  runInNewContext(workspace.slice(start, end), {
+    window: { api: { onDetachedOverlayAction: callback => { receive = callback; } } },
+    windows: new Map([['radioAdmin', { contains: el => el === details }]]),
+    document: { getElementById: () => details }
+  });
+  receive(actions[0]);
+  receive(actions[0]);
+  assert.equal(isOpen, true);
+  assert.equal(writes, 1, 'replayed snapshots must not create toggle loops');
+  assert.match(workspace, /attributeFilter:\[[^\]]*'open'/);
+
+  const main = fs.readFileSync(path.join(__dirname, '../main.js'), 'utf8');
+  const routeStart = main.indexOf("registerIpc('workspace:overlay-action'");
+  const routeEnd = main.indexOf("registerIpc('display:list'", routeStart);
+  assert.ok(routeStart >= 0 && routeEnd > routeStart);
+  const routes = {}, sent = [];
+  runInNewContext(main.slice(routeStart, routeEnd), {
+    registerIpc: (name, _role, handler) => { routes[name] = handler; },
+    mainWindow: { isDestroyed: () => false, webContents: { send: (...args) => sent.push(args) } },
+    DETACHED_OVERLAY_KEYS: new Set(['radioAdmin'])
+  });
+  routes['workspace:overlay-action']({}, actions[0]);
+  assert.equal(sent[0][1].checked, true);
+  assert.throws(() => routes['workspace:overlay-action']({}, { key: 'radioAdmin', kind: 'toggle', selector: '[data-source="x"]' }), /overlay_control_invalid/);
+});
+
 test('main process opens only explicitly approved websites', async () => {
   const source = fs.readFileSync(path.join(__dirname, '../main.js'), 'utf8');
   const listStart = source.indexOf('const approvedWebsites =');

@@ -21,7 +21,7 @@ function fixture(t, options = {}) {
   fs.mkdirSync(path.dirname(candidate), { recursive: true });
   fs.writeFileSync(candidate, '');
   if (options.missing) fs.mkdirSync(path.join(root, 'build', 'cyber-studio-env', 'venv', 'Lib', 'site-packages'), { recursive: true });
-  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
   const calls = [];
   let missing = options.missing ? ['pillow==12.3.0'] : [];
   const child = {

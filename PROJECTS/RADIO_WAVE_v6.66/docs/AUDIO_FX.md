@@ -19,7 +19,7 @@ visualizer and, only when explicitly selected in Audio Devices, video exports.
 Positive gain may clip; reduce the playback level if needed.
 The stereo-width control is an independent standard mid/side implementation,
 not Light Wave Tech's decorrelation algorithm. Its Python and quantum modules
-are not integrated.
+and its original shaders and media are not bundled.
 
 ## Optional 7.1 playback
 

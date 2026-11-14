@@ -60,16 +60,26 @@ The main screen also provides links to the radio and LYVRA websites.
 
 Use **Media Library** to browse for local audio. **Audio Pool & Playlists**
 scans a folder selected by the user, refreshes it automatically, and manages
-named playlists without moving or deleting the audio files. In the player bar,
-the radio route selector offers automatic failover or manual Main/Fallback.
+named playlists without moving or deleting the audio files.
+Tracks in the pool and playlists can be rated 1–5 stars or cleared to Unrated.
+Ratings are shared by file identity, stored locally in the audio library, and
+retained for missing tracks and removed playlists; moving a file gives it a new
+identity. Up to 20,000 ratings are retained; clear a rating while its track is
+in the pool or a playlist. Older versions can read the library but may discard
+ratings when saving it. In the player bar, the radio route selector offers
+automatic failover or manual Main/Fallback.
 SoundCloud credentials can be saved using the operating system's encrypted
 storage; see [SoundCloud setup](docs/SOUNDCLOUD_SETUP.md).
 
 **Audio Devices** selects supported input and output devices. Microphone input
 is opt-in and never monitored through speakers; recording it requires a
 separate explicit choice.
-**Audio FX · EQ** provides independent three-band playback EQ and stereo width; see
+**Audio FX · EQ** provides independent three-band playback EQ and stereo width.
+Compatible outputs can enable an optional 7.1 upmix. See
 [Audio FX](docs/AUDIO_FX.md) for the Light Wave attribution and limitations.
+**VJ Studio** plays chosen, muted local videos on the visualizer. Optional
+audio-sync CSV files and parity-based clip ordering are described in
+[VJ Studio](docs/VJ_STUDIO.md).
 The bundled MilkDrop Cyber Studio manages and generates presets; it is not a
 live MilkDrop/Spout renderer.
 

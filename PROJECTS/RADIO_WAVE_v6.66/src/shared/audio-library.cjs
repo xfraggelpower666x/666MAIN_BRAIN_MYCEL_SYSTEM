@@ -5,12 +5,13 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 
 const EXTENSIONS = new Set(['.mp3', '.wav', '.m4a', '.flac', '.aac', '.ogg']);
-const LIMITS = Object.freeze({ entries: 20000, directories: 1000, depth: 16, pool: 2000, playlists: 100, tracks: 500 });
+const LIMITS = Object.freeze({ entries: 20000, directories: 1000, depth: 16, pool: 2000, playlists: 100, tracks: 500, ratings: 20000 });
 
 function createAudioLibrary({ userData, filesystem = fs, onChange = () => {} }) {
   const store = path.join(userData, 'radio-wave-audio-library.json');
   let folder = '';
   let playlists = [];
+  let ratings = Object.create(null);
   let pool = [];
   let scanErrors = [];
   let storeError = '';
@@ -45,10 +46,10 @@ function createAudioLibrary({ userData, filesystem = fs, onChange = () => {} }) 
     if (playlists.some(p => p.name.toLowerCase() === name.toLowerCase())) throw new Error('A playlist with that name already exists.');
     return name;
   };
-  function persist(nextFolder, nextPlaylists) {
+  function persist(nextFolder, nextPlaylists, nextRatings = ratings) {
     const temp = store + '.new';
     try {
-      const contents = JSON.stringify({ version: 1, folder: nextFolder, playlists: nextPlaylists }, null, 2);
+      const contents = JSON.stringify({ version: 1, folder: nextFolder, playlists: nextPlaylists, ratings: nextRatings }, null, 2);
       if (Buffer.byteLength(contents, 'utf8') > 5 * 1024 * 1024) throw new Error('Audio library size limit reached.');
       filesystem.writeFileSync(temp, contents, 'utf8');
       filesystem.renameSync(temp, store);
@@ -59,6 +60,7 @@ function createAudioLibrary({ userData, filesystem = fs, onChange = () => {} }) 
     }
     folder = nextFolder;
     playlists = nextPlaylists;
+    ratings = nextRatings;
   }
   try {
     if (filesystem.statSync(store).size > 5 * 1024 * 1024) throw new Error('Audio library file is too large.');
@@ -76,6 +78,17 @@ function createAudioLibrary({ userData, filesystem = fs, onChange = () => {} }) 
       return { id: p.id, name: p.name, tracks: p.tracks };
     });
     folder = data.folder;
+    if (data.ratings !== undefined) {
+      if (!data.ratings || typeof data.ratings !== 'object' || Array.isArray(data.ratings) ||
+          Object.keys(data.ratings).length > LIMITS.ratings) {
+        storeError = 'Could not load audio ratings: invalid ratings data.';
+      } else {
+        for (const [id, rating] of Object.entries(data.ratings)) {
+          if (/^[a-f0-9]{64}$/.test(id) && Number.isInteger(rating) && rating >= 1 && rating <= 5) ratings[id] = rating;
+          else storeError = 'Could not load some audio ratings: invalid ratings data.';
+        }
+      }
+    }
   } catch (error) {
     if (error.code !== 'ENOENT') { playlists = []; folder = ''; storeError = 'Could not load audio library: ' + report(error); }
   }
@@ -83,12 +96,13 @@ function createAudioLibrary({ userData, filesystem = fs, onChange = () => {} }) 
     const availability = new Map();
     return {
       folder, scanning, errors: [storeError, ...scanErrors].filter(Boolean),
-      pool: pool.map(item => ({ id: item.id, name: item.name })),
+      pool: pool.map(item => ({ id: item.id, name: item.name, rating: ratings[item.id] ?? null })),
       playlists: playlists.map(p => ({
         id: p.id, name: p.name,
         tracks: p.tracks.map(file => {
           if (!availability.has(file)) availability.set(file, available(file));
-          return { id: trackId(file), name: path.basename(file), available: availability.get(file) };
+          const id = trackId(file);
+          return { id, name: path.basename(file), available: availability.get(file), rating: ratings[id] ?? null };
         })
       }))
     };
@@ -227,6 +241,20 @@ function createAudioLibrary({ userData, filesystem = fs, onChange = () => {} }) 
       return state();
     },
     addFiles,
+    setRating(id, rating) {
+      if (typeof id !== 'string' || !/^[a-f0-9]{64}$/.test(id) ||
+          !(rating === null || (Number.isInteger(rating) && rating >= 1 && rating <= 5))) throw new Error('Invalid track rating.');
+      if (!pool.some(item => item.id === id) && !playlists.some(p => p.tracks.some(file => trackId(file) === id))) throw new Error('Track not found in audio library.');
+      const next = Object.assign(Object.create(null), ratings);
+      if (rating === null) delete next[id];
+      else {
+        if (!(id in next) && Object.keys(next).length >= LIMITS.ratings) throw new Error('Audio rating limit reached.');
+        next[id] = rating;
+      }
+      persist(folder, playlists, next);
+      notify();
+      return state();
+    },
     addPool(id, ids) {
       if (!Array.isArray(ids) || ids.length > LIMITS.pool || ids.some(id => typeof id !== 'string' || !/^[a-f0-9]{64}$/.test(id))) throw new Error('Invalid track selection.');
       const selected = new Set(ids);

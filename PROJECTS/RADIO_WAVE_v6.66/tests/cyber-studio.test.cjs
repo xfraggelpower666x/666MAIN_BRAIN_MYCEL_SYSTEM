@@ -14,7 +14,7 @@ function fixture(t) {
   const data = path.join(root, 'data');
   fs.mkdirSync(root);
   fs.writeFileSync(path.join(root, '666SD_Preset_Studio.exe'), '');
-  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }));
   return { root, data };
 }
 function fakeChild() {

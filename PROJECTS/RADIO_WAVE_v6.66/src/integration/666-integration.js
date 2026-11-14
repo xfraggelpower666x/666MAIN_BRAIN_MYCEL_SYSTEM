@@ -554,6 +554,8 @@ const a=q('#display-one'),b=q('#display-two');const prevA=a.value||localStorage.
     }
   });
 
+  const visualState=()=>({engine:q('#visual-engine').value||'soundwave',milkdropPreset:q('#milkdrop-preset').value,shaderPreset:q('#shader-preset').value,geometryPreset:q('#geometry-preset').value,importedMilkdrop});
+  const syncVisual=()=>{if(!outputMode)window.api.syncSource({visual:visualState()});};
   const mdUi=[
     ['#milkdrop-auto-seconds','#milkdrop-auto-seconds-value',v=>Math.round(v)+'s'],
     ['#milkdrop-auto-bars','#milkdrop-auto-bars-value',v=>Math.round(v)],
@@ -585,8 +587,6 @@ const a=q('#display-one'),b=q('#display-two');const prevA=a.value||localStorage.
   }catch{
     if(milkdropGpuStatus)milkdropGpuStatus.textContent='WEBGL2 · GPU CHECK FAILED';
   }
-  const visualState=()=>({engine:q('#visual-engine').value||'soundwave',milkdropPreset:q('#milkdrop-preset').value,shaderPreset:q('#shader-preset').value,geometryPreset:q('#geometry-preset').value,importedMilkdrop});
-  const syncVisual=()=>{if(!outputMode)window.api.syncSource({visual:visualState()});};
   ['#visual-engine','#milkdrop-preset','#shader-preset','#geometry-preset'].forEach(sel=>q(sel)?.addEventListener('change',syncVisual));
   // Apply supplied RADIO WAVE artwork from embedded package assets.
   const brandingMap=[

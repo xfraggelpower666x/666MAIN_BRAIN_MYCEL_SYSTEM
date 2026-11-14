@@ -13,6 +13,11 @@
     }
   };
   const wire=()=>{
+    root.addEventListener('toggle',e=>{
+      const el=e.target;
+      if(!el?.id||!el.matches('details'))return;
+      window.rwOverlay.action({key:overlayKey,kind:'toggle',id:el.id,checked:el.open}).catch(error=>console.error('Overlay toggle failed',error));
+    },true);
     root.addEventListener('input',e=>{
       const el=e.target;
       if(!el?.id||!el.matches('input,select,textarea'))return;

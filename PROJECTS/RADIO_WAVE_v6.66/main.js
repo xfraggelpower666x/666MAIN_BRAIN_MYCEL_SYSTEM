@@ -6,10 +6,13 @@ const os = require('os');
 const cp = require('child_process');
 const { runPowerShell } = require('./src/shared/powershell.cjs');
 const { createSoundCloudCredentialStore } = require('./src/shared/soundcloud-credentials.cjs');
+const { readSelectedFiles: readVjDataFiles } = require('./src/shared/vj-data-files.cjs');
 const { createSoundCloudStreamProxy } = require('./src/shared/soundcloud-stream.cjs');
 const { createCyberStudioLauncher } = require('./src/shared/milkdrop-cyber-studio.cjs');
 const { createAudioLibrary } = require('./src/shared/audio-library.cjs');
 const { createAudioPermissionGate, forwardOverlayMicrophone } = require('./src/shared/audio-permissions.cjs');
+const { createVjFiles } = require('./src/shared/vj-files.cjs');
+const { validateVjState } = require('./src/shared/vj-sync.cjs');
 
 const STARTUP_LOG_PATH = path.join(os.tmpdir(), 'RADIO-WAVE-v6.66-startup.log');
 function startupLog(type, detail='') {
@@ -76,7 +79,16 @@ const soundCloudCredentialStore = createSoundCloudCredentialStore(safeStorage, (
 const SOUND_CLOUD_API='https://api.soundcloud.com';
 const SOUND_CLOUD_AUTH='https://secure.soundcloud.com';
 const SOUND_CLOUD_CREATOR_URL='https://soundcloud.com/fraggelpower666';
-protocol.registerSchemesAsPrivileged([{scheme:'swmedia',privileges:{standard:true,secure:true,supportFetchAPI:true,stream:true}},{scheme:'swsc',privileges:{standard:true,secure:true,supportFetchAPI:true,corsEnabled:true,stream:true}}]);
+protocol.registerSchemesAsPrivileged([{scheme:'swmedia',privileges:{standard:true,secure:true,supportFetchAPI:true,stream:true}},{scheme:'swsc',privileges:{standard:true,secure:true,supportFetchAPI:true,corsEnabled:true,stream:true}},{scheme:'swvj',privileges:{standard:true,secure:true,corsEnabled:true,stream:true}}]);
+const vjFiles = createVjFiles({fetchFile:(url,options)=>net.fetch(url,options)});
+let vjPickerOpen = false;
+let vjFollowerState = null;
+let vjFollowerRevision = 0;
+function broadcastVjState(state) {
+  vjFollowerState = { revision: ++vjFollowerRevision, at: Date.now(), state };
+  for (const w of outputWindows.values()) if (w && !w.isDestroyed()) w.webContents.send('vj:state', vjFollowerState);
+  if (detachedVisualizerWindow && !detachedVisualizerWindow.isDestroyed()) detachedVisualizerWindow.webContents.send('vj:state', vjFollowerState);
+}
 app.commandLine.appendSwitch('enable-gpu-rasterization');
 app.commandLine.appendSwitch('enable-oop-rasterization');
 app.commandLine.appendSwitch('accelerated-2d-canvas');
@@ -421,7 +433,7 @@ async function soundCloudCreatorLibrary(){
 function soundCloudStep(delta){return activateSoundCloudIndex(soundCloudQueueIndex+(Number(delta)||0));}
 function soundCloudQueueState(){return {index:soundCloudQueueIndex,length:soundCloudQueue.length,current:soundCloudCurrent?{title:soundCloudCurrent.title,artist:soundCloudCurrent.artist,permalink:soundCloudCurrent.permalink}:null};}
 
-const DETACHED_OVERLAY_KEYS=new Set(['source','radioAdmin','media','audioPool','audioFx','audioDevices','wave','position','text','engines','milkdrop','diagnostics','export','dock']);
+const DETACHED_OVERLAY_KEYS=new Set(['source','radioAdmin','media','audioPool','audioFx','audioDevices','wave','position','text','engines','milkdrop','vjStudio','diagnostics','export','dock']);
 function overlayStatePath(){return path.join(app.getPath('userData'),'radio-wave-detached-overlays.json');}
 function readOverlayState(){try{return JSON.parse(fs.readFileSync(overlayStatePath(),'utf8'));}catch{return {windows:{}};}}
 function writeOverlayState(state){try{fs.writeFileSync(overlayStatePath(),JSON.stringify(state,null,2),'utf8');}catch{}}
@@ -752,6 +764,16 @@ registerIpc('workspace:overlay-state','main',()=>detachedOverlayState());
 registerIpc('workspace:overlay-focus','main',(_e,key)=>{const w=detachedOverlayWindows.get(String(key||''));if(w&&!w.isDestroyed()){w.show();w.focus();return {ok:true};}return {ok:false};});
 registerIpc('workspace:overlay-close','main',(_e,key)=>{const w=detachedOverlayWindows.get(String(key||''));if(w&&!w.isDestroyed()){w.close();return {ok:true};}return {ok:false};});
 registerIpc('app:version','main',()=>app.getVersion());
+registerIpc('dialog:openVjData','main',async(_event,kind)=>{
+  if(kind!=='sync'&&kind!=='parity')throw new Error('Invalid VJ data type');
+  const result=await dialog.showOpenDialog(mainWindow,{
+    title:kind==='sync'?'Open VJ audio sync CSV':'Open VJ parity JSON',
+    properties:kind==='parity'?['openFile','multiSelections']:['openFile'],
+    filters:[{name:kind==='sync'?'CSV audio sync':'Parity JSON',extensions:[kind==='sync'?'csv':'json']}]
+  });
+  if(result.canceled||!result.filePaths?.length)return null;
+  return readVjDataFiles(result.filePaths,kind);
+});
 registerIpc('app:open-site','main',async(_e,key)=>{
   if(typeof key!=='string'||!Object.hasOwn(approvedWebsites,key))throw new Error('website_not_allowed');
   await shell.openExternal(approvedWebsites[key]);
@@ -778,9 +800,10 @@ registerIpc('workspace:overlay-action','overlay',(_e,payload={})=>{
   const key=String(payload.key||'');
   if(!DETACHED_OVERLAY_KEYS.has(key))throw new Error('overlay_key_invalid');
   const kind=String(payload.kind||'');
-  if(!['input','change','click'].includes(kind))throw new Error('overlay_action_invalid');
+  if(!['input','change','click','toggle'].includes(kind))throw new Error('overlay_action_invalid');
   const id=String(payload.id||'').slice(0,120);
   const selector=String(payload.selector||'').slice(0,180);
+  if(kind==='toggle'&&(!id||selector))throw new Error('overlay_control_invalid');
   if(!id&&!selector)throw new Error('overlay_control_invalid');
   if(selector&&!/^\[data-(?:source|open-window)="[a-zA-Z0-9:_-]+"\]$/.test(selector))throw new Error('overlay_selector_invalid');
   mainWindow.webContents.send('workspace:overlay-action',{key,kind,id,selector,value:String(payload.value??'').slice(0,8192),checked:!!payload.checked});
@@ -791,6 +814,8 @@ registerIpc('display:open-output','main', (_e, ids) => openOutputWindows(ids));
 registerIpc('display:status','main', () => outputStatus());
 registerIpc('display:open-detached-visualizer','main',()=>openDetachedVisualizer());
 registerIpc('display:focus-detached-visualizer','main',()=>focusDetachedVisualizer());
+registerIpc('vj:sync','main',(_e,state)=>{broadcastVjState(validateVjState(state,id=>vjFiles.has(id)));return {ok:true};});
+registerIpc('vj:state','output',()=>vjFollowerState);
 registerIpc('display:heartbeat','output', (e, payload={}) => {
   const hit=Array.from(outputWindows.entries()).find(([,w])=>w&&!w.isDestroyed()&&w.webContents.id===e.sender.id);
   if(hit){const id=hit[0];outputHealth.set(id,{lastHeartbeat:Date.now(),engine:String(payload.engine||'unknown').slice(0,40),fps:Math.max(0,Math.min(240,Number(payload.fps)||0))});return {ok:true};}
@@ -918,6 +943,7 @@ app.whenReady().then(() => {
   ses.setPermissionCheckHandler((wc,permission,origin,details)=>audioPermissionGate.check(wc,permission,origin,details));
   ses.setPermissionRequestHandler((wc,permission,cb,details)=>cb(audioPermissionGate.request(wc,permission,details)));
   protocol.handle('swsc', request=>soundCloudStreamProxy.handle(request));
+  protocol.handle('swvj', request=>vjFiles.handle(request));
   loadLocalQueueFromDisk();
   audioLibrary=createAudioLibrary({
     userData:app.getPath('userData'),
@@ -966,6 +992,18 @@ app.on('window-all-closed', () => {
 });
 
 // IPC handlers for Native Dialogs and File operations
+registerIpc('vj:choose-videos','main',async()=>{
+  if(vjPickerOpen)throw new Error('Video picker is already open.');
+  vjPickerOpen=true;
+  try{
+    const result=await dialog.showOpenDialog(mainWindow,{title:'Choose Local VJ Videos',filters:[{name:'MP4 and WebM videos',extensions:['mp4','webm']}],properties:['openFile','multiSelections']});
+    if(result.canceled||!result.filePaths.length)return null;
+    const items=vjFiles.replace(result.filePaths);
+    broadcastVjState(null);
+    return items;
+  }finally{vjPickerOpen=false;}
+});
+registerIpc('vj:clear-videos','main',()=>{if(vjPickerOpen)throw new Error('Video picker is already open.');vjFiles.clear();broadcastVjState(null);return true;});
 registerIpc('audio:permission-begin','main',(event,kind)=>{audioPermissionGate.arm(event,kind);return {ok:true};});
 registerIpc('audio:permission-end','main',(_event,kind)=>{audioPermissionGate.revoke(kind);return {ok:true};});
 registerIpc('dialog:openAudio','main', async () => {
@@ -1013,6 +1051,7 @@ registerIpc('local:queue-shuffle','main',async()=>{
 });
 
 registerIpc('local:library-state','main',()=>audioLibrary.state());
+registerIpc('local:library-set-rating','main',(_e,id,rating)=>audioLibrary.setRating(id,rating));
 registerIpc('local:library-refresh','main',async()=>{await audioLibrary.refresh();return audioLibrary.state();});
 registerIpc('local:library-clear-folder','main',()=>audioLibrary.clearFolder());
 registerIpc('local:library-choose-folder','main',async()=>{
