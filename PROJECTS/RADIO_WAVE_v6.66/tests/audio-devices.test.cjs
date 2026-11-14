@@ -318,6 +318,35 @@ test('microphone denial and synthetic detached clicks are shown without starting
   assert.match(element('audio-input-status').textContent, /Microphone error.*Permission denied/);
 });
 
+test('disconnecting an opted-in microphone aborts the active recording', () => {
+  const app = fs.readFileSync(path.join(__dirname, '..', 'src', 'app.js'), 'utf8');
+  const start = app.indexOf('function setupAudioDevices()');
+  const end = app.indexOf('function setupLocalLibrary()', start);
+  assert.ok(start >= 0 && end > start);
+  const elements = new Map();
+  function element(id) {
+    if (!elements.has(id)) elements.set(id, { checked: false, value: '', textContent: '', addEventListener() {} });
+    return elements.get(id);
+  }
+  let stopped, failure;
+  const session = { includeMicrophone: true };
+  const context = {
+    document: { getElementById: element }, navigator: { mediaDevices: {} },
+    window: {
+      RWAudioDevices: { create: options => { stopped = options.onInputStopped; return { recordsInput: () => false, setInputRecording() {} }; } },
+      api: { onDetachedMicrophoneRequest() {} }, addEventListener() {}
+    },
+    audioInputRecord: element('audio-input-record'), audioDeviceController: null, btnExport: {},
+    audioElement: { currentSrc: '', getAttribute: () => null }, exportSession: session,
+    recordingError: (active, error) => { assert.equal(active, session); failure = error.message; }
+  };
+  runInNewContext(app.slice(start, end), context);
+  context.setupAudioDevices();
+  stopped('Microphone disconnected');
+  assert.equal(failure, 'Microphone disconnected');
+  assert.match(element('audio-input-status').textContent, /disconnected/);
+});
+
 test('Electron enforces the microphone gate with a fake device', () => {
   const scratch = path.join(__dirname, 'audio-permission-offline-' + process.pid);
   fs.mkdirSync(scratch);

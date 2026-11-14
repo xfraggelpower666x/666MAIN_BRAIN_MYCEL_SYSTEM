@@ -136,6 +136,26 @@ test('recording without a track or opted-in microphone is rejected', async () =>
   assert.equal(f.recorder, undefined);
 });
 
+test('a microphone lost while opening the file aborts the partial video', async () => {
+  const writes = [];
+  let release;
+  const pendingOpen = new Promise(resolve => { release = resolve; });
+  const f = renderer({
+    microphone: true, noMedia: true,
+    write: async data => { writes.push(data.byteLength); return { success: true }; },
+    close: async () => ({ success: false, error: 'video_write_aborted' })
+  });
+  f.api.startFileWrite = () => pendingOpen;
+  const pending = f.ctx.startRecordingPipeline();
+  await tick();
+  f.ctx.audioDeviceController.recordsInput = () => false;
+  release({ success: true });
+  await pending; await tick();
+  assert.deepEqual(writes, [0]);
+  assert.match(f.ctx.exportResult.textContent, /Microphone stopped before recording/);
+  assert.equal(f.track.stopped, true);
+});
+
 test('recorded chunks stay ordered and finalization waits for the last conversion and write', async () => {
   const f = renderer();
   await f.ctx.startRecordingPipeline();

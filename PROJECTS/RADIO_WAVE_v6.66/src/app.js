@@ -1790,6 +1790,7 @@ async function startRecordingPipeline() {
     if (!initRes?.success) throw new Error(initRes?.error || 'Could not initialize video file');
     session.opened = true;
     exportSession = session;
+    if(includeMicrophone&&!audioDeviceController?.recordsInput())throw new Error('Microphone stopped before recording');
     mediaRecorder = session.recorder;
     audioInputRecord.disabled = true;
     audioElement.pause();
