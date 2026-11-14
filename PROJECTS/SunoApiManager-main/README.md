@@ -201,7 +201,62 @@ AUTO_ANALYZE_SILENCE=true
 
 > If `config.yaml` exists, it takes priority.
 
+### Optional MCP server
+
+The MCP server is a separate stdio process packaged with Suno Manager. It authenticates
+only with a `sunoapi.org` API key; it does not read or reuse `suno_api.cookie`.
+The Manager web app continues to use its direct Suno session-cookie connection.
+
+For native use, install the project requirements and set these variables in the
+environment (or in a local, untracked `.env` file):
+
+```env
+SUNO_API_KEY=your_sunoapi_org_key
+SUNO_API_BASE_URL=https://api.sunoapi.org
+```
+
+Start the MCP server from the `SunoApiManager-main` directory:
+
+```bash
+python suno_mcp_server.py
+```
+
+For Docker, set the same variables in `.env` next to `docker-compose.yml`. Configure
+your MCP client to launch the stdio service (replace the path with the absolute path
+to this project):
+
+```json
+{
+  "mcpServers": {
+    "suno-mcp": {
+      "command": "docker",
+      "args": [
+        "compose", "-f", "/absolute/path/to/SunoApiManager-main/docker-compose.yml",
+        "--profile", "mcp", "run", "--rm", "-i", "suno-mcp"
+      ]
+    }
+  }
+}
+```
+
+The MCP service is opt-in and does not expose a network port. Keep the two credentials
+in their respective configuration sources: `suno_api.cookie` in `config.yaml` for the
+Manager, and `SUNO_API_KEY` for the MCP server. The MCP server exits with a clear error
+if its API key is missing; it never falls back to the Manager cookie.
+
 ## Running
+
+### Windows
+
+Run `START_SUNO_MANAGER.bat` from this folder for a menu to start the web UI, launch
+the MCP stdio server, or install Python dependencies. Python 3.10+ must be installed
+and available through `py -3` or `python`.
+
+You can also start the web UI directly with
+`START_SUNO_MANAGER.bat start [--port 9090] [--no-reload]`. To register the MCP server
+with an MCP client on Windows, set the command to `cmd` and its arguments to
+`["/c", "C:\\absolute\\path\\START_SUNO_MANAGER.bat", "mcp"]`. Set `SUNO_API_KEY` in
+the local `.env` file first. The launcher keeps MCP protocol output on stdout clean.
 
 ### Quick Start (recommended)
 
