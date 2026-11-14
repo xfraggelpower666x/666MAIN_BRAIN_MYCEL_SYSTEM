@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased — GUI output-folder fallback R11
+
+- Show the output path when the operating-system folder launcher cannot start.
+
 ## Unreleased — MAIN BRAIN CodeForge repair R09
 
 - Correct type contracts for STFT windows and null-test metrics. Reject a WAV with no channels before spectral processing.

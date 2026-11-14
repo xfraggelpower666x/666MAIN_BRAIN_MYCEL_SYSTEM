@@ -152,14 +152,15 @@ class SunoCleanserApp:
     def _open_out(self) -> None:
         OUT_DIR.mkdir(parents=True, exist_ok=True)
         folder = OUT_DIR.resolve()
-        opened = False
-        if sys.platform == "win32":
-            os.startfile(folder)
-            opened = True
-        elif sys.platform == "darwin":
-            opened = subprocess.run(["open", folder], check=False).returncode == 0
-        else:
-            opened = subprocess.run(["xdg-open", folder], check=False).returncode == 0
+        try:
+            if sys.platform == "win32":
+                os.startfile(folder)
+                opened = True
+            else:
+                launcher = "open" if sys.platform == "darwin" else "xdg-open"
+                opened = subprocess.run([launcher, folder], check=False).returncode == 0
+        except OSError:
+            opened = False
         if not opened:
             messagebox.showinfo("SunoCleanser", self._text("folder", path=folder))
 
