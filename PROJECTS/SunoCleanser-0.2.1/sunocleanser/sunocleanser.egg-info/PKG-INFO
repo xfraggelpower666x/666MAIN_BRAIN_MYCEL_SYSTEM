@@ -1,0 +1,10 @@
+Metadata-Version: 2.4
+Name: sunocleanser
+Version: 0.2.1
+Summary: Suno WAV adaptive spectral denoise CLI
+Requires-Python: >=3.11
+Requires-Dist: numpy>=1.26
+Requires-Dist: scipy>=1.11
+Requires-Dist: soundfile>=0.12
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0; extra == "dev"

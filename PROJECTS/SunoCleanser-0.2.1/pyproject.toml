@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sunocleanser"
+version = "0.2.1"
+description = "Suno WAV adaptive spectral denoise CLI"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "soundfile>=0.12",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[project.scripts]
+suno-clean = "sunocleanser.cli:main"
+sunocleanser-gui = "sunocleanser.gui.app:run_app"
+
+[tool.setuptools.packages.find]
+include = ["sunocleanser*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
