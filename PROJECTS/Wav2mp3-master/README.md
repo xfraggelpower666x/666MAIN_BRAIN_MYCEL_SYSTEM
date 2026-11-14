@@ -21,6 +21,12 @@ The parser regression tests do not require LAME:
 make test-parser
 ```
 
+The worker-queue shutdown regression test also does not require LAME:
+
+```sh
+make test-queue
+```
+
 It will be difficult to use multiple encoding threads on a single wav file,
 because it is not clear whether LAME library structures are thread-safe. Also
 stitching audio pieces together without degrading audio quality is not trivial.

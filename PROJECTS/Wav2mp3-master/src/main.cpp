@@ -150,8 +150,6 @@ void* worker(void* arg)
                                   (SyncQueue< shared_ptr<WavFile> >*) arg;
     if( NULL == wavFileQueue ) pthread_exit((void*) 0);
 
-    unsigned int numProcFiles=0;  // Number of files processed by this thread
-
     while( true )
     {
         // Dequeue wav file from work queue and encode it. Block if the queue is empty
@@ -186,20 +184,16 @@ void* worker(void* arg)
                 markProcessingFailed();
             }
 
-            numProcFiles++;
         }  // Resources will be freed here
         else
         {
-            LOG("Received empty work item from queue" << std::endl);
-            markProcessingFailed();
-            decNFilesToProcess();
-            continue;
+            break;
         }
 
         decNFilesToProcess();
     }
 
-    pthread_exit((void*) numProcFiles);
+    return NULL;
 }
 
 
@@ -322,9 +316,8 @@ int main(int argc, char* argv[])
         LOG("Work manager joined" << std::endl);
     }
 
-    // Cancel and join only threads that were successfully created.
-    for( size_t i=0; i<encoderThreads.size(); i++ )
-        pthread_cancel(encoderThreads[i]);
+    // Close the queue and wake workers blocked on dequeue.
+    wavFileQueuePtr->close(encoderThreads.size());
     for( size_t i=0; i<encoderThreads.size(); i++ )
         pthread_join(encoderThreads[i], NULL);
     LOG("Workers joined" << std::endl);

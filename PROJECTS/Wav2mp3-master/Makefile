@@ -55,7 +55,7 @@ CPPFLAGS += $(foreach includedir,$(INCLUDE_DIRS),-I$(includedir))
 LDLIBS += -Wl,-Bdynamic -lpthread
 
 
-.PHONY: all clean test-parser
+.PHONY: all clean test-parser test-queue
 
 
 all: $(TARGET)
@@ -68,6 +68,15 @@ $(PARSER_TEST_TARGET): tests/wav_parser_test.cpp $(SRC_DIR)/WavFile.cpp $(HEADER
 
 test-parser: $(PARSER_TEST_TARGET)
 	"$(PARSER_TEST_TARGET)" "$(BUILD_DIR)"
+
+QUEUE_TEST_TARGET=$(BUILD_DIR)/sync_queue_test
+
+$(QUEUE_TEST_TARGET): tests/sync_queue_test.cpp $(HEADERS)
+	-$(MKDIR) "$(@D)"
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o "$@" tests/sync_queue_test.cpp -lpthread
+
+test-queue: $(QUEUE_TEST_TARGET)
+	"$(QUEUE_TEST_TARGET)"
 
 
 $(TARGET): $(OBJS)
