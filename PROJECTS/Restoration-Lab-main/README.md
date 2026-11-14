@@ -19,7 +19,7 @@ Stereo input stays stereo. Source sample rate, full sample count and alignment a
 
 **Mac:** extract the folder and run `Start.command` to try the source application. Run `Build Mac App.command` to make a bundled app; then `Create GitHub Release.command` to make local release assets. These scripts preserve earlier build folders. Build on the intended Mac architecture.
 
-**Windows:** upload this folder's contents to repository root, including `.github/workflows/windows-build.yml`, and run **Build Windows** under GitHub Actions. Download **Restoration-Lab-3.0-Windows-x64**; the ZIP inside is the Windows release asset. Alternatively run `Build-Windows.ps1` on Windows with Python 3.13 x64.
+**Windows:** run `RESTORATION_LAB.bat` for the start, dependency/audio check, tests, Windows package build and portable-package verification menu. To build manually, run `Build-Windows.ps1` on Windows with Python 3.13 x64. For GitHub Actions, upload this folder's contents to repository root, including `.github/workflows/windows-build.yml`, and run **Build Windows**. Download **Restoration-Lab-3.0-Windows-x64**; the ZIP inside is the Windows release asset.
 
 **Development:** Python 3.10–3.14 with Tk 8.6+, `python3 -m pip install -r requirements.txt`, then `python3 app.py`. Run `python3 -m unittest discover -v` for tests. Native build scripts also run the actual bundled GUI self-test.
 
