@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased — path, parameter, and MP3 repairs
+
+- Keep output titles within the output directory and reject non-finite float parameters.
+- Accept MP3 input in the pipeline, CLI, GUI, and batch processing; continue writing WAV outputs.
+
 ## Unreleased — GUI output-folder fallback R11
 
 - Show the output path when the operating-system folder launcher cannot start.
