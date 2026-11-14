@@ -35,3 +35,7 @@ Je Arbeitsstrang Repository-ID, Branch, Basis- und Kandidatencommit, Pfad-Scope,
 Wenn der Lauf abgeschlossen ist und die Arbeitsposition hinterherhinkt, Run und Receipt direkt lesen. Bei derselben Ereignis-ID den vorhandenen Eintrag verwenden. Nach verändertem HEAD nur betroffene Belege anhand ihrer Eingaben, Pfade und Umgebung neu bewerten. Gemeinsame Ledger-Schreibvorgänge folgen der nativen Lock- und Queue-Governance.
 
 Bei Peer-Handoffs referenziert jeder Beleg Handoff-ID und Quellrevision. Zustellung, Readback, Adoption und Host-Ausführung werden einzeln belegt. Die Zielinstanz entscheidet über die Übernahme.
+
+### Methodenwechsel nach Unterbrechung
+
+Speichere bei fehlgeschlagenen Wiederholungen die Task-ID, Fehlersignatur, Quellfingerprint, Methode und Zahl der Versuche im vorhandenen Strang-Checkpoint. Nach höchstens drei identischen Versuchen einen begründeten Methodenwechsel oder den konkreten Blocker erfassen. Bei eindeutigem Rechte- oder Authority-Blocker sofort den betroffenen Strang pausieren. Unabhängige Stränge behalten ihre belegte Arbeitsposition.

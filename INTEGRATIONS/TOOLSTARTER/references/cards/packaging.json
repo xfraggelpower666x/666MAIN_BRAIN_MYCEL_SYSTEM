@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "id": "packaging",
+  "name": "Setup, Portable, Archiv und Runtime-Manifest",
+  "evidence": [
+    "Installer",
+    "ZIP",
+    "Inno Setup",
+    "bestehender Packager"
+  ],
+  "roles": [
+    "build",
+    "target"
+  ],
+  "check": "Kontrolliere Zielarchitektur, vollständigen App-Build, Pflicht-Runtime-Inventar, Kompilereinstieg und Lizenzdateien.",
+  "repair": "Fehlende Dateien aus der vorgesehenen Build- oder Distributionsquelle ergänzen und paketinterne Funktionstests wiederholen.",
+  "delivery": "Portable- und Setup-Ausgabe aus identischer Nutzlast erzeugen. SHA-256-Manifest und Zieldiagnose beilegen.",
+  "acceptance": "Setup und entpacktes ZIP in einer sauberen Zielumgebung möglichst offline starten und jede Pflichtfähigkeit prüfen."
+}

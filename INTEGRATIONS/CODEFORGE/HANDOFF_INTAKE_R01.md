@@ -121,3 +121,7 @@ Die CLI liest die exakten Receipt-Bytes einmal für Qualitätsprüfung und Hash.
 Zur Abnahme von Laufherkunft sind der direkt gelesene Run mit tatsächlich ausgechecktem Commit, Workflow oder Runner-Konfiguration, Jobabschluss, erwarteten Checks und die direkt von diesem Run gelesenen Artefaktbytes nötig. Provider-, fachliche und Fresh-Chat-Abnahme sind offen.
 
 Für die Wiederaufnahme gilt der [native Checkpoint-Vertrag](../../CONTINUITY/HANDOFF_CONTRACT.md#codeforge-checkpoint). Der Graph-Hash des RepoBrain-Exports belegt den Carrier. Die Herkunft eines Scanner-Laufs bleibt bis zum separaten Scanner- und Checkout-Readback offen.
+
+### CLIC R04 · Ursachenprüfung und Recovery
+
+Für verallgemeinerte Ursachenbefunde zwei unterscheidbare Fälle festhalten. Pro Fall erwartetes und beobachtetes Verhalten, belegte Fundstellen und betroffene Aufrufer nennen. Gegenbeispiel und alternative Erklärung gegen die Hypothese prüfen. Struktur und Referenzen, fachliche Wirkung und frische Wiederaufnahme getrennt abnehmen. Für Änderungen mit größerer Tragweite vorab prüfen, ob Commit-Anker, Recovery-Branch oder Release-Sicherung der tatsächlich benötigte Rückweg ist.

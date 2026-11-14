@@ -87,3 +87,11 @@ Für den Ablauf von Issue und Kontext bis zu Patch, Review, Handoff und Host-Abn
 Im Checkout-Modus gleicht der Resolver sowohl den Katalogpfad als auch den Workflow-Pfad zwischen Current-Pointer und Runtime-Registry ab. Beide Pfade müssen eindeutig angegeben sein und auf vorhandene Dateien innerhalb des Checkouts zeigen. Bei einer Abweichung beendet sich die Abfrage mit Exit 2 und einer Fehlermeldung. Die eigenständige Katalogabfrage ohne `--checkout` bleibt verfügbar.
 
 Lokal geprüft wurden die vollständige Abfrage mit 202 Einträgen, die exakte ID der Sprachfacette in beiden Modi sowie fünf fehlerhafte Workflow-Bindungen. Der Check verifiziert Pfad und Zuordnung. Die Ausführung eines Workflows im Plugin-Host und Provider-Aufrufe haben eigene Abnahmen.
+
+## Windows-Toolstart und Paketierung
+
+Bei einem projektbezogenen Start-, Diagnose- oder Paketierungsauftrag verwende [ToolStarter und die neutralen Werkzeugkarten](../TOOLSTARTER/SKILL.md). Binde Installer, Paketmanager, Probe und Reparatur an das explizit gewählte Projektprofil. Der neutrale Standard enthält keine aktiven Werkzeuge. Prüfe die Ersatzroute und bestehende Aufrufer, bevor du alte Batch-Einstiege im Zielprojekt entfernst. Paketierung und Start auf Windows erhalten je einen eigenen Abnahmebeleg.
+
+## Provider-Adapter
+
+Binde Zeitbudget, Retry-Limit, Abbruch und Request-ID als getrennte Felder des Provider-Belegs. Die vorliegenden Node- und Python-SDK-Stände behandeln lange Retry-After-Werte verschieden. Lege für einen neuen Adapter eine gemeinsame Strategie explizit fest. Nach ungewisser Wirkung einer schreibenden Aktion zuerst Zielzustand und Wiederholbarkeit prüfen. Ein API-Log belegt noch keinen Checkout, keinen Artefaktinhalt und keine Host-Ausführung.

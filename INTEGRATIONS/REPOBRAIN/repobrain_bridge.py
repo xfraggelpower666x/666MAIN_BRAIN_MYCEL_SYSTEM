@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import re
 import sys
+import subprocess
 
 
 def require_text(value, field):
@@ -97,10 +98,26 @@ def main():
     parser.add_argument("graph", type=Path)
     parser.add_argument("--repository", required=True)
     parser.add_argument("--revision", required=True)
+    parser.add_argument("--checkout", type=Path)
+    parser.add_argument("--source-locations", type=Path)
     args = parser.parse_args()
+    if (args.checkout is None) != (args.source_locations is None):
+        parser.error("--checkout and --source-locations must be supplied together")
     try:
         result = convert(args.graph.read_bytes(), args.repository, args.revision)
-    except (OSError, ValueError) as error:
+        if args.checkout is not None:
+            if __package__:
+                from .source_locations import bind_locations
+            else:
+                from source_locations import bind_locations
+            result["source_locations"] = bind_locations(
+                args.checkout, args.revision, result["provenance"]["graph_sha256"],
+                {node["id"] for node in result["nodes"]},
+                json.loads(args.source_locations.read_bytes()),
+            )
+            result["provenance"]["source_location_status"] = "GIT_BYTES_VERIFIED"
+            result["provenance"]["scanner_origin_status"] = "READBACK_PENDING"
+    except (OSError, ValueError, subprocess.CalledProcessError) as error:
         parser.exit(2, f"{error}\n")
     json.dump(result, sys.stdout, ensure_ascii=True, indent=2)
     print()
