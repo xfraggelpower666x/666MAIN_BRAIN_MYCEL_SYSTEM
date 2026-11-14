@@ -187,8 +187,8 @@ function renderLocalQueue(state){
     localQueueList.replaceChildren();
     for(const item of localQueueSnapshot.items||[]){
       const row=document.createElement('div');row.className='local-queue-row'+(item.active?' active':'');
-      const play=document.createElement('button');play.type='button';play.className='local-queue-track';play.dataset.index=String(item.index);play.textContent=(item.active?'▶ ':'')+item.name;
-      const remove=document.createElement('button');remove.type='button';remove.className='local-queue-remove';remove.dataset.removeIndex=String(item.index);remove.textContent='×';remove.title='Remove from local queue';
+      const play=document.createElement('button');play.type='button';play.id='local-queue-play-'+item.index;play.className='local-queue-track';play.dataset.index=String(item.index);play.textContent=(item.active?'▶ ':'')+item.name;
+      const remove=document.createElement('button');remove.type='button';remove.id='local-queue-remove-'+item.index;remove.className='local-queue-remove';remove.dataset.removeIndex=String(item.index);remove.textContent='×';remove.title='Remove from local queue';
       row.append(play,remove);localQueueList.appendChild(row);
     }
   }
@@ -2481,6 +2481,7 @@ window.SoundwaveRuntime = Object.freeze({
   ensureAudioContext,
   getAnalyser: () => analyserNode,
   getAudioContext: () => audioContext,
+  isExporting: () => !!exportSession,
   getFrequencyData: () => dataArray,
   getTimeData: () => timeDataArray,
   setExternalAnalyserFrame: (frame) => {

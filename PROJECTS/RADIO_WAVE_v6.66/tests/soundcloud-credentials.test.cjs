@@ -43,7 +43,7 @@ test('unavailable encryption and corrupt credentials fail explicitly', async t =
   await assert.rejects(store.read(), /credentials_decryption_failed/);
 });
 
-test('detached window snapshots do not copy password fields', () => {
+test('detached window snapshots do not copy password values', () => {
   const workspace = fs.readFileSync(path.join(__dirname, '../src/workspace.js'), 'utf8');
   const start = workspace.indexOf('  function controlsSnapshot(');
   const end = workspace.indexOf('  async function detachWindow(', start);
@@ -56,8 +56,13 @@ test('detached window snapshots do not copy password fields', () => {
       { id: 'title', tagName: 'INPUT', type: 'text', value: 'visible' }
     ]
   });
-  assert.equal(snapshot.length, 1);
-  assert.equal(snapshot[0].id, 'title');
+  assert.equal(snapshot.length, 2);
+  assert.equal(snapshot[0].id, 'secret');
+  assert.equal(snapshot[0].hasValue, true);
+  assert.equal('value' in snapshot[0], false);
+  assert.doesNotMatch(JSON.stringify(snapshot), /do-not-copy/);
+  assert.equal(snapshot[1].id, 'title');
+  assert.equal(snapshot[1].value, 'visible');
 });
 
 function tokenContext(fetch) {

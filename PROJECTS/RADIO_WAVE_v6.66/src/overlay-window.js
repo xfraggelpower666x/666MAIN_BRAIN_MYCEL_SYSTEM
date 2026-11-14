@@ -2,13 +2,15 @@
 (()=>{
   const root=document.getElementById('overlay-root');
   let overlayKey='';
-  const applyControls=(controls=[])=>{
+  const applyControls=(controls=[],editingId='')=>{
     for(const s of controls){
       if(!s?.id)continue;
       const el=document.getElementById(s.id);
       if(!el)continue;
       if((el.type==='checkbox'||el.type==='radio')&&typeof s.checked==='boolean')el.checked=s.checked;
-      else if(s.value!==undefined&&s.value!==null)el.value=String(s.value);
+      else if(el.type==='password'){
+        if(s.hasValue===false&&s.id!==editingId)el.value='';
+      }else if(s.id!==editingId&&s.value!==undefined&&s.value!==null)el.value=String(s.value);
       if(typeof s.disabled==='boolean')el.disabled=s.disabled;
     }
   };
@@ -45,8 +47,30 @@
     wire();
   });
   window.rwOverlay.onSync(payload=>{
-    if(payload?.html!==undefined)root.innerHTML=String(payload.html||'');
-    applyControls(payload?.controls||[]);
+    const active=document.activeElement;
+    const editing=active?.id&&root.contains(active)&&active.matches('input,textarea,select')?{
+      id:active.id,value:active.value,start:active.selectionStart,end:active.selectionEnd,direction:active.selectionDirection
+    }:null;
+    if(payload?.html!==undefined){
+      const secrets=Array.from(root.querySelectorAll('input[type="password"][id]'),el=>({id:el.id,value:el.value}));
+      const scrollTop=root.scrollTop,scrollLeft=root.scrollLeft;
+      root.innerHTML=String(payload.html||'');
+      for(const secret of secrets){
+        const el=document.getElementById(secret.id);
+        if(el&&root.contains(el)&&el.type==='password')el.value=secret.value;
+      }
+      if(editing){
+        const el=document.getElementById(editing.id);
+        if(el&&root.contains(el)&&el.matches('input,textarea,select')&&!el.disabled){
+          if(el.type!=='checkbox'&&el.type!=='radio')el.value=editing.value;
+          el.focus({preventScroll:true});
+          if(editing.start!==null&&editing.end!==null&&typeof el.setSelectionRange==='function')
+            el.setSelectionRange(editing.start,editing.end,editing.direction);
+        }
+      }
+      root.scrollTop=scrollTop;root.scrollLeft=scrollLeft;
+    }
+    applyControls(payload?.controls||[],editing?.id||'');
   });
   window.rwOverlay.ready().catch(()=>{});
 })();
