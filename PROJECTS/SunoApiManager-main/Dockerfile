@@ -27,7 +27,8 @@ RUN pip install --no-cache-dir \
 
 # ── Copy application code ───────────────────────────────────
 COPY app.py suno_api.py suno_models.py suno_router.py \
-     database.py audio_analyzer.py captcha_solver.py ./
+     database.py audio_analyzer.py captcha_solver.py \
+     suno_mcp_server.py sunoapi_client.py ./
 COPY templates/ ./templates/
 COPY static/ ./static/
 
