@@ -88,3 +88,7 @@ HOST_DIRECT_SKILL_READ=8_OF_8_PASS_2026_11_14
 HOST_FRESH_CHAT_ACCEPTANCE=PENDING_TEN_CASE_MATRIX
 HOST_PLUGIN_CURRENT=HOST/PLUGIN_CURRENT.md
 HOST_ACCEPTANCE_MATRIX=HOST/FRESH_CHAT_ACCEPTANCE_MATRIX.md
+
+## Aktueller Account-Release · R12
+
+Beobachteter privater MAIN-BRAIN-Release: `0.2.0` / `pluginrel_6af807d884d48191bd24fbec19d46e4e`. Der vorhandene Repository-Quellsnapshot und die frühere Host-Beobachtung beziehen sich auf 0.1.0. Für 0.2.0 sind das gespeicherte Release und die lesbaren Quelldateien bestätigt. Skill-Discovery und Fresh-Chat-Ausführung für 0.2.0 sind offen.

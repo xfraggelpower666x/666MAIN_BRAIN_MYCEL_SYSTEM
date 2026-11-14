@@ -34,3 +34,9 @@ ADOPTION_CLASS=VERIFIED_SKILL_ROUTER_ADOPTION
 FRESH_CHAT_TEST=NOT_YET_FULLY_EXECUTED
 OBSERVATION_SCOPE=2026_11_14_CURRENT_CHAT_ONLY
 TEN_TRIGGER_HOST_PASS=FALSE
+
+## Release 0.2.0 · R12
+
+Beobachteter privater MAIN-BRAIN-Release: `0.2.0` / `pluginrel_6af807d884d48191bd24fbec19d46e4e`. Der vorhandene Repository-Quellsnapshot und die frühere Host-Beobachtung beziehen sich auf 0.1.0. Für 0.2.0 sind das gespeicherte Release und die lesbaren Quelldateien bestätigt. Skill-Discovery und Fresh-Chat-Ausführung für 0.2.0 sind offen.
+
+Die zehn nativen Fälle bleiben für 0.2.0 offen. Coding-Einstieg, Audit-Ansicht und projektgebundene Wiederaufnahme sind zusätzliche Coding-Fälle. [Abgleich](../AUDIT/MAIN_BRAIN_CODING_PLUGIN_PARITY_R12_2026-11-14.md)
