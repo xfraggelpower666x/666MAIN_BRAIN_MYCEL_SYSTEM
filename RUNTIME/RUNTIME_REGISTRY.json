@@ -29,7 +29,9 @@
     "currentness_audit": "INTELLIGENCE/CURRENTNESS_AUDIT.md",
     "learning": "INTELLIGENCE/LEARNING.md",
     "peer_tech_exchange": "INTELLIGENCE/PEER_TECH_EXCHANGE.md",
-    "semantic_translator": "INTELLIGENCE/SEMANTIC_TRANSLATOR.md"
+    "semantic_translator": "INTELLIGENCE/SEMANTIC_TRANSLATOR.md",
+    "plugin_capabilities": "INTEGRATIONS/PLUGIN_CAPABILITIES/CAPABILITIES_R01.json",
+    "plugin_capability_workflows": "INTEGRATIONS/PLUGIN_CAPABILITIES/WORKFLOWS_R01.md"
   },
   "catalog": {
     "card_schema": "CATALOG/SYSTEM_CARD_SCHEMA.md",

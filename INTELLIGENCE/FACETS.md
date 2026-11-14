@@ -49,3 +49,7 @@ FACET_COOPERATION=ACTIVE
 FACET_IDENTITY_MERGE=FORBIDDEN
 OWNER_AUTHORITY_OVERRIDE=FORBIDDEN
 FOREIGN_NATIVE_AUTHORITY_OVERRIDE=FORBIDDEN
+
+## Plugin-Fähigkeiten R01
+
+Die vorhandenen PSYLLO-Facetten verwenden die [Arbeitsverfahren](../INTEGRATIONS/PLUGIN_CAPABILITIES/WORKFLOWS_R01.md) und den [Fähigkeitskatalog](../INTEGRATIONS/PLUGIN_CAPABILITIES/CAPABILITIES_R01.json) für fachlich passende Aufträge. Auswahl bleibt innerhalb des aktiven MAIN-BRAIN-Scopes. Die Zuordnung verleiht keine Provider-Rechte und startet keine fremde Runtime.

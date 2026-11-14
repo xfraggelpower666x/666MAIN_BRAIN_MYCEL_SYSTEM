@@ -48,3 +48,7 @@ Exact NEW/NEXT CHAT lineage, handoff persistence/readback and return anchors.
 
 ### 11. PLUGIN HOST SURFACE
 Private native-runtime adapter status. Plugin is entrypoint only; repository Current remains authority.
+
+### 12. PLUGIN-FÄHIGKEITEN
+
+Zeige passende Capability-ID, zuständige PSYLLO-Facette, Workflow und Ausführungsmodus. Bei einem Provider-Schritt zeige verfügbare Zielumgebung, beobachteten Status und die nächste verifizierbare Aktion. [Fähigkeitskatalog](../INTEGRATIONS/PLUGIN_CAPABILITIES/CAPABILITIES_R01.json) · [Arbeitsverfahren](../INTEGRATIONS/PLUGIN_CAPABILITIES/WORKFLOWS_R01.md)

@@ -1,0 +1,1000 @@
+{
+  "schema_version": 1,
+  "sources": {
+    "sceeri": {
+      "sha256": "997318dc99deb47167ece477fc5f64c30cdafd296ce5c5ff305b8b3fe4136e02",
+      "files": 135,
+      "version": "0.59.0"
+    },
+    "toolkit": {
+      "sha256": "848a2c669a78a6548a0a74af012ad0efdb00dc49f976159b34cf44dcdedccfb0",
+      "files": 183
+    },
+    "browser": {
+      "sha256": "b65514e82f9ea0607de446e0213d83ca7be78cdb7d797ad034215d0a595470b9",
+      "files": 35
+    },
+    "freeze": {
+      "sha256": "f7f7679921f71914ce9c061ca1185dfe56ef48a5df85a4dd26bc235f1ebedb0a",
+      "files": 10,
+      "internal_checksums": "8_MATCH",
+      "historic_archive_sha256": "630860c4ce4d10cd79f06921429ad6fcc491de503ce802d6b0971364d8636bca",
+      "historic_archive_hash_matches_upload": false
+    },
+    "artifacts": {
+      "sha256": "1c0efa76f94eecc1c0709467a86cab0fc573015c073563fa155a5efbbe4c79fe",
+      "files": 57
+    },
+    "coding-intelligence-visual-addon": {
+      "sha256": "ad1724a32c0e1c11c494aeaa07de55e343bc95c3b931aaed1c36259f95712704",
+      "files": 17,
+      "parent": "artifacts"
+    },
+    "fullstack-code-nlp-agent": {
+      "sha256": "9761719ab0d5edadf4c112fc1cbbcc8bdda813a13ea9e79fa55bdc17511f0df7",
+      "files": 38,
+      "parent": "artifacts"
+    }
+  },
+  "capabilities": [
+    {
+      "id": "artifacts/html-nlp-reporting",
+      "facet": "VISUAL",
+      "workflow": "nlp",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "fullstack-code-nlp-agent.zip"
+    },
+    {
+      "id": "artifacts/java-nlp-client",
+      "facet": "BRIDGE",
+      "workflow": "nlp",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "fullstack-code-nlp-agent.zip"
+    },
+    {
+      "id": "artifacts/python-nlp-service",
+      "facet": "BRIDGE",
+      "workflow": "nlp",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "fullstack-code-nlp-agent.zip"
+    },
+    {
+      "id": "artifacts/reasoning-engine",
+      "facet": "CAUSAL",
+      "workflow": "reasoning",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "coding-intelligence-visual-addon.zip"
+    },
+    {
+      "id": "artifacts/visual-preview",
+      "facet": "VISUAL",
+      "workflow": "visual",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "coding-intelligence-visual-addon.zip"
+    },
+    {
+      "id": "browser/chatgpt-pro-browser",
+      "facet": "BRIDGE",
+      "workflow": "browser",
+      "mode": "AUTHORIZED_ADAPTER_REQUIRED",
+      "source_path": "chatgpt-pro-browser-main/plugins/chatgpt-pro-browser/skills/chatgpt-pro-browser/SKILL.md"
+    },
+    {
+      "id": "browser/chatgpt-pro-planner",
+      "facet": "CHAOS_CONDUCTOR",
+      "workflow": "planning",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "chatgpt-pro-browser-main/plugins/chatgpt-pro-browser/skills/chatgpt-pro-planner/SKILL.md"
+    },
+    {
+      "id": "coding-intelligence-visual-addon/emergence-intelligence",
+      "facet": "EMERGENCE",
+      "workflow": "reasoning",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "coding-intelligence-visual-addon/skills/emergence-intelligence/SKILL.md"
+    },
+    {
+      "id": "coding-intelligence-visual-addon/evidence-engineering",
+      "facet": "RATIONAL",
+      "workflow": "verification",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "coding-intelligence-visual-addon/skills/evidence-engineering/SKILL.md"
+    },
+    {
+      "id": "coding-intelligence-visual-addon/semantic-causal-reasoning",
+      "facet": "CAUSAL",
+      "workflow": "reasoning",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "coding-intelligence-visual-addon/skills/semantic-causal-reasoning/SKILL.md"
+    },
+    {
+      "id": "coding-intelligence-visual-addon/visual-dashboard",
+      "facet": "VISUAL",
+      "workflow": "visual",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "coding-intelligence-visual-addon/skills/visual-dashboard/SKILL.md"
+    },
+    {
+      "id": "freeze/audit",
+      "facet": "ARCHIVIST",
+      "workflow": "release",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "UNIVERSAL_INTEGRATION_AUDIT_REPAIR_FREEZE_SYSTEMBACKUP_v1_0_0/SYSTEM_BACKUP/registry/REGISTRY_v1_0_0.json"
+    },
+    {
+      "id": "freeze/freeze",
+      "facet": "ARCHIVIST",
+      "workflow": "release",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "UNIVERSAL_INTEGRATION_AUDIT_REPAIR_FREEZE_SYSTEMBACKUP_v1_0_0/SYSTEM_BACKUP/registry/REGISTRY_v1_0_0.json"
+    },
+    {
+      "id": "freeze/handoff",
+      "facet": "ARCHIVIST",
+      "workflow": "release",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "UNIVERSAL_INTEGRATION_AUDIT_REPAIR_FREEZE_SYSTEMBACKUP_v1_0_0/SYSTEM_BACKUP/registry/REGISTRY_v1_0_0.json"
+    },
+    {
+      "id": "freeze/integration",
+      "facet": "ARCHIVIST",
+      "workflow": "release",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "UNIVERSAL_INTEGRATION_AUDIT_REPAIR_FREEZE_SYSTEMBACKUP_v1_0_0/SYSTEM_BACKUP/registry/REGISTRY_v1_0_0.json"
+    },
+    {
+      "id": "freeze/repair",
+      "facet": "ARCHIVIST",
+      "workflow": "release",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "UNIVERSAL_INTEGRATION_AUDIT_REPAIR_FREEZE_SYSTEMBACKUP_v1_0_0/SYSTEM_BACKUP/registry/REGISTRY_v1_0_0.json"
+    },
+    {
+      "id": "freeze/systemsicherung",
+      "facet": "ARCHIVIST",
+      "workflow": "release",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "UNIVERSAL_INTEGRATION_AUDIT_REPAIR_FREEZE_SYSTEMBACKUP_v1_0_0/SYSTEM_BACKUP/registry/REGISTRY_v1_0_0.json"
+    },
+    {
+      "id": "freeze/zip",
+      "facet": "ARCHIVIST",
+      "workflow": "release",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "UNIVERSAL_INTEGRATION_AUDIT_REPAIR_FREEZE_SYSTEMBACKUP_v1_0_0/SYSTEM_BACKUP/registry/REGISTRY_v1_0_0.json"
+    },
+    {
+      "id": "fullstack-code-nlp-agent/code-review",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "fullstack-code-nlp-agent/skills/code-review/SKILL.md"
+    },
+    {
+      "id": "fullstack-code-nlp-agent/engineering-workflow",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "fullstack-code-nlp-agent/skills/engineering-workflow/SKILL.md"
+    },
+    {
+      "id": "fullstack-code-nlp-agent/java-development",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "fullstack-code-nlp-agent/skills/java-development/SKILL.md"
+    },
+    {
+      "id": "fullstack-code-nlp-agent/nlp-linguistics",
+      "facet": "EXPLAINER",
+      "workflow": "nlp",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "fullstack-code-nlp-agent/skills/nlp-linguistics/SKILL.md"
+    },
+    {
+      "id": "fullstack-code-nlp-agent/python-development",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "fullstack-code-nlp-agent/skills/python-development/SKILL.md"
+    },
+    {
+      "id": "fullstack-code-nlp-agent/testing-debugging",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "fullstack-code-nlp-agent/skills/testing-debugging/SKILL.md"
+    },
+    {
+      "id": "fullstack-code-nlp-agent/web-html-css",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "fullstack-code-nlp-agent/skills/web-html-css/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-agent-repo-init",
+      "facet": "CHAOS_CONDUCTOR",
+      "workflow": "planning",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-agent-repo-init/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-agent-runtime-debug",
+      "facet": "CAUSAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-agent-runtime-debug/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-agentenlauf-chat",
+      "facet": "CHAOS_CONDUCTOR",
+      "workflow": "parallel",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-agentenlauf-chat/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-ai-coding-prompts",
+      "facet": "CHAOS_CONDUCTOR",
+      "workflow": "planning",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-ai-coding-prompts/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-alembic-migrations",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-alembic-migrations/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-algorithms-and-data-structures",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-algorithms-and-data-structures/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-architecture-and-design-patterns",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-architecture-and-design-patterns/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-backend-and-apis",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-backend-and-apis/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-background-jobs-boundaries",
+      "facet": "CHAOS_CONDUCTOR",
+      "workflow": "parallel",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-background-jobs-boundaries/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-bildbearbeitung",
+      "facet": "BRIDGE",
+      "workflow": "tools",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "skills/sceeri-bildbearbeitung/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-brand-identity",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-brand-identity/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-causal",
+      "facet": "CAUSAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-causal/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-click-cli",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-click-cli/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-click-cli-review",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-click-cli-review/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-code-assistant",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-code-assistant/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-code-converter",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-code-converter/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-code-engineering",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-code-engineering/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-code-explainer",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-code-explainer/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-code-quality",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-code-quality/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-code-review-and-refactor",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-code-review-and-refactor/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-code-writer",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-code-writer/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-coding-profi-chat",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-coding-profi-chat/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-coding-profi-livecircle",
+      "facet": "REHYDRATOR",
+      "workflow": "continuity",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-coding-profi-livecircle/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-coding-uebung",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-coding-uebung/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-continuity",
+      "facet": "REHYDRATOR",
+      "workflow": "continuity",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-continuity/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-datenanalyse",
+      "facet": "BRIDGE",
+      "workflow": "tools",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "skills/sceeri-datenanalyse/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-debugger",
+      "facet": "CAUSAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-debugger/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-developer-productivity",
+      "facet": "CHAOS_CONDUCTOR",
+      "workflow": "planning",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-developer-productivity/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-dockerize-service",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-dockerize-service/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-dokumentkonvertierung",
+      "facet": "BRIDGE",
+      "workflow": "tools",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "skills/sceeri-dokumentkonvertierung/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-effect-typescript",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-effect-typescript/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-electron",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-electron/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-emergence",
+      "facet": "EMERGENCE",
+      "workflow": "reasoning",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-emergence/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-evidence",
+      "facet": "RATIONAL",
+      "workflow": "reasoning",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-evidence/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-evidence-parity",
+      "facet": "RATIONAL",
+      "workflow": "reasoning",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-evidence-parity/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-facetten-entwurf",
+      "facet": "CARTOGRAPHER",
+      "workflow": "reasoning",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-facetten-entwurf/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-fastapi-errors",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-fastapi-errors/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-fastapi-init",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-fastapi-init/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-ffmpeg",
+      "facet": "BRIDGE",
+      "workflow": "tools",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "skills/sceeri-ffmpeg/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-finanzmodellierung",
+      "facet": "BRIDGE",
+      "workflow": "tools",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "skills/sceeri-finanzmodellierung/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-geodaten",
+      "facet": "BRIDGE",
+      "workflow": "tools",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "skills/sceeri-geodaten/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-graph-benchmark",
+      "facet": "RATIONAL",
+      "workflow": "reasoning",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-graph-benchmark/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-graph-retrieval",
+      "facet": "CARTOGRAPHER",
+      "workflow": "reasoning",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-graph-retrieval/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-http-client-integration",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-http-client-integration/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-incident-response",
+      "facet": "SENTINEL",
+      "workflow": "verification",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-incident-response/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-java-engineer",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-java-engineer/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-knowledge-layer",
+      "facet": "CARTOGRAPHER",
+      "workflow": "reasoning",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-knowledge-layer/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-linguistic-programming",
+      "facet": "EXPLAINER",
+      "workflow": "nlp",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-linguistic-programming/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-local-project-independence",
+      "facet": "REHYDRATOR",
+      "workflow": "continuity",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-local-project-independence/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-marktindikatoren",
+      "facet": "BRIDGE",
+      "workflow": "tools",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "skills/sceeri-marktindikatoren/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-mcp-entwurf",
+      "facet": "BRIDGE",
+      "workflow": "integration",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-mcp-entwurf/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-medienbearbeitung",
+      "facet": "BRIDGE",
+      "workflow": "tools",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "skills/sceeri-medienbearbeitung/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-nlp-engineering",
+      "facet": "EXPLAINER",
+      "workflow": "nlp",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-nlp-engineering/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-ocr",
+      "facet": "BRIDGE",
+      "workflow": "tools",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "skills/sceeri-ocr/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-openspec-change-lifecycle",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-openspec-change-lifecycle/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-orchestrator",
+      "facet": "CHAOS_CONDUCTOR",
+      "workflow": "parallel",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-orchestrator/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-parallel-handoff",
+      "facet": "CHAOS_CONDUCTOR",
+      "workflow": "parallel",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-parallel-handoff/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-patch-first-delivery",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-patch-first-delivery/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-project-workspaces",
+      "facet": "REHYDRATOR",
+      "workflow": "continuity",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-project-workspaces/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-projektsprachen",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-projektsprachen/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-prompt-safety",
+      "facet": "SENTINEL",
+      "workflow": "verification",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-prompt-safety/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-provider-integration-acceptance",
+      "facet": "SENTINEL",
+      "workflow": "verification",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-provider-integration-acceptance/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-pydantic-schemas",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-pydantic-schemas/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-pytest-service",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-pytest-service/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-python-engineer",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-python-engineer/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-python-performance",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-python-performance/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-python-project-checks",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-python-project-checks/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-python-repair-workflow",
+      "facet": "CAUSAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-python-repair-workflow/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-qr-code",
+      "facet": "BRIDGE",
+      "workflow": "tools",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "skills/sceeri-qr-code/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-quality-gates",
+      "facet": "SENTINEL",
+      "workflow": "verification",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-quality-gates/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-relational",
+      "facet": "CARTOGRAPHER",
+      "workflow": "reasoning",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-relational/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-release-readiness",
+      "facet": "SENTINEL",
+      "workflow": "verification",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-release-readiness/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-repository-intelligence",
+      "facet": "CARTOGRAPHER",
+      "workflow": "reasoning",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-repository-intelligence/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-request-correlation",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-request-correlation/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-research",
+      "facet": "BRIDGE",
+      "workflow": "tools",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "skills/sceeri-research/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-rtl-entwicklung",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-rtl-entwicklung/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-scevi-visual-intelligence",
+      "facet": "VISUAL",
+      "workflow": "visual",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-scevi-visual-intelligence/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-seitencheck",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-seitencheck/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-self-healing",
+      "facet": "CAUSAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-self-healing/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-semantic",
+      "facet": "RATIONAL",
+      "workflow": "reasoning",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-semantic/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-settings-config",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-settings-config/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-sprachassistent",
+      "facet": "BRIDGE",
+      "workflow": "tools",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "skills/sceeri-sprachassistent/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-sprachprofile",
+      "facet": "BRIDGE",
+      "workflow": "tools",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "skills/sceeri-sprachprofile/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-sqlalchemy-models",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-sqlalchemy-models/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-standup",
+      "facet": "VISUAL",
+      "workflow": "visual",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-standup/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-svg-praezision",
+      "facet": "BRIDGE",
+      "workflow": "tools",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "skills/sceeri-svg-praezision/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-tech-debt",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-tech-debt/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-technical-documentation",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-technical-documentation/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-temporal-semantics",
+      "facet": "RATIONAL",
+      "workflow": "reasoning",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-temporal-semantics/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-testing",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-testing/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-transmutation",
+      "facet": "CHAOS_CONDUCTOR",
+      "workflow": "planning",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-transmutation/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-uca-r02-integration",
+      "facet": "BRIDGE",
+      "workflow": "integration",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-uca-r02-integration/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-ui-test-stabilitaet",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-ui-test-stabilitaet/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-uv",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-uv/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-verkaufsdaten",
+      "facet": "BRIDGE",
+      "workflow": "tools",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "skills/sceeri-verkaufsdaten/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-web-engineer",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-web-engineer/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-webprojekt-briefing",
+      "facet": "CHAOS_CONDUCTOR",
+      "workflow": "planning",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-webprojekt-briefing/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-webtexte-launch",
+      "facet": "BRIDGE",
+      "workflow": "tools",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "skills/sceeri-webtexte-launch/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-windows-projektstarter",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-windows-projektstarter/SKILL.md"
+    },
+    {
+      "id": "sceeri/sceeri-workbench-host-acceptance",
+      "facet": "SENTINEL",
+      "workflow": "verification",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sceeri-workbench-host-acceptance/SKILL.md"
+    },
+    {
+      "id": "toolkit/crypto-ta-analyzer",
+      "facet": "BRIDGE",
+      "workflow": "tools",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "chatgpt-skills-main/crypto-ta-analyzer/SKILL.md"
+    },
+    {
+      "id": "toolkit/data-storyteller",
+      "facet": "BRIDGE",
+      "workflow": "tools",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "chatgpt-skills-main/data-storyteller/SKILL.md"
+    },
+    {
+      "id": "toolkit/document-converter-suite",
+      "facet": "BRIDGE",
+      "workflow": "tools",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "chatgpt-skills-main/document-converter-suite/SKILL.md"
+    },
+    {
+      "id": "toolkit/financial-calculator",
+      "facet": "BRIDGE",
+      "workflow": "tools",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "chatgpt-skills-main/financial-calculator/SKILL.md"
+    },
+    {
+      "id": "toolkit/geo-toolkit",
+      "facet": "BRIDGE",
+      "workflow": "tools",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "chatgpt-skills-main/geo-toolkit/SKILL.md"
+    },
+    {
+      "id": "toolkit/image-enhancement-suite",
+      "facet": "BRIDGE",
+      "workflow": "tools",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "chatgpt-skills-main/image-enhancement-suite/SKILL.md"
+    },
+    {
+      "id": "toolkit/mcp-builder",
+      "facet": "BRIDGE",
+      "workflow": "integration",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "chatgpt-skills-main/mcp-builder/SKILL.md"
+    },
+    {
+      "id": "toolkit/media-toolkit",
+      "facet": "BRIDGE",
+      "workflow": "tools",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "chatgpt-skills-main/media-toolkit/SKILL.md"
+    },
+    {
+      "id": "toolkit/ocr-document-processor",
+      "facet": "BRIDGE",
+      "workflow": "tools",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "chatgpt-skills-main/ocr-document-processor/SKILL.md"
+    },
+    {
+      "id": "toolkit/qr-code-generator",
+      "facet": "BRIDGE",
+      "workflow": "tools",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "chatgpt-skills-main/qr-code-generator/SKILL.md"
+    },
+    {
+      "id": "toolkit/skill-creator",
+      "facet": "BRIDGE",
+      "workflow": "integration",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "chatgpt-skills-main/skill-creator/SKILL.md"
+    },
+    {
+      "id": "toolkit/svg-precision-skill",
+      "facet": "BRIDGE",
+      "workflow": "tools",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "chatgpt-skills-main/svg-precision-skill/SKILL.md"
+    }
+  ]
+}
