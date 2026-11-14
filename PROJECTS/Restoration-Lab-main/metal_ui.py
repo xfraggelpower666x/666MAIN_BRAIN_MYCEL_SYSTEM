@@ -351,7 +351,10 @@ class Renderer:
         return im
 
     def focus_plot(self,state):
-        from realtime import focus_weights
+        if __package__:
+            from .realtime import focus_weights
+        else:
+            from realtime import focus_weights
         _,_,w,h=self.focus_rect
         im=Image.new('RGB',(w,h),BLACK);d=ImageDraw.Draw(im)
         freq=np.geomspace(20,24000,w)

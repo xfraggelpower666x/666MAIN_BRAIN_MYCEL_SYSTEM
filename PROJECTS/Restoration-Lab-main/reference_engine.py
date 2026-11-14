@@ -297,8 +297,12 @@ class Mastering:
     Live sample ceiling; oversampled true-peak and LUFS finalization at export.
     """
     def __init__(self, sr, channels):
-        from mastering_tools import Multiband, LiveLoudness
-        from studio_tools import ParametricEQ, StereoWidth
+        if __package__:
+            from .mastering_tools import Multiband, LiveLoudness
+            from .studio_tools import ParametricEQ, StereoWidth
+        else:
+            from mastering_tools import Multiband, LiveLoudness
+            from studio_tools import ParametricEQ, StereoWidth
         self.bands = Multiband(sr, channels)
         self.eq = ParametricEQ(sr, channels)
         self.stereo = StereoWidth(sr, channels)
@@ -356,5 +360,8 @@ class Mastering:
 
 def export_audio(restoration, path, controls, progress=lambda message: None):
     """Use the same mastering/export finalizer as the realtime engine."""
-    from realtime import export_audio as render
+    if __package__:
+        from .realtime import export_audio as render
+    else:
+        from realtime import export_audio as render
     return render(restoration,path,controls,progress)

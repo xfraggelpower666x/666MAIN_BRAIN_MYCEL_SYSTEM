@@ -11,9 +11,14 @@ from tkinter import simpledialog
 import numpy as np
 from PIL import Image,ImageDraw,ImageTk
 from scipy import signal
-from metal_ui import metal,text,Renderer,TEAL,GOLD,WHITE,MUTED,BLACK
-from studio_tools import eq_filters
-from mastering_tools import validate
+if __package__:
+    from .metal_ui import metal,text,Renderer,TEAL,GOLD,WHITE,MUTED,BLACK
+    from .studio_tools import eq_filters
+    from .mastering_tools import validate
+else:
+    from metal_ui import metal,text,Renderer,TEAL,GOLD,WHITE,MUTED,BLACK
+    from studio_tools import eq_filters
+    from mastering_tools import validate
 
 W,H=1440,800
 TABS=('EQ','COMPRESSOR','STEREO & LOUDNESS')
@@ -230,7 +235,10 @@ class StudioRenderer:
         text(self.d,(667,637),'Stereo output · Full-song export',12,fill=MUTED)
         text(self.d,(667,662),'Playback: sample ceiling · Export: 4× peak verification',10,fill=MUTED)
 
-from reference_engine import Controls
+if __package__:
+    from .reference_engine import Controls
+else:
+    from reference_engine import Controls
 ControlsDefaults=Controls()
 
 class MasteringStudio:
@@ -362,7 +370,10 @@ class MasteringStudio:
     def menu(self,hit,event):
         menu=tk.Menu(self.window,tearoff=False,bg='#142022',fg=WHITE,activebackground='#20514c',activeforeground=WHITE)
         if hit.target=='preset':
-            from reference_engine import PRESETS
+            if __package__:
+                from .reference_engine import PRESETS
+            else:
+                from reference_engine import PRESETS
             choices={k:k for k in PRESETS}
         else:choices=TYPES
         for value,label in choices.items():menu.add_command(label=label,command=lambda value=value:self.choose(hit.target,value))

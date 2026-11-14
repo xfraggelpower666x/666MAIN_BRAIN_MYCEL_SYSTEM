@@ -8,7 +8,7 @@ with tempfile.TemporaryDirectory() as t:
     fail=verify(folder,platform='linux')
     assert fail['status']=='FAIL' and len(fail['errors'])>=9
     for rel in (APP+'.exe','assets/app.ico','assets/banner.png','assets/logo.png','tools/ffmpeg.exe',
-                'tools/ffprobe.exe','BEDIENUNGSANLEITUNG_DE.md','MANUAL_EN.md','REPARATUR_AUDIO_TOOLS.bat','PORTABLE_VERIFY.bat','PORTABLE_VERIFY.ps1'):
+                'tools/ffprobe.exe','BEDIENUNGSANLEITUNG_DE.md','MANUAL_EN.md','L.Y.V.R.A._MP3_MANAGER.bat','PORTABLE_VERIFY.ps1'):
         f=folder/rel;f.parent.mkdir(parents=True,exist_ok=True);f.write_bytes(b'MZ' if rel.endswith('.exe') else b'x')
     (folder/'_internal').mkdir()
     static=verify(folder,platform='linux')

@@ -22,8 +22,8 @@
 - Bandenergie-Abweichungen sind **kein** Beweis für psychoakustische Artefaktfreiheit.
 
 ## Windows-Abnahme ohne erneuten Entwicklungs-Reset
-1. `BUILD_PORTABLE_EXE.bat` ausführen, nur wenn v2.36 neu gebaut werden soll.
-2. Danach `dist/L.Y.V.R.A._MP3_MANAGER/PORTABLE_VERIFY.bat` starten.
-3. Gesamten Ordner kopieren; `PORTABLE_VERIFY.bat` auf zweitem Windows-PC erneut ausführen.
+1. `L.Y.V.R.A._MP3_MANAGER.bat build` ausführen, nur wenn neu gebaut werden soll.
+2. Danach `L.Y.V.R.A._MP3_MANAGER.bat verify` im Quellprojekt ausführen.
+3. Gesamten Ordner kopieren; `L.Y.V.R.A._MP3_MANAGER.bat verify` auf zweitem Windows-PC erneut ausführen.
 4. EXE-Start, Datei-Drop, alle drei Tabs und Monitore real prüfen. Diagnose und Screenshots zurückgeben.
 5. Artefakt-Hörtest mit vollständiger WAV plus **zugehöriger** problematischer MP3.
