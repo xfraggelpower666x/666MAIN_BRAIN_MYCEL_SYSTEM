@@ -11,6 +11,7 @@ import { getAudioBridge } from '../engine/bridge';
 import type { AudioBridge } from '../engine/bridge/types';
 import { loadAudioBlobByKey } from '../services/audioFileManager';
 import { synthEngine } from '../engine/SynthEngine';
+import { soundfontEngine } from '../engine/SoundfontEngine';
 import { subtractiveEngine } from '../engine/SubtractiveEngine';
 import { createSamplerConfig, samplerEngine } from '../engine/SamplerEngine';
 import { drumEngine } from '../engine/DrumEngine';
@@ -36,7 +37,7 @@ import {
   getClipAudibleStartTime,
   getClipAudibleTimelineDuration,
 } from '../utils/clipAudio';
-import { toastInfo } from './useToast';
+import { toastError, toastInfo } from './useToast';
 import type { TimelineScrubClip } from '../engine/AudioEngine';
 import { useVST3Store } from '../store/vst3Store';
 import { pluginEngine } from '../engine/PluginEngine';
@@ -279,6 +280,7 @@ export function useTransport() {
       await bridge.resume();
     }
     await engine.resume();
+    soundfontEngine.resetRouting();
     await synthEngine.ensureStarted();
     await subtractiveEngine.ensureStarted();
     await samplerEngine.ensureStarted();
@@ -538,6 +540,7 @@ export function useTransport() {
     const tempoMap = proj.tempoMap;
     const fallbackBpm = proj.bpm;
     const anySoloed = proj.tracks.some((track) => track.soloed);
+    const soundfontReadyTracks = new Set<string>();
 
     for (const track of proj.tracks) {
       // Skip MIDI/sequencer scheduling for frozen tracks
@@ -622,6 +625,22 @@ export function useTransport() {
             track.id, track.instrument.settings,
             trackInputAsAudioNode(trackNode.inputGain),
           );
+        } else if (!vst3Instrument && track.instrument?.kind === 'soundfont') {
+          const trackNode = engine.getOrCreateTrackNode(track.id);
+          try {
+            await soundfontEngine.prepareTrack(
+              track.id,
+              track.instrument,
+              engine.ctx,
+              engine.masterGain,
+              trackInputAsAudioNode(trackNode.inputGain),
+            );
+            soundfontReadyTracks.add(track.id);
+          } catch (error) {
+            const reason = error instanceof Error ? error.message : 'Unknown sound bank error.';
+            toastError(`Could not load ${track.instrument.name}: ${reason} Playing the built-in piano instead.`);
+            synthEngine.ensureTrackSynth(track.id, 'piano');
+          }
         } else if (preset !== 'sampler') {
           synthEngine.ensureTrackSynth(track.id, preset);
         }
@@ -736,6 +755,10 @@ export function useTransport() {
               } else if (track.instrument?.kind === 'physical') {
                 engine.scheduleMidiEvent(scheduledStart, () => {
                   karplusStrongEngine.triggerAttackRelease(trackId, note.pitch, scheduledDuration, velocity);
+                });
+              } else if (track.instrument?.kind === 'soundfont' && soundfontReadyTracks.has(trackId)) {
+                engine.scheduleMidiEvent(scheduledStart, () => {
+                  soundfontEngine.triggerAttackRelease(trackId, note.pitch, scheduledDuration, velocity);
                 });
               } else {
                 const freq = midiToFrequency(note.pitch);
@@ -899,6 +922,7 @@ export function useTransport() {
     setTauriPlaybackClockOwner('web-audio');
     await bridge.pauseAllSources();
     synthEngine.releaseAll();
+    soundfontEngine.releaseAll();
     subtractiveEngine.releaseAll();
     wavetableEngine.releaseAll();
     samplerEngine.stopAll();
@@ -923,6 +947,7 @@ export function useTransport() {
     setTauriPlaybackClockOwner('web-audio');
     await bridge.stopAllSources();
     synthEngine.releaseAll();
+    soundfontEngine.releaseAll();
     subtractiveEngine.releaseAll();
     wavetableEngine.releaseAll();
     samplerEngine.stopAll();
@@ -943,6 +968,7 @@ export function useTransport() {
       setTauriPlaybackClockOwner('web-audio');
       await bridge.stopAllSources();
       synthEngine.releaseAll();
+      soundfontEngine.releaseAll();
       subtractiveEngine.releaseAll();
       wavetableEngine.releaseAll();
       samplerEngine.stopAll();
@@ -971,6 +997,7 @@ export function useTransport() {
       setTauriPlaybackClockOwner('web-audio');
       await bridge.stopAllSources();
       synthEngine.releaseAll();
+      soundfontEngine.releaseAll();
       subtractiveEngine.releaseAll();
       wavetableEngine.releaseAll();
       samplerEngine.stopAll();

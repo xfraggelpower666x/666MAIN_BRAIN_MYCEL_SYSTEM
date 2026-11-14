@@ -1268,7 +1268,7 @@ function FragmentRow({
                 )}
                 {hasOverride && (
                   <span
-                    className="absolute top-1 right-1 rounded bg-daw-accent/80 px-1 py-0.5 text-[9px] font-semibold text-white leading-none pointer-events-none"
+                    className="absolute top-1 right-1 rounded bg-daw-accent px-1 py-0.5 text-[9px] font-semibold text-zinc-900 leading-none pointer-events-none"
                     title={`Slot quantization: ${slotQuantization}`}
                   >
                     {slotQuantization}

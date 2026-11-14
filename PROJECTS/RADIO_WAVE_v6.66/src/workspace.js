@@ -298,9 +298,9 @@
   }
 
   function controlsSnapshot(win){
-    return qaFrom(win,'input[id],select[id],textarea[id],button[id]').filter(el=>el.type!=='password').map(el=>({
-      id:el.id,tag:el.tagName,type:el.type||'',value:el.value??'',checked:!!el.checked,disabled:!!el.disabled
-    }));
+    return qaFrom(win,'input[id],select[id],textarea[id],button[id]').map(el=>el.type==='password'
+      ? {id:el.id,tag:el.tagName,type:el.type,hasValue:!!el.value,disabled:!!el.disabled}
+      : {id:el.id,tag:el.tagName,type:el.type||'',value:el.value??'',checked:!!el.checked,disabled:!!el.disabled});
   }
   function qaFrom(root,sel){return Array.from(root?.querySelectorAll?.(sel)||[]);}
   async function detachWindow(key,restoring=false){

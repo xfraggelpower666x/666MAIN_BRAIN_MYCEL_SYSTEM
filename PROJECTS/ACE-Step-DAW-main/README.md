@@ -85,6 +85,9 @@ generally exposed by the gateway. The development DAW origin must be
 
 Connecting and disconnecting do not start or stop services. If either service
 becomes unavailable, the editor stays mounted and the DAW reports the loss.
+Disconnecting closes the editor after a confirmation; save any unsaved workflow
+changes first. In a narrow browser window, scroll horizontally to access the
+full desktop workspace.
 Save workflow to project captures a snapshot via the installed custom-node
 bridge; download it to restore manually in ComfyUI without replacing the active
 graph automatically. Find output audio lists ComfyUI history; importing copies
@@ -122,10 +125,11 @@ npm run build && npm run preview
 | **Multi-Track Timeline** | Clip-based arrangement with drag, resize, split, fade handles, and snap-to-grid |
 | **5 Track Types** | Stems (AI), Sample (imported audio), Sequencer (step drums), Piano Roll (MIDI), Strudel (live code) |
 | **Piano Roll** | Canvas-based MIDI editor with velocity lane, slide notes, ghost notes, chord stamps, and quantize |
+| **Local SoundFonts** | Import licensed SF2, SF3, or DLS banks (up to 512 MiB) for track-routed MIDI playback and offline rendering; banks are stored locally and are not bundled |
 | **Step Sequencer** | FL Studio-inspired 16-step drum pattern editor with 16 synthesized drum sounds and 4 kit presets |
 | **Effect Chain** | Per-track effect rack — EQ3, Compressor, Reverb, Delay, Distortion, Chorus, Flanger, Phaser, Filter, Sidechain |
 | **Mixer** | Channel strips with volume, pan, mute, solo, and per-track metering |
-| **6 Synth Presets** | Piano, Strings, Pad, Lead, Bass, Organ (Tone.js polyphonic synthesis) |
+| **6 Built-in Synth Presets** | Piano, Strings, Pad, Lead, Bass, Organ |
 | **Loop Browser** | 15 built-in synthesized loops with search, filter, and drag-to-timeline |
 | **Recording** | Microphone input with real-time waveform, count-in, and input level metering |
 | **Automation** | Breakpoint envelopes with interpolation for volume, pan, and effect parameters |

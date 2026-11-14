@@ -2,6 +2,7 @@ import { getAudioEngine } from '../hooks/useAudioEngine';
 import { useProjectStore } from '../store/projectStore';
 import { computeWaveformPeaks } from '../utils/waveformPeaks';
 import { deleteAudioBlobByKey, saveAudioBlob } from './audioFileManager';
+import { requireComfyResponse } from './comfyGateway';
 
 const GATEWAY = 'http://127.0.0.1:8189';
 
@@ -26,7 +27,7 @@ async function request<T>(path: string, consume: (response: Response) => Promise
     const response = await fetch(`${GATEWAY}${path}`, {
       credentials: 'omit', redirect: 'error', cache: 'no-store', signal: controller.signal,
     });
-    if (!response.ok) throw new Error(`ComfyUI gateway returned HTTP ${response.status}`);
+    await requireComfyResponse(response);
     return await consume(response);
   } finally {
     window.clearTimeout(timeout);

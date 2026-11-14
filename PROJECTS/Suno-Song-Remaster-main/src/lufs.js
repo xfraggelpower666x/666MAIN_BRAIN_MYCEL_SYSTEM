@@ -3,6 +3,8 @@
  * Pure JavaScript implementation with K-weighting filters
  * Supports both 44.1kHz and 48kHz sample rates with proper coefficients
  */
+import { calculateRelativeThreshold } from './lufsGate.mjs';
+export { calculateRelativeThreshold } from './lufsGate.mjs';
 
 // K-weighting filter coefficients per sample rate
 const K_WEIGHTING_COEFFS = {
@@ -98,7 +100,7 @@ export function measureLUFS(audioBuffer) {
   }
 
   // Calculate loudness for each block
-  const blockLoudness = [];
+  const blocks = [];
 
   for (let start = 0; start + blockSize <= length; start += hopSize) {
     let sumSquare = 0;
@@ -112,39 +114,38 @@ export function measureLUFS(audioBuffer) {
     }
 
     // Convert to LUFS
-    const loudness = -0.691 + 10 * Math.log10(sumSquare);
-
-    if (isFinite(loudness)) {
-      blockLoudness.push(loudness);
+    if (sumSquare > 0 && isFinite(sumSquare)) {
+      blocks.push({
+        energy: sumSquare,
+        loudness: -0.691 + 10 * Math.log10(sumSquare)
+      });
     }
   }
 
-  if (blockLoudness.length === 0) {
+  if (blocks.length === 0) {
     return { integratedLUFS: -Infinity, truePeak: 0, truePeakDB: -Infinity, shortTermMax: -Infinity };
   }
 
   // Absolute threshold: -70 LUFS
   const absoluteThreshold = -70;
-  let blocksAboveAbsolute = blockLoudness.filter(l => l > absoluteThreshold);
+  const absoluteThresholdEnergy = Math.pow(10, (absoluteThreshold + 0.691) / 10);
+  const blocksAboveAbsolute = blocks.filter(block => block.energy > absoluteThresholdEnergy);
 
   if (blocksAboveAbsolute.length === 0) {
     return { integratedLUFS: -Infinity, truePeak: 0, truePeakDB: -Infinity, shortTermMax: -Infinity };
   }
 
-  // Calculate average of blocks above absolute threshold
-  const avgAbsolute = blocksAboveAbsolute.reduce((a, b) => a + b, 0) / blocksAboveAbsolute.length;
-
-  // Relative threshold: -10 LU below average
-  const relativeThreshold = avgAbsolute - 10;
+  // The relative gate is 10 LU below the mean energy of absolute-gated blocks.
+  const relativeThreshold = calculateRelativeThreshold(blocks.map(block => block.energy), absoluteThreshold);
 
   // Final gated measurement
-  const gatedBlocks = blockLoudness.filter(l => l > relativeThreshold);
+  const gatedBlocks = blocks.filter(block =>
+    block.energy > absoluteThresholdEnergy && block.loudness > relativeThreshold
+  );
 
   let integratedLUFS = -Infinity;
   if (gatedBlocks.length > 0) {
-    const linearSum = gatedBlocks.reduce((sum, lufs) => {
-      return sum + Math.pow(10, (lufs + 0.691) / 10);
-    }, 0);
+    const linearSum = gatedBlocks.reduce((sum, block) => sum + block.energy, 0);
     const linearAvg = linearSum / gatedBlocks.length;
     integratedLUFS = -0.691 + 10 * Math.log10(linearAvg);
   }

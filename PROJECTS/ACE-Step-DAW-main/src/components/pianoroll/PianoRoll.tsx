@@ -23,6 +23,8 @@ import { useMidiAiStore } from '../../store/midiAiStore';
 import { getPianoRollToolShortcut, type PianoRollTool } from './PianoRollConstants';
 import { SynthParameterEditor, PRESET_DEFAULT_OSCILLATOR } from '../synth/SynthParameterEditor';
 import { PhysicalModelingEditor } from '../synth/PhysicalModelingEditor';
+import { SoundfontPresetPicker } from './SoundfontPresetPicker';
+import { toastInfo } from '../../hooks/useToast';
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
@@ -274,6 +276,10 @@ export function PianoRoll() {
     if (!name) return;
     const inst = track.instrument;
     if (!inst) return;
+    if (inst.kind === 'soundfont') {
+      toastInfo('SoundFont presets depend on a locally imported bank and cannot be saved as standalone instrument presets.');
+      return;
+    }
 
     const currentUnified = track.synthPresetDefinitionId
       ? getPresetById(track.synthPresetDefinitionId, userInstrumentPresets)
@@ -406,6 +412,8 @@ export function PianoRoll() {
             deleteInstrumentPreset(presetId);
           }}
         />
+
+        <SoundfontPresetPicker trackId={track.id} currentInstrument={track.instrument} />
 
         {track.synthPreset !== 'sampler' && (
           <button

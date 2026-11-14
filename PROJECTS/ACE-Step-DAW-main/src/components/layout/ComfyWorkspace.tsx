@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '../ui/Button';
 import { ComfyExchange } from './ComfyExchange';
+import { requireComfyResponse } from '../../services/comfyGateway';
+import { isTauri } from '../../utils/tauri';
 
 const COMFY_URL = 'http://127.0.0.1:8189';
 const CHECK_TIMEOUT_MS = 5000;
@@ -15,7 +17,7 @@ async function checkService(signal: AbortSignal) {
     credentials: 'omit',
     cache: 'no-store',
   });
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  await requireComfyResponse(response);
   const data: unknown = await response.json();
   if (!data || typeof data !== 'object' || !('system' in data) || !('devices' in data)) {
     throw new Error('The local service did not return ComfyUI system information.');
@@ -28,12 +30,51 @@ export function ComfyWorkspace() {
   const [serviceUnavailable, setServiceUnavailable] = useState(false);
   const activeCheck = useRef<AbortController | null>(null);
   const frameRef = useRef<HTMLIFrameElement>(null);
+  const allowNativeClose = useRef(false);
 
   useEffect(() => () => {
     const controller = activeCheck.current;
     activeCheck.current = null;
     controller?.abort();
   }, []);
+
+  useEffect(() => {
+    if (status !== 'connected') return;
+    const warnBeforeClose = (event: BeforeUnloadEvent) => {
+      if (allowNativeClose.current) return;
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warnBeforeClose);
+    let active = true;
+    let unlisten: (() => void) | undefined;
+    if (isTauri()) {
+      void import('@tauri-apps/api/window').then(async ({ getCurrentWindow }) => {
+        const currentWindow = getCurrentWindow();
+        const removeListener = await currentWindow.onCloseRequested(async (event) => {
+          if (allowNativeClose.current) return;
+          event.preventDefault();
+          if (!window.confirm('The ComfyUI editor may contain unsaved changes. Close the application anyway?')) return;
+          allowNativeClose.current = true;
+          try {
+            await currentWindow.close();
+          } catch (reason) {
+            allowNativeClose.current = false;
+            console.error('Failed to close the application after ComfyUI confirmation.', reason);
+          }
+        });
+        if (active) unlisten = removeListener;
+        else removeListener();
+      }).catch((reason: unknown) => {
+        console.error('Failed to protect the ComfyUI editor from native window close.', reason);
+      });
+    }
+    return () => {
+      active = false;
+      unlisten?.();
+      window.removeEventListener('beforeunload', warnBeforeClose);
+    };
+  }, [status]);
 
   useEffect(() => {
     if (status !== 'connected') return;
@@ -87,6 +128,9 @@ export function ComfyWorkspace() {
   }
 
   function disconnect() {
+    if (status === 'connected' && !window.confirm(
+      'Disconnecting closes the ComfyUI editor. Unsaved workflow changes may be lost. Disconnect anyway?',
+    )) return;
     const controller = activeCheck.current;
     activeCheck.current = null;
     controller?.abort();
@@ -96,7 +140,7 @@ export function ComfyWorkspace() {
   }
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col bg-daw-bg" aria-label="ComfyUI workspace">
+    <section id="comfy-workspace" className="flex min-h-0 flex-1 flex-col bg-daw-bg" aria-label="ComfyUI workspace" tabIndex={-1}>
       <div className="flex flex-wrap items-center gap-3 border-b border-daw-border-strong bg-daw-surface-2 px-4 py-2">
         <h2 className="text-sm font-medium text-zinc-100">ComfyUI</h2>
         <span className="text-xs text-zinc-300" role="status">

@@ -74,6 +74,85 @@ if (!process.versions.electron) {
       window.rwOverlay.onSync(() => {});
       return (await window.rwOverlay.ready()).ok;
     })()`), true);
+    const overlayActions = [];
+    ipcMain.handle('workspace:overlay-action', (_event, payload) => { overlayActions.push(payload); return { ok: true }; });
+    const overlay = new BrowserWindow({
+      show: false, webPreferences: { preload: path.join(root, 'overlay-preload.js'), sandbox: true, contextIsolation: true, backgroundThrottling: false }
+    });
+    try {
+      await overlay.loadFile(path.join(root, 'src', 'overlay-window.html'));
+      const markup = '<input id="radio-password" type="password"><textarea id="message"></textarea><p id="status">initial</p>'
+        + '<button id="local-queue-play-0" data-index="0">Play</button><button id="local-queue-remove-0" data-remove-index="0">Remove</button>'
+        + '<button id="soundcloud-item-track-0" data-sc-url="https://example.test/track">Track</button>'
+        + '<input id="overlay-range" type="range" min="0" max="100" value="0" style="position:absolute;left:20px;top:200px;width:300px;height:20px">';
+      overlay.webContents.send('workspace:overlay-init', { key: 'source', html: markup, controls: [] });
+      await overlay.webContents.executeJavaScript(`(async () => {
+        while (!document.getElementById('radio-password')) await new Promise(resolve => setTimeout(resolve, 10));
+        const pw = document.getElementById('radio-password');
+        pw.focus(); pw.value = 'abc'; pw.setSelectionRange(1, 2);
+        pw.dispatchEvent(new Event('input', { bubbles: true }));
+      })()`);
+      overlay.webContents.send('workspace:overlay-sync', {
+        html: markup.replace('initial', 'updated'),
+        controls: [{ id: 'radio-password', type: 'password', hasValue: true }, { id: 'message', value: '' }]
+      });
+      const secret = await overlay.webContents.executeJavaScript(`(async () => {
+        while (document.getElementById('status').textContent !== 'updated') await new Promise(resolve => setTimeout(resolve, 10));
+        const pw = document.getElementById('radio-password');
+        return { value: pw.value, focused: document.activeElement === pw, start: pw.selectionStart, end: pw.selectionEnd };
+      })()`);
+      assert.deepEqual(secret, { value: 'abc', focused: true, start: 1, end: 2 });
+      await overlay.webContents.executeJavaScript(`(() => {
+        const text = document.getElementById('message');
+        text.focus(); text.value = 'hello'; text.setSelectionRange(2, 4);
+        text.dispatchEvent(new Event('input', { bubbles: true }));
+      })()`);
+      overlay.webContents.send('workspace:overlay-sync', {
+        html: markup.replace('initial', 'updated again'),
+        controls: [{ id: 'radio-password', type: 'password', hasValue: false }, { id: 'message', value: 'stale' }]
+      });
+      const text = await overlay.webContents.executeJavaScript(`(async () => {
+        while (document.getElementById('status').textContent !== 'updated again') await new Promise(resolve => setTimeout(resolve, 10));
+        const input = document.getElementById('message');
+        return { value: input.value, focused: document.activeElement === input, start: input.selectionStart, end: input.selectionEnd, secret: document.getElementById('radio-password').value };
+      })()`);
+      assert.deepEqual(text, { value: 'hello', focused: true, start: 2, end: 4, secret: '' });
+      await overlay.webContents.executeJavaScript(`(() => {
+        for (const id of ['local-queue-play-0', 'local-queue-remove-0', 'soundcloud-item-track-0']) document.getElementById(id).click();
+      })()`);
+      await new Promise(resolve => setTimeout(resolve, 50));
+      assert.deepEqual(overlayActions.filter(action => action.kind === 'click').map(action => action.id),
+        ['local-queue-play-0', 'local-queue-remove-0', 'soundcloud-item-track-0']);
+      overlay.webContents.sendInputEvent({ type: 'mouseDown', x: 40, y: 210, button: 'left', clickCount: 1 });
+      await new Promise(resolve => setTimeout(resolve, 100));
+      const beforeDrag = await overlay.webContents.executeJavaScript("Number(document.getElementById('overlay-range').value)");
+      overlay.webContents.send('workspace:overlay-sync', {
+        html: markup.replace('initial', 'dragging'),
+        controls: [{ id: 'overlay-range', value: String(beforeDrag) }]
+      });
+      await new Promise(resolve => setTimeout(resolve, 100));
+      assert.equal(await overlay.webContents.executeJavaScript("document.getElementById('status').textContent"), 'updated again');
+      overlay.webContents.sendInputEvent({ type: 'mouseMove', x: 280, y: 210, button: 'left' });
+      await new Promise(resolve => setTimeout(resolve, 100));
+      overlay.webContents.sendInputEvent({ type: 'mouseUp', x: 280, y: 210, button: 'left', clickCount: 1 });
+      await new Promise(resolve => setTimeout(resolve, 100));
+      const drag = await overlay.webContents.executeJavaScript("({ value: Number(document.getElementById('overlay-range').value), status: document.getElementById('status').textContent })");
+      assert.equal(drag.status, 'dragging');
+      assert.ok(drag.value > beforeDrag + 50, `Slider drag was interrupted: ${beforeDrag} -> ${drag.value}`);
+
+      await overlay.webContents.executeJavaScript(`(() => {
+        document.getElementById('overlay-range').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, isPrimary: true, pointerId: 99, button: 0 }));
+      })()`);
+      overlay.webContents.send('workspace:overlay-sync', { html: markup.replace('initial', 'cancelled'), controls: [] });
+      await new Promise(resolve => setTimeout(resolve, 50));
+      assert.equal(await overlay.webContents.executeJavaScript("document.getElementById('status').textContent"), 'dragging');
+      await overlay.webContents.executeJavaScript(`(() => {
+        document.getElementById('overlay-range').dispatchEvent(new PointerEvent('pointercancel', { bubbles: true, isPrimary: true, pointerId: 99 }));
+      })()`);
+      await new Promise(resolve => setTimeout(resolve, 50));
+      assert.equal(await overlay.webContents.executeJavaScript("document.getElementById('status').textContent"), 'cancelled');
+    } finally { overlay.destroy(); }
+    console.log('PASS Electron detached overlay focus, secrets, dynamic buttons and slider gestures');
     const recorded = await check('preload.js', `(async () => {
       const canvas = document.createElement('canvas');
       canvas.width = 96; canvas.height = 54;

@@ -6,7 +6,7 @@
 
 | Module | Responsibility |
 |--------|----------------|
-| `sunocleanser/audio/io.py` | WAV read/write (24-bit PCM), peaks |
+| `sunocleanser/audio/io.py` | WAV/MP3 input, WAV write (24-bit PCM), peaks |
 | `sunocleanser/audio/stft.py` | STFT/iSTFT with length aligned to the original |
 | `sunocleanser/suno/noise_profile.py` | Quiet frames (12%) and linked noise profile |
 | `sunocleanser/suno/gain_mask.py` | Adaptive band mask, 7 dB ceiling, smoothing |
@@ -18,7 +18,7 @@
 
 - Python 3.11+
 - NumPy, SciPy (`signal.stft` / `istft`)
-- soundfile + libsndfile (Conda: `environment.yml`)
+- soundfile + libsndfile 1.2.2+ for WAV/MP3 decoding (Conda: `environment.yml`)
 
 ## Environment
 

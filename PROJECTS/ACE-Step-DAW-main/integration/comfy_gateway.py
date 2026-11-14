@@ -182,8 +182,21 @@ async def client_context(app):
         yield
 
 
+@web.middleware
+async def parent_error_headers(request, handler):
+    try:
+        return await handler(request)
+    except web.HTTPException as exc:
+        origin = request.headers.get("Origin")
+        if (exc.status >= 400 and request.method == "GET" and request.path in APP_READ_ROUTES
+                and origin in APP_ORIGINS and authorize(request) and allowed_route(request.method, request.path)):
+            exc.headers["Access-Control-Allow-Origin"] = origin
+            exc.headers["Vary"] = "Origin"
+        raise
+
+
 def create_app():
-    app = web.Application(client_max_size=1024**3)
+    app = web.Application(client_max_size=1024**3, middlewares=[parent_error_headers])
     app.cleanup_ctx.append(client_context)
     app.router.add_route("*", "/{tail:.*}", handle)
     return app

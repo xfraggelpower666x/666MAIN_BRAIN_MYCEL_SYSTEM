@@ -225,7 +225,7 @@ test('overlay does not forward microphone through generic actions', () => {
   const root = { addEventListener(type, fn) { handlers[type] = fn; }, innerHTML: '' };
   const context = {
     document: { getElementById: () => root, title: '' },
-    window: { rwOverlay: {
+    window: { addEventListener() {}, rwOverlay: {
       onInit(fn) { init = fn; }, onSync() {},
       ready() { return Promise.resolve(); },
       action(payload) { calls.push(payload); return Promise.resolve(); }

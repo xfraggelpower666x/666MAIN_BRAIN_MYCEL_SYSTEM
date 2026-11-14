@@ -20,10 +20,11 @@ jobs:
 
       - name: Build and verify
         shell: pwsh
+        working-directory: PROJECTS/Restoration-Lab-main
         run: ./Build-Windows.ps1
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Restoration-Lab-1.5-Windows-x64
-          path: Restoration-Lab-1.5-Windows-x64.zip
+          name: Restoration-Lab-3.0-Windows-x64
+          path: PROJECTS/Restoration-Lab-main/Restoration-Lab-3.0-Windows-x64.zip
           if-no-files-found: error

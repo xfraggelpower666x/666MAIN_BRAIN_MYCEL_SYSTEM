@@ -2,7 +2,7 @@
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $missing = @()
-foreach ($rel in @('L.Y.V.R.A._MP3_MANAGER.exe','_internal','assets\app.ico','assets\banner.png','assets\logo.png', 'tools\ffmpeg.exe','tools\ffprobe.exe','BEDIENUNGSANLEITUNG_DE.md','MANUAL_EN.md')) {
+foreach ($rel in @('L.Y.V.R.A._MP3_MANAGER.exe','_internal','assets\app.ico','assets\banner.png','assets\logo.png', 'tools\ffmpeg.exe','tools\ffprobe.exe','BEDIENUNGSANLEITUNG_DE.md','MANUAL_EN.md','L.Y.V.R.A._MP3_MANAGER.bat')) {
   $path=Join-Path $root $rel
   if (-not (Test-Path -LiteralPath $path)) { $missing += $rel; Write-Host "MISSING $rel" }
   else { Write-Host "PASS $rel" }

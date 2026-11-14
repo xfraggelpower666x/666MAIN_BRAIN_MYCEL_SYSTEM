@@ -10,6 +10,8 @@
 #include <assert.h>
 #include <deque>
 #include <climits>
+#include <cerrno>
+#include <stdexcept>
 #include "Locker.h"
 
 namespace wav2mp3 {
@@ -58,7 +60,6 @@ SyncQueue<T>::SyncQueue( unsigned int maxElements ):
 template <typename T>
 SyncQueue<T>::~SyncQueue()
 {
-    while( this->getSize() > 0 ) this->dequeue();
     // We MUST NOT try to use the queue any more
     sem_destroy(&mSemEmpty);
     sem_destroy(&mSemFull);
@@ -69,34 +70,47 @@ SyncQueue<T>::~SyncQueue()
 template <typename T>
 void SyncQueue<T>::enqueue( const T& item )
 {
-    sem_wait(&mSemEmpty);  // If queue is full wait until there is an empty slot
-    // TODO: consider using sem_timedwait()
+    while( sem_wait(&mSemEmpty) != 0 )
+    {
+        if( errno == EINTR ) continue;
+        throw std::runtime_error("sem_wait failed while enqueueing");
+    }
 
     try {
         Locker lock(mMutex);
         mQueue.push_back(item);
     } catch(...) {
         sem_post(&mSemEmpty);
-        return;
+        throw;
     }
 
-    sem_post(&mSemFull);  // Increase the number of occupied slots
+    if( sem_post(&mSemFull) != 0 )
+        throw std::runtime_error("sem_post failed after enqueue");
 }
 
 
 template <typename T>
 T SyncQueue<T>::dequeue()
 {
-    sem_wait(&mSemFull);  // If queue is empty wait until there is a full slot
+    while( sem_wait(&mSemFull) != 0 )
+    {
+        if( errno == EINTR ) continue;
+        throw std::runtime_error("sem_wait failed while dequeueing");
+    }
 
-    pthread_mutex_lock(&mMutex);
-    assert(mQueue.size() > 0);
-    T item = mQueue.front();
-    mQueue.pop_front();
-    pthread_mutex_unlock(&mMutex);
+    try {
+        Locker lock(mMutex);
+        assert(mQueue.size() > 0);
+        T item = mQueue.front();
+        mQueue.pop_front();
+        if( sem_post(&mSemEmpty) != 0 )
+            throw std::runtime_error("sem_post failed after dequeue");
+        return item;
+    } catch(...) {
+        sem_post(&mSemFull);
+        throw;
+    }
 
-    sem_post(&mSemEmpty);  // Increase the number of empty slots
-    return item;
 }
 
 

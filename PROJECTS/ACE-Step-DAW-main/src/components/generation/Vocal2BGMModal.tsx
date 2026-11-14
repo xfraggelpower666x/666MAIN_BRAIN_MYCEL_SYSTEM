@@ -148,7 +148,7 @@ export function Vocal2BGMModal() {
               <button
                 onClick={() => setPresetCategory('')}
                 className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors ${
-                  !presetCategory ? 'bg-daw-accent text-white' : 'bg-[#333] text-zinc-400 hover:bg-[#444]'
+                  !presetCategory ? 'bg-daw-accent text-zinc-900' : 'bg-[#333] text-zinc-400 hover:bg-[#444]'
                 }`}
               >
                 All
@@ -158,7 +158,7 @@ export function Vocal2BGMModal() {
                   key={cat}
                   onClick={() => setPresetCategory(cat === presetCategory ? '' : cat)}
                   className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors ${
-                    cat === presetCategory ? 'bg-daw-accent text-white' : 'bg-[#333] text-zinc-400 hover:bg-[#444]'
+                    cat === presetCategory ? 'bg-daw-accent text-zinc-900' : 'bg-[#333] text-zinc-400 hover:bg-[#444]'
                   }`}
                 >
                   {cat}

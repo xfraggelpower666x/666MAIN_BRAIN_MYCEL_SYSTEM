@@ -17,6 +17,7 @@ from tkinter import filedialog, messagebox, ttk
 from datetime import datetime
 from PIL import Image, ImageTk
 from mutagen.id3 import ID3, ID3NoHeaderError, TIT2, TPE1, TPE2, TALB, TCON, TCOM, TDRC, TRCK, TPOS, COMM, WOAS, APIC
+import restoration_overlay
 try:
     from tkinterdnd2 import TkinterDnD, DND_FILES
 except ImportError:
@@ -361,6 +362,9 @@ class App:
         self.build_busy=False
         self.monitor=None
         self.file_manager=None
+        self.restoration_window=None
+        self.restoration_app=None
+        root.protocol('WM_DELETE_WINDOW',self.close)
         self.fm_folder=tk.StringVar(value='')
         self.fm_status=tk.StringVar(value='Dateimanager bereit')
         self.current_file=tk.StringVar(value='Keine laufende Datei')
@@ -576,6 +580,16 @@ class App:
         except OSError: content='Manual not found / Anleitung fehlt: '+name
         text.insert('1.0',content);text.configure(state='disabled')
 
+    def close(self):
+        if self.restoration_window is not None and self.restoration_window.winfo_exists():
+            if self.restoration_app.busy:
+                messagebox.showinfo('Restoration Lab',
+                    'Wait for the current operation to finish.' if self.lang.get()=='EN' else
+                    'Bitte den laufenden Vorgang abwarten.',parent=self.restoration_window)
+                return
+            self.restoration_app.close()
+        self.root.destroy()
+
     def apply_language(self):
         """Schaltet beschriftete GUI-Elemente zwischen Deutsch und Englisch um.
         Benutzerinhalte (Titel, Dateinamen und Metadaten) werden nie übersetzt.
@@ -596,6 +610,8 @@ class App:
          '◫ MONITOR / 2. BILDSCHIRM':'◫ MONITOR / SCREEN 2',
          '▣ DATEIMANAGER / 2. BILDSCHIRM':'▣ FILE MANAGER / SCREEN 2',
          'BESTAND AKTUALISIEREN':'REFRESH COUNTS',
+         'RESTORATION LAB ÖFFNEN':'OPEN RESTORATION LAB',
+         'Eine WAV/MP3 auswählen · Ergebnis separat exportieren':'Select one WAV/MP3 · Export to a separate file',
          'Ein Cover für alle gewählten MP3':'One cover for selected MP3s',
          'Cover nur für markierte MP3':'Cover for marked MP3s only',
          'Cover-Zuweisungen löschen':'Clear cover assignments',
@@ -607,7 +623,7 @@ class App:
          'Titelübernahme pro MP3:':'Title transfer per MP3:',
          'Dateiname → ID3-Titel':'Filename → ID3 title','ID3-Titel → Dateiname':'ID3 title → filename',
          'Aus':'Off', 'System-Check und Portable-EXE':'System check & portable EXE',
-         'EXE-Build ausschließlich extern: BUILD_PORTABLE_EXE.bat':'EXE build external only: BUILD_PORTABLE_EXE.bat',
+         'EXE-Build ausschließlich extern: L.Y.V.R.A._MP3_MANAGER.bat build':'EXE build external only: L.Y.V.R.A._MP3_MANAGER.bat build',
          'LIVE · PROZESSE UND FORTSCHRITT':'LIVE · PROCESS PROGRESS',
          'GESAMT':'TOTAL','UMBENENNUNG':'RENAMING',
          'Dateiname':'Filename','Neuer Dateiname':'New filename','Kommentar':'Comment',
@@ -929,6 +945,10 @@ class App:
         entry=ttk.Entry(actions,textvariable=self.audio_filter,width=24)
         entry.pack(side='left',fill='x',expand=True)
         self.audio_filter.trace_add('write',lambda *_:self.refresh_audio_browser())
+        integration=ttk.Frame(outer);integration.pack(fill='x',pady=(0,4))
+        ttk.Button(integration,text='RESTORATION LAB ÖFFNEN',command=self.open_restoration_overlay,
+                   style='Secondary.TButton').pack(side='left',padx=(0,8))
+        ttk.Label(integration,text='Eine WAV/MP3 auswählen · Ergebnis separat exportieren').pack(side='left')
         self.audio_browser_tabs=ttk.Notebook(outer)
         self.audio_browser_tabs.pack(fill='both',expand=True)
         browsing=ttk.Frame(self.audio_browser_tabs)
@@ -965,6 +985,79 @@ class App:
                     widget.dnd_bind('<<Drop>>',self.audio_drop)
                 except (tk.TclError,AttributeError):pass
         self.refresh_audio_browser()
+
+    def open_restoration_overlay(self):
+        selected=[self.audio_paths[key] for key in self.audio_tree.selection() if key in self.audio_paths]
+        english=self.lang.get()=='EN'
+        if len(selected)!=1:
+            messagebox.showinfo('Restoration Lab',
+                'Select exactly one WAV or MP3 in the audio browser.' if english else
+                'Bitte genau eine WAV- oder MP3-Datei im Audio-Browser auswählen.',parent=self.root)
+            return
+        source=selected[0]
+        if not source.is_file() or source.suffix.lower() not in ('.wav','.mp3'):
+            messagebox.showerror('Restoration Lab',
+                'The selected audio file is no longer available.' if english else
+                'Die ausgewählte Audiodatei ist nicht mehr verfügbar.',parent=self.root)
+            return
+        window=self.restoration_window
+        if window is not None and window.winfo_exists():
+            window.deiconify();window.lift()
+            app=self.restoration_app
+            if app.busy:
+                messagebox.showinfo('Restoration Lab',
+                    'Wait for the current operation to finish.' if english else
+                    'Bitte den laufenden Vorgang abwarten.',parent=window)
+                return
+            if app.path and Path(app.path).resolve()==source.resolve():
+                return
+        else:
+            window=None
+            try:
+                app_class=restoration_overlay.load_app()
+                window=tk.Toplevel(self.root)
+                window.transient(self.root)
+                app=app_class(window)
+                app.on_export=self.import_restoration_export
+            except Exception as exc:
+                if window is not None:
+                    window.destroy()
+                messagebox.showerror('Restoration Lab',
+                    ('Could not open the overlay: ' if english else 'Overlay konnte nicht geöffnet werden: ')+str(exc),
+                    parent=self.root)
+                return
+            self.restoration_window=window
+            self.restoration_app=app
+        try:
+            app.load_file(str(source))
+        except (OSError,ValueError,RuntimeError) as exc:
+            messagebox.showerror('Restoration Lab',str(exc),parent=window)
+
+    def import_restoration_export(self, filename):
+        source=Path(filename)
+        english=self.lang.get()=='EN'
+        if not source.is_file() or source.suffix.lower()!='.wav':
+            messagebox.showerror('Restoration Lab',
+                'The exported WAV is not available.' if english else 'Die exportierte WAV ist nicht verfügbar.',
+                parent=self.root)
+            return
+        if not messagebox.askyesno('Restoration Lab',
+                'Select the exported WAV in the audio browser?' if english else
+                'Die exportierte WAV im Audio-Browser auswählen?',parent=self.root):
+            return
+        self.audio_filter.set('')
+        self.input_kind.set('wav')
+        self.wav_folder.set(str(source.parent))
+        self.refresh_audio_browser()
+        matches=[key for key,path in self.audio_paths.items() if path.resolve()==source.resolve()]
+        if not matches:
+            messagebox.showerror('Restoration Lab',
+                'The exported WAV could not be selected in the audio browser.' if english else
+                'Die exportierte WAV konnte im Audio-Browser nicht ausgewählt werden.',parent=self.root)
+            return
+        self.audio_tree.selection_set(matches)
+        self.on_audio_selection()
+        self.tabs.select(self.tab_hosts[2])
 
     def audio_folder_changed(self,*_):
         self.audio_selection_initialized=False
@@ -1132,7 +1225,7 @@ class App:
         self.sys_report=tk.StringVar(value='Noch nicht geprüft. Keine Installation ohne ausdrückliche Aktion.')
         row=ttk.Frame(panel);row.pack(fill='x')
         ttk.Button(row,text='System prüfen',command=self.check_system).pack(side='left',padx=3)
-        ttk.Label(row,text='EXE-Build ausschließlich extern: BUILD_PORTABLE_EXE.bat').pack(side='left',padx=10)
+        ttk.Label(row,text='EXE-Build ausschließlich extern: L.Y.V.R.A._MP3_MANAGER.bat build').pack(side='left',padx=10)
         ttk.Label(panel,textvariable=self.sys_report,wraplength=1060,justify='left').pack(anchor='w',pady=3)
 
     def check_system(self):
@@ -1156,8 +1249,8 @@ class App:
     def build_exe(self):
         """Build bleibt strikt außerhalb der gestarteten GUI / der fertigen EXE."""
         messagebox.showinfo('EXE-Build / Build',
-            'EXE-Build ausschließlich außerhalb der App über BUILD_PORTABLE_EXE.bat.\n'
-            'Build only outside the application using BUILD_PORTABLE_EXE.bat.')
+            'EXE-Build ausschließlich außerhalb der App über L.Y.V.R.A._MP3_MANAGER.bat build.\n'
+            'Build only outside the application using L.Y.V.R.A._MP3_MANAGER.bat build.')
 
     def repair_audio_tools(self):
         # Fehlende Tools nie stillschweigend herunterladen oder installieren.

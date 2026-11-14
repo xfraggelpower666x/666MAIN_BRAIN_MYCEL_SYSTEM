@@ -53,7 +53,7 @@ export function MetronomeSettingsPopover({ open, onClose }: MetronomeSettingsPop
                 onClick={() => setMetronomeSound(id)}
                 className={`flex-1 px-2 py-1 rounded text-[11px] font-medium transition-colors ${
                   metronomeSound === id
-                    ? 'bg-daw-accent text-white'
+                    ? 'bg-daw-accent text-zinc-900'
                     : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200'
                 }`}
               >
@@ -95,7 +95,7 @@ export function MetronomeSettingsPopover({ open, onClose }: MetronomeSettingsPop
                 onClick={() => setCountInBars(bars)}
                 className={`flex-1 px-2 py-1 rounded text-[11px] font-medium transition-colors ${
                   countInBars === bars
-                    ? 'bg-daw-accent text-white'
+                    ? 'bg-daw-accent text-zinc-900'
                     : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200'
                 }`}
               >

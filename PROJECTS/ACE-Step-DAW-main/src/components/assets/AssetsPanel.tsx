@@ -145,7 +145,7 @@ export function AssetsPanel() {
             onClick={() => setActiveFilter(f.id)}
             className={`px-2 py-0.5 text-[10px] rounded transition-colors ${
               activeFilter === f.id
-                ? 'bg-daw-accent text-white'
+                ? 'bg-daw-accent text-zinc-900'
                 : 'bg-[#3a3a3a] text-zinc-400 hover:bg-[#444] hover:text-zinc-200'
             }`}
           >

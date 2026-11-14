@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useProjectStore } from '../projectStore';
 import { useCollaborationStore } from '../collaborationStore';
 import { DEFAULT_GENERATION, DEFAULT_MEASURES, MAX_PROJECT_TRACKS } from '../../constants/defaults';
-import type { Project } from '../../types/project';
+import type { Project, SoundfontTrackInstrument } from '../../types/project';
 import { createDefaultFmInstrument } from '../../utils/trackInstrument';
 
 // Mock projectStorage to prevent IndexedDB calls during testing
@@ -661,6 +661,32 @@ describe('projectStore', () => {
       expect(updated.synthPreset).toBe('lead');
       expect(updated.sampler).toBeUndefined();
       expect(updated.samplerConfig).toBeUndefined();
+    });
+
+    it('clears the legacy preset selection when assigning a SoundFont instrument', () => {
+      const store = useProjectStore.getState();
+      const track = store.addTrack('synth', 'pianoRoll');
+      store.updateTrack(track.id, { synthPresetDefinitionId: 'old-preset' });
+      const soundfont: SoundfontTrackInstrument = {
+        kind: 'soundfont',
+        preset: 'soundfont',
+        name: 'Cello',
+        settings: {
+          soundBankId: 'local-bank',
+          soundBankName: 'Orchestra',
+          bankOffset: 0,
+          bank: 0,
+          bankLsb: 0,
+          program: 42,
+        },
+      };
+
+      store.setTrackInstrument(track.id, soundfont);
+
+      const updated = useProjectStore.getState().project!.tracks.find((candidate) => candidate.id === track.id)!;
+      expect(updated.instrument).toEqual(soundfont);
+      expect(updated.synthPreset).toBe('piano');
+      expect(updated.synthPresetDefinitionId).toBeUndefined();
     });
   });
 

@@ -22,7 +22,10 @@ content. Access tokens stay in memory and playback uses `swsc://audio/current`.
 The application does not ship credentials. SoundCloud application registration and API terms remain the operator's responsibility. The UI exposes creator/title attribution and an OPEN ON SOUNDCLOUD action for the current resolved work.
 
 Blocked or otherwise non-streamable tracks are rejected. Resolved playlists
-populate the playback queue. The official OpenAPI documents authenticated
+populate the playback queue. At the end of a video export, playback stops
+instead of automatically starting the next SoundCloud track. A stream error
+during export aborts the recording without automatically skipping to another
+track. The official OpenAPI documents authenticated
 `GET /tracks/{track_urn}/streams` returning JSON, despite the guide's legacy
 singular `/stream` example. The app plays the supplied AAC or MP3 HLS stream
 with hls.js on the existing audio element; if only a preview is provided, the

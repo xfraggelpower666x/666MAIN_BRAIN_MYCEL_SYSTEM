@@ -5,6 +5,7 @@ import { samplerEngine } from './SamplerEngine';
 import { granularEngine } from './GranularEngine';
 import { additiveEngine } from './AdditiveEngine';
 import { karplusStrongEngine } from './KarplusStrongEngine';
+import { soundfontEngine } from './SoundfontEngine';
 
 /**
  * Adapter that wraps the legacy {@link SynthEngine} singleton to conform to
@@ -218,6 +219,36 @@ class KarplusStrongAdapter implements InstrumentEngine {
   }
 }
 
+class SoundfontEngineAdapter implements InstrumentEngine {
+  noteOn(trackId: string, pitch: number, velocity: number): void {
+    soundfontEngine.noteOn(trackId, pitch, velocity);
+  }
+
+  noteOff(trackId: string, pitch: number): void {
+    soundfontEngine.noteOff(trackId, pitch);
+  }
+
+  triggerAttackRelease(trackId: string, pitch: number, duration: number, velocity: number): void {
+    soundfontEngine.triggerAttackRelease(trackId, pitch, duration, velocity);
+  }
+
+  setParameter(_trackId: string, _name: string, _value: number | string | boolean): void {
+    // SoundFont program settings are selected through the preset browser.
+  }
+
+  releaseAll(): void {
+    soundfontEngine.releaseAll();
+  }
+
+  removeTrack(trackId: string): void {
+    soundfontEngine.removeTrack(trackId);
+  }
+
+  dispose(): void {
+    soundfontEngine.resetRouting();
+  }
+}
+
 // ── Singletons (one adapter per kind) ──────────────────────────────────────
 
 const subtractiveAdapter = new SynthEngineAdapter();
@@ -226,6 +257,7 @@ const fmAdapter = new FmEngineAdapter();
 const granularAdapter = new GranularEngineAdapter();
 const additiveAdapter = new AdditiveEngineAdapter();
 const physicalAdapter = new KarplusStrongAdapter();
+const soundfontAdapter = new SoundfontEngineAdapter();
 
 /**
  * Return the {@link InstrumentEngine} that should handle playback for the
@@ -248,8 +280,10 @@ case 'additive':
       return additiveAdapter;
 case 'physical':
       return physicalAdapter;
+case 'soundfont':
+  return soundfontAdapter;
   }
 }
 
 // Re-export the adapters for direct testing.
-export { SynthEngineAdapter, SamplerEngineAdapter, FmEngineAdapter, GranularEngineAdapter, AdditiveEngineAdapter, KarplusStrongAdapter };
+export { SynthEngineAdapter, SamplerEngineAdapter, FmEngineAdapter, GranularEngineAdapter, AdditiveEngineAdapter, KarplusStrongAdapter, SoundfontEngineAdapter };

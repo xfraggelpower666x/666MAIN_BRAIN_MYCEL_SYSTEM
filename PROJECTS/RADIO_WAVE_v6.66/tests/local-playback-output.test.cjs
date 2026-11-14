@@ -62,6 +62,26 @@ function player({ local = true } = {}) {
     get paused() { return paused; }, get playing() { return playing; }, timeout: () => timeout() };
 }
 
+test('queue track and removal buttons have IDs for detached overlay forwarding', () => {
+  const created = [];
+  const element = () => ({
+    dataset: {}, children: [], classList: { add() {}, remove() {} },
+    append(...items) { this.children.push(...items); },
+    replaceChildren() { this.children = []; },
+    appendChild(item) { this.children.push(item); }
+  });
+  const list = element();
+  const context = {
+    localQueueSnapshot: {}, localQueueList: list, localQueueState: {}, labelAudioFile: {},
+    audioMeta: element(), enableLocalPlayer() {},
+    document: { createElement: () => { const result = element(); created.push(result); return result; } }
+  };
+  runInNewContext(code('function renderLocalQueue(', 'function fadeAudioTo('), context);
+  context.renderLocalQueue({ count: 1, index: 0, current: 'Track', items: [{ index: 0, name: 'Track', active: true }] });
+  assert.equal(list.children[0].children[0].id, 'local-queue-play-0');
+  assert.equal(list.children[0].children[1].id, 'local-queue-remove-0');
+});
+
 for (const failure of ['error', 'timeout']) {
   test('B-01: ' + failure + ' beendet den Titelstart und meldet den Grund', async () => {
     const fixture = player();

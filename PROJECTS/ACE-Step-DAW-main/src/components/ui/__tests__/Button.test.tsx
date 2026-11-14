@@ -60,7 +60,7 @@ describe('Button component', () => {
       render(<Button variant="primary">Primary</Button>);
       const btn = screen.getByRole('button');
       expect(btn.className).toContain('bg-daw-accent');
-      expect(btn.className).toContain('text-white');
+      expect(btn.className).toContain('text-zinc-900');
     });
 
     it('applies ghost variant classes', () => {
@@ -123,7 +123,7 @@ describe('Button component', () => {
       render(<Button active>Active</Button>);
       const btn = screen.getByRole('button');
       expect(btn.className).toContain('bg-daw-accent');
-      expect(btn.className).toContain('text-white');
+      expect(btn.className).toContain('text-zinc-900');
     });
   });
 
