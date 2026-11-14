@@ -2,7 +2,7 @@
 
 **Language:** [Español](README.md) · [English](README.en.md)
 
-Cleans Suno WAV exports with adaptive spectral denoise, phase-cancel verification, and two 24-bit output files.
+Cleans Suno WAV or MP3 exports with adaptive spectral denoise, phase-cancel verification, and two 24-bit WAV output files.
 
 Uses a process as posted in Reddit by u/Cookienomster45. May your god keep you in any kind of eternal feast of heroes.
 
@@ -50,7 +50,7 @@ conda activate sunocleanser
 python -m sunocleanser.gui
 ```
 
-In the window: **Browse** → pick the WAV, set **title** if you want, **Process**. **Open out/** opens the output folder.
+In the window: **Browse** → pick a WAV or MP3, set **title** if you want, **Process**. **Open out/** opens the output folder.
 
 The GUI starts in **English**. Use the **Language** selector at the top of the window to switch between **English** and **Español** at any time.
 
@@ -67,15 +67,16 @@ All GUI outputs go to **`out/`** (relative to the directory you launch from). Th
 | `{stem}.report.json` | Parameters, peaks, phase verification |
 
 JSON reports use **file names only**, not absolute paths on your machine.
+Path separators in titles are replaced with underscores so outputs stay in the output folder.
 
 ## CLI
 
 ```powershell
 conda activate sunocleanser
-python -m sunocleanser.cli "C:\path\to\song.wav" --out-dir out --title "My track"
+python -m sunocleanser.cli "C:\path\to\song.mp3" --out-dir out --title "My track"
 ```
 
-Without `--out-dir`, WAVs are written next to the input file; see `python -m sunocleanser.cli -h` for report placement.
+WAV and MP3 inputs are supported; generated audio remains 24-bit WAV. Without `--out-dir`, WAVs are written next to the input file; see `python -m sunocleanser.cli -h` for report placement.
 
 ## Tests
 

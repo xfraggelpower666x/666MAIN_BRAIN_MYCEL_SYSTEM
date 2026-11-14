@@ -20,16 +20,16 @@ OUT_DIR = Path(os.environ.get("SUNOCLEANSER_OUT", "out")).resolve()
 TRANSLATIONS = {
     "English": {
         "language": "Language",
-        "input": "Input WAV",
+        "input": "Input audio",
         "browse": "Browse…",
         "title": "Title (output file names)",
         "output": "Output: out/ folder (local only)",
         "process": "Process",
         "open_output": "Open out/",
-        "select_wav": "Select WAV",
+        "select_audio": "Select audio",
         "all_files": "All files",
         "folder": "Folder: {path}",
-        "invalid_wav": "Select a valid WAV file.",
+        "invalid_audio": "Select a valid WAV or MP3 file.",
         "processing": "Processing…",
         "clean": "Clean: {name}",
         "noise": "Noise: {name}",
@@ -38,16 +38,16 @@ TRANSLATIONS = {
     },
     "Español": {
         "language": "Idioma",
-        "input": "WAV de entrada",
+        "input": "Audio de entrada",
         "browse": "Examinar…",
         "title": "Título (nombres de salida)",
         "output": "Salida: carpeta out/ (solo local)",
         "process": "Procesar",
         "open_output": "Abrir out/",
-        "select_wav": "Seleccionar WAV",
+        "select_audio": "Seleccionar audio",
         "all_files": "Todos",
         "folder": "Carpeta: {path}",
-        "invalid_wav": "Selecciona un archivo WAV válido.",
+        "invalid_audio": "Selecciona un archivo WAV o MP3 válido.",
         "processing": "Procesando…",
         "clean": "Limpio: {name}",
         "noise": "Ruido: {name}",
@@ -143,8 +143,8 @@ class SunoCleanserApp:
 
     def _browse(self) -> None:
         chosen = filedialog.askopenfilename(
-            title=self._text("select_wav"),
-            filetypes=[("WAV", "*.wav"), (self._text("all_files"), "*.*")],
+            title=self._text("select_audio"),
+            filetypes=[("WAV and MP3", "*.wav *.mp3"), (self._text("all_files"), "*.*")],
         )
         if chosen:
             self._set_wav(Path(chosen))
@@ -169,7 +169,7 @@ class SunoCleanserApp:
             return
         wav = Path(self.wav_var.get().strip())
         if not wav.is_file():
-            messagebox.showerror("SunoCleanser", self._text("invalid_wav"))
+            messagebox.showerror("SunoCleanser", self._text("invalid_audio"))
             return
 
         title = self.title_var.get().strip() or wav.stem
