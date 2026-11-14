@@ -1128,23 +1128,43 @@ function extractPersonalMilkdropZip(zipPath){
   if(!st.isFile()||st.size<=0||st.size>256*1024*1024)throw new Error('personal_library_zip_invalid');
   const root=personalMilkdropRoot();
   const temp=root+'-incoming';
-  try{fs.rmSync(temp,{recursive:true,force:true});}catch{}
-  fs.mkdirSync(temp,{recursive:true});
+  fs.rmSync(temp,{recursive:true,force:true});
+  const MAX_ARCHIVE_ENTRIES=10000;
+  const MAX_ARCHIVE_UNCOMPRESSED_BYTES=512*1024*1024;
   const escapedZip=String(zipPath).replace(/'/g,"''");
   const escapedDest=String(temp).replace(/'/g,"''");
-  const script=`$ErrorActionPreference='Stop'; Add-Type -AssemblyName System.IO.Compression.FileSystem; [IO.Compression.ZipFile]::ExtractToDirectory('${escapedZip}', '${escapedDest}')`;
-  const r=runPowerShell(['-NoProfile','-NonInteractive','-Command',script],{encoding:'utf8',windowsHide:true,timeout:120000,maxBuffer:4*1024*1024});
-  if(r.status!==0)throw new Error('personal_library_extract_failed:'+String(r.stderr||r.stdout||'').slice(0,600));
-  const files=safeWalkMilkdropLibrary(temp);
-  const milk=files.filter(x=>x.ext==='.milk').length;
-  const milk2=files.filter(x=>x.ext==='.milk2').length;
-  if(milk<1)throw new Error('personal_library_no_milk_presets');
-  try{fs.rmSync(root,{recursive:true,force:true});}catch{}
-  fs.renameSync(temp,root);
-  const state=personalMilkdropLibraryState(false);
-  fs.writeFileSync(personalMilkdropManifestPath(),JSON.stringify({installedAt:new Date().toISOString(),sourceZip:path.basename(zipPath),milk:state.milk,milk2:state.milk2,count:state.count,personalUse:true,redistribution:false},null,2),'utf8');
-  runtimeEvent('personal-milkdrop-library-imported',{milk:state.milk,milk2:state.milk2,count:state.count});
-  return state;
+  const script=`$ErrorActionPreference='Stop'; Add-Type -AssemblyName System.IO.Compression.FileSystem; $archive=[IO.Compression.ZipFile]::OpenRead('${escapedZip}'); try { $entryCount=0; [long]$totalBytes=0; foreach($entry in $archive.Entries) { $entryCount++; if($entryCount -gt ${MAX_ARCHIVE_ENTRIES}) { throw 'personal_library_archive_too_many_entries' }; $entryLength=[long]$entry.Length; if($entryLength -gt (${MAX_ARCHIVE_UNCOMPRESSED_BYTES} - $totalBytes)) { throw 'personal_library_archive_too_large' }; $totalBytes += $entryLength } } finally { $archive.Dispose() }; [IO.Compression.ZipFile]::ExtractToDirectory('${escapedZip}', '${escapedDest}')`;
+  let installed=false;
+  let importError=null;
+  try{
+    fs.mkdirSync(temp,{recursive:true});
+    const r=runPowerShell(['-NoProfile','-NonInteractive','-Command',script],{encoding:'utf8',windowsHide:true,timeout:120000,maxBuffer:4*1024*1024});
+    if(r.status!==0)throw new Error('personal_library_extract_failed:'+String(r.stderr||r.stdout||'').slice(0,600));
+    const files=safeWalkMilkdropLibrary(temp);
+    const milk=files.filter(x=>x.ext==='.milk').length;
+    const milk2=files.filter(x=>x.ext==='.milk2').length;
+    if(milk<1)throw new Error('personal_library_no_milk_presets');
+    fs.rmSync(root,{recursive:true,force:true});
+    fs.renameSync(temp,root);
+    installed=true;
+    const state=personalMilkdropLibraryState(false);
+    fs.writeFileSync(personalMilkdropManifestPath(),JSON.stringify({installedAt:new Date().toISOString(),sourceZip:path.basename(zipPath),milk:state.milk,milk2:state.milk2,count:state.count,personalUse:true,redistribution:false},null,2),'utf8');
+    runtimeEvent('personal-milkdrop-library-imported',{milk:state.milk,milk2:state.milk2,count:state.count});
+    return state;
+  }catch(error){
+    importError=error;
+    throw error;
+  }finally{
+    if(!installed){
+      try{fs.rmSync(temp,{recursive:true,force:true});}
+      catch(cleanupError){
+        const detail=String(cleanupError.message||cleanupError);
+        const cleanupFailure=new Error('personal_library_staging_cleanup_failed:'+detail,{cause:cleanupError});
+        if(importError)throw new Error(`${importError.message};${cleanupFailure.message}`,{cause:importError});
+        throw cleanupFailure;
+      }
+    }
+  }
 }
 
 registerIpc('dialog:openMilkdropPack','main', async()=>{
