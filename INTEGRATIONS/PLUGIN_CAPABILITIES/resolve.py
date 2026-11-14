@@ -15,21 +15,32 @@ def current_registry(checkout):
     )
     if runtime.get("system_id") != "666MAIN-BRAIN-MYCEL-SYSTEM-001":
         raise ValueError("Checkout gehört nicht zu 666MAIN BRAIN")
-    reference = runtime["intelligence"]["plugin_capabilities"]
     pointer = (checkout / "CURRENT_POINTER.md").read_text(encoding="utf-8")
+    intelligence = runtime["intelligence"]
+    catalog = bound_file(checkout, pointer, CURRENT_KEY, intelligence["plugin_capabilities"])
+    bound_file(checkout, pointer, "PLUGIN_CAPABILITIES_R01_WORKFLOWS",
+               intelligence["plugin_capability_workflows"])
+    return catalog
+
+
+def bound_file(checkout, pointer, key, reference):
+    if not isinstance(reference, str) or not reference:
+        raise ValueError(f"Ungültige Pfadangabe für {key}")
     declarations = [
         line.split("=", 1)[1]
         for line in pointer.splitlines()
-        if line.startswith(CURRENT_KEY + "=")
+        if line.startswith(key + "=")
     ]
     if declarations != [reference]:
-        raise ValueError("Current-Pointer und Runtime-Registry weichen ab")
+        raise ValueError(f"Current-Pointer und Runtime-Registry weichen ab: {key}")
     relative_path = Path(reference)
     if relative_path.is_absolute() or ".." in relative_path.parts:
-        raise ValueError("Katalogpfad muss checkout-relativ sein")
+        raise ValueError("Dateipfad muss checkout-relativ sein")
     catalog = (checkout / relative_path).resolve()
     if not catalog.is_relative_to(checkout):
-        raise ValueError("Katalogpfad verlässt den Checkout")
+        raise ValueError("Dateipfad verlässt den Checkout")
+    if not catalog.is_file():
+        raise ValueError(f"Datei fehlt für {key}")
     return catalog
 
 
