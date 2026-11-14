@@ -211,6 +211,7 @@ def audio_lab_launch_spec(tool, project_roots, platform=None):
     project_name = {
         'suno': 'Suno-Song-Remaster-main',
         'restoration': 'Restoration-Lab-main',
+        'sunocleanser': 'SunoCleanser-0.2.1',
     }.get(tool)
     if project_name is None:
         raise ValueError(f'Unbekanntes Audio-Tool: {tool}')
@@ -238,15 +239,26 @@ def audio_lab_launch_spec(tool, project_roots, platform=None):
                 )
             return [str(electron), '.'], project
 
-        packaged_app = project / 'Restoration Lab.exe'
-        if host == 'win32' and packaged_app.is_file():
-            return [str(packaged_app)], project
-        launcher = project / 'STARTEN.bat'
-        if host == 'win32' and launcher.is_file():
-            return ['cmd.exe', '/c', str(launcher)], project
+        if tool == 'restoration':
+            packaged_app = project / 'Restoration Lab.exe'
+            if host == 'win32' and packaged_app.is_file():
+                return [str(packaged_app)], project
+            launcher = project / 'STARTEN.bat'
+            if host == 'win32' and launcher.is_file():
+                return ['cmd.exe', '/c', str(launcher)], project
+            raise RuntimeError(
+                'Restoration Lab kann hier nicht gestartet werden. '
+                'Unter Windows bitte STARTEN.bat im Projektordner verwenden.'
+            )
+
+        launcher = project / ('sunocleanser-gui.bat' if host == 'win32' else 'sunocleanser-gui.sh')
+        if launcher.is_file():
+            if host == 'win32':
+                return ['cmd.exe', '/c', str(launcher)], project
+            return ['bash', str(launcher)], project
         raise RuntimeError(
-            'Restoration Lab kann hier nicht gestartet werden. '
-            'Unter Windows bitte STARTEN.bat im Projektordner verwenden.'
+            'SunoCleanser-Launcher fehlt. Bitte das Projekt mit der '
+            'Conda-Umgebung "sunocleanser" einrichten.'
         )
 
     raise FileNotFoundError(
@@ -1191,7 +1203,7 @@ class App:
         return shutil.which(name) or str(local)
 
     def build_audio_labs(self,parent):
-        ttk.Label(parent,text='AUDIO LABS · REMASTER & RESTAURATION',
+        ttk.Label(parent,text='AUDIO LABS · REMASTER, RESTAURATION & CLEANUP',
                   foreground=NeonUI.CYAN,font=('Segoe UI Semibold',15)).pack(anchor='w',pady=(8,2))
         ttk.Label(parent,text='Spezialisierte Audio-Werkzeuge aus dem Manager starten. Jedes Werkzeug öffnet ein eigenes Fenster.',
                   wraplength=1040,foreground=NeonUI.TEXT).pack(anchor='w',pady=(0,8))
@@ -1212,6 +1224,14 @@ class App:
                    command=lambda:self.launch_audio_lab('restoration'),
                    style='Secondary.TButton').pack(side='right',padx=(10,0))
 
+        cleanser=ttk.LabelFrame(parent,text='SunoCleanser',padding=12)
+        cleanser.pack(fill='x',pady=(0,8))
+        ttk.Label(cleanser,text='WAV- und MP3-Eingabe, Rauschminderung und 24-Bit-WAV-Export.',
+                  wraplength=760).pack(side='left',fill='x',expand=True)
+        ttk.Button(cleanser,text='▶ CLEANUP STARTEN',
+                   command=lambda:self.launch_audio_lab('sunocleanser'),
+                   style='Secondary.TButton').pack(side='right',padx=(10,0))
+
         ttk.Label(parent,
                   text='Die Werkzeuge bleiben getrennte Anwendungen. Fehlende Pakete oder Programme werden nicht automatisch installiert.',
                   wraplength=1040,foreground=NeonUI.PINK).pack(anchor='w',pady=(2,6))
@@ -1230,7 +1250,11 @@ class App:
             self.audio_lab_status.set(f'{tool}: {exc}')
             messagebox.showerror('Audio Labs',str(exc),parent=self.root)
             return
-        label='Suno Song Remaster' if tool=='suno' else 'Restoration Lab'
+        label={
+            'suno':'Suno Song Remaster',
+            'restoration':'Restoration Lab',
+            'sunocleanser':'SunoCleanser',
+        }.get(tool,tool)
         self.audio_lab_status.set(f'{label} gestartet · eigenes Fenster')
 
     def build_system_panel(self,parent):

@@ -126,10 +126,17 @@ def main():
              portable/'external-tools'/'Suno-Song-Remaster-main'),
             (ROOT.parent/'Restoration-Lab-main'/'dist'/'Restoration Lab',
              portable/'external-tools'/'Restoration-Lab-main'),
+            (ROOT.parent/'SunoCleanser-0.2.1',
+             portable/'external-tools'/'SunoCleanser-0.2.1'),
         )
         for source,destination in optional_audio_apps:
             if source.is_dir():
-                shutil.copytree(source,destination,dirs_exist_ok=True)
+                shutil.copytree(
+                    source,
+                    destination,
+                    dirs_exist_ok=True,
+                    ignore=shutil.ignore_patterns('__pycache__','.pytest_cache','.venv','venv'),
+                )
                 print('OPTIONAL_AUDIO_LAB_BUNDLED:',destination.name)
         tools_out=portable/'tools';tools_out.mkdir(parents=True,exist_ok=True)
         missing=[]

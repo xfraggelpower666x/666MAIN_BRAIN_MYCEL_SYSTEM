@@ -80,6 +80,32 @@ class AudioLabLaunchTests(unittest.TestCase):
             self.assertEqual(command, [str(app)])
             self.assertEqual(working_directory, project)
 
+    def test_sunocleanser_uses_windows_launcher(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            project = root / 'SunoCleanser-0.2.1'
+            project.mkdir()
+            launcher = project / 'sunocleanser-gui.bat'
+            launcher.touch()
+
+            command, working_directory = audio_lab_launch_spec('sunocleanser', [root], 'win32')
+
+            self.assertEqual(command, ['cmd.exe', '/c', str(launcher)])
+            self.assertEqual(working_directory, project)
+
+    def test_sunocleanser_uses_unix_launcher(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            project = root / 'SunoCleanser-0.2.1'
+            project.mkdir()
+            launcher = project / 'sunocleanser-gui.sh'
+            launcher.touch()
+
+            command, working_directory = audio_lab_launch_spec('sunocleanser', [root], 'linux')
+
+            self.assertEqual(command, ['bash', str(launcher)])
+            self.assertEqual(working_directory, project)
+
     def test_missing_installation_and_unknown_tool_fail_explicitly(self):
         with tempfile.TemporaryDirectory() as temp:
             with self.assertRaises(FileNotFoundError):

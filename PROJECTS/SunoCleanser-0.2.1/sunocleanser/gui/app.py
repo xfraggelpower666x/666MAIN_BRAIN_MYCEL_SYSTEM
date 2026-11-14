@@ -58,10 +58,36 @@ TRANSLATIONS = {
 
 
 class SunoCleanserApp:
+    BG = "#080913"
+    PANEL = "#12132a"
+    FIELD = "#191d38"
+    CYAN = "#31eaff"
+    PINK = "#ff37d1"
+    VIOLET = "#a476ff"
+    TEXT = "#f3efff"
+
     def __init__(self, root: tk.Tk, initial_wav: Path | None = None) -> None:
         self.root = root
         self.root.title("SunoCleanser")
         self.root.minsize(520, 380)
+        self.root.configure(bg=self.BG)
+
+        style = ttk.Style(root)
+        style.theme_use("clam")
+        style.configure(
+            "Cleanser.TCombobox",
+            fieldbackground=self.FIELD,
+            foreground=self.TEXT,
+            background=self.PANEL,
+            arrowcolor=self.CYAN,
+        )
+        style.map(
+            "Cleanser.TCombobox",
+            fieldbackground=[("readonly", self.FIELD)],
+            foreground=[("readonly", self.TEXT)],
+            selectbackground=[("readonly", "#563282")],
+            selectforeground=[("readonly", "#ffffff")],
+        )
 
         self.language_var = tk.StringVar(value="English")
         self.text_vars = {
@@ -72,50 +98,135 @@ class SunoCleanserApp:
         self.title_var = tk.StringVar()
         self._processing = False
 
-        frame = tk.Frame(root, padx=12, pady=12)
+        frame = tk.Frame(root, padx=12, pady=12, bg=self.BG)
         frame.pack(fill=tk.BOTH, expand=True)
 
-        language_row = tk.Frame(frame)
+        language_row = tk.Frame(frame, bg=self.BG)
         language_row.grid(row=0, column=0, columnspan=2, sticky="e", pady=(0, 10))
-        tk.Label(language_row, textvariable=self.text_vars["language"]).pack(side=tk.LEFT)
+        tk.Label(
+            language_row,
+            textvariable=self.text_vars["language"],
+            bg=self.BG,
+            fg=self.CYAN,
+        ).pack(side=tk.LEFT)
         language_selector = ttk.Combobox(
             language_row, textvariable=self.language_var,
             values=list(TRANSLATIONS), state="readonly", width=12,
+            style="Cleanser.TCombobox",
         )
         language_selector.pack(side=tk.LEFT, padx=(8, 0))
         language_selector.bind("<<ComboboxSelected>>", self._change_language)
 
-        tk.Label(frame, textvariable=self.text_vars["input"]).grid(row=1, column=0, sticky="w")
-        entry_row = tk.Frame(frame)
+        tk.Label(frame, textvariable=self.text_vars["input"], bg=self.BG, fg=self.CYAN).grid(
+            row=1, column=0, sticky="w"
+        )
+        entry_row = tk.Frame(frame, bg=self.BG)
         entry_row.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(2, 0))
-        tk.Entry(entry_row, textvariable=self.wav_var).pack(
+        tk.Entry(
+            entry_row,
+            textvariable=self.wav_var,
+            bg=self.FIELD,
+            fg=self.TEXT,
+            insertbackground=self.CYAN,
+            selectbackground="#563282",
+            selectforeground="#ffffff",
+            relief=tk.FLAT,
+            highlightthickness=1,
+            highlightbackground=self.VIOLET,
+            highlightcolor=self.CYAN,
+        ).pack(
             side=tk.LEFT, fill=tk.X, expand=True
         )
-        tk.Button(entry_row, textvariable=self.text_vars["browse"], command=self._browse).pack(
-            side=tk.LEFT, padx=(8, 0)
-        )
+        tk.Button(
+            entry_row,
+            textvariable=self.text_vars["browse"],
+            command=self._browse,
+            bg=self.PANEL,
+            fg=self.CYAN,
+            activebackground="#302050",
+            activeforeground="#ffffff",
+            relief=tk.FLAT,
+            padx=10,
+            pady=5,
+            cursor="hand2",
+        ).pack(side=tk.LEFT, padx=(8, 0))
 
-        tk.Label(frame, textvariable=self.text_vars["title"]).grid(
+        tk.Label(frame, textvariable=self.text_vars["title"], bg=self.BG, fg=self.CYAN).grid(
             row=3, column=0, sticky="w", pady=(10, 0)
         )
-        tk.Entry(frame, textvariable=self.title_var).grid(
+        tk.Entry(
+            frame,
+            textvariable=self.title_var,
+            bg=self.FIELD,
+            fg=self.TEXT,
+            insertbackground=self.CYAN,
+            selectbackground="#563282",
+            selectforeground="#ffffff",
+            relief=tk.FLAT,
+            highlightthickness=1,
+            highlightbackground=self.VIOLET,
+            highlightcolor=self.CYAN,
+        ).grid(
             row=4, column=0, columnspan=2, sticky="ew", pady=(2, 0)
         )
 
-        tk.Label(frame, textvariable=self.text_vars["output"]).grid(
+        tk.Label(frame, textvariable=self.text_vars["output"], bg=self.BG, fg=self.PINK).grid(
             row=5, column=0, sticky="w", pady=(10, 0)
         )
 
-        actions = tk.Frame(frame)
+        actions = tk.Frame(frame, bg=self.BG)
         actions.grid(row=6, column=0, columnspan=2, sticky="w", pady=12)
-        self.run_btn = tk.Button(actions, textvariable=self.text_vars["process"], command=self._start)
-        self.run_btn.pack(side=tk.LEFT)
-        tk.Button(actions, textvariable=self.text_vars["open_output"], command=self._open_out).pack(
-            side=tk.LEFT, padx=8
+        self.run_btn = tk.Button(
+            actions,
+            textvariable=self.text_vars["process"],
+            command=self._start,
+            bg=self.PINK,
+            fg=self.BG,
+            activebackground="#ff70db",
+            activeforeground=self.BG,
+            disabledforeground="#493b50",
+            relief=tk.FLAT,
+            padx=12,
+            pady=6,
+            cursor="hand2",
         )
+        self.run_btn.pack(side=tk.LEFT)
+        tk.Button(
+            actions,
+            textvariable=self.text_vars["open_output"],
+            command=self._open_out,
+            bg=self.PANEL,
+            fg=self.CYAN,
+            activebackground="#302050",
+            activeforeground="#ffffff",
+            relief=tk.FLAT,
+            padx=10,
+            pady=6,
+            cursor="hand2",
+        ).pack(side=tk.LEFT, padx=8)
 
-        self.log = scrolledtext.ScrolledText(frame, height=14, state=tk.DISABLED)
+        self.log = scrolledtext.ScrolledText(
+            frame,
+            height=14,
+            state=tk.DISABLED,
+            bg=self.FIELD,
+            fg=self.TEXT,
+            insertbackground=self.CYAN,
+            selectbackground="#563282",
+            selectforeground="#ffffff",
+            relief=tk.FLAT,
+            highlightthickness=1,
+            highlightbackground=self.VIOLET,
+            highlightcolor=self.CYAN,
+        )
         self.log.grid(row=7, column=0, columnspan=2, sticky="nsew")
+        self.log.vbar.configure(
+            bg=self.PANEL,
+            activebackground=self.VIOLET,
+            troughcolor=self.BG,
+            highlightthickness=0,
+            bd=0,
+        )
 
         frame.columnconfigure(0, weight=1)
         frame.rowconfigure(7, weight=1)
