@@ -60,6 +60,22 @@ docker compose up -d
 
 Open in your browser: **http://localhost:8080**
 
+## Optional MCP Server
+
+The image also contains a stdio MCP server that authenticates separately with a
+`sunoapi.org` API key. The web app continues to use the Suno session cookie in
+`config.yaml`; neither credential is used as a fallback for the other.
+
+Put `SUNO_API_KEY` (and optionally `SUNO_API_BASE_URL`) in a local `.env` file next to
+the Compose file, then configure an MCP client to run:
+
+```bash
+docker compose --profile mcp run --rm -i suno-mcp
+```
+
+The `mcp` profile is opt-in and the MCP server uses stdio, so it does not publish an
+additional port. See the main README for an MCP client configuration example.
+
 ## Volumes
 
 | Mount | Description |
