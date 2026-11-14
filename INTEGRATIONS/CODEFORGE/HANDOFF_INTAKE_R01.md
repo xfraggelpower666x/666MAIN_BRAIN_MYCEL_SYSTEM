@@ -55,3 +55,27 @@ python3 check_patch_scope.py --checkout REPO --base BASE_SHA --candidate CANDIDA
 ```
 
 Der Check verwendet vollständige Commit-IDs und einen Vorfahren als Basis. Er liest die geänderten Git-Pfade einschließlich beider Seiten von Umbenennungen und prüft exakte Pfade oder Verzeichnisgrenzen. Exit 0 bedeutet `IN_SCOPE`, Exit 1 meldet Pfade außerhalb des Scopes, Exit 2 bezeichnet einen ungültigen Aufruf oder eine nicht prüfbare Git-Basis. Der Check bewertet den Commit-Enddiff. Zwischenstände, uncommittete Dateien, fachliche Korrektheit und Ausführungsrechte brauchen eigene Prüfungen. Fremde Hooks, Sweep-Worker, py-pit-Installer und JSyphon-Binärdateien sind außerhalb des veröffentlichten Scopes.
+
+## Kandidatenprüfung R05
+
+[review_candidate.py](review_candidate.py) verbindet den Git-Scope-Check aus R04 mit dem QuickGate-Readback aus R03. Die Abfrage prüft den finalen Diff, den vorgelegten `gate-result/v1`-Beleg und die erwarteten Check-Namen. Sie liest lokale Eingaben und startet keine im Beleg genannten Kommandos.
+
+Vom MAIN-BRAIN-Repository aus aufrufen:
+
+```sh
+python3 -m INTEGRATIONS.CODEFORGE.review_candidate \
+  --checkout TARGET_REPO --base BASE_SHA --candidate CANDIDATE_SHA \
+  --allow src/feature --allow tests/test_feature.py \
+  --receipt gate-result.json --snapshot EXPECTED_SNAPSHOT_DIGEST \
+  --require-check lint --require-check typecheck --require-check test
+```
+
+Die Check-Namen müssen dem konkreten Runner entsprechen. Der Aufrufer belegt den Zusammenhang zwischen Kandidatencommit, Run und unabhängig bestimmtem Snapshot. Der Leser vergleicht den übergebenen Snapshot mit dem Beleg. Die Befunde zum Git-Diff und zur Qualität bleiben einzeln sichtbar.
+
+| Exit | Ergebnis |
+|---|---|
+| 0 | `REVIEW_EVIDENCE_CONSISTENT`. Ein Diff liegt im erlaubten Scope. Die verlangten Checks sind im konsistenten Beleg vorhanden. |
+| 1 | `OUTSIDE_SCOPE`, `NO_CHANGE` oder `QUALITY_EVIDENCE_INCOMPLETE`. Die Ausgabe enthält die jeweiligen Teilbefunde. |
+| 2 | Git-Basis, Aufruf oder Beleg sind ungültig oder unlesbar. |
+
+Für einen Abschluss sind weiterhin die fachliche Testabdeckung, Run-Provenienz und erforderliche Zielhost-Abnahme zu belegen. Die Ausgabe erteilt keine Merge- oder Deploy-Freigabe.
