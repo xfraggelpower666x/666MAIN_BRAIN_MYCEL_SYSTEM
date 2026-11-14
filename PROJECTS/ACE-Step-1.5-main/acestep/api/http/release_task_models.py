@@ -126,6 +126,7 @@ class GenerateMusicRequest(BaseModel):
     constrained_decoding_debug: bool = False
     use_cot_caption: bool = True
     use_cot_language: bool = True
+    use_cot_metas: Optional[bool] = None
     is_format_caption: bool = False
     allow_lm_batch: bool = True
     track_name: Optional[str] = None

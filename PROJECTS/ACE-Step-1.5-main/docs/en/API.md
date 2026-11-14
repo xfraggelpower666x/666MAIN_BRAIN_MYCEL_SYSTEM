@@ -179,6 +179,10 @@ When `use_cot_caption=true` or `use_cot_language=true` or metadata fields are mi
 
 User-provided values always win; LM only fills the fields that are empty/missing.
 
+Set `use_cot_metas` to `true` or `false` to explicitly control metadata
+completion during generation. When omitted, the previous default is retained:
+enabled outside sample mode and disabled in sample mode.
+
 **Music Attribute Parameters**:
 
 | Parameter Name | Type | Default | Description |

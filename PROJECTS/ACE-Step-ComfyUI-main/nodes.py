@@ -537,20 +537,29 @@ def _build_request_body(gen_params: dict, settings: dict) -> dict:
     is_sample_mode = gp.get("sample_mode", False)
     sample_query = gp.get("sample_query", "")
 
-    audio_list = []
-    if gp.get("refer_audio") is not None:
-        audio_list.append(gp["refer_audio"])
-    if gp.get("src_audio") is not None:
-        audio_list.append(gp["src_audio"])
-
-    prompt = sample_query if is_sample_mode else gp.get("caption", "")
-    content = _build_multimodal_content(prompt, audio_list)
-
     task_type = gp.get("task_type", "text2music")
     has_src = gp.get("src_audio") is not None
+    has_reference = gp.get("refer_audio") is not None
     has_codes = bool((gp.get("audio_codes", "") or "").strip())
     if task_type == "text2music" and (has_src or has_codes):
         task_type = "cover"
+
+    source_audio_tasks = {"cover", "repaint", "lego", "extract", "complete"}
+    audio_list = []
+    if task_type in source_audio_tasks:
+        if has_reference and not has_src:
+            raise RuntimeError(
+                f"{task_type} requires source audio when reference audio is supplied"
+            )
+        if has_src:
+            audio_list.append(gp["src_audio"])
+        if has_reference:
+            audio_list.append(gp["refer_audio"])
+    elif has_reference:
+        audio_list.append(gp["refer_audio"])
+
+    prompt = sample_query if is_sample_mode else gp.get("caption", "")
+    content = _build_multimodal_content(prompt, audio_list)
 
     body = {
         "model": "acemusic/acestep-v15-turbo",

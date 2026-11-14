@@ -6,7 +6,7 @@ const mockFetch = vi.fn();
 
 // Mock aceStepApi
 vi.mock('../aceStepApi', () => ({
-  getBackendUrl: vi.fn(() => ''),
+  getApiBase: vi.fn(() => '/api'),
 }));
 
 import {
