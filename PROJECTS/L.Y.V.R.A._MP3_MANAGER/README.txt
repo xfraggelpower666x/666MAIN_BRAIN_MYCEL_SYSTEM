@@ -8,7 +8,8 @@ DATEIEN ORIGINAL VOM NUTZER:
 START:
  Windows, Python 3 und Abhaengigkeiten aus requirements.txt benoetigt.
  Installiere nur nach eigener Entscheidung: py -3 -m pip install -r requirements.txt
- Danach STARTEN.bat starten. Diese Datei installiert NICHT heimlich.
+ Danach L.Y.V.R.A._MP3_MANAGER.bat starten und im Menue "MP3 Manager starten" waehlen.
+ Installationen erfolgen nur nach Zustimmung.
 
 AUSSEHEN:
  Neon Pink/Cyan/Lila, Dark Theme, skalierter Banner und internes Logo.
@@ -17,8 +18,9 @@ AUSSEHEN:
  Bilder werden im Originalverhaeltnis verkleinert (nicht verzerrt).
 
 PORTABLE EXE AUF WINDOWS:
- BUILD_PORTABLE_EXE.bat auf Windows starten (ggf. PyInstaller installieren).
- Binaerdatei in dist/666SOUNDsDESIGn_MP3_Manager.exe.
+ L.Y.V.R.A._MP3_MANAGER.bat starten und "Portable EXE bauen" waehlen.
+ Binaerdatei in dist/L.Y.V.R.A._MP3_MANAGER/L.Y.V.R.A._MP3_MANAGER.exe.
+ Den gesamten Ordner kopieren; L.Y.V.R.A._MP3_MANAGER.bat dort startet und prueft ihn.
  Icon und beide PNGs werden via --add-data eingebettet.
  FFmpeg und FFprobe sind fuer Audio-Konvertierung weiterhin noetig.
 
@@ -37,7 +39,8 @@ STATUS:
  und Windows-EXE-Build sind nicht verifiziert.
 
 
-=== v2.6 BATCH SYSTEM CHECK / PYTHON 3.15 REPAIR ===
+=== HISTORISCH: v2.6 BATCH SYSTEM CHECK / PYTHON 3.15 REPAIR ===
+Die folgenden Versionsnotizen beschreiben alte Dateien; aktuell gilt L.Y.V.R.A._MP3_MANAGER.bat.
 STARTEN.bat erkennt Python, erstellt .venv und prueft Paketversionen und native Pillow-Importe.
 Nach ausdruecklicher Bestaetigung werden nur Pakete in .venv installiert/aktualisiert.
 Pillow>=13 fuer Python 3.15; PyInstaller>=6.21 fuer Python 3.15.

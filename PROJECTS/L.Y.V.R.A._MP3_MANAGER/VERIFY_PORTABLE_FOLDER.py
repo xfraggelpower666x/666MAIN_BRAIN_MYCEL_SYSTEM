@@ -15,7 +15,7 @@ def verify(folder, runner=subprocess.run, platform=None):
     is_windows=(platform or sys.platform)=='win32'
     required=[APP+'.exe','_internal','assets/app.ico','assets/banner.png','assets/logo.png',
               'tools/ffmpeg.exe','tools/ffprobe.exe','BEDIENUNGSANLEITUNG_DE.md','MANUAL_EN.md',
-              'REPARATUR_AUDIO_TOOLS.bat','PORTABLE_VERIFY.bat','PORTABLE_VERIFY.ps1']
+              'L.Y.V.R.A._MP3_MANAGER.bat','PORTABLE_VERIFY.ps1']
     for rel in required:
         target=folder/rel
         ok=(target.is_dir() if rel=='_internal' else target.is_file() and target.stat().st_size>0)
