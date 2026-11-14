@@ -66,6 +66,18 @@ The server will download model weights on first launch and then listen on `http:
 
 In the **Text2music Server** node, set **mode** → `local`. The URL auto-fills to `http://127.0.0.1:8002` and the **api_key** field is hidden since no key is needed locally.
 
+### Shared local queue
+
+The **ACE-Step Shared Local Server** node is an alternative to the server above.
+Connect the existing Gen Params and Settings nodes to it and start the DAW's
+ACE-Step 1.5 REST server separately on `127.0.0.1:8001`. Both applications
+then submit jobs to that one server instead of loading a second inference model.
+The node returns audio and result information; it does not return audio codes.
+Sample mode, audio-code input, and `top_p` outside the open interval (0, 1)
+are not supported by this adapter. Auto metadata also requires another
+language-model option to be enabled. The REST server must not require an API
+key. A timed-out job may continue running on the server.
+
 ## Usage Guide
 
 Drag `workflows/text2music.json` into ComfyUI to load the ready-to-use workflow.

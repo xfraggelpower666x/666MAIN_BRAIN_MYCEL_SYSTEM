@@ -148,6 +148,7 @@ class ApiAutoDurationTests(unittest.TestCase):
             lm_temperature=0.85,
             lm_cfg_scale=2.5,
             lm_negative_prompt="",
+            use_cot_metas=None,
             batch_size=None,
             allow_lm_batch=False,
             use_random_seed=True,

@@ -8,6 +8,7 @@ import os
 import numpy as np
 import torch
 import requests
+from . import local_queue
 
 
 # =============================================================================
@@ -537,20 +538,29 @@ def _build_request_body(gen_params: dict, settings: dict) -> dict:
     is_sample_mode = gp.get("sample_mode", False)
     sample_query = gp.get("sample_query", "")
 
-    audio_list = []
-    if gp.get("refer_audio") is not None:
-        audio_list.append(gp["refer_audio"])
-    if gp.get("src_audio") is not None:
-        audio_list.append(gp["src_audio"])
-
-    prompt = sample_query if is_sample_mode else gp.get("caption", "")
-    content = _build_multimodal_content(prompt, audio_list)
-
     task_type = gp.get("task_type", "text2music")
     has_src = gp.get("src_audio") is not None
+    has_reference = gp.get("refer_audio") is not None
     has_codes = bool((gp.get("audio_codes", "") or "").strip())
     if task_type == "text2music" and (has_src or has_codes):
         task_type = "cover"
+
+    source_audio_tasks = {"cover", "repaint", "lego", "extract", "complete"}
+    audio_list = []
+    if task_type in source_audio_tasks:
+        if has_reference and not has_src:
+            raise RuntimeError(
+                f"{task_type} requires source audio when reference audio is supplied"
+            )
+        if has_src:
+            audio_list.append(gp["src_audio"])
+        if has_reference:
+            audio_list.append(gp["refer_audio"])
+    elif has_reference:
+        audio_list.append(gp["refer_audio"])
+
+    prompt = sample_query if is_sample_mode else gp.get("caption", "")
+    content = _build_multimodal_content(prompt, audio_list)
 
     body = {
         "model": "acemusic/acestep-v15-turbo",
@@ -699,6 +709,34 @@ class AceStepText2MusicServer:
             msg = choices[0].get("message", {})
             out_codes = msg.get("audio_codes", "") or ""
         return (audio, text_content, out_codes)
+
+class AceStepSharedLocalServer:
+    """Generate through the same local ACE-Step queue as the DAW."""
+
+    CATEGORY = "api node/audio/ACE-Step"
+    FUNCTION = "generate"
+    RETURN_TYPES = ("AUDIO", "STRING")
+    RETURN_NAMES = ("audio", "info")
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {
+            "gen_params": ("ACESTEP_GEN_PARAMS", {}),
+            "settings": ("ACESTEP_SETTINGS", {}),
+        }}
+
+    @classmethod
+    def IS_CHANGED(cls, **kwargs):
+        return float("NaN")
+
+    def generate(self, gen_params, settings):
+        audio_bytes, info = local_queue.generate(
+            gen_params, settings,
+            lambda audio: base64.b64decode(_encode_audio_b64(audio)),
+            requests,
+        )
+        waveform, sample_rate = _parse_wav_bytes(audio_bytes)
+        return ({"waveform": waveform, "sample_rate": sample_rate}, info)
 
 
 # =============================================================================
