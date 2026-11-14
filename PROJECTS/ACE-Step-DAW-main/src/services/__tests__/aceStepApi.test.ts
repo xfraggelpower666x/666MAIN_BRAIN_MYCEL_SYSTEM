@@ -10,6 +10,7 @@ describe('healthCheck', () => {
   });
 
   afterEach(() => {
+    delete (window as Record<string, unknown>).__TAURI_INTERNALS__;
     vi.useRealTimers();
     vi.unstubAllGlobals();
     vi.resetModules();
@@ -23,6 +24,14 @@ describe('healthCheck', () => {
 
     await expect(healthCheck()).resolves.toBe(true);
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses the local backend in the desktop app without a configured URL', async () => {
+    (window as Record<string, unknown>).__TAURI_INTERNALS__ = {};
+    vi.mocked(fetch).mockResolvedValueOnce({ ok: true } as Response);
+    const { healthCheck } = await import('../aceStepApi');
+    await expect(healthCheck()).resolves.toBe(true);
+    expect(fetch).toHaveBeenCalledWith('http://127.0.0.1:8001/health');
   });
 
   it('backs off after a failure so repeated checks do not keep hitting the proxy', async () => {

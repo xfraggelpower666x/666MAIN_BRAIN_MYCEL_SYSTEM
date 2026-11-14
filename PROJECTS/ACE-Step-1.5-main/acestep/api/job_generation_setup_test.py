@@ -33,6 +33,7 @@ def _base_req() -> SimpleNamespace:
         lm_temperature=0.85,
         lm_cfg_scale=2.5,
         lm_negative_prompt="",
+        use_cot_metas=None,
         batch_size=None,
         allow_lm_batch=False,
         use_random_seed=True,
@@ -50,6 +51,22 @@ def _base_req() -> SimpleNamespace:
 
 class JobGenerationSetupTests(unittest.TestCase):
     """Behavioral tests for generation setup decomposition."""
+
+    def test_explicit_cot_metas_overrides_sample_default(self) -> None:
+        for sample_mode, explicit in [(False, False), (True, True)]:
+            with self.subTest(sample_mode=sample_mode, explicit=explicit):
+                req = _base_req()
+                req.use_cot_metas = explicit
+                setup = build_generation_setup(
+                    req=req, caption="cap", lyrics="", bpm=None, key_scale="",
+                    time_signature="", audio_duration=None, thinking=False,
+                    sample_mode=sample_mode, format_has_duration=False,
+                    use_cot_caption=False, use_cot_language=False,
+                    lm_top_k=0, lm_top_p=0.9, parse_timesteps=lambda _: None,
+                    is_instrumental=lambda _: True,
+                    default_dit_instruction="default instruction", task_instructions={},
+                )
+                self.assertIs(setup.params.use_cot_metas, explicit)
 
     def test_build_generation_setup_applies_complete_instruction_template(self) -> None:
         """Complete task should inject uppercased track classes into instruction."""

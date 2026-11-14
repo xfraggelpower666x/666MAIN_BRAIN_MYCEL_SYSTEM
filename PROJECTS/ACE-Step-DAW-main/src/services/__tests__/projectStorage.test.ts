@@ -429,6 +429,7 @@ describe('projectStorage', () => {
         'audio:imported-1:clip1',
         expect.any(Blob),
       );
+      expect(mockSet.mock.calls.find(([key]) => key === 'audio:imported-1:clip1')![1].type).toBe('audio/wav');
 
       // Project saved to IDB
       expect(mockSet).toHaveBeenCalledWith(
@@ -481,12 +482,13 @@ describe('projectStorage', () => {
     });
 
     it('round-trips export → import for a project with audio', async () => {
-      const project = makeMinimalProject({ id: 'rt-1', name: 'Roundtrip' });
+      const workflow = JSON.stringify({ nodes: [{ id: 1 }] });
+      const project = makeMinimalProject({ id: 'rt-1', name: 'Roundtrip', comfyWorkflow: workflow });
       const audioContent = new TextEncoder().encode('roundtrip-audio');
 
       // Set up keys/get for export
       mockKeys.mockResolvedValue([`audio:rt-1:clip-a`]);
-      mockGet.mockResolvedValue(new Blob([audioContent], { type: 'audio/wav' }));
+      mockGet.mockResolvedValue(new Blob([audioContent], { type: 'audio/flac' }));
 
       await exportProjectArchive(project);
 
@@ -501,6 +503,7 @@ describe('projectStorage', () => {
       expect(imported).not.toBeNull();
       expect(imported!.id).toBe('rt-1');
       expect(imported!.name).toBe('Roundtrip');
+      expect(imported!.comfyWorkflow).toBe(workflow);
 
       // Audio was restored
       const audioSetCall = mockSet.mock.calls.find(
@@ -508,6 +511,8 @@ describe('projectStorage', () => {
       );
       expect(audioSetCall).toBeDefined();
       expect(audioSetCall![1]).toBeInstanceOf(Blob);
+      expect(audioSetCall![1].type).toBe('audio/flac');
+      expect(Array.from(new Uint8Array(await audioSetCall![1].arrayBuffer()))).toEqual(Array.from(audioContent));
     });
   });
 });

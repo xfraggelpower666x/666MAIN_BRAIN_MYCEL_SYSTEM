@@ -690,6 +690,8 @@ export interface ProjectState extends MidiSliceActions {
   isAbComparing: () => boolean;
 
   updateProject: (updates: Partial<Pick<Project, 'globalCaption' | 'bpm' | 'keyScale' | 'timeSignature' | 'timeSignatureDenominator' | 'name' | 'masterVolume' | 'measures'>>) => void;
+  saveComfyWorkflow: (projectId: string, workflow: string) => boolean;
+  addComfyAudio: (input: { projectId: string; clipId: string; audioKey: string; name: string; duration: number; peaks: number[] }) => boolean;
   detectPlaybackLatency: (latency: { baseLatency?: number | null; outputLatency?: number | null }) => void;
   /** Alias for detectPlaybackLatency – used by tests and external callers. */
   capturePlaybackLatency: (latency: { baseLatency?: number | null; outputLatency?: number | null }) => void;
@@ -3072,6 +3074,43 @@ export const useProjectStore = create<ProjectState>()(
 
   bounceTrackToAudio: async (trackId) => {
     return get().bounceInPlace(trackId, { replaceOriginal: false });
+  },
+
+  saveComfyWorkflow: (projectId, workflow) => {
+    const state = get();
+    if (_isViewerMode() || !state.project || state.project.id !== projectId) return false;
+    _pushHistory(state.project, { scope: 'arrangement', label: 'Save ComfyUI workflow' });
+    set({ project: { ...state.project, comfyWorkflow: workflow, updatedAt: Date.now() } });
+    return true;
+  },
+
+  addComfyAudio: ({ projectId, clipId, audioKey, name, duration, peaks }) => {
+    const state = get();
+    const project = state.project;
+    if (_isViewerMode() || !project || project.id !== projectId ||
+        project.tracks.length >= MAX_PROJECT_TRACKS || !Number.isFinite(duration) || duration <= 0 ||
+        project.tracks.some((track) => track.clips.some((clip) => clip.id === clipId))) return false;
+    const track = createTrackFromTemplate(project.tracks, 'custom', 'sample', { displayName: name });
+    const clip: Clip = {
+      id: clipId, trackId: track.id, startTime: 0, duration,
+      prompt: `Imported: ${name}`, lyrics: '', globalCaption: '',
+      generationStatus: 'ready', generationJobId: null, cumulativeMixKey: null,
+      isolatedAudioKey: audioKey, waveformPeaks: peaks, bpm: null, keyScale: null,
+      timeSignature: null, audioDuration: duration, audioOffset: 0, source: 'uploaded',
+    };
+    const tracks = [...project.tracks, { ...track, clips: [clip] }];
+    const session = ensureProjectSession({
+      ...project, tracks,
+      session: autoAssignClipToSession(ensureProjectSession(project).session!, track.id, clip.id),
+    }).session!;
+    _pushHistory(project, { scope: 'arrangement', label: 'Import ComfyUI audio' });
+    set({ project: {
+      ...project, tracks, session, updatedAt: Date.now(),
+      totalDuration: computeTotalDuration(tracks, project.measures, project.bpm, project.timeSignature,
+        project.timeSignatureDenominator, project.tempoMap, project.timeSignatureMap),
+    } });
+    get().updateClipStatus(clipId, 'ready');
+    return true;
   },
 
   addTrack: (trackName, trackType, options) => {
