@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enhance — theDAW</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#07080c;--panel:#0e1018;--surface:#141720;--border:#1e2230;
+  --accent:#22d3ee;--accent-dim:rgba(34,211,238,.4);
+  --text:#e0e6f0;--dim:#5a6278;--sans:"IBM Plex Sans",sans-serif;
+}
+html,body{width:100%;height:100%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-family:var(--sans);color:var(--text);overflow:hidden}
+.module-frame{width:780px;max-width:780px;height:504px;max-height:504px;background:var(--panel);border:1px solid var(--border);border-radius:6px;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── HEADER 28px ── */
+.hdr{display:flex;align-items:center;padding:0 10px;background:#0a0b10;border-bottom:1px solid #1a1d28;flex-shrink:0;height:28px;gap:8px}
+.hdr-icon{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--accent);display:flex;align-items:center;justify-content:center}
+.hdr-icon svg{width:8px;height:8px}
+.mod-title{font:700 12px/1 var(--sans);letter-spacing:.8px;text-transform:uppercase;color:#c8cad0}
+.preset-nav{display:flex;align-items:center;gap:2px;font:700 12px/1 var(--sans);color:#5a5e6a;margin-left:4px}
+.preset-nav button{background:none;border:none;color:#5a5e6a;font-size:12px;cursor:pointer;padding:0 2px}
+.preset-nav button:hover{color:#a0a4b0}
+.preset-name{color:#6b7080;min-width:60px;text-align:center}
+.hdr-spacer{flex:1}
+.hdr-right{display:flex;align-items:center;gap:3px}
+.pill{font:700 12px/1 var(--sans);letter-spacing:.2px;padding:3px 7px;border-radius:3px;border:1px solid #22262e;background:#0c0e14;color:#3e4250;cursor:pointer;transition:all 120ms;user-select:none}
+.pill.active{background:#0a1e22;border-color:var(--accent);color:var(--accent)}
+.pill:hover{border-color:#3a3e4a}
+
+/* ── MODE TOGGLE ── */
+.mode-bar{display:flex;flex-shrink:0;height:38px;background:#080a10;border-bottom:1px solid var(--border)}
+.mode-pill{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;font:700 12px/1 var(--sans);letter-spacing:2px;text-transform:uppercase;cursor:pointer;background:transparent;color:var(--dim);border:none;transition:color .2s,background .2s;position:relative}
+.mode-pill+.mode-pill{border-left:1px solid var(--border)}
+.mode-pill .mp-icon{font-size:13px;opacity:.35;transition:opacity .2s}
+.mode-pill.active{color:var(--accent);background:rgba(34,211,238,.03)}
+.mode-pill.active .mp-icon{opacity:1;filter:drop-shadow(0 0 6px var(--accent))}
+.mode-pill.active::after{content:'';position:absolute;bottom:0;left:8%;right:8%;height:2px;background:var(--accent);box-shadow:0 0 14px var(--accent),0 0 30px rgba(34,211,238,.25);border-radius:1px}
+
+/* ── SPLIT SPECTROGRAM ── */
+.spect-area{flex:1;position:relative;margin:4px 6px;background:#050710;border:1px solid var(--border);border-radius:8px;overflow:hidden;min-height:0}
+.spect-area canvas{position:absolute;inset:0;width:100%!important;height:100%!important}
+.split-handle{position:absolute;top:0;bottom:0;width:2px;background:rgba(255,255,255,.5);cursor:col-resize;z-index:10;transition:background .15s}
+.split-handle:hover{background:#fff}
+.split-handle .handle-grip{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:22px;height:36px;border-radius:11px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(4px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+.split-handle .handle-grip span{width:10px;height:1px;background:rgba(255,255,255,.25);border-radius:1px}
+.split-lbl{position:absolute;top:8px;font:700 12px/1 var(--sans);letter-spacing:1.5px;text-transform:uppercase;pointer-events:none;z-index:5}
+.split-lbl.before{left:12px;color:rgba(255,255,255,.12)}
+.split-lbl.after{color:rgba(34,211,238,.5)}
+.bw-readout{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);font:800 18px/1 var(--sans);font-variant-numeric:tabular-nums;color:var(--accent);text-shadow:0 0 20px rgba(34,211,238,.35);pointer-events:none;z-index:5;letter-spacing:3px;white-space:nowrap}
+.freq-axis{position:absolute;left:4px;top:0;bottom:0;display:flex;flex-direction:column;justify-content:space-between;padding:8px 0;pointer-events:none;z-index:4}
+.freq-axis span{font:700 12px/1 var(--sans);color:rgba(255,255,255,.08)}
+
+/* ── BOTTOM CONTROLS ── */
+.ctrl-strip{display:flex;align-items:center;gap:14px;padding:6px 16px;flex-shrink:0;background:#0a0c12;border-top:1px solid var(--border);height:110px}
+
+/* SR pills */
+.sr-pills{display:flex;gap:0}
+.sr-pill{font:700 12px/1 var(--sans);letter-spacing:.3px;padding:8px 16px;cursor:pointer;border:1px solid var(--border);background:none;color:var(--dim);transition:.15s}
+.sr-pill:first-child{border-radius:5px 0 0 5px}
+.sr-pill:last-child{border-radius:0 5px 5px 0;border-left:none}
+.sr-pill.active{color:var(--accent);border-color:var(--accent);background:rgba(34,211,238,.06);box-shadow:0 0 12px rgba(34,211,238,.1)}
+
+/* Knob boxes */
+.knob-box{display:flex;flex-direction:column;align-items:center;gap:1px}
+.knob-box .kb-lbl{font:700 12px/1 var(--sans);letter-spacing:.8px;text-transform:uppercase;color:var(--dim)}
+.knob-box svg{cursor:pointer;display:block}
+.knob-box .kb-val{font:700 13px/1 var(--sans);font-variant-numeric:tabular-nums;color:var(--accent)}
+
+/* Mix slider */
+.mix-wrap{display:flex;align-items:center;gap:8px;margin-left:auto;max-width:180px}
+.mix-wrap .mw-lbl{font:700 12px/1 var(--sans);letter-spacing:.6px;text-transform:uppercase;color:var(--dim);white-space:nowrap}
+.mix-track{position:relative;flex:1;height:6px;min-width:80px}
+.mix-track input[type=range]{width:100%;height:6px;-webkit-appearance:none;appearance:none;background:rgba(255,255,255,.04);border-radius:3px;outline:none;position:relative;z-index:2}
+.mix-track input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid rgba(255,255,255,.1);cursor:pointer;box-shadow:0 0 8px rgba(34,211,238,.4)}
+.mix-track .mix-fill{position:absolute;left:0;top:0;height:6px;border-radius:3px;background:linear-gradient(90deg,rgba(34,211,238,.1),var(--accent));pointer-events:none;z-index:1}
+.mix-wrap .mw-val{font:700 12px/1 var(--sans);font-variant-numeric:tabular-nums;color:var(--text);min-width:40px;text-align:right}
+
+/* ── FOOTER 28px ── */
+.ftr{display:flex;align-items:center;gap:6px;padding:0 8px;background:#08090e;border-top:1px solid #14171e;flex-shrink:0;height:28px}
+.ftr-btn{font:700 12px/1 var(--sans);padding:4px 9px;border-radius:3px;border:1px solid #22262e;background:#0c0e14;color:#6b7080;cursor:pointer;transition:all 120ms}
+.ftr-btn:hover{background:#14171e;color:#c8cad0}
+.ftr-btn.active{background:#0a1e22;border-color:var(--accent);color:var(--accent)}
+.ftr-spacer{flex:1}
+.ftr-stat{font:700 12px/1 var(--sans);color:var(--dim);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ftr-stat.ok{color:#22c55e}
+.ftr-stat.err{color:#ef4444}
+/* A failed render's own message (the backend's `detail`), readable in full. */
+.err-bar{flex-shrink:0;padding:6px 10px;background:#1a0b0e;border-top:1px solid #3b1219;color:#fca5a5;font:700 12px/1.4 var(--sans);white-space:normal;overflow-wrap:anywhere}
+.err-bar[hidden]{display:none}
+/* The selected tool runs on a replacement library here (the manifest's
+   notice); it sits under the tool pills, above the spectrogram. */
+.note-bar{flex-shrink:0;padding:6px 10px;background:#1a1405;border-bottom:1px solid #3b2f12;color:#fcd34d;font:700 12px/1.4 var(--sans);white-space:normal;overflow-wrap:anywhere}
+.note-bar[hidden]{display:none}
+/* A mode this machine cannot run (the manifest's unavailable_reason). */
+.mode-pill.na{color:#fca5a5;text-decoration:line-through;text-decoration-thickness:2px}
+audio{display:none}
+input[type="file"]{display:none}
+#mainKnob:focus-visible,#strengthKnob:focus-visible,.split-handle:focus-visible{outline:2px solid #22d3ee;outline-offset:2px;border-radius:50%}
+</style>
+</head>
+<body>
+<div class="module-frame">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-icon">
+    <svg viewBox="0 0 16 16" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><path d="M8 3v10M5 6l3-3 3 3"/></svg>
+  </div>
+  <span class="mod-title">Enhance</span>
+  <div class="preset-nav">
+    <button type="button" aria-label="Previous preset">&#9666;</button>
+    <span class="preset-name">Default</span>
+    <button type="button" aria-label="Next preset">&#9656;</button>
+  </div>
+  <span class="hdr-spacer"></span>
+  <div class="hdr-right">
+    <button class="pill" id="btnA">A</button>
+    <button class="pill" id="btnB">B</button>
+    <button class="pill" id="btnCopy">Copy</button>
+    <button class="pill" id="btnDelta">Delta</button>
+    <button class="pill" id="btnBypassH" aria-label="Bypass" title="Bypass">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6"/><line x1="12" y1="4" x2="4" y2="12"/></svg>
+    </button>
+    <button class="pill" id="btnSettingsH" aria-label="Settings" title="Settings">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- MODE TOGGLE -->
+<div class="mode-bar" role="group" aria-label="Enhance tool">
+  <button class="mode-pill active" data-m="super_res" id="mSR" title="enhance/super_res: bandwidth extension"><span class="mp-icon">&#9650;</span>SUPER-RES</button>
+  <button class="mode-pill" data-m="uncrush" id="mUC" title="enhance/uncrush: codec artifact removal"><span class="mp-icon">&#9830;</span>UN-CRUSH</button>
+  <button class="mode-pill" data-m="studio_enhance" id="mSE" title="enhance/studio_enhance: denoise + presence + loudnorm"><span class="mp-icon">&#9733;</span>STUDIO</button>
+  <button class="mode-pill" data-m="classical_upsample" id="mCU" title="enhance/classical_upsample: libsoxr VHQ sample-rate conversion"><span class="mp-icon">&#8593;</span>UPSAMPLE</button>
+</div>
+
+<!-- The selected tool runs on a replacement library here (the manifest's notice). -->
+<div class="note-bar" id="noteBar" role="status" hidden></div>
+
+<!-- SPLIT SPECTROGRAM -->
+<div class="spect-area" id="spectArea">
+  <canvas id="spectCanvas"></canvas>
+  <div class="split-lbl before">BEFORE</div>
+  <div class="split-lbl after" id="afterLbl">AFTER</div>
+  <div class="split-handle" id="splitHandle">
+    <div class="handle-grip"><span></span><span></span><span></span></div>
+  </div>
+  <div class="bw-readout" id="bwReadout">8kHz &rarr; 22kHz</div>
+  <div class="freq-axis">
+    <span>20k</span><span>10k</span><span>5k</span><span>2k</span><span>1k</span><span>500</span><span>100</span>
+  </div>
+</div>
+
+<!-- CONTROLS -->
+<div class="ctrl-strip" id="ctrlStrip">
+  <!-- SR pills -->
+  <div class="sr-pills" id="srPills" role="group" aria-label="Target sample rate">
+    <button class="sr-pill active" data-sr="44100">44.1k</button>
+    <button class="sr-pill" data-sr="48000">48k</button>
+    <button class="sr-pill" data-sr="88200" data-only="classical_upsample">88.2k</button>
+    <button class="sr-pill" data-sr="96000" data-only="classical_upsample">96k</button>
+  </div>
+
+  <!-- Primary knob (large, centered) -->
+  <div class="knob-box">
+    <span class="kb-lbl" id="knobLabel">GUIDANCE</span>
+    <svg viewBox="0 0 56 56" width="68" height="68" id="mainKnob"></svg>
+    <span class="kb-val" id="knobVal">4.6</span>
+  </div>
+
+  <!-- Secondary knob (STUDIO: denoise) -->
+  <div class="knob-box" id="strengthBox" style="display:none">
+    <span class="kb-lbl" id="strengthLabel">DENOISE</span>
+    <svg viewBox="0 0 48 48" width="64" height="64" id="strengthKnob"></svg>
+    <span class="kb-val" id="strengthVal">60%</span>
+  </div>
+
+  <!-- Mix -->
+  <div class="mix-wrap">
+    <label class="mw-lbl" for="mixSlider">MIX</label>
+    <div class="mix-track">
+      <input type="range" min="0" max="100" value="100" id="mixSlider" name="mixSlider" aria-label="Mix">
+      <div class="mix-fill" id="mixFill" style="width:100%"></div>
+    </div>
+    <span class="mw-val" id="mixVal">100%</span>
+  </div>
+</div>
+
+<div class="err-bar" id="errBar" role="alert" hidden></div>
+<!-- FOOTER -->
+<div class="ftr">
+  <button class="ftr-btn" id="btnBypass">Bypass</button>
+  <button class="ftr-btn active" id="tabEnhance">Enhance</button>
+  <button class="ftr-btn" id="tabAnalyzer">Analyzer</button>
+  <span class="ftr-spacer"></span>
+  <span class="ftr-stat" id="status">ready</span>
+  <audio id="ain" controls></audio>
+  <audio id="aout" controls></audio>
+</div>
+</div>
+<input type="file" id="fileinput" name="fileinput" accept="audio/*" aria-label="Load audio file">
+
+<script src="module-kit.js"></script>
+<script>
+(function(){
+'use strict';
+const kit = window.theDAWKit;
+
+/* ── State ── */
+let actx, analyser, source, inputFile, inputBuf;
+let activeMode = 'super_res', splitPos = 0.5, splitDragging = false;
+let knobValue = 60, strengthValue = 70;
+let targetSR = 44100;
+/* Per-tool main-knob semantics (0..100 in the UI -> the backend range). */
+const MODE_CFG = {
+  super_res:          { label: 'GUIDANCE',  fmt: v => (1 + (v / 100) * 6).toFixed(1),      readout: '8kHz \u2192 22kHz',    hasMix: true,  sr: ['44100', '48000'] },
+  uncrush:            { label: 'STRENGTH',  fmt: v => Math.round(v) + '%',                   readout: '128kbps \u2192 lossless', hasMix: true,  sr: null },
+  studio_enhance:     { label: 'ENHANCE',   fmt: v => Math.round(v) + '%',                   readout: 'denoise \u2192 presence \u2192 -16 LUFS', hasMix: false, sr: null, second: 'DENOISE' },
+  classical_upsample: { label: 'PRECISION', fmt: v => Math.round(20 + (v / 100) * 8) + ' bit', readout: 'soxr VHQ',            hasMix: false, sr: ['44100', '48000', '88200', '96000'] },
+};
+const freqData = new Uint8Array(2048);
+let spectCols = [];
+
+/* ── Mode switching ── */
+/* Tools the backend manifest reports unavailable on this machine (a libsoxr
+   tool on an FFmpeg without it), keyed by tool id, valued by the reason. */
+const unavailable = {};
+/* Tools that run here on a replacement (swr for libsoxr), valued by the notice. */
+const notices = {};
+function showUnavailable(mode){
+  const note = document.getElementById('noteBar');
+  note.textContent = !unavailable[mode] && notices[mode] ? notices[mode] : '';
+  note.hidden = !note.textContent;
+  const bar = document.getElementById('errBar');
+  if (unavailable[mode]) { bar.textContent = 'Unavailable: ' + unavailable[mode]; bar.hidden = false; }
+  else if (bar.textContent.startsWith('Unavailable: ')) { bar.textContent = ''; bar.hidden = true; }
+}
+async function loadAvailability(){
+  try {
+    const r = await fetch('/api/edit/enhance/tools');
+    if (!r.ok) return;
+    const j = await r.json();
+    for (const t of j.tools || []) {
+      if (t.available === false) unavailable[t.id] = t.unavailable_reason || 'this tool cannot run here.';
+      else if (t.notice) notices[t.id] = t.notice;
+    }
+  } catch(e){ return; }
+  document.querySelectorAll('.mode-pill').forEach(p => {
+    const reason = unavailable[p.dataset.m];
+    p.classList.toggle('na', !!reason);
+    if (reason) p.title = p.title + ' (unavailable: this FFmpeg has no libsoxr)';
+  });
+  showUnavailable(activeMode);
+}
+function setMode(mode){
+  activeMode = mode;
+  const cfg = MODE_CFG[mode];
+  document.querySelectorAll('.mode-pill').forEach(x => { const on = x.dataset.m === mode; x.classList.toggle('active', on); kit.pressed(x, on); });
+  const srPills = document.getElementById('srPills');
+  srPills.style.display = cfg.sr ? 'flex' : 'none';
+  document.querySelectorAll('.sr-pill').forEach(b => {
+    const allowed = !!cfg.sr && cfg.sr.includes(b.dataset.sr);
+    b.style.display = allowed ? '' : 'none';
+  });
+  if (cfg.sr && !cfg.sr.includes(String(targetSR))) setSR(cfg.sr[0]);
+  document.getElementById('knobLabel').textContent = cfg.label;
+  document.getElementById('bwReadout').textContent = cfg.readout;
+  document.getElementById('strengthBox').style.display = cfg.second ? '' : 'none';
+  if (cfg.second) document.getElementById('strengthLabel').textContent = cfg.second;
+  const mixWrap = document.querySelector('.mix-wrap');
+  mixWrap.style.opacity = cfg.hasMix ? '' : '.45';
+  mixWrap.title = cfg.hasMix ? '' : 'Preview only: this tool has no mix parameter';
+  document.getElementById('mixSlider').setAttribute('aria-label', cfg.hasMix ? 'Mix' : 'Mix (preview only)');
+  updateKnobDisplay(); updateStrengthDisplay(); updateEnhanceLive();
+  showUnavailable(mode);
+}
+document.querySelectorAll('.mode-pill').forEach(t => t.addEventListener('click', () => setMode(t.dataset.m)));
+
+/* ── SR pill buttons ── */
+function setSR(sr){
+  targetSR = +sr;
+  document.querySelectorAll('.sr-pill').forEach(x => { const on = x.dataset.sr === String(sr); x.classList.toggle('active', on); kit.pressed(x, on); });
+}
+document.querySelectorAll('.sr-pill').forEach(p => p.addEventListener('click', () => setSR(p.dataset.sr)));
+
+/* ── Header pills ── */
+document.querySelectorAll('.pill').forEach(b => b.addEventListener('click', () => b.classList.toggle('active')));
+
+/* ── Footer tab switching ── */
+['tabEnhance', 'tabAnalyzer'].forEach(id => {
+  document.getElementById(id).addEventListener('click', function(){
+    document.querySelectorAll('.ftr .ftr-btn:not(#btnBypass)').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+document.getElementById('btnBypass').addEventListener('click', function(){ this.classList.toggle('active') });
+kit.toggleGroup('.pill', 'active');
+kit.toggleGroup('#btnBypass', 'active');
+kit.toggleGroup('.ftr .ftr-btn:not(#btnBypass)', 'active', true);
+document.getElementById('tabEnhance').title = 'Ctrl+Enter processes with the current tool';
+
+/* ── SVG Rotary Knob ── */
+const mainKnobSvg = document.getElementById('mainKnob');
+function renderKnob(svg, value, size, accent){
+  const half = size / 2;
+  const cx = half, cy = half, r = half - 7, r2 = r + 3;
+  const sA = 135, eA = 405, range = eA - sA;
+  const ang = sA + (value / 100) * range;
+  function pol(a, rad){ const d = (a - 90) * Math.PI / 180; return { x: cx + rad * Math.cos(d), y: cy + rad * Math.sin(d) } }
+  const s = pol(sA, r), e = pol(eA, r), v = pol(ang, r);
+  const la = (ang - sA) > 180 ? 1 : 0;
+
+  let ticks = '';
+  for(let i = 0; i <= 20; i++){
+    const ta = sA + (i / 20) * range;
+    const p1 = pol(ta, r + 3), p2 = pol(ta, r + 5.5);
+    const bright = ((ta - sA) / range) <= (value / 100) ? .35 : .07;
+    ticks += `<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="rgba(34,211,238,${bright})" stroke-width=".7" stroke-linecap="round"/>`;
+  }
+
+  const ptr = pol(ang, r - 5);
+  const uid = 'k' + Math.random().toString(36).slice(2, 6);
+
+  svg.innerHTML = `
+    <defs>
+      <filter id="glow${uid}"><feGaussianBlur stdDeviation="2.5" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <linearGradient id="face${uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#161a28"/><stop offset="1" stop-color="#0a0d16"/></linearGradient>
+    </defs>
+    ${ticks}
+    <path d="M${s.x},${s.y} A${r},${r} 0 1 1 ${e.x},${e.y}" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M${s.x},${s.y} A${r},${r} 0 ${la} 1 ${v.x},${v.y}" fill="none" stroke="${accent}" stroke-width="3.5" stroke-linecap="round" filter="url(#glow${uid})"/>
+    <circle cx="${cx}" cy="${cy}" r="${Math.min(r * 0.45, 12)}" fill="url(#face${uid})" stroke="${accent}33" stroke-width="1"/>
+    <line x1="${cx}" y1="${cy}" x2="${ptr.x}" y2="${ptr.y}" stroke="${accent}cc" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="${v.x}" cy="${v.y}" r="3" fill="${accent}" filter="url(#glow${uid})"/>
+    <circle cx="${v.x}" cy="${v.y}" r="1.5" fill="#fff"/>`;
+}
+
+function updateKnobDisplay(){
+  document.getElementById('knobVal').textContent = MODE_CFG[activeMode].fmt(knobValue);
+  renderKnob(mainKnobSvg, knobValue, 56, '#22d3ee');
+  kit.sync(mainKnobSvg);
+}
+const strengthKnobSvg = document.getElementById('strengthKnob');
+function updateStrengthDisplay(){
+  document.getElementById('strengthVal').textContent = Math.round(strengthValue) + '%';
+  renderKnob(strengthKnobSvg, strengthValue, 48, '#22d3ee');
+  kit.sync(strengthKnobSvg);
+}
+updateKnobDisplay();
+updateStrengthDisplay();
+
+/* Knob drag + keyboard (module-kit) */
+function knobDragging(svg, get, set){
+  let drag = { active: false, startY: 0, startVal: 0 };
+  svg.addEventListener('pointerdown', e => { drag = { active: true, startY: e.clientY, startVal: get() }; svg.setPointerCapture(e.pointerId); svg.focus({ preventScroll: true }); });
+  svg.addEventListener('pointermove', e => {
+    if(!drag.active) return;
+    const dy = drag.startY - e.clientY;
+    set(Math.max(0, Math.min(100, drag.startVal + dy * (e.shiftKey ? 0.12 : 0.5))));
+  });
+  svg.addEventListener('pointerup', () => { drag.active = false });
+  svg.addEventListener('pointercancel', () => { drag.active = false });
+}
+knobDragging(mainKnobSvg, () => knobValue, v => { knobValue = v; updateKnobDisplay(); updateEnhanceLive(); });
+knobDragging(strengthKnobSvg, () => strengthValue, v => { strengthValue = v; updateStrengthDisplay(); updateEnhanceLive(); });
+kit.slider(mainKnobSvg, { min: 0, max: 100, step: 1, wheel: true, get: () => knobValue,
+  set: v => { knobValue = v; updateKnobDisplay(); updateEnhanceLive(); },
+  format: v => MODE_CFG[activeMode].fmt(v), reset: 60 });
+kit.slider(strengthKnobSvg, { label: 'Denoise', min: 0, max: 100, step: 1, wheel: true, get: () => strengthValue,
+  set: v => { strengthValue = v; updateStrengthDisplay(); updateEnhanceLive(); },
+  format: v => Math.round(v) + '%', reset: 70 });
+// The main knob's accessible name follows the mode label.
+new MutationObserver(() => mainKnobSvg.setAttribute('aria-label', document.getElementById('knobLabel').textContent))
+  .observe(document.getElementById('knobLabel'), { childList: true, characterData: true, subtree: true });
+mainKnobSvg.setAttribute('aria-label', document.getElementById('knobLabel').textContent);
+
+/* Mix slider */
+const mixSlider = document.getElementById('mixSlider');
+const mixFill = document.getElementById('mixFill');
+mixSlider.oninput = e => {
+  document.getElementById('mixVal').textContent = e.target.value + '%';
+  mixFill.style.width = e.target.value + '%';
+  updateEnhanceLive();
+};
+
+/* ── LIVE ENHANCE AUDIO NODES ── */
+let liveEnhanceShelf, liveEnhanceWS;
+
+function buildEnhanceChain(){
+  if(!actx) return;
+  liveEnhanceShelf = actx.createBiquadFilter();
+  liveEnhanceShelf.type = 'highshelf';
+  liveEnhanceShelf.frequency.value = 8000;
+  updateEnhanceLive();
+  liveEnhanceWS = actx.createWaveShaper();
+  updateEnhanceSaturation();
+  liveEnhanceShelf.connect(liveEnhanceWS);
+}
+
+function updateEnhanceLive(){
+  if(!liveEnhanceShelf) return;
+  const strength = knobValue / 100;
+  liveEnhanceShelf.gain.value = strength * 12;
+  updateEnhanceSaturation();
+}
+
+function updateEnhanceSaturation(){
+  if(!liveEnhanceWS) return;
+  const strength = knobValue / 100;
+  const amount = strength * 2;
+  if(amount <= 0.01){ liveEnhanceWS.curve = null; return }
+  const n = 44100, curve = new Float32Array(n);
+  for(let i = 0; i < n; i++){ const x = (i * 2) / n - 1; curve[i] = Math.tanh(x * (1 + amount)) }
+  liveEnhanceWS.curve = curve;
+  liveEnhanceWS.oversample = '2x';
+}
+
+function connectEnhanceChain(){
+  if(!actx || !source || !liveEnhanceShelf) return;
+  try{ source.disconnect() }catch(e){}
+  source.connect(liveEnhanceShelf);
+  liveEnhanceWS.connect(analyser);
+  analyser.connect(actx.destination);
+}
+
+/* ── Audio ── */
+function ensureAudio(){
+  if(actx) return;
+  actx = new AudioContext();
+  analyser = actx.createAnalyser();
+  analyser.fftSize = 4096;
+  analyser.smoothingTimeConstant = 0.82;
+  buildEnhanceChain();
+}
+/* theDAW host transport: playback start/stop is reported to the parent stage. */
+let liveBuf = null;
+function postTransportState(playing){
+  window.parent.postMessage({ type: 'thedaw-transport-state', playing: playing }, window.location.origin);
+}
+function stopSource(){
+  if(!source) return;
+  try{ source.stop() }catch(e){}
+  source = null;
+  postTransportState(false);
+}
+/* startSource() builds a fresh looping source from the last prepared buffer. A stopped
+   loop restarts from zero on the next play, which is acceptable for a loop preview. */
+function startSource(){
+  if(!liveBuf) return;
+  if(source) try{ source.stop() }catch(e){}
+  source = actx.createBufferSource();
+  source.buffer = liveBuf;
+  source.loop = true;
+  if(!liveEnhanceShelf) buildEnhanceChain();
+  connectEnhanceChain();
+  source.start();
+  postTransportState(true);
+}
+/* prepareBuf() remembers the buffer without starting playback (host-driven preview). */
+function prepareBuf(buf){
+  stopSource();
+  liveBuf = buf;
+}
+function connectBuf(buf){
+  prepareBuf(buf);
+  startSource();
+}
+async function loadFile(file){
+  ensureAudio();
+  inputFile = file;
+  const ab = await file.arrayBuffer();
+  inputBuf = await actx.decodeAudioData(ab.slice(0));
+  document.getElementById('ain').src = URL.createObjectURL(file);
+  connectBuf(inputBuf);
+}
+/* prepareFile() mirrors loadFile() but leaves playback stopped for the host toggle. */
+async function prepareFile(file){
+  ensureAudio();
+  inputFile = file;
+  const ab = await file.arrayBuffer();
+  inputBuf = await actx.decodeAudioData(ab.slice(0));
+  document.getElementById('ain').src = URL.createObjectURL(file);
+  prepareBuf(inputBuf);
+}
+document.getElementById('fileinput').onchange = e => { if(e.target.files[0]) loadFile(e.target.files[0]) };
+
+/* ── Split handle ── */
+const splitHandle = document.getElementById('splitHandle');
+const spectArea = document.getElementById('spectArea');
+const afterLbl = document.getElementById('afterLbl');
+
+function updateSplit(){
+  const W = spectArea.clientWidth;
+  splitHandle.style.left = (splitPos * W) + 'px';
+  afterLbl.style.left = (splitPos * W + 10) + 'px';
+}
+
+kit.slider(splitHandle, { label: 'Before/after split position', min: 10, max: 90, step: 1, get: () => Math.round(splitPos * 100),
+  set: v => { splitPos = v / 100; updateSplit(); }, format: v => v + '%', reset: 50 });
+splitHandle.addEventListener('pointerdown', e => { splitDragging = true; splitHandle.setPointerCapture(e.pointerId); splitHandle.focus({ preventScroll: true }) });
+window.addEventListener('pointermove', e => {
+  if(!splitDragging) return;
+  const r = spectArea.getBoundingClientRect();
+  splitPos = Math.max(.1, Math.min(.9, (e.clientX - r.left) / r.width));
+  updateSplit();
+});
+window.addEventListener('pointerup', () => { splitDragging = false });
+
+/* ── Process ── */
+document.getElementById('tabEnhance').onclick = async () => {
+  /* tab click — no-op for nav; actual process via footer or separate action */
+};
+
+/* Backend process */
+async function processEnhance(){
+  if(!inputFile) return;
+  const st = document.getElementById('status');
+  const errBar = document.getElementById('errBar');
+  if (unavailable[activeMode]) { st.className = 'ftr-stat err'; st.textContent = 'unavailable'; showUnavailable(activeMode); return; }
+  st.className = 'ftr-stat'; st.textContent = 'processing...';
+  errBar.hidden = true; errBar.textContent = '';
+  const effect = activeMode;
+  const mix = +mixSlider.value / 100;
+  let params;
+  switch (activeMode) {
+    case 'super_res':          params = { targetSR: String(targetSR), guidance: +(1 + (knobValue / 100) * 6).toFixed(2), mix }; break;
+    case 'uncrush':            params = { strength: +(knobValue / 100).toFixed(3), mix }; break;
+    case 'studio_enhance':     params = { enhance: +(knobValue / 100).toFixed(3), denoise: +(strengthValue / 100).toFixed(3) }; break;
+    case 'classical_upsample': params = { targetSR: String(targetSR), precision: Math.round(20 + (knobValue / 100) * 8) }; break;
+    default: return;
+  }
+  const fd = new FormData();
+  fd.append('effect', effect);
+  fd.append('params', JSON.stringify(params));
+  fd.append('output_format', 'wav');
+  fd.append('audio', inputFile);
+  const t0 = performance.now();
+  try {
+    const r = await fetch('/api/edit/enhance/process', { method: 'POST', body: fd });
+    if(r.ok){
+      const blob = await r.blob();
+      document.getElementById('aout').src = URL.createObjectURL(blob);
+      st.className = 'ftr-stat ok';
+      st.textContent = 'done ' + (blob.size / 1024).toFixed(0) + 'KB ' + Math.round(performance.now() - t0) + 'ms';
+    } else {
+      /* The backend's `detail` names what went wrong (a missing FFmpeg
+         library, the FFmpeg in use); show it whole, as tool.html does. */
+      let detail = r.status + ' error';
+      try { const j = await r.json(); detail = j.detail || j.message || detail; } catch(e){}
+      st.className = 'ftr-stat err'; st.textContent = r.status + ' error';
+      errBar.textContent = detail; errBar.hidden = false;
+    }
+  } catch(e){ st.className = 'ftr-stat err'; st.textContent = 'ERR'; errBar.textContent = 'error: ' + e.message; errBar.hidden = false; }
+}
+
+/* Ctrl+Enter processes; the ENHANCE footer tab does too (there was no other PROCESS button). */
+document.addEventListener('keydown', e => { if(e.key === 'Enter' && e.ctrlKey) processEnhance() });
+document.getElementById('tabEnhance').addEventListener('dblclick', processEnhance);
+setMode('super_res');
+loadAvailability();
+
+/* ── Split Spectrogram Canvas ── */
+const spectCanvas = document.getElementById('spectCanvas');
+const SPEC_BINS = 180;
+
+function beforeColor(val){
+  const n = val / 255;
+  return [Math.round(8 + n * 18), Math.round(6 + n * 14), Math.round(16 + n * 32)];
+}
+function afterColor(val, above){
+  const n = val / 255;
+  if(above){
+    const boost = Math.min(1, n * 1.6);
+    return [Math.round(boost * 18), Math.round(40 + boost * 195), Math.round(60 + boost * 200)];
+  }
+  return [Math.round(6 + n * 38), Math.round(16 + n * 105), Math.round(35 + n * 155)];
+}
+
+function draw(){
+  requestAnimationFrame(draw);
+  const W = spectArea.clientWidth, H = spectArea.clientHeight;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  if(spectCanvas.width !== W * dpr || spectCanvas.height !== H * dpr){
+    spectCanvas.width = W * dpr; spectCanvas.height = H * dpr; spectCols = [];
+  }
+  const ctx = spectCanvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  updateSplit();
+
+  const splitX = Math.floor(splitPos * W);
+  const cutoffY = H * 0.36;
+
+  /* Build current column from analyser */
+  let col = new Float32Array(SPEC_BINS);
+  if(analyser){
+    analyser.getByteFrequencyData(freqData);
+    const bins = freqData.length;
+    for(let i = 0; i < SPEC_BINS; i++){
+      const fRat = i / SPEC_BINS;
+      const bi = Math.floor(Math.pow(fRat, 2.2) * bins * 0.75);
+      col[i] = bi < bins ? freqData[bi] : 0;
+    }
+  }
+  spectCols.push(col);
+  if(spectCols.length > W + 2) spectCols.shift();
+
+  /* Clear */
+  ctx.fillStyle = '#050710'; ctx.fillRect(0, 0, W, H);
+
+  /* Draw stored columns as scrolling spectrogram */
+  const numCols = spectCols.length;
+  for(let c = 0; c < numCols; c++){
+    const x = W - numCols + c;
+    if(x < 0) continue;
+    const colData = spectCols[c];
+    const inBefore = x < splitX;
+    for(let i = 0; i < SPEC_BINS; i++){
+      const y = H - ((i / SPEC_BINS) * H);
+      const val = colData[i];
+      if(val < 2) continue;
+      const above = (i / SPEC_BINS) > 0.64;
+      let r, g, b;
+      if(inBefore){
+        if(above){ r = Math.round(val * .03); g = Math.round(val * .02); b = Math.round(val * .04) }
+        else { [r, g, b] = beforeColor(val) }
+      } else {
+        if(above){ const bv = Math.min(255, val + 50); [r, g, b] = afterColor(bv, true) }
+        else { const bv = Math.min(255, Math.round(val * 1.15)); [r, g, b] = afterColor(bv, false) }
+      }
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fillRect(x, y, 1, Math.ceil(H / SPEC_BINS) + 1);
+    }
+  }
+
+  /* Cutoff frequency dashed line */
+  const cutY = H * (1 - 0.64);
+  ctx.save();
+  ctx.strokeStyle = 'rgba(34,211,238,.1)'; ctx.setLineDash([5, 5]); ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(0, cutY); ctx.lineTo(W, cutY); ctx.stroke();
+  ctx.restore();
+
+  /* Cyan glow bloom on AFTER side above cutoff */
+  if(splitX < W - 10){
+    const grd = ctx.createLinearGradient(splitX, cutY - 40, splitX, cutY + 40);
+    grd.addColorStop(0, 'rgba(34,211,238,.05)');
+    grd.addColorStop(0.5, 'rgba(34,211,238,.1)');
+    grd.addColorStop(1, 'rgba(34,211,238,.02)');
+    ctx.fillStyle = grd;
+    ctx.fillRect(splitX, cutY - 40, W - splitX, 80);
+  }
+
+  /* Split divider */
+  ctx.strokeStyle = 'rgba(255,255,255,.15)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(splitX, 0); ctx.lineTo(splitX, H); ctx.stroke();
+
+  /* No-audio placeholder */
+  if(!analyser && spectCols.length < 3){
+    ctx.fillStyle = 'rgba(255,255,255,.06)'; ctx.font = '700 12px "IBM Plex Sans", sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('Load audio to view spectrogram', W / 2, H / 2);
+  }
+}
+draw();
+
+/* The footer <audio> previews join the host transport protocol. An element play is
+   reported as playing; a pause or ended report stays true only while another preview
+   voice (the loop source or the other element) is still audible. */
+const ainEl = document.getElementById('ain');
+const aoutEl = document.getElementById('aout');
+function previewStillAudible() {
+  if (source) return true;
+  if (ainEl && !ainEl.paused && !ainEl.ended) return true;
+  if (aoutEl && !aoutEl.paused && !aoutEl.ended) return true;
+  return false;
+}
+[ainEl, aoutEl].forEach((el) => {
+  if (!el) return;
+  el.addEventListener('play', () => postTransportState(true));
+  el.addEventListener('pause', () => postTransportState(previewStillAudible()));
+  el.addEventListener('ended', () => postTransportState(previewStillAudible()));
+});
+
+// ── Receive audio + transport from parent page ──
+window.addEventListener('message', async (e) => {
+  if (e.source !== window.parent) return;
+  if (e.data && e.data.type === 'thedaw-audio' && e.data.buffer) {
+    try {
+      const blob = new Blob([e.data.buffer], { type: 'audio/wav' });
+      const file = new File([blob], e.data.name || 'track.wav', { type: 'audio/wav' });
+      // Host-supplied audio loads paused; the stage's transport toggle starts it.
+      if (typeof prepareFile === 'function') { prepareFile(file); }
+      else {
+        const ain = document.getElementById('ain') || document.querySelector('audio');
+        if (ain) { ain.src = URL.createObjectURL(blob); }
+      }
+    } catch(err) { console.warn('postMessage audio load failed:', err); }
+  }
+  if (e.data && e.data.type === 'thedaw-transport') {
+    if (e.data.action === 'play') {
+      if (actx && actx.state === 'suspended') actx.resume();
+      // A single preview voice plays at a time: the element previews are paused
+      // before the loop source starts so the loop never layers over them.
+      if (ainEl) ainEl.pause();
+      if (aoutEl) aoutEl.pause();
+      startSource();
+    } else if (e.data.action === 'pause') {
+      stopSource();
+      // The host pause silences the element previews as well as the loop source.
+      if (ainEl) ainEl.pause();
+      if (aoutEl) aoutEl.pause();
+    }
+  }
+});
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "underfit": {
+      "command": "node",
+      "args": ["C:/Users/skream/projects/StableDAW/underfit/mcp-server.cjs", "8791"]
+    }
+  }
+}

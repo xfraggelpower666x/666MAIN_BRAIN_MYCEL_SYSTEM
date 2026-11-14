@@ -1,0 +1,746 @@
+/**
+ * The asset library: a searchable browser over everything downloadable.
+ *
+ * The catalog is served by backend/modules/assets. Items are projects
+ * (.tasmo), plugins (.gan), volumetric captures (.ares) and cockpit scenes
+ * (.sway). The primary button installs the file where its format belongs and
+ * then opens it where it is used. The backend reports each item's installed
+ * path in the list, so an install made in an earlier session still shows as
+ * installed and can be shown in its folder. Save a copy writes the raw file to
+ * a folder the user picks.
+ */
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import {
+  Box,
+  Check,
+  Download,
+  FileMusic,
+  FolderOpen,
+  Layers,
+  Loader2,
+  GripVertical,
+  Package,
+  Search,
+  Waves,
+  X,
+} from 'lucide-react';
+import { logError, logInfo } from '../../state/logStore';
+import { useProjectStore } from '../../state/projectStore';
+import { useAppUiStore } from '../../state/appUiStore';
+import { useGanStore } from '../../state/ganStore';
+import { useMixStageStore } from '../../state/mixStageStore';
+import { useStatusBarStore } from '../../state/statusBarStore';
+import { describeHttpError } from '../../lib/httpError';
+import { basenameOf, isLocalClient, placesApi } from '../../lib/placesClient';
+import { kindForName, saveFile } from '../../lib/saveFile';
+import { openSwayScene } from '../../lib/swayOpen';
+
+interface Asset {
+  id: string;
+  name: string;
+  kind: string;
+  format: string;
+  summary: string;
+  description: string;
+  author: string;
+  version: string;
+  tags: string[];
+  tabs: string[];
+  requires: string[];
+  duration_sec: number | null;
+  available: boolean;
+  size_bytes: number;
+  has_cover: boolean;
+  download_url: string;
+  cover_url: string;
+  installs_to?: string;
+  /** Where the installed copy is on disk; null when none is. Absent from a
+   *  backend that predates the field. */
+  installed_path?: string | null;
+}
+
+interface InstallResult {
+  id: string;
+  installed: boolean;
+  already?: boolean;
+  path: string;
+  where: string;
+  kind?: string;
+  /** The plugin's manifest id, for a .gan. */
+  plugin_id?: string | null;
+}
+
+interface Facet {
+  value: string;
+  count: number;
+}
+
+const KIND_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
+  project: FileMusic,
+  plugin: Package,
+  volumetric: Box,
+  scene: Waves,
+};
+
+interface PrimaryAction {
+  label: string;
+  title: string;
+  /** Where an install lands when the detail call has not said yet. */
+  fallbackWhere: string;
+  hint: (where: string) => string;
+}
+
+/** The primary button for each kind: install, then open it where it is used. */
+const PRIMARY: Record<string, PrimaryAction> = {
+  project: {
+    label: 'OPEN',
+    title: 'Installs the project and opens it on the EDIT timeline.',
+    fallbackWhere: 'your projects folder',
+    hint: (where) => `OPEN puts it in ${where} and opens it on the timeline.`,
+  },
+  plugin: {
+    label: 'OPEN IN MIX',
+    title: 'Installs the plugin and opens it in the MIX effect stage.',
+    fallbackWhere: 'the plugin shelf',
+    hint: (where) => `OPEN IN MIX puts it on ${where} and opens it in the MIX effect stage.`,
+  },
+  scene: {
+    label: 'OPEN IN SWAY',
+    title: 'Installs the scene and loads it in the SWAY cockpit.',
+    fallbackWhere: 'the SWAY scenes folder',
+    hint: (where) => `OPEN IN SWAY puts it in ${where} and loads it in the SWAY cockpit.`,
+  },
+  volumetric: {
+    label: 'INSTALL',
+    title: 'Installs the capture and shows it in its folder.',
+    fallbackWhere: 'the captures folder',
+    hint: (where) => `INSTALL puts it in ${where} and shows it in its folder.`,
+  },
+};
+
+const DEFAULT_PRIMARY: PrimaryAction = {
+  label: 'INSTALL',
+  title: 'Installs the file and shows it in its folder.',
+  fallbackWhere: 'the place it belongs',
+  hint: (where) => `INSTALL puts it in ${where} and shows it in its folder.`,
+};
+
+/** The file name Save a copy offers. An installed asset gets '<stem> copy<ext>',
+ *  so accepting the dialog never overwrites the installed file; any other asset
+ *  gets its name plus its format. */
+const copyName = (asset: Asset, installedPath: string | null): string => {
+  if (installedPath) {
+    const file = basenameOf(installedPath);
+    const dot = file.lastIndexOf('.');
+    const stem = dot > 0 ? file.slice(0, dot) : file;
+    const ext = dot > 0 ? file.slice(dot) : asset.format;
+    return `${stem} copy${ext}`;
+  }
+  const base = asset.name.replace(/[\\/:*?"<>|]+/g, '').trim() || asset.id;
+  return `${base}${asset.format}`;
+};
+
+const errText = (e: unknown): string => (e instanceof Error ? e.message : String(e));
+
+/** Resolves on the next animation frame, or after 100 ms when frames are paused. */
+const nextFrame = (): Promise<void> =>
+  new Promise((resolve) => {
+    const done = () => resolve();
+    requestAnimationFrame(done);
+    window.setTimeout(done, 100);
+  });
+
+/**
+ * Leaving EDIT unmounts its effect windows, and their cleanup closes the gan
+ * session an EDIT insert owns. That cleanup can run after the frame OPEN IN MIX
+ * waits for, so the session is released here before the plugin opens. EDIT's
+ * module is already loaded whenever EDIT is the tab being left.
+ */
+const releaseEditGanSession = async (): Promise<void> => {
+  try {
+    const { useEffectWindowStore } = await import('../audio/EffectWindows');
+    const fx = useEffectWindowStore.getState();
+    if (!fx.aresOwnerEntryId) return;
+    useGanStore.getState().close();
+    fx.setAresOwner(null, null);
+  } catch (e) {
+    logError('assets', `Could not release the EDIT plugin session: ${errText(e)}`);
+  }
+};
+
+interface Rect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+const MIN_W = 520;
+const MIN_H = 340;
+
+/** A panel the size of most of the window, centred, never off an edge. */
+const initialRect = (): Rect => {
+  const w = Math.max(MIN_W, Math.min(1120, window.innerWidth - 80));
+  const h = Math.max(MIN_H, Math.min(720, window.innerHeight - 120));
+  return {
+    x: Math.max(8, Math.round((window.innerWidth - w) / 2)),
+    y: Math.max(8, Math.round((window.innerHeight - h) / 2)),
+    w,
+    h,
+  };
+};
+
+const clampRect = (r: Rect): Rect => {
+  const w = Math.max(MIN_W, Math.min(r.w, window.innerWidth - 16));
+  const h = Math.max(MIN_H, Math.min(r.h, window.innerHeight - 16));
+  return {
+    w,
+    h,
+    // A title bar dragged past the bottom edge cannot be grabbed again, so the
+    // panel stays reachable by construction rather than by the user's care.
+    x: Math.max(8 - w + 120, Math.min(r.x, window.innerWidth - 120)),
+    y: Math.max(8, Math.min(r.y, window.innerHeight - 44)),
+  };
+};
+
+const fmtSize = (bytes: number): string =>
+  bytes >= 1_048_576 ? `${(bytes / 1_048_576).toFixed(1)} MB` : `${Math.round(bytes / 1024)} KB`;
+
+const fmtDuration = (sec: number | null): string => {
+  if (!sec) return '';
+  const m = Math.floor(sec / 60);
+  const s = Math.round(sec % 60);
+  return `${m}:${String(s).padStart(2, '0')}`;
+};
+
+export const AssetLibraryModal: React.FC<{ open: boolean; onClose: () => void }> = ({
+  open,
+  onClose,
+}) => {
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [kinds, setKinds] = useState<Facet[]>([]);
+  const [tabs, setTabs] = useState<Facet[]>([]);
+  const [query, setQuery] = useState('');
+  const [kind, setKind] = useState('');
+  const [tab, setTab] = useState('');
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [detail, setDetail] = useState<Asset | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [installing, setInstalling] = useState(false);
+  const [saving, setSaving] = useState(false);
+  // asset id -> installed path. Seeded from the backend's installed_path, so it
+  // holds installs from earlier sessions too.
+  const [installed, setInstalled] = useState<Record<string, string>>({});
+  // Bumped after an install so the open detail is read again.
+  const [detailRev, setDetailRev] = useState(0);
+  const [rect, setRect] = useState<Rect>(initialRect);
+  // The gesture in flight. A ref, not state: it changes on every pointermove
+  // and nothing renders from it.
+  const drag = useRef<{ mode: 'move' | 'resize'; x: number; y: number; rect: Rect } | null>(null);
+
+  // Opening recentres, so a panel left somewhere awkward, or a window resized
+  // while it was closed, does not open off screen.
+  useEffect(() => {
+    if (open) setRect(initialRect());
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onResize = () => setRect((r) => clampRect(r));
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [open]);
+
+  const startGesture = useCallback(
+    (mode: 'move' | 'resize') => (e: React.PointerEvent) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      drag.current = { mode, x: e.clientX, y: e.clientY, rect };
+    },
+    [rect],
+  );
+
+  const onGesturePointerMove = useCallback((e: React.PointerEvent) => {
+    const d = drag.current;
+    if (!d) return;
+    const dx = e.clientX - d.x;
+    const dy = e.clientY - d.y;
+    setRect(
+      clampRect(
+        d.mode === 'move'
+          ? { ...d.rect, x: d.rect.x + dx, y: d.rect.y + dy }
+          : { ...d.rect, w: d.rect.w + dx, h: d.rect.h + dy },
+      ),
+    );
+  }, []);
+
+  const endGesture = useCallback((e: React.PointerEvent) => {
+    drag.current = null;
+    const el = e.currentTarget as HTMLElement;
+    if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+  }, []);
+
+  /** Take the backend's word on what is installed. A row without the field
+   *  leaves the map alone; a null path means the copy is gone. */
+  const mergeInstalled = useCallback((rows: Asset[]) => {
+    setInstalled((prev) => {
+      let next = prev;
+      for (const a of rows) {
+        if (a.installed_path === undefined) continue;
+        if (a.installed_path) {
+          if (next[a.id] === a.installed_path) continue;
+          if (next === prev) next = { ...prev };
+          next[a.id] = a.installed_path;
+        } else if (a.id in next) {
+          if (next === prev) next = { ...prev };
+          delete next[a.id];
+        }
+      }
+      return next;
+    });
+  }, []);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (query.trim()) params.set('q', query.trim());
+      if (kind) params.set('kind', kind);
+      if (tab) params.set('tab', tab);
+      const r = await fetch(`/api/assets?${params.toString()}`);
+      if (!r.ok) throw new Error(await describeHttpError(r));
+      const j = (await r.json()) as { assets: Asset[] };
+      setAssets(j.assets);
+      mergeInstalled(j.assets);
+    } catch (e) {
+      logError('assets', `Could not read the asset catalog: ${errText(e)}`);
+      setAssets([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [query, kind, tab, mergeInstalled]);
+
+  useEffect(() => {
+    if (!open) return;
+    void load();
+  }, [open, load]);
+
+  useEffect(() => {
+    if (!open) return;
+    void fetch('/api/assets/facets')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => {
+        if (!j) return;
+        setKinds(j.kinds ?? []);
+        setTabs(j.tabs ?? []);
+      })
+      .catch(() => undefined);
+  }, [open]);
+
+  // The list view carries enough to browse; the detail call adds the install
+  // path, which the server is the only one that knows.
+  useEffect(() => {
+    if (!selectedId) {
+      setDetail(null);
+      return;
+    }
+    let cancelled = false;
+    void fetch(`/api/assets/${encodeURIComponent(selectedId)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => {
+        if (cancelled || !j) return;
+        setDetail(j as Asset);
+        mergeInstalled([j as Asset]);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedId, detailRev, mergeInstalled]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+
+  const reveal = useCallback(async (path: string) => {
+    try {
+      await placesApi.reveal(path);
+    } catch (e) {
+      const msg = errText(e);
+      logError('assets', `Could not show ${path} in its folder: ${msg}`);
+      useStatusBarStore.getState().setText(`SHOW IN FOLDER FAILED: ${msg}`, { source: 'assets' });
+    }
+  }, []);
+
+  /**
+   * One button, one outcome: the item ends up usable.
+   *
+   * The install puts the file where its format belongs and answers with the
+   * path it wrote. That path is then opened where the item is used: a project on
+   * the EDIT timeline, a plugin in the MIX effect stage, a scene in the SWAY
+   * cockpit. A volumetric capture has no viewer here, so its folder is shown.
+   * Installing the same item twice returns the copy already on disk.
+   */
+  const get = useCallback(
+    async (asset: Asset) => {
+      setInstalling(true);
+      try {
+        // A project installs into the backend's projects folder, so this
+        // browser's folder is settled with the backend first.
+        await useProjectStore.getState().ensureDefaultDir();
+        const r = await fetch(`/api/assets/${encodeURIComponent(asset.id)}/install`, {
+          method: 'POST',
+        });
+        if (!r.ok) throw new Error(await describeHttpError(r));
+        const j = (await r.json()) as InstallResult;
+        setInstalled((prev) => ({ ...prev, [asset.id]: j.path }));
+        logInfo(
+          'assets',
+          j.already
+            ? `${asset.name} was already installed at ${j.path}`
+            : `Installed ${asset.name} to ${j.path}`,
+        );
+        // Read the list and the detail again, so the installed path shown is the
+        // backend's and is still there after a reload.
+        void load();
+        setDetailRev((n) => n + 1);
+
+        const assetKind = j.kind || asset.kind;
+        if (assetKind === 'project') {
+          onClose();
+          await useProjectStore.getState().loadPath(j.path);
+        } else if (assetKind === 'plugin') {
+          // An installed .gan is stored as <manifest id>.gan.
+          const pluginId = j.plugin_id || basenameOf(j.path).replace(/\.gan$/i, '');
+          const gan = useGanStore.getState();
+          await gan.refresh();
+          // A focused module or Magenta tool outranks a plugin on the stage.
+          const stage = useMixStageStore.getState();
+          stage.setActiveModuleId(null);
+          stage.setActiveMagentaId(null);
+          // MIX first. Leaving EDIT unmounts its effect windows, and a plugin
+          // opened before that unmount would be closed by their cleanup.
+          const ui = useAppUiStore.getState();
+          const leavingEdit = ui.centerTab === 'edit';
+          ui.setCenterTab('mix');
+          onClose();
+          await nextFrame();
+          if (leavingEdit) await releaseEditGanSession();
+          await useGanStore.getState().openById(pluginId);
+        } else if (assetKind === 'scene') {
+          const stem = basenameOf(j.path).replace(/\.sway$/i, '');
+          if (await openSwayScene(stem)) onClose();
+        } else {
+          await reveal(j.path);
+        }
+      } catch (e) {
+        logError('assets', `Could not get ${asset.name}: ${errText(e)}`);
+        useStatusBarStore.getState().setText(`INSTALL FAILED: ${errText(e)}`);
+      } finally {
+        setInstalling(false);
+      }
+    },
+    [onClose, load, reveal],
+  );
+
+  const saveCopy = useCallback(async (asset: Asset, installedPath: string | null) => {
+    const suggestedName = copyName(asset, installedPath);
+    setSaving(true);
+    try {
+      // A copy of an installed file starts in the downloads folder, away from
+      // the installed copy.
+      const initialDir = installedPath ? ((await placesApi.folder('download')) ?? undefined) : undefined;
+      await saveFile({
+        url: asset.download_url,
+        suggestedName,
+        kind: kindForName(suggestedName),
+        title: `Save a copy of ${asset.name}`,
+        initialDir,
+      });
+    } finally {
+      setSaving(false);
+    }
+  }, []);
+
+  const selected = useMemo(
+    () => detail ?? assets.find((a) => a.id === selectedId) ?? null,
+    [detail, assets, selectedId],
+  );
+  const selectedPath = selected ? (installed[selected.id] ?? null) : null;
+  const action = selected ? (PRIMARY[selected.kind] ?? DEFAULT_PRIMARY) : DEFAULT_PRIMARY;
+
+  if (!open) return null;
+
+  // Rendered into document.body. The Shell carries a CSS `zoom`, and a fixed
+  // element inside a zoomed ancestor is laid out in the zoomed coordinate
+  // space: without the portal this panel opens offset and oversized, past the
+  // window edges, which is exactly what it did.
+  return createPortal(
+    <div
+      role="dialog"
+      aria-label="Asset library"
+      aria-modal="true"
+      className="fixed inset-0 z-50"
+    >
+      <div className="absolute inset-0 bg-black/70" onClick={onClose} />
+      <div
+        className="absolute flex flex-col overflow-hidden rounded-lg border border-purple-500/30 bg-[#0a080f] shadow-2xl"
+        style={{ left: rect.x, top: rect.y, width: rect.w, height: rect.h }}
+      >
+        <div
+          className="flex shrink-0 cursor-grab touch-none select-none items-center gap-3 border-b border-white/10 px-3 py-2 active:cursor-grabbing"
+          onPointerDown={startGesture('move')}
+          onPointerMove={onGesturePointerMove}
+          onPointerUp={endGesture}
+          onPointerCancel={endGesture}
+        >
+          <Layers className="h-4 w-4 text-purple-300" />
+          <h2 className="text-[11px] font-black uppercase tracking-widest text-purple-200">
+            Asset library
+          </h2>
+          <div
+            className="relative ml-3 grow max-w-md"
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <Search className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-zinc-500" />
+            <input
+              id="asset-search"
+              name="asset-search"
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search projects, plugins, scenes"
+              aria-label="Search the asset library"
+              className="w-full rounded border border-white/10 bg-black/40 py-1 pl-7 pr-2 text-[10px] font-mono text-zinc-200 outline-none focus:border-purple-500/50"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            onPointerDown={(e) => e.stopPropagation()}
+            aria-label="Close the asset library"
+            className="ml-auto rounded p-1 text-zinc-400 hover:text-zinc-100"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="flex shrink-0 flex-wrap items-center gap-1.5 border-b border-white/5 px-3 py-1.5">
+          <FilterChip label="All" active={!kind} onClick={() => setKind('')} />
+          {kinds.map((f) => (
+            <FilterChip
+              key={f.value}
+              label={`${f.value} ${f.count}`}
+              active={kind === f.value}
+              onClick={() => setKind(kind === f.value ? '' : f.value)}
+            />
+          ))}
+          {tabs.length > 0 && <span className="mx-1 h-3 w-px bg-white/10" />}
+          {tabs.map((f) => (
+            <FilterChip
+              key={f.value}
+              label={f.value}
+              active={tab === f.value}
+              onClick={() => setTab(tab === f.value ? '' : f.value)}
+            />
+          ))}
+        </div>
+
+        <div className="flex min-h-0 grow">
+          <div className="min-w-0 grow overflow-y-auto p-3">
+            {loading && (
+              <p className="text-[10px] font-mono text-zinc-500">Reading the catalog…</p>
+            )}
+            {!loading && assets.length === 0 && (
+              <p className="text-[10px] font-mono text-zinc-500">
+                Nothing matches that search.
+              </p>
+            )}
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
+              {assets.map((a) => {
+                const Icon = KIND_ICON[a.kind] ?? Package;
+                const isSel = a.id === selectedId;
+                return (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onClick={() => setSelectedId(a.id)}
+                    aria-pressed={isSel}
+                    className={`flex flex-col overflow-hidden rounded border text-left transition-colors ${
+                      isSel
+                        ? 'border-purple-400/60 bg-purple-500/10'
+                        : 'border-white/10 bg-black/30 hover:border-purple-400/30'
+                    }`}
+                  >
+                    {a.has_cover ? (
+                      <img
+                        src={a.cover_url}
+                        alt=""
+                        className="h-24 w-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="flex h-24 w-full items-center justify-center bg-white/3">
+                        <Icon className="h-6 w-6 text-zinc-600" />
+                      </div>
+                    )}
+                    <div className="flex flex-col gap-1 p-2">
+                      <div className="flex items-center gap-1.5">
+                        <Icon className="h-3 w-3 shrink-0 text-purple-300" />
+                        <span className="truncate text-[11px] font-bold text-zinc-100">{a.name}</span>
+                        {installed[a.id] && <Check className="ml-auto h-3 w-3 text-emerald-400" />}
+                      </div>
+                      <p className="line-clamp-2 text-[9px] font-mono leading-snug text-zinc-400">
+                        {a.summary}
+                      </p>
+                      <div className="flex items-center gap-1.5 text-[8px] font-mono uppercase tracking-widest text-zinc-600">
+                        <span>{a.format.replace('.', '')}</span>
+                        <span>{fmtSize(a.size_bytes)}</span>
+                        {a.duration_sec ? <span>{fmtDuration(a.duration_sec)}</span> : null}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {selected && (
+            <aside className="w-80 shrink-0 overflow-y-auto border-l border-white/10 bg-black/40 p-3">
+              <h3 className="text-[13px] font-black text-zinc-100">{selected.name}</h3>
+              <p className="mt-0.5 text-[9px] font-mono uppercase tracking-widest text-zinc-500">
+                {selected.kind} · {selected.format.replace('.', '')} · {fmtSize(selected.size_bytes)}
+                {selected.author ? ` · ${selected.author}` : ''}
+              </p>
+              <p className="mt-2 text-[10px] leading-relaxed text-zinc-300">{selected.description}</p>
+
+              {selected.tabs.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {selected.tabs.map((t) => (
+                    <span
+                      key={t}
+                      className="rounded border border-purple-500/30 px-1.5 py-0.5 text-[8px] font-mono uppercase tracking-widest text-purple-200"
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {selected.tags.length > 0 && (
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {selected.tags.map((t) => (
+                    <span
+                      key={t}
+                      className="rounded border border-white/10 px-1.5 py-0.5 text-[8px] font-mono text-zinc-500"
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => void get(selected)}
+                  disabled={installing || !selected.available}
+                  title={action.title}
+                  className="btn-primary flex items-center gap-1 text-[9px] disabled:opacity-40"
+                >
+                  {installing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                  {action.label}
+                </button>
+                {selectedPath && isLocalClient() && (
+                  <button
+                    type="button"
+                    onClick={() => void reveal(selectedPath)}
+                    title="Shows the installed file in its folder."
+                    className="btn-ghost flex items-center gap-1 text-[9px]"
+                  >
+                    <FolderOpen className="h-3 w-3 text-purple-300" />
+                    Show in folder
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => void saveCopy(selected, selectedPath)}
+                  disabled={saving || !selected.available}
+                  title="Saves a copy of the file to a folder you choose."
+                  className="btn-ghost flex items-center gap-1 text-[9px] disabled:opacity-40"
+                >
+                  {saving ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Download className="h-3 w-3 text-purple-300" />
+                  )}
+                  Save a copy
+                </button>
+              </div>
+
+              <p className="mt-2 text-[9px] font-mono leading-relaxed text-zinc-500">
+                {action.hint(selected.installs_to ?? action.fallbackWhere)}
+              </p>
+              {selectedPath && (
+                <p className="mt-1 break-all text-[9px] font-mono text-emerald-300">
+                  On disk at {selectedPath}
+                </p>
+              )}
+            </aside>
+          )}
+        </div>
+
+        {/* Bottom-right resize grip. A button so it takes focus and announces
+            itself; keyboard sizing is the arrow keys on it. */}
+        <button
+          type="button"
+          aria-label="Resize the asset library"
+          onPointerDown={startGesture('resize')}
+          onPointerMove={onGesturePointerMove}
+          onPointerUp={endGesture}
+          onPointerCancel={endGesture}
+          onKeyDown={(e) => {
+            const step = e.shiftKey ? 64 : 16;
+            const by = (dw: number, dh: number) => {
+              e.preventDefault();
+              setRect((r) => clampRect({ ...r, w: r.w + dw, h: r.h + dh }));
+            };
+            if (e.key === 'ArrowRight') by(step, 0);
+            else if (e.key === 'ArrowLeft') by(-step, 0);
+            else if (e.key === 'ArrowDown') by(0, step);
+            else if (e.key === 'ArrowUp') by(0, -step);
+          }}
+          className="absolute bottom-0 right-0 flex h-4 w-4 cursor-nwse-resize touch-none items-center justify-center text-zinc-600 hover:text-purple-300"
+        >
+          <GripVertical className="h-3 w-3 rotate-45" />
+        </button>
+      </div>
+    </div>,
+    document.body,
+  );
+};
+
+const FilterChip: React.FC<{ label: string; active: boolean; onClick: () => void }> = ({
+  label,
+  active,
+  onClick,
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    aria-pressed={active}
+    className={`rounded border px-1.5 py-0.5 text-[8px] font-mono uppercase tracking-widest transition-colors ${
+      active
+        ? 'border-purple-400/60 bg-purple-500/15 text-purple-200'
+        : 'border-white/10 text-zinc-500 hover:text-zinc-200'
+    }`}
+  >
+    {label}
+  </button>
+);

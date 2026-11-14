@@ -1,0 +1,306 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## 🚨 HARD RULES — read before touching anything 🚨
+
+These are non-negotiable. Violating them has burned the user before.
+
+### 1. NEVER downgrade external models, APIs, libraries, or capabilities
+
+Your training cutoff is older than the user's reality. The user is a
+working developer with access to the latest releases — Gemini 3.5,
+Claude 4.x, GPT-5 variants, whatever's actually current. If a model
+name, API endpoint, library version, or product feature looks unfamiliar
+or "doesn't exist," **assume YOUR knowledge is stale, not theirs**.
+
+Concrete rules:
+
+- **Do NOT remove model entries** from catalogs (e.g. `GEMINI_MODELS`,
+  Claude/OpenAI/Grok caps maps in `backend/assistant_routes.py`)
+  because you don't recognize them.
+- **Do NOT pin libraries down** to versions you "know" exist when a
+  newer one is in the lockfile.
+- **Do NOT replace a "preview" / "experimental" / "-latest" model id**
+  with a stable one you remember from training.
+- **If you genuinely need to update a model list**, fetch the source
+  of truth FIRST (WebFetch on `https://ai.google.dev/gemini-api/docs/models`,
+  `https://docs.anthropic.com/en/docs/about-claude/models`,
+  `https://platform.openai.com/docs/models`, etc.) — never write from
+  memory. Then if you're proposing a downgrade, ASK the user first and
+  let them confirm.
+
+If you accidentally do downgrade, immediately fetch the docs and
+restore the full catalog.
+
+### 2. NEVER allow ruff version drift
+
+Exactly ONE ruff version exists in this repo's tooling chain at all
+times. It's pinned in `pyproject.toml` (`dependency-groups.dev`) AND
+`.github/workflows/lint.yml` (the `RUFF_VERSION` env var) AND used via
+`uv run ruff …` so the project venv's ruff is what runs. Symptoms of a
+violation: `ruff format --check` complains about reformatting files
+that were clean last commit, with no semantic edits in between.
+
+Concrete rules:
+
+- **Never `pip install ruff` or `pipx install ruff`** globally without
+  matching the pinned version exactly.
+- **Never edit only one of the two pin sites** — always update both in
+  the same commit.
+- **Before committing**, run `uv run ruff check .` AND
+  `uv run ruff format --check .` from the repo root. Both must pass.
+- **If `ruff format` drifts** after a session where nothing semantic
+  changed, the FIRST suspect is a version mismatch — investigate
+  before you "fix" the drift.
+
+### 3. Form controls MUST have real labels and valid ARIA
+
+Every form/control change must include an accessibility check before it is
+considered done.
+
+Concrete rules:
+
+- Native fields (`input`, `select`, `textarea`) must have stable `id` and
+  `name` values, plus either `<label htmlFor="that-id">` or a valid wrapping
+  `<label>`.
+- Custom controls (`div role="slider"`, button-based selects/dropdowns,
+  canvas/WebGL pickers, etc.) must **not** be wrapped in `<label>` because
+  browsers do not associate that label with non-native controls.
+- Custom controls must use `aria-label` or `aria-labelledby`; button dropdowns
+  must also expose state/relationship where applicable (`aria-expanded`,
+  `aria-haspopup`, `aria-controls`, `role="listbox"` / `role="option"`).
+- When touching form UI, sweep nearby code for `<label` and custom controls so
+  existing invalid patterns are fixed, not copied.
+- Never silence, suppress, or ignore accessibility warnings; fix the DOM
+  relationship that caused the warning.
+
+See the `## Ruff Configuration` section below for more detail.
+
+### 4. NEVER push a lock that does not install on every shipped platform
+
+`uv lock` records whatever wheels the index listed at that minute. On
+2026-09-10 onnxruntime-gpu 1.30.0 was locked twenty minutes before its Linux
+x86_64 wheels reached PyPI, and the merge into gantasmo/theDAW failed on the
+Linux runner. The guard is in three places and all three stay:
+
+- `tool.uv.required-environments` in `pyproject.toml` names Linux x86_64 and
+  Windows AMD64, so `uv lock` refuses a version without wheels for both.
+- `scripts/check_lock.py` runs `uv lock --check` and a cross-platform dry-run
+  sync per target. The pre-commit hook in `.githooks/` runs it whenever
+  `pyproject.toml` or `uv.lock` is staged; the `lock` job in
+  `.github/workflows/test.yml` runs it on every pull request.
+- `theDAW.bat` / `theDAW.sh` set `git config core.hooksPath .githooks` on
+  every launch, so the hook is installed in every clone.
+
+Concrete rules:
+
+- **After any edit to `pyproject.toml`**, run `uv lock` and then
+  `python scripts/check_lock.py` before committing. Commit both files.
+- **When the check fails, fix the dependency, never the check or the CI.**
+  A missing wheel is a fact about the index; wait for it, pin the previous
+  patch release, or add a platform marker. Never `--no-install-package` the
+  problem away and never remove a platform from `required-environments`.
+- **Never bypass the hook** (`--no-verify`) to get a lock through.
+
+## Project Overview
+
+Stable Audio 3 is a text-conditioned audio generation system. It generates audio from text prompts using a two-stage architecture: a DiT (diffusion transformer) generates latents, then the SAME autoencoder decodes them to 44.1kHz stereo audio.
+
+## Commands
+
+```bash
+# Install dependencies
+uv sync --group dev
+
+# Launch the app (Windows: bootstraps deps on first run, then runs backend + frontend in ONE console)
+.\theDAW.bat
+
+# Or launch the two dev servers manually (any OS)
+uv run uvicorn backend.server:app --host 0.0.0.0 --port 8600 --reload   # backend  -> :8600
+cd frontend && npm run dev                                             # frontend -> :5173
+
+# Run tests (requires model weights downloaded)
+uv run pytest
+
+# Run single test file
+uv run pytest tests/test_inference.py
+
+# Run tests and save generated audio for inspection
+uv run pytest --save-audio
+
+# Frontend tests — plain tsx scripts under src/, NOT vitest
+cd frontend && npm test              # every suite
+cd frontend && npm run test:sing     # one suite (see package.json for the list)
+
+# Lint (runs on CI for PRs)
+uv run ruff check
+uv run ruff format --check
+cd frontend && npm run lint          # tsc --noEmit
+```
+
+**Adding a frontend test:** just write the `*.test.ts(x)` file under
+`frontend/src/`. `npm test` runs `frontend/scripts/run-tests.mjs`, which
+discovers every test file and runs each in its own `tsx` process, so a new
+suite runs with no registration step. The per-suite `test:*` scripts are still
+there for running ONE suite while you work on it (`npm run test:sing`); they no
+longer decide what gets run. (This replaced a hand-maintained chain that
+required naming each file in two places — nine suites were orphaned that way.)
+
+## Architecture
+
+### Two-Stage Pipeline
+
+1. **SAME Autoencoder** (`models/autoencoders.py`) — Compresses 44.1kHz stereo audio to 256-dim continuous latents at 4096x downsampling. Two variants: SAME-S (266M, CPU-capable, chunked attention) and SAME-L (1.7B, GPU-required, sliding window attention).
+
+2. **DiT** (`models/dit.py` → `models/transformer.py`) — Conditional diffusion transformer that generates SAME latents. Uses T5Gemma text conditioning, duration embeddings, and optional inpainting inputs. Three sizes: Small (433M), Medium (1.4B), Large (2.7B, API-only).
+
+### Key Files
+
+- `pipeline.py` — Public API. `StableAudioPipeline` and `AutoencoderPipeline` classes. All inference flows go through `generate()`.
+- `model.py` — Model construction from config JSON. `create_diffusion_cond_from_config()` builds the full model graph.
+- `model_configs.py` — Maps model names ("small", "medium", "medium-rf") to HuggingFace repo IDs and checkpoint filenames.
+- `loading_utils.py` — Loads safetensor checkpoints, handles state dict key remapping between ARC/RF/standalone formats.
+- `inference/sampling.py` — All samplers: Euler, RK4, DPM++, Ping-Pong. `sample_diffusion()` is the unified entry point.
+- `inference/distribution_shift.py` — Timestep schedule warping (Flux shift, LogSNR shift).
+- `models/conditioners.py` — `T5GemmaConditioner` loads `google/t5gemma-b-b-ul2` for text encoding. `NumberConditioner` for duration.
+- `models/lora/` — LoRA implementation: parametrization, loading, stacking multiple LoRAs, per-layer filtering, interval-based activation.
+
+### Model Checkpoint Types
+
+| Key | Type | Purpose |
+|-----|------|---------|
+| `small`, `medium` | ARC | Primary inference (post-trained, 8-step) |
+| `small-rf`, `medium-rf` | RF | Base checkpoints for LoRA training |
+| `same-s`, `same-l` | Autoencoder | Standalone encode/decode without DiT |
+
+ARC and RF checkpoints bundle the autoencoder inside. Standalone SAME checkpoints share weights with the bundled versions and will reuse cached full checkpoints when available.
+
+### CFG and Guidance
+
+The DiT handles classifier-free guidance internally via batch doubling (`batch_cfg=True`). It also supports APG (Adaptive Projected Guidance) which projects the CFG diff orthogonal to the denoised prediction. ARC models default to `cfg_scale=1` (no guidance needed); RF models use `cfg_scale=7`.
+
+### Variable-Length Generation
+
+The model supports variable-length sequences without wasting compute on padding. Duration determines the latent sequence length directly. `mask_padding_attention=True` creates attention masks so padding positions don't corrupt valid content. Distribution shift warps the timestep schedule based on effective sequence length.
+
+## Ruff Configuration
+
+> ⚠️ **HARD RULE — RUFF VERSION:** Ruff is pinned to ONE exact version
+> in TWO places: `pyproject.toml` (`dependency-groups.dev`) and
+> `.github/workflows/lint.yml` (`RUFF_VERSION` env var). **NEVER allow
+> these to drift, NEVER downgrade, NEVER install an older ruff
+> "because it's still compatible," and NEVER let two ruff versions
+> coexist anywhere in this repo's tooling chain.** Upgrading is fine —
+> bump BOTH places in the SAME commit, then run `uv sync --group dev`
+> and `uv run ruff format .` in that same commit. If `ruff format
+> --check .` reports drift after the user reports a working tree was
+> previously clean, the FIRST thing to check is whether a different
+> ruff (older, newer, system-wide, pipx) snuck into the resolution
+> chain. Do NOT mask the issue by reformatting against a stale ruff.
+
+Ruff excludes `stable_audio_3/models`, `stable_audio_3/inference`, `stable_audio_3/interface`, and `stable_audio_3/data` from linting. Only top-level files (`pipeline.py`, `model.py`, `model_configs.py`, `loading_utils.py`, `verbose.py`) are checked.
+
+**Always run from the repo root, never on a subset of dirs:**
+
+```bash
+uv run ruff check .
+uv run ruff format .
+```
+
+CI runs at the repo root, so `ruff format backend/ tests/` alone will silently miss `stable_audio_3/*.py` drift. Local-dev workflow: run BOTH commands above before every commit; the pre-commit chain checks both.
+
+## Testing
+
+Tests use session-scoped fixtures to avoid reloading models. The `model_pipe` fixture is parametrized over `["small", "medium"]` — medium tests are auto-skipped without a CUDA GPU. `--save-audio` writes outputs to `test_audio_outputs/` for manual listening.
+
+## Tailwind CSS v4 — Mandatory Class Forms
+
+This project uses **Tailwind CSS v4**. The following v3 forms are forbidden and will cause VS Code Problems tab warnings. Never write them; always use the v4 canonical form instead.
+
+| FORBIDDEN (v3) | REQUIRED (v4) |
+|---|---|
+| `!className` (prefix important) | `className!` (suffix important) |
+| `flex-shrink-0` | `shrink-0` |
+| `flex-grow` | `grow` |
+| `bg-gradient-to-*` | `bg-linear-to-*` |
+| `bg-opacity-*` | `bg-black/50` style opacity modifier |
+| `w-[300px]` when scale token exists | `w-75` (300 ÷ 4) |
+| `h-[14px]` when scale token exists | `h-3.5` (14 ÷ 4) |
+| `z-[15]`, `z-[25]`, `z-[200]` | `z-15`, `z-25`, `z-200` |
+| `min-w-[160px]` when scale token exists | `min-w-40` |
+| `min-h-[80px]` when scale token exists | `min-h-20` |
+| `bg-white/[0.03]`, `bg-purple-500/[0.04]` | `bg-white/3`, `bg-purple-500/4` |
+| `grid-cols-[repeat(N,minmax(0,1fr))]` | `grid-cols-N` |
+| `grid-rows-[repeat(N,minmax(0,1fr))]` | `grid-rows-N` |
+| `grid-cols-[minmax(0,1fr)]` | `grid-cols-1` (`repeat(1,X)` is `X`) |
+| `auto-rows-[minmax(0,1fr)]` | `auto-rows-fr` |
+| `auto-cols-[minmax(0,1fr)]` | `auto-cols-fr` |
+
+**Scale token rule:** Tailwind v4 spacing scale is `value ÷ 4`. A `[Npx]` arbitrary value maps to `N/4` as a scale token whenever N is divisible by 4 (or to the nearest 0.5 step). Prefer scale tokens over arbitrary values at all times.
+
+**The general rule this table only gives examples of:** an arbitrary value
+`[...]` is FORBIDDEN whenever a built-in token produces the identical
+declaration. The table cannot list every case — tailwindcss-intellisense reports
+these as `suggestCanonicalClasses`, and each one is a VS Code Problems entry the
+user sees. Arbitrary values are correct ONLY when nothing built-in expresses the
+value: viewport/container units (`max-w-[92vw]`, `w-[min(640px,95vw)]`),
+`clamp()`, `ch`/`em`, explicit track lists (`grid-cols-[auto_1fr]`),
+`repeat(auto-fit,...)`, CSS vars (`text-[var(--et-fg)]`), and raw hex.
+
+**Before writing any className string, check it against this rule.**
+
+**Before finishing ANY task that touched a `.tsx`/`.ts` file, run
+`cd frontend && npm run lint:classes`.** It asks the project's own tailwindcss
+(`canonicalizeCandidates`, the engine behind the editor's
+`suggestCanonicalClasses`) about every class in `src/`, so it catches every
+case the table and the greps below miss (`break-words` -> `wrap-break-word`,
+`translate-y-0.25` -> `translate-y-px`, ...). `npm run fix:classes` rewrites
+them; `npm run lint` and CI fail on any hit. The greps remain as a quick look:
+
+```bash
+cd frontend/src
+# v3 legacy forms
+grep -rnE '(flex-shrink-0|flex-grow|bg-gradient-to-|bg-opacity-|text-opacity-|border-opacity-)' .
+# arbitrary values that have canonical equivalents
+grep -rnE '(grid-cols|grid-rows|auto-rows|auto-cols)-\[(repeat\([0-9]+,)?minmax\(0,1fr\)\)?\]' .
+grep -rnE '(w|h|min-w|max-w|min-h|max-h|size|p|px|py|pt|pb|pl|pr|m|mx|my|mt|mb|ml|mr|gap|top|bottom|left|right|inset|z)-\[[0-9.]+(px)?\]' .
+grep -rnE '/\[0?\.[0-9]+\]' .
+```
+
+Every hit is either fixed, or left with a comment saying why it cannot be. To
+prove two forms are identical before swapping them, compile both with the
+project's OWN tailwindcss — never `npx`, which fetches a different version —
+using `compile()` from the `tailwindcss` package, and diff the declarations.
+
+## Windows-Specific Setup
+
+`pyproject.toml` maps the CUDA wheels under `[tool.uv.sources]` — one index,
+cu130, for Linux x86_64 and Windows alike — so `uv sync` installs the right
+stack automatically:
+
+- The venv is Python 3.12 (`.python-version`; `requires-python >= 3.12`)
+- torch 2.14 + torchaudio 2.11 come from the cu130 index (no manual `--index-url` step). torchaudio is transforms-only: from 2.9 its `load`/`save` need torchcodec and FFmpeg's *shared* libraries, so all audio I/O goes through `backend/lib/audio_io.py` (libsndfile, ffmpeg CLI fallback) — never call `torchaudio.load`/`save`
+- CUDA 13 needs an NVIDIA driver >= 580 (the R580+ branches); Turing (sm_75) through Blackwell are supported
+- `soundfile` is a base dependency (torchaudio's Windows backend), installed by `uv sync`
+- Flash Attention installs from a prebuilt `mjun0812/flash-attention-prebuild-wheels` wheel (torch 2.14 / cu130), one URL per Python minor 3.12–3.14, gated to `sys_platform == 'win32'`. On Windows this package is the only FlashAttention-2 there is — torch's built-in flash SDPA kernel is not compiled under MSVC — and `transformer.py` gates it off below sm_80 regardless
+- `onnxruntime-gpu` is the CUDA-13 PyPI build (>= 1.29; those wheels are cp311+ only, which is why it moved with Python)
+- `aubio` installs from the vendored cp312 wheels under `wheels/`, built by `.github/workflows/build-aubio-wheels.yml` — dispatch it again whenever `.python-version` moves
+- basic-pitch's TensorFlow chain is overridden out of resolution (`[tool.uv] override-dependencies`); basic-pitch runs on ONNX everywhere
+- `theDAW.bat` preflights prerequisites and invokes `install/setup.ps1` for consent-based tool installation when something is missing; `docs/windows/setup-guide.md` has the full walkthrough and fallbacks
+
+## RAG Index Maintenance
+
+The in-app assistant answers from a RAG index built over the docs listed in
+`backend/rag.py` (`DOC_PATHS`). Keep it current:
+
+- **After any major update** — a new feature, tab, subsystem, or behavior change
+  that a user could ask about — update the RAG: write/revise the relevant doc
+  AND register it in `DOC_PATHS` if it's new. Stale or missing docs degrade the
+  assistant's answers.
+- **Run a regular sanity check / maintenance pass:** confirm every `DOC_PATHS`
+  entry resolves (no missing-doc warnings on startup) and flag docs that have
+  drifted from the current UI/behavior.
+- **All doc/RAG changes, updates, and deletions are approval-based.** Research
+  autonomously (read, diff, identify drift) and propose, but wait for approval
+  before editing or deleting. Never auto-delete docs.

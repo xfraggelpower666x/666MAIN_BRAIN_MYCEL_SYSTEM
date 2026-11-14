@@ -1,0 +1,199 @@
+import assert from 'node:assert/strict';
+
+import { parseLoom, serializeLoom, STARTER_SCORE, tupletGrids, type LoomTile } from './loomScore.ts';
+import { parseColony } from './colony.ts';
+
+const shardAt = (tiles: (LoomTile | null)[], i: number) => {
+  const t = tiles[i];
+  if (!t || t.kind !== 'shard') throw new Error(`expected a shard at ${i}`);
+  return t;
+};
+
+// The starter score parses clean and lands where the picture says.
+{
+  const { score, errors } = parseLoom(STARTER_SCORE);
+  assert.deepEqual(errors, []);
+  assert.equal(score.bpm, 120);
+  assert.equal(score.key, 'follow');
+  assert.deepEqual(score.lanes.map((l) => l.name), ['drums', 'bass', 'vox']);
+  const drums = score.lanes[0];
+  assert.equal(drums.div, 16);
+  assert.equal(drums.length, 16);
+  assert.equal(drums.rows.length, 2);
+  assert.deepEqual(drums.rows[0][6], { kind: 'chance', pct: 50 });
+  assert.deepEqual(drums.rows[0][14], { kind: 'cycle', period: 4, laps: [2] });
+  assert.equal(shardAt(drums.rows[1], 0).query.role, 'kick');
+  assert.equal(shardAt(drums.rows[1], 2).query.role, 'hihat');
+}
+
+// Ties extend the previous shard and come back out as ties.
+{
+  const { score, errors } = parseLoom('lane bass 1/8 x8\n  b:2 - . b . b:2 - .\n');
+  assert.deepEqual(errors, []);
+  const rail = score.lanes[0].rows[0];
+  assert.equal(shardAt(rail, 0).steps, 3);
+  assert.equal(rail[1], null);
+  assert.equal(shardAt(rail, 3).steps, 1);
+  // On the rail the length rides as ties; the parse of that is the same score.
+  const text = serializeLoom(score);
+  assert.deepEqual(text.split('\n')[1].trim().split(/\s+/).slice(0, 3), ['b', '-', '-']);
+  assert.equal(shardAt(parseLoom(text).score.lanes[0].rows[0], 0).steps, 3);
+  // In an upper row (or past the lane end) ties cannot carry it, so `:N` does.
+  const upper = parseLoom('lane a 1/16 x4\n  v:3 . . .\n  k . . k:2\n');
+  assert.deepEqual(upper.errors, []);
+  const out = serializeLoom(upper.score);
+  assert.match(out, /v:3/);
+  assert.match(out, /k:2/);
+  assert.equal(shardAt(parseLoom(out).score.lanes[0].rows[0], 0).steps, 3);
+  assert.equal(shardAt(parseLoom(out).score.lanes[0].rows[1], 3).steps, 2);
+}
+
+// Text → score → text is a fixed point.
+{
+  const once = serializeLoom(parseLoom(STARTER_SCORE).score);
+  const twice = serializeLoom(parseLoom(once).score);
+  assert.equal(twice, once);
+}
+
+// Pins, query literals (with comparators and spaces), locks, jumps, suffixes.
+{
+  const src = [
+    'key F#m',
+    'lane a 1/16 x4',
+    '  =gain-6,cut.35 +trans12 ->b .',
+    '  <eacc:bass#12> {role=drums energy>0.7 entry!=eacc} k^ <#song__mix__3x4>:2^4',
+    'lane b 1/16 x4 @target',
+    '  s s s s',
+  ].join('\n');
+  const { score, errors } = parseLoom(src);
+  assert.deepEqual(errors, []);
+  assert.equal(score.key, 'F#');
+  assert.equal(score.scale, 'minor');
+  const [a, b] = score.lanes;
+  assert.equal(b.isTarget, true);
+  assert.deepEqual(a.rows[0][0], { kind: 'lock', mode: 'abs', params: { gain: -6, cutoff: 0.35 } });
+  assert.deepEqual(a.rows[0][1], { kind: 'lock', mode: 'rel', params: { transpose: 12 } });
+  assert.deepEqual(a.rows[0][2], { kind: 'jump', target: 'b' });
+  assert.deepEqual(shardAt(a.rows[1], 0).query, { entry: 'eacc', role: 'bass', bar: 12 });
+  assert.deepEqual(shardAt(a.rows[1], 1).query, { role: 'drums', energyMin: 0.7, excludeEntry: 'eacc' });
+  assert.equal(shardAt(a.rows[1], 2).roll, 1);
+  const pinned = shardAt(a.rows[1], 3);
+  assert.equal(pinned.query.shardId, 'song__mix__3x4');
+  assert.equal(pinned.steps, 2);
+  assert.equal(pinned.roll, 4);
+  const text = serializeLoom(score);
+  for (const needle of ['=gain-6,cut.35', '+trans12', '->b', '<eacc:bass#12>', '{role=drums entry!=eacc energy>.7}', '<#song__mix__3x4>:2^4']) {
+    assert.ok(text.includes(needle), `serialized text should contain ${needle}\n${text}`);
+  }
+}
+
+// The errors a performer needs.
+{
+  assert.ok(parseLoom('lane a 1/16 x4\n  k ->nowhere . .\n').errors.some((e) => /nowhere/.test(e.message)));
+  assert.ok(parseLoom('lane a 1/16 x4 @target\n  k . . .\n').errors.some((e) => /nothing would ever play/.test(e.message)));
+  assert.match(parseLoom('  k . . .\n').errors[0].message, /needs a lane/);
+  assert.match(parseLoom('lane a 1/16 x2\n  k . . .\n').errors[0].message, /row has 4 steps/);
+  assert.match(parseLoom('bpm 900\n').errors[0].message, /20–300/);
+  assert.match(parseLoom('lane a 1/16 x4\n  ?x . . .\n').errors[0].message, /chance gate/);
+}
+
+// Every shipped template parses clean, names real lanes, and round-trips.
+{
+  const { LOOM_TEMPLATES: ALL_TEMPLATES } = await import('../data/loomTemplates.ts');
+  // Colony scores have their own notation and their own test (colony.test.ts).
+  const LOOM_TEMPLATES = ALL_TEMPLATES.filter((t) => t.mode !== 'colony');
+  assert.ok(ALL_TEMPLATES.some((t) => t.mode === 'colony'), 'a colony sample ships');
+  assert.ok(LOOM_TEMPLATES.length >= 4);
+  assert.equal(LOOM_TEMPLATES.filter((t) => t.level === 'simple').length, 2);
+  assert.equal(LOOM_TEMPLATES.filter((t) => t.level === 'complex').length, 3);
+  for (const t of LOOM_TEMPLATES) {
+    const { score, errors } = parseLoom(t.text);
+    assert.deepEqual(errors, [], `${t.name}:\n${errors.map((e) => `line ${e.line}: ${e.message}`).join('\n')}`);
+    assert.ok(score.lanes.length >= 3, `${t.name} has ${score.lanes.length} lanes`);
+    assert.ok(score.lanes.some((l) => !l.isTarget), `${t.name} needs a channel lane`);
+    const again = parseLoom(serializeLoom(score));
+    assert.deepEqual(again.errors, [], `${t.name} re-parse`);
+    assert.equal(serializeLoom(again.score), serializeLoom(score), `${t.name} round-trip`);
+    // Quoted song titles survive the literal syntax.
+    for (const lane of score.lanes) for (const row of lane.rows) for (const tile of row) {
+      if (tile && tile.kind === 'shard' && tile.query.entry) assert.ok(!/["']/.test(tile.query.entry), `${t.name}: quotes leaked into ${tile.query.entry}`);
+    }
+  }
+  const complex = LOOM_TEMPLATES.filter((t) => t.level === 'complex');
+  for (const t of complex) {
+    const { score } = parseLoom(t.text);
+    const kinds = new Set(score.lanes.flatMap((l) => l.rows.flatMap((r) => r.filter(Boolean).map((x) => x!.kind))));
+    for (const k of ['shard', 'chance', 'cycle', 'lock', 'jump']) assert.ok(kinds.has(k as never), `${t.name} should use a ${k} tile`);
+    assert.ok(score.lanes.some((l) => l.isTarget), `${t.name} should have a @target lane`);
+  }
+  // The generative sample uses every rule family at least once.
+  const garden = LOOM_TEMPLATES.find((t) => t.id === 'garden-of-forking-beats');
+  assert.ok(garden, 'generative sample present');
+  if (garden) {
+    const { score } = parseLoom(garden.text);
+    const gens = new Set(score.lanes.flatMap((l) => l.rows.flatMap((r) => r.filter((x) => x?.kind === 'gen').map((x) => (x as { gen: string }).gen))));
+    for (const g of ['euclid', 'fractal', 'life', 'fib', 'gliss', 'accel', 'echo']) assert.ok(gens.has(g), `garden should use ${g}`);
+    assert.equal(score.form, 'AABA');
+    assert.equal(score.seed, 2026);
+    assert.ok(score.ramp && score.ramp.to === 132);
+  }
+}
+
+// Tuplet lane grids: 1/12, 1/20, 1/24 and 1/28 read, write back, and play at
+// that many steps to the whole note; a grid the list lacks is still an error.
+{
+  const { score, errors } = parseLoom('lane trip 1/12 x12\n  k . . s . . k . . s . .\nlane quint 1/20 x5\n  h h h h h\nlane six 1/24 x6\n  h . h . h .\nlane sept 1/28 x7\n  h h h h h h h\n');
+  assert.deepEqual(errors, []);
+  assert.deepEqual(score.lanes.map((l) => l.div), [12, 20, 24, 28]);
+  assert.match(serializeLoom(score), /lane trip 1\/12 x12\n/);
+  assert.equal(serializeLoom(parseLoom(serializeLoom(score)).score), serializeLoom(score));
+  // One quarter note (4 / div of a whole note per step): 3 steps of 1/12, 5 of 1/20, 7 of 1/28.
+  assert.deepEqual(score.lanes.map((l) => (4 / l.div) * ({ 12: 3, 20: 5, 24: 6, 28: 7 } as Record<number, number>)[l.div]), [1, 1, 1, 1]);
+  for (const bad of ['1/3', '1/10', '1/48', '1/0']) {
+    const r = parseLoom(`lane x ${bad} x4\n  k . . .`);
+    assert.ok(r.errors.some((e) => /unknown option/.test(e.message)), `${bad} is not a lane grid`);
+  }
+}
+
+// `meter 7/8 2+2+3` (and `groups=2+2+3`) sets the score's bar; it round-trips,
+// and the bar lines in the written rows follow it where a bar holds whole steps.
+{
+  const { score, errors } = parseLoom('bpm 132\nmeter 7/8 2+2+3\nlane drums 1/16 x28\n  k . . . s . . . k . . . s . k . . . s . . . k . . . s .\n');
+  assert.deepEqual(errors, []);
+  assert.deepEqual(score.meter, { num: 7, den: 8, groups: [2, 2, 3] });
+  const text = serializeLoom(score);
+  assert.match(text, /^bpm 132\nmeter 7\/8 2\+2\+3\n/);
+  // A 7/8 bar is 14 sixteenths: one bar line, after step 14.
+  const rail = text.trimEnd().split('\n').at(-1) ?? '';
+  assert.equal(rail.split('|').length, 2);
+  assert.equal(rail.split('|')[0].trim().split(/\s+/).length, 14);
+  assert.deepEqual(parseLoom(text).score.meter, score.meter);
+  assert.deepEqual(parseLoom('meter 7/8 groups=2+2+3').score.meter, { num: 7, den: 8, groups: [2, 2, 3] });
+  assert.deepEqual(parseLoom('meter 5/4').score.meter, { num: 5, den: 4, groups: [] });
+  assert.match(parseLoom('meter 7/8 2+2+2').errors[0]?.message ?? '', /add up to 7/);
+  assert.match(parseLoom('meter 7/6').errors[0]?.message ?? '', /1, 2, 4, 8, 16 or 32/);
+  assert.match(parseLoom('meter seven').errors[0]?.message ?? '', /meter looks like/);
+  // A 1/12 lane in 7/8 holds 10.5 steps a bar, so it draws no bar lines.
+  const trip = serializeLoom(parseLoom('meter 7/8\nlane t 1/12 x21\n  k . . . . . . . . . . . . . . . . . . . .').score);
+  assert.equal(trip.includes('|'), false);
+  // A score written before the directive has no meter and writes none.
+  assert.equal(parseLoom(STARTER_SCORE).score.meter, undefined);
+  assert.equal(serializeLoom(parseLoom(STARTER_SCORE).score).includes('meter'), false);
+}
+
+// TUPLET GRID in the colony's rule inspector: the tuplet grids a bar holds a
+// whole number of steps of, as the steps per bar a rule takes.
+{
+  assert.deepEqual(tupletGrids({ num: 4, den: 4, groups: [] }).map((g) => [g.div, g.steps]), [[12, 12], [20, 20], [24, 24], [28, 28]]);
+  assert.deepEqual(tupletGrids({ num: 7, den: 8, groups: [2, 2, 3] }).map((g) => [g.div, g.steps]), [[24, 21]], 'in 7/8 only the 16th triplets come out whole');
+  assert.deepEqual(tupletGrids({ num: 5, den: 8, groups: [] }).map((g) => g.steps), [15], 'in 5/8 only the 16th triplets come out whole');
+  assert.deepEqual(tupletGrids({ num: 5, den: 4, groups: [] }).map((g) => g.steps), [15, 25, 30, 35]);
+  assert.equal(tupletGrids({ num: 3, den: 4, groups: [] }).find((g) => g.div === 20)?.name, '16th quintuplets');
+  // The steps a grid gives are steps a colony rule keeps through the CODE pane.
+  const { score, errors } = parseColony(`meter 5/4\nrule q = euclid(hits=5 steps=${tupletGrids({ num: 5, den: 4, groups: [] })[1].steps})\n`);
+  assert.deepEqual(errors, []);
+  const rule = score.root.nodes.find((n) => n.id === 'q');
+  assert.equal(rule?.kind === 'rule' ? rule.steps : null, 25);
+}
+
+console.log('loomScore: all assertions passed');

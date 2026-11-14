@@ -1,0 +1,513 @@
+import { create } from 'zustand';
+import { useStatusBarStore } from './statusBarStore';
+import { logError, logInfo } from './logStore';
+import { uuid } from '../orb-kit/utils';
+import { useLibraryStore } from './libraryStore';
+import { usePlayerStore } from './playerStore';
+import {
+  useEffectChainStore,
+  EFFECT_LABELS,
+  MIX_RACK_IDS,
+  vstStateHost,
+  vstStatesLoaded,
+  type VstStateHost,
+} from './effectChainStore';
+import { useAdvancedEditorSourceStore } from './advancedEditorStore';
+import { getRackEffect, buildEffectChain, ensureChopModule, ensureGranularModule } from '../lib/rackEffects';
+import { ensureHallIrsForChains } from '../lib/hallIrs';
+import { encodeWav } from '../lib/wavEncode';
+import { pairingHeader } from '../lib/pairing';
+
+interface StudioHistoryEntry {
+  id: string;
+  effect: string;
+  format: string;
+  createdAt: number;
+}
+
+interface StudioStoreState {
+  sourceFile: File | null;
+  outputUrl: string | null;
+  outputFormat: string;
+  isProcessing: boolean;
+  // True for the whole multi-effect chain run (processAudio toggles
+  // isProcessing per effect, which would flicker the footer between
+  // effects — the footer keys its PROCESS state off this flag instead).
+  isChainProcessing: boolean;
+  error: string | null;
+  processHistory: StudioHistoryEntry[];
+  // Legacy single-effect "pending action" path (kept for the footer's
+  // edit-tab branch). The MIX tab now runs the full chain via processChain().
+  pendingEffect: string;
+  pendingParams: Record<string, number>;
+  setSourceFile: (file: File | null) => void;
+  setOutputFormat: (format: string) => void;
+  setPendingAction: (effect: string, params: Record<string, number>) => void;
+  // `quiet` posts no STARTED, COMPLETE or FAILED status: processChain passes it
+  // for each stage and posts the chain's own statuses. The LOG lines stay.
+  processAudio: (payload: { effect: string; params: Record<string, number>; skipLibrary?: boolean; quiet?: boolean }) => Promise<void>;
+  // VST3 chain stage: uploads the current audio + plugin path to
+  // /api/vst/process-file (mirrors processAudio) and returns processed audio.
+  // `stateHost` names WHICH host captured `rawState`. Plugin state IS
+  // interchangeable between theDAW's live host and the pedalboard renderer
+  // (measured: parameters restore exactly, containers are byte-identical) —
+  // `stateHost` doesn't gate whether the state can be reused, only which
+  // renderer processes the request. Omitted (or 'pedalboard') leaves the
+  // request byte-for-byte what it always was, which is what every
+  // pre-existing project and every older backend expects.
+  processVst: (payload: { pluginPath: string; pluginName: string; params: Record<string, number>; rawState?: string; stateHost?: VstStateHost; skipLibrary?: boolean; quiet?: boolean }) => Promise<void>;
+  // Runs the enabled effects in useEffectChainStore in series over the
+  // source in useAdvancedEditorSourceStore, then imports the final result
+  // to the library, loads the player, and writes advancedEditorStore.outputUrl.
+  processChain: () => Promise<void>;
+  triggerPendingProcess: () => Promise<void>;
+  reuseOutputAsSource: () => Promise<void>;
+  clearOutput: () => void;
+}
+
+const parseErrorText = async (response: Response): Promise<string> => {
+  try {
+    const text = await response.text();
+    // Guard against non-JSON responses (e.g. Vite returning HTML for
+    // unmatched routes when the backend is down).
+    if (text.startsWith('<') || text.startsWith('<!')) {
+      return `Backend returned HTML instead of JSON (HTTP ${response.status}). Is the backend running on port 8600?`;
+    }
+    const payload = JSON.parse(text) as { detail?: string; error?: string };
+    return payload.detail || payload.error || `Request failed (${response.status})`;
+  } catch {
+    return `Request failed (${response.status})`;
+  }
+};
+
+/** Fetch with an AbortController timeout (default 10 minutes). */
+const fetchWithTimeout = (input: RequestInfo | URL, init?: RequestInit, timeoutMs = 600_000): Promise<Response> => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(input, { ...init, signal: controller.signal }).finally(() => clearTimeout(timer));
+};
+
+export const useStudioStore = create<StudioStoreState>()((set, get) => ({
+  sourceFile: null,
+  outputUrl: null,
+  outputFormat: 'wav',
+  isProcessing: false,
+  isChainProcessing: false,
+  error: null,
+  processHistory: [],
+  pendingEffect: 'mastering_chain',
+  pendingParams: { lowBoost: 0, highBoost: 0, limiterCeiling: 0.95, targetLUFS: -14 },
+
+  setSourceFile: (file) => {
+    set({ sourceFile: file });
+    useStatusBarStore.getState().setText(file ? `STUDIO SOURCE LOADED: ${file.name}` : 'STUDIO SOURCE CLEARED');
+  },
+
+  setOutputFormat: (format) => {
+    set({ outputFormat: format });
+  },
+
+  setPendingAction: (effect, params) => {
+    set({ pendingEffect: effect, pendingParams: params });
+  },
+
+  triggerPendingProcess: async () => {
+    // One studio run at a time: EDIT's PROCESS and MIX's CHAIN share
+    // isProcessing, the source and the output, so neither starts while either
+    // runs. Checked synchronously, before the first await, so a double press
+    // cannot slip a second run in.
+    if (get().isProcessing || get().isChainProcessing) {
+      logInfo('studio', 'PROCESS ignored: a studio process is already running');
+      return;
+    }
+    const { pendingEffect, pendingParams, processAudio } = get();
+    await processAudio({ effect: pendingEffect, params: pendingParams });
+  },
+
+  processAudio: async ({ effect, params, skipLibrary, quiet }) => {
+    // A stage runs alone. processChain awaits each stage, so between its
+    // stages isProcessing is false and the chain passes this guard.
+    if (get().isProcessing) {
+      logInfo('studio', `Process ${effect} ignored: a studio process is already running`);
+      return;
+    }
+    const source = get().sourceFile;
+    if (!source) {
+      const message = 'Load a source audio file before processing.';
+      set({ error: message });
+      useStatusBarStore.getState().setText(`STUDIO FAILED: ${message}`);
+      return;
+    }
+
+    const previous = get().outputUrl;
+    if (previous) {
+      URL.revokeObjectURL(previous);
+    }
+
+    set({ isProcessing: true, error: null, outputUrl: null });
+    if (!quiet) useStatusBarStore.getState().setText(`STUDIO PROCESS STARTED: ${effect}`);
+    logInfo('studio', `Processing: effect=${effect} format=${get().outputFormat} source=${source.name} (${Math.round(source.size / 1024)}KB)`);
+
+    const form = new FormData();
+    form.append('audio', source);
+    form.append('effect', effect);
+    form.append('params', JSON.stringify(params));
+    form.append('output_format', get().outputFormat);
+
+    try {
+      logInfo('studio', `POST /api/studio/process — effect=${effect} params=${JSON.stringify(params)}`);
+      const response = await fetchWithTimeout('/api/studio/process', {
+        method: 'POST',
+        body: form,
+      });
+
+      if (!response.ok) {
+        const detail = await parseErrorText(response);
+        logError('studio', `POST /api/studio/process → ${response.status} ${response.statusText} — ${detail}`);
+        throw new Error(detail);
+      }
+
+      // Guard: make sure we actually got audio back, not HTML from Vite's
+      // SPA fallback (which would happen if the proxy silently failed).
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('text/html')) {
+        const msg = 'Backend returned HTML instead of audio. Is the backend running on port 8600?';
+        logError('studio', msg);
+        throw new Error(msg);
+      }
+
+      const blob = await response.blob();
+      logInfo('studio', `POST /api/studio/process → 200 OK — ${Math.round(blob.size / 1024)}KB ${get().outputFormat}`);
+      const outputUrl = URL.createObjectURL(blob);
+      const nextEntry: StudioHistoryEntry = {
+        id: uuid(),
+        effect,
+        format: get().outputFormat,
+        createdAt: Date.now(),
+      };
+
+      set((state) => ({
+        isProcessing: false,
+        outputUrl,
+        processHistory: [nextEntry, ...state.processHistory].slice(0, 8),
+        error: null,
+      }));
+      if (!quiet) useStatusBarStore.getState().setText(`STUDIO PROCESS COMPLETE: ${effect}`);
+
+      if (!skipLibrary) {
+        const fmt = get().outputFormat;
+        const title = `studio-${effect}.${fmt}`;
+        try {
+          const entry = await useLibraryStore.getState().importEntry({
+            blob,
+            filename: title,
+            mimeType: blob.type || 'audio/wav',
+            metadata: {
+              title,
+              prompt: `Effect: ${effect}`,
+              model: effect,
+              source: 'studio',
+              tags: ['studio', effect],
+            },
+          });
+          await usePlayerStore.getState().load(blob, { label: title, entryId: entry.id });
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          logError('studio', `Library save failed: ${msg}`);
+          useStatusBarStore
+            .getState()
+            .setText(`STUDIO LIBRARY SAVE FAILED — check Processing Log: ${msg}`);
+          // Best-effort: still play it in the footer so user can review.
+          try {
+            await usePlayerStore.getState().load(blob, { label: title, entryId: `studio-fail-${Date.now()}` });
+          } catch { /* swallow */ }
+        }
+      }
+    } catch (error) {
+      let message: string;
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        message = 'Effect processing timed out after 10 minutes. Try a shorter audio file or simpler effect.';
+      } else if (error instanceof TypeError && /fetch|network/i.test(error.message)) {
+        message = 'Network error — the backend may not be running on port 8600, or the response was interrupted. Restart the backend and try again.';
+      } else {
+        message = error instanceof Error ? error.message : 'Studio process failed.';
+      }
+      set({ isProcessing: false, error: message });
+      if (!quiet) useStatusBarStore.getState().setText(`STUDIO PROCESS FAILED: ${message}`);
+      logError('studio', `effect=${effect} FAILED — ${message}`);
+    }
+  },
+
+  processVst: async ({ pluginPath, pluginName, params, rawState, stateHost, skipLibrary, quiet }) => {
+    if (get().isProcessing) {
+      logInfo('studio', `VST ${pluginName} ignored: a studio process is already running`);
+      return;
+    }
+    const source = get().sourceFile;
+    if (!source) {
+      const message = 'Load a source audio file before processing.';
+      set({ error: message });
+      useStatusBarStore.getState().setText(`VST FAILED: ${message}`);
+      return;
+    }
+
+    const previous = get().outputUrl;
+    if (previous) URL.revokeObjectURL(previous);
+
+    set({ isProcessing: true, error: null, outputUrl: null });
+    if (!quiet) useStatusBarStore.getState().setText(`VST PROCESS STARTED: ${pluginName}`);
+    logInfo('studio', `POST /api/vst/process-file — ${pluginName} (${pluginPath})`);
+
+    const form = new FormData();
+    form.append('audio', source);
+    form.append('plugin_path', pluginPath);
+    // Which plugin inside the file: a .vst3 can hold several, the live host
+    // loads the one the entry names, and theDAW's render host loads the first
+    // one when it is given no name.
+    if (pluginName) form.append('plugin_name', pluginName);
+    form.append('params', JSON.stringify(params || {}));
+    if (rawState) form.append('raw_state', rawState);
+    // Only the 'thedaw' case is sent: absent means the backend's existing
+    // pedalboard path, which is what an old project (and an old backend) must
+    // keep getting. A failure from the 'thedaw' path is reported as the backend
+    // words it and NOT retried through pedalboard — the entry asked for a
+    // specific renderer, and silently swapping renderers would change the
+    // rendered result, so the failure is surfaced instead of masked.
+    if (stateHost === 'thedaw') form.append('state_host', 'thedaw');
+
+    try {
+      // The pairing header is what lets a device opened from the Mobile Access
+      // share link render VST stages (backend/lib/cross_site.py); it is {} on
+      // this machine's own UI.
+      const response = await fetchWithTimeout('/api/vst/process-file', {
+        method: 'POST',
+        body: form,
+        headers: pairingHeader(),
+      });
+      if (!response.ok) {
+        const detail = await parseErrorText(response);
+        logError('studio', `POST /api/vst/process-file → ${response.status} — ${detail}`);
+        throw new Error(detail);
+      }
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('text/html')) {
+        throw new Error('Backend returned HTML instead of audio. Is the backend running on port 8600?');
+      }
+
+      const blob = await response.blob();
+      const outputUrl = URL.createObjectURL(blob);
+      const nextEntry: StudioHistoryEntry = {
+        id: uuid(),
+        effect: pluginName,
+        format: get().outputFormat,
+        createdAt: Date.now(),
+      };
+      set((state) => ({
+        isProcessing: false,
+        outputUrl,
+        processHistory: [nextEntry, ...state.processHistory].slice(0, 8),
+        error: null,
+      }));
+      if (!quiet) useStatusBarStore.getState().setText(`VST PROCESS COMPLETE: ${pluginName}`);
+
+      if (!skipLibrary) {
+        const fmt = get().outputFormat;
+        const title = `vst-${pluginName}.${fmt}`;
+        try {
+          const entry = await useLibraryStore.getState().importEntry({
+            blob,
+            filename: title,
+            mimeType: blob.type || 'audio/wav',
+            metadata: { title, prompt: `VST: ${pluginName}`, source: 'studio', tags: ['vst', pluginName] },
+          });
+          await usePlayerStore.getState().load(blob, { label: title, entryId: entry.id });
+        } catch (e) {
+          logError('studio', `VST library save failed: ${e instanceof Error ? e.message : String(e)}`);
+        }
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'VST process failed.';
+      set({ isProcessing: false, error: message });
+      if (!quiet) useStatusBarStore.getState().setText(`VST PROCESS FAILED: ${message}`);
+      logError('studio', `vst=${pluginName} FAILED — ${message}`);
+    }
+  },
+
+  processChain: async () => {
+    if (get().isProcessing || get().isChainProcessing) return;
+
+    const source = useAdvancedEditorSourceStore.getState().sourceFile;
+    if (!source) {
+      const message = 'Load a source audio file before processing.';
+      set({ error: message });
+      useStatusBarStore.getState().setText(`MIX FAILED: ${message}`);
+      return;
+    }
+
+    // Busy BEFORE the wait below, so a second click inside the (startup-only)
+    // load window cannot queue a second render of the same chain.
+    set({ isChainProcessing: true, error: null });
+    // A plugin's saved state arrives from IndexedDB a moment after startup;
+    // read the chain only once it has, never the empty value before it.
+    await vstStatesLoaded;
+    const enabled = useEffectChainStore.getState().chain.filter((e) => e.enabled);
+    if (enabled.length === 0) {
+      const message = 'Add at least one enabled effect to the chain.';
+      set({ error: message, isChainProcessing: false });
+      useStatusBarStore.getState().setText(`MIX FAILED: ${message}`);
+      return;
+    }
+
+    const fmt = get().outputFormat;
+    const chainLabel = enabled
+      .map((e) => (e.vst ? e.vst.plugin_name : EFFECT_LABELS[e.effect] || getRackEffect(e.effect)?.label || e.effect))
+      .join(' → ');
+    useStatusBarStore.getState().setText(`MIX CHAIN STARTED: ${chainLabel}`);
+    logInfo('studio', `Chain process: ${chainLabel} (${enabled.length} effects) format=${fmt}`);
+
+    // Psychoacoustic (rack) effects are client-side Web-Audio — /api/studio does not
+    // know them. Walk the chain in VISIBLE ORDER, segmenting into consecutive runs
+    // of backend/VST effects (rendered via HTTP) vs rack effects (baked offline), so
+    // an interleaved arrangement bakes in the exact order the chain shows.
+    const isRack = (e: (typeof enabled)[number]): boolean => !e.vst && MIX_RACK_IDS.has(e.effect);
+    const segments: { rack: boolean; entries: typeof enabled }[] = [];
+    for (const e of enabled) {
+      const rack = isRack(e);
+      const last = segments[segments.length - 1];
+      if (last && last.rack === rack) last.entries.push(e);
+      else segments.push({ rack, entries: [e] });
+    }
+
+    // Bake a run of rack effects offline over `file` (mirrors the live rack). A bake
+    // failure returns the input unchanged so the pipeline still completes.
+    const bakeRack = async (file: File, entries: typeof enabled): Promise<File> => {
+      const decodeCtx = new AudioContext({ sampleRate: 44100 });
+      try {
+        const ab = await file.arrayBuffer();
+        const buf = await decodeCtx.decodeAudioData(ab.slice(0));
+        const offline = new OfflineAudioContext(2, buf.length, buf.sampleRate);
+        if (entries.some((e) => e.effect === 'chop')) {
+          try { await ensureChopModule(offline); } catch { /* falls back to passthrough */ }
+        }
+        if (entries.some((e) => e.effect === 'ares')) {
+          try { await ensureGranularModule(offline); } catch { /* falls back to passthrough */ }
+        }
+        // A Reverb on a measured hall renders it, not the synthesized room (lib/hallIrs).
+        await ensureHallIrsForChains(offline, [entries]);
+        const inGain = offline.createGain();
+        buildEffectChain(offline, inGain, offline.destination, entries);
+        const src = offline.createBufferSource();
+        src.buffer = buf;
+        src.connect(inGain);
+        src.start(0);
+        const rendered = await offline.startRendering();
+        const wav = encodeWav(rendered);
+        return new File([wav], 'chain-rack.wav', { type: 'audio/wav' });
+      } catch (e) {
+        logError('studio', `Rack bake failed (using prior result): ${e instanceof Error ? e.message : String(e)}`);
+        return file;
+      } finally {
+        decodeCtx.close().catch(() => {});
+      }
+    };
+
+    try {
+      // Feed each segment's output into the next, in visible chain order. Per-stage
+      // HTTP processing skips the library so only the final result is saved.
+      let currentFile = source;
+      for (const seg of segments) {
+        if (seg.rack) {
+          currentFile = await bakeRack(currentFile, seg.entries);
+          continue;
+        }
+        for (const entry of seg.entries) {
+          // Stages run quiet: no STUDIO SOURCE LOADED, STARTED or COMPLETE status
+          // per stage, so one chain run posts MIX CHAIN STARTED and then its
+          // COMPLETE or FAILED. Each stage still writes its LOG lines.
+          set({ sourceFile: currentFile });
+          if (entry.vst) {
+            await get().processVst({
+              pluginPath: entry.vst.plugin_path,
+              pluginName: entry.vst.plugin_name,
+              params: entry.params,
+              rawState: entry.vst.raw_state,
+              stateHost: vstStateHost(entry.vst),
+              skipLibrary: true,
+              quiet: true,
+            });
+          } else {
+            await get().processAudio({ effect: entry.effect, params: entry.params, skipLibrary: true, quiet: true });
+          }
+          const url = get().outputUrl;
+          // The stage set its error and wrote its FAILED LOG line; the chain
+          // posts the failure to the bubble, naming the stage.
+          if (!url) {
+            const stageName = entry.vst ? entry.vst.plugin_name : entry.effect;
+            useStatusBarStore
+              .getState()
+              .setText(`MIX CHAIN FAILED at ${stageName}: ${get().error ?? 'no audio returned'}`, { logged: true });
+            return;
+          }
+          const blob = await (await fetch(url)).blob();
+          const stageName = entry.vst ? entry.vst.plugin_name : entry.effect;
+          currentFile = new File([blob], `chain-${stageName}.${fmt}`, { type: blob.type });
+        }
+      }
+
+      // Give each store its OWN object URL from the final blob (they revoke
+      // independently), and revoke the prior studio output so it doesn't leak.
+      const prevOut = get().outputUrl;
+      if (prevOut) URL.revokeObjectURL(prevOut);
+      set({ outputUrl: URL.createObjectURL(currentFile) });
+      useAdvancedEditorSourceStore.getState().setOutputUrl(URL.createObjectURL(currentFile));
+
+      const finalBlob = currentFile;
+      const title = `chain-${chainLabel.slice(0, 40)}.${fmt}`;
+      try {
+        const entry = await useLibraryStore.getState().importEntry({
+          blob: finalBlob,
+          filename: title,
+          mimeType: finalBlob.type || 'audio/wav',
+          metadata: { title, prompt: chainLabel, source: 'studio', tags: ['effects-chain'] },
+        });
+        await usePlayerStore.getState().load(finalBlob, { label: title, entryId: entry.id });
+        useStatusBarStore.getState().setText(`MIX CHAIN COMPLETE: ${chainLabel}`);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        logError('studio', `Chain library save failed: ${msg}`);
+        set({ error: `Library save failed: ${msg}` });
+        useStatusBarStore
+          .getState()
+          .setText(`MIX CHAIN LIBRARY SAVE FAILED — check Processing Log: ${msg}`);
+        try {
+          await usePlayerStore.getState().load(finalBlob, { label: title, entryId: `chain-fail-${Date.now()}` });
+        } catch { /* swallow */ }
+      }
+    } finally {
+      set({ isChainProcessing: false });
+    }
+  },
+
+  reuseOutputAsSource: async () => {
+    const output = get().outputUrl;
+    if (!output) {
+      return;
+    }
+
+    const response = await fetch(output);
+    const blob = await response.blob();
+    const sourceFile = new File([blob], `studio-output.${get().outputFormat}`, { type: blob.type || 'audio/wav' });
+    set({ sourceFile });
+    useStatusBarStore.getState().setText('STUDIO OUTPUT PROMOTED TO SOURCE');
+  },
+
+  clearOutput: () => {
+    const output = get().outputUrl;
+    if (output) {
+      URL.revokeObjectURL(output);
+    }
+    set({ outputUrl: null, error: null });
+    useStatusBarStore.getState().setText('STUDIO OUTPUT CLEARED');
+  },
+}));
+

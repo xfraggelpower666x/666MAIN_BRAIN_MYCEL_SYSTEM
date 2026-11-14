@@ -1,0 +1,1410 @@
+"""FastAPI router for the storage module (prefix ``/api/storage``).
+
+    GET    /locations            every model/data location with size + file count
+    GET    /hf-cache             per-repo breakdown of the Hugging Face cache
+    GET    /checkpoints          registered local checkpoints + catalog availability
+    GET    /model-status         compact model/API readiness summary for Settings
+    POST   /checkpoints          register a local checkpoint {path, name?}
+    DELETE /checkpoints/{ck_id}  unregister (files are never touched)
+    GET    /local-only           is no-download mode on?
+    PUT    /local-only           toggle no-download mode {enabled}
+    POST   /open                 open a known location in the OS file explorer
+    POST   /pick-folder          open a native folder picker on the local machine
+    POST   /pick-file            open a native file picker on the local machine
+    POST   /pick-save            open a native Save As dialog on the local machine
+
+Sizes come from a recursive walk cached for 60 seconds per path (pass
+``refresh=1`` to force). The WSL-side Magenta locations are probed through
+``wsl.exe`` with a short timeout and the same cache, so a missing distro
+degrades to ``exists: false`` instead of an error.
+
+The pickers take an optional ``kind`` (see backend/lib/known_paths.py). A
+dialog opens in ``initial_dir`` when that folder exists, else in the folder last
+used for ``kind``, and the path the user chooses is remembered for that kind. A
+checkpoint dialog with neither opens in the first local model folder, else
+beside the newest registered checkpoint.
+
+A dialog that failed answers 500 with its reason, and one that got no answer
+before folder_dialog's timeout answers 504. Only the user's cancel answers
+``cancelled: true``.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import logging
+import os
+import subprocess
+import sys
+import threading
+import time
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+
+from backend.core import folder_dialog
+from backend.core.probe_cache import CachedProbe
+from stable_audio_3.model_configs import (
+    _is_model_config_json,
+    _local_override,
+    _local_search_dirs,
+    arc_models,
+    resolve_local_checkpoint,
+    rf_models,
+)
+
+from .store import get_registry
+from backend.lib import known_paths, paths
+from backend.lib.cross_site import refuse_cross_site
+from backend.lib.launch_token import child_env
+
+log = logging.getLogger(__name__)
+
+router = APIRouter()
+
+_SIZE_TTL_SECONDS = 60.0
+_size_cache: dict[str, tuple[float, dict]] = {}
+_size_lock = threading.Lock()
+
+_WSL_TIMEOUT = 10
+_wsl_cache: dict[str, tuple[float, dict]] = {}
+
+
+def _dir_stats(path: Path) -> dict:
+    """Recursive size + file count. Junctions/symlinks are not followed."""
+    total = 0
+    files = 0
+    stack = [path]
+    while stack:
+        current = stack.pop()
+        try:
+            with os.scandir(current) as it:
+                for entry in it:
+                    try:
+                        if entry.is_symlink():
+                            continue
+                        if entry.is_dir(follow_symlinks=False):
+                            stack.append(Path(entry.path))
+                        elif entry.is_file(follow_symlinks=False):
+                            total += entry.stat(follow_symlinks=False).st_size
+                            files += 1
+                    except OSError:
+                        continue
+        except OSError:
+            continue
+    return {"bytes": total, "files": files}
+
+
+def _cached_dir_stats(path: Path, refresh: bool) -> dict:
+    key = str(path).lower()
+    now = time.monotonic()
+    with _size_lock:
+        hit = _size_cache.get(key)
+        if hit and not refresh and now - hit[0] < _SIZE_TTL_SECONDS:
+            return hit[1]
+    stats = _dir_stats(path) if path.is_dir() else {"bytes": None, "files": None}
+    with _size_lock:
+        _size_cache[key] = (now, stats)
+    return stats
+
+
+def _hf_cache_dir() -> Path:
+    from huggingface_hub.constants import HF_HUB_CACHE
+
+    return Path(HF_HUB_CACHE)
+
+
+def _wsl_distro() -> str | None:
+    try:
+        from backend.modules.magenta.sidecar import _wsl_distro as magenta_distro
+
+        return magenta_distro()
+    except Exception:
+        return None
+
+
+def _wsl_location(label: str, key: str, wsl_path: str, refresh: bool) -> dict:
+    """Best-effort size probe of a WSL-side directory via ``wsl.exe du``."""
+    now = time.monotonic()
+    hit = _wsl_cache.get(key)
+    if hit and not refresh and now - hit[0] < _SIZE_TTL_SECONDS * 5:
+        return hit[1]
+
+    distro = _wsl_distro()
+    entry = {
+        "key": key,
+        "label": label,
+        "path": None,
+        "kind": "wsl",
+        "exists": False,
+        "bytes": None,
+        "files": None,
+    }
+    if distro:
+        try:
+            # The script goes in on stdin AS BYTES: wsl.exe re-joins argv after
+            # `--` without preserving quoting (which empties quoted variable
+            # assignments passed via `bash -lc '...'`), and text-mode stdin
+            # would CRLF-translate the newlines into bash syntax errors.
+            script = (
+                f'p="{wsl_path}"\n'
+                'if [ -d "$p" ]; then\n'
+                "  echo EXISTS\n"
+                '  du -sb "$p" 2>/dev/null | cut -f1\n'
+                '  readlink -f "$p"\n'
+                "fi\n"
+            )
+            result = subprocess.run(
+                ["wsl.exe", "-d", distro, "--", "bash", "-l"],
+                input=script.encode("utf-8"),
+                capture_output=True,
+                timeout=_WSL_TIMEOUT,
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+                env=child_env(),
+            )
+            stdout = result.stdout.decode("utf-8", errors="replace")
+            lines = [ln.strip() for ln in stdout.splitlines() if ln.strip()]
+            if lines and lines[0] == "EXISTS":
+                entry["exists"] = True
+                if len(lines) > 1 and lines[1].isdigit():
+                    entry["bytes"] = int(lines[1])
+                if len(lines) > 2:
+                    entry["path"] = (
+                        f"\\\\wsl.localhost\\{distro}{lines[2].replace('/', chr(92))}"
+                    )
+        except (OSError, subprocess.TimeoutExpired) as e:
+            log.debug("storage: WSL probe for %s failed: %s", key, e)
+    _wsl_cache[key] = (now, entry)
+    return entry
+
+
+def _windows_locations() -> list[tuple[str, str, Path]]:
+    """(key, label, path) for every Windows-side location worth surfacing."""
+    locations: list[tuple[str, str, Path]] = [
+        (
+            "hf-cache",
+            "Hugging Face cache (SA3 checkpoints, T5Gemma, more)",
+            _hf_cache_dir(),
+        ),
+    ]
+    seen: set[str] = set()
+    for i, d in enumerate(_local_search_dirs()):
+        norm = str(d).lower().rstrip("\\/")
+        if norm in seen:
+            continue
+        seen.add(norm)
+        locations.append((f"sa3-local-{i}", "Local model folder (SA3 search path)", d))
+    locations += [
+        (
+            "generations",
+            "Generated audio library",
+            paths.library_root(),
+        ),
+        ("rag-index", "Assistant RAG index", paths.rag_index_dir()),
+        (
+            "torch-cache",
+            "Torch hub cache (Demucs, MIDI models)",
+            Path(os.environ.get("TORCH_HOME", Path.home() / ".cache" / "torch")),
+        ),
+    ]
+    return locations
+
+
+_inventory_cache: dict[str, tuple[float, list[dict]]] = {}
+
+
+def _hf_cache_inventory() -> list[dict]:
+    try:
+        from huggingface_hub import scan_cache_dir
+
+        info = scan_cache_dir(_hf_cache_dir())
+        return sorted(
+            (
+                {
+                    "name": r.repo_id,
+                    "path": str(r.repo_path),
+                    "bytes": r.size_on_disk,
+                }
+                for r in info.repos
+            ),
+            key=lambda m: -(m["bytes"] or 0),
+        )
+    except Exception:
+        return []
+
+
+def _checkpoint_folder_inventory(path: Path) -> list[dict]:
+    """Every .safetensors under a local model folder (one level of subfolders),
+    with the recommended pick marked: medium over small, ARC over RF."""
+    found: list[dict] = []
+    try:
+        roots = [path] + [d for d in path.iterdir() if d.is_dir()]
+    except OSError:
+        return []
+    for root in roots[:64]:
+        try:
+            for f in root.glob("*.safetensors"):
+                try:
+                    found.append(
+                        {
+                            "name": f"{root.name}/{f.name}" if root != path else f.name,
+                            "path": str(f),
+                            "bytes": f.stat().st_size,
+                        }
+                    )
+                except OSError:
+                    continue
+        except OSError:
+            continue
+    found.sort(key=lambda m: -(m["bytes"] or 0))
+
+    def _rank(name: str) -> int:
+        n = name.lower()
+        score = 0
+        if "medium" in n:
+            score += 2
+        elif "small" in n:
+            score += 1
+        if "-arc" in n or "arc." in n:
+            score += 4  # ARC = post-trained 8-step, the right default
+        return score
+
+    if len(found) > 1:
+        best = max(found, key=lambda m: _rank(m["name"]))
+        if _rank(best["name"]) > 0:
+            best["recommended"] = True
+            best["note"] = (
+                "recommended: ARC checkpoints are the 8-step defaults; medium over small when the GPU allows"
+            )
+    elif len(found) == 1:
+        found[0]["recommended"] = True
+    return found
+
+
+def _torch_cache_inventory(path: Path) -> list[dict]:
+    out: list[dict] = []
+    for sub in ("hub/checkpoints", "checkpoints", "hub"):
+        d = path / sub
+        if not d.is_dir():
+            continue
+        try:
+            for f in d.iterdir():
+                if f.is_file() and f.suffix in {".th", ".pt", ".pth", ".ckpt", ".onnx"}:
+                    try:
+                        out.append(
+                            {"name": f.name, "path": str(f), "bytes": f.stat().st_size}
+                        )
+                    except OSError:
+                        continue
+        except OSError:
+            continue
+    out.sort(key=lambda m: -(m["bytes"] or 0))
+    return out
+
+
+def _location_inventory(key: str, path: Path, refresh: bool) -> list[dict]:
+    """Model-ish contents per location, cached alongside the size walk."""
+    now = time.monotonic()
+    hit = _inventory_cache.get(key)
+    if hit and not refresh and now - hit[0] < _SIZE_TTL_SECONDS:
+        return hit[1]
+    if key == "hf-cache":
+        models = _hf_cache_inventory()
+    elif key.startswith("sa3-local"):
+        models = _checkpoint_folder_inventory(path)
+    elif key == "torch-cache":
+        models = _torch_cache_inventory(path)
+    else:
+        models = []
+    _inventory_cache[key] = (now, models)
+    return models
+
+
+@router.get("/locations")
+def storage_locations(refresh: bool = False) -> dict:
+    items = []
+    for key, label, path in _windows_locations():
+        stats = _cached_dir_stats(path, refresh)
+        models = _location_inventory(key, path, refresh) if path.is_dir() else []
+        items.append(
+            {
+                "key": key,
+                "label": label,
+                "path": str(path),
+                "kind": "windows",
+                "exists": path.is_dir(),
+                "models": models,
+                **stats,
+            }
+        )
+    items.append(
+        _wsl_location(
+            "Magenta RT2 model assets (WSL)",
+            "magenta-assets",
+            "$HOME/Documents/Magenta/magenta-rt-v2",
+            refresh,
+        )
+    )
+    items.append(
+        _wsl_location(
+            "Magenta RT2 engine venv (WSL)", "magenta-venv", "$HOME/mrt2", refresh
+        )
+    )
+    return {"locations": items}
+
+
+@router.get("/resolution-log")
+def storage_resolution_log(since: int = 0) -> dict:
+    """Every recorded model/checkpoint resolution decision this session:
+    exactly which file came from which local folder, the HF cache, or a
+    download, including download-needed blocks in local-only mode."""
+    from stable_audio_3.model_configs import resolution_events
+
+    return {"events": resolution_events(since)}
+
+
+@router.get("/hf-cache")
+def storage_hf_cache() -> dict:
+    cache_dir = _hf_cache_dir()
+    if not cache_dir.is_dir():
+        return {"path": str(cache_dir), "repos": [], "total_bytes": 0}
+    try:
+        from huggingface_hub import scan_cache_dir
+
+        info = scan_cache_dir(cache_dir)
+    except Exception as e:
+        raise HTTPException(500, f"HF cache scan failed: {e}") from e
+    repos = sorted(
+        (
+            {
+                "repo_id": r.repo_id,
+                "repo_type": r.repo_type,
+                "bytes": r.size_on_disk,
+                "files": r.nb_files,
+                "path": str(r.repo_path),
+                "last_accessed": r.last_accessed,
+            }
+            for r in info.repos
+        ),
+        key=lambda r: -(r["bytes"] or 0),
+    )
+    return {"path": str(cache_dir), "repos": repos, "total_bytes": info.size_on_disk}
+
+
+def _catalog_availability() -> list[dict]:
+    """Built-in Stable Audio catalog, stamped with local/cache/download source."""
+    from huggingface_hub import try_to_load_from_cache
+
+    from stable_audio_3.model_configs import _model_mirrors
+
+    mirrors = _model_mirrors()
+
+    def _in_cache(repo_id: str) -> bool:
+        return isinstance(try_to_load_from_cache(repo_id, cfg.config_path), str) and (
+            isinstance(try_to_load_from_cache(repo_id, cfg.ckpt_path), str)
+        )
+
+    catalog = []
+    for name, cfg in {**arc_models, **rf_models}.items():
+        local = (
+            _local_override(cfg.repo_id, cfg.config_path) is not None
+            and _local_override(cfg.repo_id, cfg.ckpt_path) is not None
+        )
+        # The resolver reuses a mirror-populated cache (model_configs
+        # _resolve_one_file), so the catalog has to see it too. Checking only
+        # the official id kept showing a Download chip for a model that was
+        # already on disk via the mirror, and every click re-hit the gated
+        # repo's 403 (GH-133's "no access, many times").
+        mirror = mirrors.get(cfg.repo_id)
+        cached = local or _in_cache(cfg.repo_id) or bool(mirror and _in_cache(mirror))
+        catalog.append(
+            {
+                "name": name,
+                "repo_id": cfg.repo_id,
+                "source": "local" if local else "cached" if cached else "download",
+            }
+        )
+    return catalog
+
+
+@router.get("/checkpoints")
+def storage_checkpoints() -> dict:
+    registry = get_registry()
+    catalog = _catalog_availability()
+    return {
+        "registered": registry.list_checkpoints(),
+        "catalog": catalog,
+        "local_only": registry.local_only(),
+    }
+
+
+def _sa3_runtime_status() -> dict:
+    """Best-effort view of currently active/loaded SA3 models without loading any."""
+    server_module = sys.modules.get("backend.server")
+    pipelines = (
+        getattr(server_module, "_generation_pipelines", {}) if server_module else {}
+    )
+    loaded = sorted(pipelines) if isinstance(pipelines, dict) else []
+    return {
+        "active_model": getattr(server_module, "_active_model_name", None)
+        if server_module
+        else None,
+        "loaded_models": loaded,
+    }
+
+
+def _recommend_stable_model(models: list[dict]) -> str | None:
+    available = {
+        str(m["id"]): m
+        for m in models
+        if m.get("source") in {"local", "cached", "registered"}
+    }
+    for preferred in ("medium", "small"):
+        if preferred in available:
+            return preferred
+    for model_id, model in available.items():
+        if model.get("source") == "registered":
+            return model_id
+    return next(iter(available), None)
+
+
+def _stable_provider_status() -> dict:
+    registry = get_registry()
+    local_only = registry.local_only()
+    catalog = _catalog_availability()
+    registered = registry.list_checkpoints()
+    runtime = _sa3_runtime_status()
+    active_model = runtime.get("active_model")
+    loaded_models = set(runtime.get("loaded_models") or [])
+
+    models: list[dict] = []
+    for model in catalog:
+        model_id = str(model["name"])
+        source = str(model["source"])
+        models.append(
+            {
+                "id": model_id,
+                "label": model_id.title(),
+                "source": source,
+                "repo_id": model.get("repo_id"),
+                "active": model_id == active_model,
+                "loaded": model_id in loaded_models,
+                "reason": "download blocked by local-only"
+                if source == "download" and local_only
+                else None,
+            }
+        )
+    for checkpoint in registered:
+        resolves = bool(checkpoint.get("resolves"))
+        model_id = str(checkpoint.get("id"))
+        models.append(
+            {
+                "id": model_id,
+                "label": checkpoint.get("name") or model_id,
+                "source": "registered" if resolves else "missing",
+                "path": checkpoint.get("path"),
+                "active": model_id == active_model,
+                "loaded": model_id in loaded_models,
+                "reason": None
+                if resolves
+                else "missing config JSON or .safetensors file",
+            }
+        )
+
+    recommended = _recommend_stable_model(models)
+    for model in models:
+        if model["id"] == recommended:
+            model["recommended"] = True
+            model["reason"] = model.get("reason") or "best local/cached option"
+
+    usable = [m for m in models if m.get("source") in {"local", "cached", "registered"}]
+    active = bool(active_model and any(m["id"] == active_model for m in usable))
+    if active:
+        state = "active"
+        summary = f"{active_model} is loaded and ready."
+    elif usable:
+        state = "ready"
+        summary = f"{len(usable)} local/cached Stable Audio option(s) available."
+    elif local_only:
+        state = "download_blocked"
+        summary = (
+            "No local/cached Stable Audio model found; local-only blocks downloads."
+        )
+    else:
+        state = "needs_setup"
+        summary = "No local/cached Stable Audio model yet; first use may download one."
+
+    return {
+        "id": "stable",
+        "label": "Stable Audio 3",
+        "state": state,
+        "summary": summary,
+        "active": active,
+        "models": models,
+        **runtime,
+    }
+
+
+async def _magenta_provider_status() -> dict:
+    """Magenta card payload. ``engine_state`` is the sidecar's own state model
+    (running / starting / error / not_running / not_installed / probe_failed);
+    ``models`` is the real catalog — every checkpoint the vendored sidecar can
+    load, stamped installed / active / runnable on this GPU."""
+    try:
+        from backend.modules.magenta import router as magenta_router
+        from backend.modules.magenta import sidecar
+
+        health = await sidecar.health()
+        setup = await asyncio.to_thread(sidecar.setup_state)
+        engine_state = sidecar.engine_state(health, setup)
+        catalog = await asyncio.to_thread(sidecar.model_catalog, setup)
+        active_model = catalog["active"]
+        running_model = health.get("model") if health.get("reachable") else None
+        restart_required = bool(
+            engine_state == "running"
+            and running_model
+            and running_model != active_model
+        )
+        if engine_state == "running":
+            state = "active"
+            summary = f"Engine running ({running_model or active_model})."
+            layout = magenta_router.engine_layout_line(health)
+            if layout:
+                # "runs at 0.76x realtime, bf16 params on one card": under 1x
+                # means the model generates slower than it plays on this card.
+                summary += f" It {layout}."
+            if restart_required:
+                summary += f" Restart to switch to {active_model}."
+        elif engine_state == "starting":
+            state = "starting"
+            summary = f"Engine starting: {health.get('status') or 'loading'}…"
+        elif engine_state == "error":
+            state = "unavailable"
+            # The classified advice — "the engine had 8.21 GiB in use of the
+            # 8.25 GiB JAX could take … pick MRT2 Small" — where the raw JAX
+            # error used to be printed with "pick another model or restart".
+            fix = magenta_router.engine_error_fix(health)
+            summary = "Engine failed to load: " + (
+                fix
+                or f"{health.get('error') or health.get('status')}. Pick another model or restart."
+            )
+        elif engine_state == "not_running":
+            state = "ready"
+            summary = (
+                f"Installed ({active_model}). Starts on its own at the first "
+                "Magenta action (about 2-3 min), or start it here."
+            )
+        elif engine_state == "probe_failed":
+            state = "unavailable"
+            summary = f"Couldn't check the install: {setup.get('probe_error')}. Retry."
+        else:
+            state = "needs_setup"
+            # No script names here: Settings renders an Install button on this
+            # card that launches the installer via /api/magenta/engine/install.
+            summary = "Not installed yet. Install sets up the engine and checkpoints."
+
+        models = []
+        for m in catalog["models"]:
+            installed = bool(m["installed"])
+            models.append(
+                {
+                    "id": m["id"],
+                    "label": f"{m['label']} · {m['params']}",
+                    "source": "local" if installed else "download",
+                    "repo_id": m["repo_id"],
+                    "active": m["id"] == active_model,
+                    "loaded": m["id"] == running_model,
+                    "recommended": installed and m["id"] == active_model,
+                    "reason": m["reason"],
+                    "installed": installed,
+                    "runnable": m["runnable"],
+                    "checkpoint": m["checkpoint"],
+                    "download": m["download"],
+                }
+            )
+        return {
+            "id": "magenta",
+            "label": "Magenta RT2",
+            "state": state,
+            "summary": summary,
+            "active": engine_state == "running",
+            "location": health.get("url"),
+            "engine_state": engine_state,
+            "magenta": {
+                "active_model": active_model,
+                "running_model": running_model,
+                "restart_required": restart_required,
+                "installable": sidecar.installer_available(),
+                "gpu": catalog["gpu"],
+                "engine_status": health.get("status"),
+            },
+            "models": models,
+            "details": {"health": health, "setup": setup},
+        }
+    except Exception as e:
+        return _unavailable_provider("magenta", "Magenta RT2", str(e))
+
+
+def _suno_provider_status() -> dict:
+    try:
+        from backend.modules.suno.router import _read_api_key
+
+        key = _read_api_key()
+        configured = bool(key)
+        return {
+            "id": "suno",
+            "label": "Suno API",
+            "state": "ready" if configured else "needs_key",
+            "summary": "Cloud generation key is configured."
+            if configured
+            else "Paste a Suno API key to enable cloud generation.",
+            "active": configured,
+            "models": [
+                {
+                    "id": "suno-cloud",
+                    "label": "Suno cloud generation",
+                    "source": "api" if configured else "missing",
+                    "recommended": configured,
+                    "reason": (key[:12] + "...") if key else "API key required",
+                }
+            ],
+        }
+    except Exception as e:
+        return _unavailable_provider("suno", "Suno API", str(e))
+
+
+def _lyria_provider_status() -> dict:
+    """Lyria runs as an embedded sidecar with its own key handling, so
+    "configured" here means the checkout is present and startable, not that a
+    key exists: the app's own Settings modal accepts a key at runtime, and the
+    sidecar also hands the child the keys from the environment and the Lyria
+    card (plus the assistant's pool: its first Gemini key when nothing else has
+    one, all of it once the user shares it) -- one per provider for an older
+    checkout, an ordered list it fails over through for one with
+    server/keys.ts. Mock mode needs no key at all, which is the default.
+    """
+    try:
+        from backend.modules.lyria.sidecar import is_mock, probe
+
+        status = probe()
+        issues = status.get("issues") or []
+        missing = status.get("missing") or []
+        install = status.get("install") or {}
+        installing = install.get("status") in ("cloning", "installing")
+        # A confirmed-listening sidecar (probe()'s identity-checked
+        # "listening", INT-001) is demonstrably usable right now regardless
+        # of what the static prerequisite checks say -- e.g. a key removed
+        # from disk after the currently-running process already picked one
+        # up. Ignoring `listening` here (INT-004) made "ready" purely a
+        # function of stale-at-read-time prerequisites.
+        listening = bool(status.get("listening"))
+        # process_alive = theDAW itself holds a live handle to the listening
+        # process, i.e. WE spawned it (sidecar.owns_process()). A confirmed
+        # listener that isn't process_alive was launched outside theDAW
+        # (INT-001's "one the user launched manually"): its cost mode is
+        # whatever ITS OWN environment says, which theDAW never set and
+        # cannot see -- claiming "mock" or "live" for it would be a guess
+        # dressed up as a fact, so say so instead (item 5).
+        process_alive = bool(status.get("process_alive"))
+        external = listening and not process_alive
+        ok = listening or not issues
+        mock = is_mock()
+        if ok:
+            if external:
+                summary = (
+                    "Running, but not started by theDAW (an external process "
+                    "already holds the port): its cost mode is unknown. Press "
+                    "Restart with current keys in the Lyria tab to hand it "
+                    "theDAW's keys and cost mode."
+                )
+            else:
+                summary = (
+                    "Mock mode: generations are free and synthesized locally."
+                    if mock
+                    else "Live mode: each generation costs $0.08 (Pro) / $0.04 (Clip)."
+                )
+                # Either provider can generate on its own, and OpenRouter is
+                # the one that reliably can (Google's free tier grants zero
+                # Lyria requests per day), so both are reported and the
+                # warning only fires when BOTH are absent.
+                if status.get("gemini_key"):
+                    summary += f" Gemini keys: {status.get('gemini_keys') or 1}"
+                    summary += f" ({status.get('gemini_key_source')})."
+                if status.get("openrouter_key"):
+                    summary += f" OpenRouter keys: {status.get('openrouter_keys') or 1}"
+                    summary += f" ({status.get('openrouter_key_source')})."
+                if not status.get("gemini_key") and not status.get("openrouter_key"):
+                    if mock:
+                        summary += (
+                            " Add a Gemini or OpenRouter key before switching to "
+                            "live mode."
+                        )
+                    else:
+                        summary += (
+                            " GEMINI_API_KEY is not set: live mode cannot generate "
+                            "without a Gemini or OpenRouter key."
+                        )
+        elif installing:
+            summary = f"Installing: {install.get('message')}"
+        elif install.get("status") == "error":
+            summary = f"Install failed: {install.get('error')}"
+        else:
+            summary = " ".join(issues)
+        return {
+            "id": "lyria",
+            "label": "Lyria 3 Pro",
+            "state": "ready" if ok else "needs_setup",
+            "summary": summary,
+            "active": ok,
+            "location": status.get("project_path"),
+            "lyria": {
+                "missing": missing,
+                "installable": bool(status.get("installable")),
+                "installing": installing,
+                "install": install,
+                "gemini_key": bool(status.get("gemini_key")),
+                "gemini_key_source": status.get("gemini_key_source"),
+                "openrouter_key": bool(status.get("openrouter_key")),
+                "openrouter_key_source": status.get("openrouter_key_source"),
+                # Counts only -- the card shows how many keys the child gets
+                # and where the first one comes from, never a value.
+                "gemini_keys": int(status.get("gemini_keys") or 0),
+                "openrouter_keys": int(status.get("openrouter_keys") or 0),
+                "provider_preference": status.get("provider_preference"),
+                # theDAW's own LYRIA_MOCK preference only describes a process
+                # WE spawned -- an external process's cost mode is unknown
+                # (item 5 / item 7), so don't report it as mock/live either.
+                "mock": None if external else mock,
+                "external": external,
+                "project_path": status.get("project_path"),
+                "repo": status.get("repo"),
+                "repo_url": status.get("repo_url"),
+                "git": bool(status.get("git")),
+                "node": bool(status.get("node")),
+                "npm": bool(status.get("npm")),
+                "listening": bool(status.get("listening")),
+            },
+            "models": [
+                {
+                    "id": "lyria",
+                    "label": "Lyria 3 Pro (songs with vocals)",
+                    "source": "api" if ok else "missing",
+                    "recommended": ok,
+                    "reason": (
+                        (
+                            "external process (cost mode unknown)"
+                            if external
+                            else (
+                                "mock mode (free)"
+                                if mock
+                                else "live — $0.08 per generation"
+                            )
+                        )
+                        if ok
+                        else summary
+                    ),
+                }
+            ],
+        }
+    except Exception as e:
+        return _unavailable_provider("lyria", "Lyria 3 Pro", str(e))
+
+
+def _demucs_provider_status() -> dict:
+    try:
+        from backend.modules.stems.sidecar import probe
+
+        status = probe()
+        ok = bool(status.get("ok"))
+        running = bool(status.get("running"))
+        package_exists = bool(status.get("package_exists"))
+        if running:
+            state = "active"
+            summary = "Stem separation sidecar is running."
+        elif ok:
+            state = "ready"
+            summary = "Demucs sidecar dependencies are installed."
+        elif package_exists:
+            state = "needs_setup"
+            summary = "Integration package found, but Demucs dependencies need setup."
+        else:
+            state = "unavailable"
+            summary = "Demucs integration package was not found."
+        return {
+            "id": "demucs",
+            "label": "Demucs / Stems",
+            "state": state,
+            "summary": summary,
+            "active": running,
+            "location": status.get("package_path"),
+            "models": [
+                {
+                    "id": "demucs-sidecar",
+                    "label": "Demucs sidecar",
+                    "source": "local" if ok else "missing",
+                    "path": status.get("package_path"),
+                    "recommended": ok,
+                    "reason": status.get("demucs_version")
+                    or status.get("demucs_error"),
+                },
+                _larsnet_chip(status.get("larsnet") or {}),
+            ],
+            "details": status,
+        }
+    except Exception as e:
+        return _unavailable_provider("demucs", "Demucs / Stems", str(e))
+
+
+def _larsnet_chip(larsnet: dict) -> dict:
+    """The Stems card's chip for the LARSNET drum-split weights (the probe's
+    ``larsnet`` report): green when every kit part's checkpoint is on disk,
+    blue while they are still in their zip, red naming the missing parts."""
+    state = larsnet.get("state") or "missing"
+    missing = list(larsnet.get("missing") or [])
+    if state == "present":
+        source = "local"
+        reason = "Every kit part's weights are on disk; 12-stem runs split the drums."
+    elif state == "packed":
+        source = "cached"
+        reason = (
+            "The weights are in pretrained_larsnet_models.zip; the first 12-stem "
+            "run unpacks them."
+        )
+    else:
+        source = "missing"
+        reason = (
+            f"Missing weights: {', '.join(missing) or 'all'}. 12-stem runs keep "
+            "the undivided drums stem."
+        )
+    return {
+        "id": "larsnet-weights",
+        "label": "LARSNET drum weights",
+        "source": source,
+        "path": larsnet.get("models_dir"),
+        "recommended": False,
+        "reason": reason,
+    }
+
+
+def _midi_provider_status() -> dict:
+    try:
+        from backend.modules.midi.engine import (
+            engine_capabilities,
+            engine_unavailable_reasons,
+        )
+
+        caps = engine_capabilities()
+        reasons = engine_unavailable_reasons()
+        engines = [name for name, ok in caps.items() if ok]
+        # The drum engine needs nothing and is always there; the card is ready
+        # when a pitched engine is, the one a full track or a pitched stem
+        # converts with (the /api/midi capability report's ``ok``).
+        ready = bool(
+            caps.get("basic_pitch") or caps.get("piano_transcription_inference")
+        )
+        return {
+            "id": "midi",
+            "label": "MIDI Engines",
+            "state": "ready" if ready else "needs_setup",
+            # No package names: Settings renders an Install button on this card
+            # that calls /api/midi/install for the user.
+            "summary": ", ".join(engines)
+            if ready
+            else "No pitched MIDI engine installed yet; only drum stems convert. "
+            "Install one to convert audio to MIDI.",
+            "active": ready,
+            "models": [
+                {
+                    "id": name,
+                    "label": name.replace("_", " ").title(),
+                    "source": "local" if ok else "missing",
+                    "recommended": name == "basic_pitch" and ok,
+                    "reason": None if ok else reasons.get(name),
+                }
+                for name, ok in caps.items()
+            ],
+            "details": caps,
+        }
+    except Exception as e:
+        return _unavailable_provider("midi", "MIDI Engines", str(e))
+
+
+def _unavailable_provider(provider_id: str, label: str, error: str) -> dict:
+    return {
+        "id": provider_id,
+        "label": label,
+        "state": "unavailable",
+        "summary": error,
+        "active": False,
+        "models": [],
+    }
+
+
+# The demucs and midi probes spawn an interpreter and import torch, which costs
+# seconds. This endpoint is polled on the CREATE path, and being `async def` while
+# calling them inline blocked the whole event loop for as long as they ran: every
+# other request, including the UI's own polling, stalled behind one press.
+# CachedProbe runs them off the loop and coalesces concurrent callers onto a single
+# run. Install and start/stop paths should call .invalidate() so a fresh install
+# shows up immediately instead of waiting out the TTL.
+_DEMUCS_PROBE = CachedProbe(_demucs_provider_status, ttl=30.0)
+_MIDI_PROBE = CachedProbe(_midi_provider_status, ttl=30.0)
+
+
+@router.get("/model-status")
+async def storage_model_status() -> dict:
+    # gather keeps the declared order, so the list stays
+    # [stable, magenta, suno, lyria, demucs, midi] for the consumers below.
+    providers = list(
+        await asyncio.gather(
+            asyncio.to_thread(_stable_provider_status),
+            _magenta_provider_status(),
+            asyncio.to_thread(_suno_provider_status),
+            asyncio.to_thread(_lyria_provider_status),
+            _DEMUCS_PROBE.get(),
+            _MIDI_PROBE.get(),
+        )
+    )
+    usable_generation = any(
+        p["id"] in {"stable", "magenta", "suno", "lyria"}
+        and p["state"] in {"active", "ready"}
+        for p in providers
+    )
+    return {
+        "providers": providers,
+        "usable_generation": usable_generation,
+        "local_only": get_registry().local_only(),
+    }
+
+
+class AddCheckpointBody(BaseModel):
+    path: str
+    name: str | None = None
+
+
+@router.post("/checkpoints")
+def storage_add_checkpoint(body: AddCheckpointBody) -> dict:
+    try:
+        return get_registry().add_checkpoint(body.path, body.name)
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+
+
+def _recognize_catalog_ckpt(ckpt: Path) -> dict | None:
+    """Match a .safetensors filename against the built-in catalog so the config
+    JSON can be copied from a source of truth instead of guessed."""
+    from huggingface_hub import try_to_load_from_cache
+
+    name = ckpt.name.lower()
+    for model_name, cfg in {**arc_models, **rf_models}.items():
+        if name != Path(cfg.ckpt_path).name.lower():
+            continue
+        config_src = _local_override(cfg.repo_id, cfg.config_path)
+        if config_src is None:
+            cached = try_to_load_from_cache(cfg.repo_id, cfg.config_path)
+            config_src = cached if isinstance(cached, str) else None
+        return {
+            "model": model_name,
+            "repo_id": cfg.repo_id,
+            "config_name": cfg.config_path,
+            "config_src": config_src,
+            "config_available": config_src is not None,
+        }
+    return None
+
+
+def _inspect_path(path_str: str) -> dict:
+    """Everything the Add flow needs to know about a path BEFORE registering."""
+    p = Path(path_str).expanduser()
+    out: dict = {
+        "path": str(p),
+        "exists": p.exists(),
+        "kind": "file" if p.is_file() else "folder" if p.is_dir() else "missing",
+        "safetensors": [],
+        "configs": [],
+        "resolves": False,
+        "problem": None,
+        "recognized": None,
+    }
+    if not p.exists():
+        out["problem"] = "That path does not exist."
+        return out
+
+    folder = p.parent if p.is_file() else p
+    try:
+        for f in sorted(folder.glob("*.safetensors")):
+            out["safetensors"].append(
+                {"name": f.name, "path": str(f), "bytes": f.stat().st_size}
+            )
+        for f in sorted(folder.glob("*.json")):
+            out["configs"].append(
+                {
+                    "name": f.name,
+                    "path": str(f),
+                    "valid": _is_model_config_json(f),
+                }
+            )
+    except OSError as e:
+        out["problem"] = f"Could not read the folder: {e}"
+        return out
+
+    resolved = resolve_local_checkpoint(str(p), quiet=True)
+    if resolved:
+        out["resolves"] = True
+        out["config_path"], out["ckpt_path"] = resolved
+        out["recognized"] = _recognize_catalog_ckpt(Path(resolved[1]))
+        return out
+
+    sts = out["safetensors"]
+    valid_configs = [c for c in out["configs"] if c["valid"]]
+    if not sts:
+        out["problem"] = "No .safetensors checkpoint found in that folder."
+    elif p.is_dir() and len(sts) > 1 and not (folder / "model.safetensors").is_file():
+        out["problem"] = (
+            f"{len(sts)} checkpoints share that folder, so the pick is ambiguous. "
+            "Browse to the exact .safetensors file instead."
+        )
+    elif not valid_configs:
+        ckpt = Path(p if p.is_file() else sts[0]["path"])
+        out["recognized"] = _recognize_catalog_ckpt(ckpt)
+        if out["recognized"] and out["recognized"]["config_available"]:
+            out["problem"] = (
+                "No model config JSON sits next to the checkpoint, but this is a "
+                f"known {out['recognized']['model']} checkpoint — Generate config "
+                "copies the matching JSON in."
+            )
+        else:
+            out["problem"] = (
+                "No model config JSON found next to the checkpoint. Get it from "
+                "the Hugging Face repo the checkpoint came from, or from the "
+                "training/export run that produced it, and drop it in the same folder."
+            )
+    else:
+        out["problem"] = "The checkpoint and config could not be paired."
+    return out
+
+
+@router.post("/checkpoints/inspect")
+def storage_inspect_checkpoint(body: OpenBody) -> dict:
+    return _inspect_path(body.path.strip())
+
+
+@router.post("/checkpoints/generate-config")
+def storage_generate_config(body: OpenBody) -> dict:
+    """Copy the matching catalog config JSON next to a RECOGNIZED checkpoint.
+
+    Configs are never synthesized: this only works when the .safetensors
+    filename matches a built-in catalog checkpoint AND that catalog config is
+    already on disk or in the HF cache (no download)."""
+    import shutil
+
+    info = _inspect_path(body.path.strip())
+    if info["resolves"]:
+        return {"created": None, "already_resolves": True}
+    sts = info["safetensors"]
+    p = Path(info["path"])
+    if not sts:
+        raise HTTPException(400, info["problem"] or "No checkpoint found there.")
+    ckpt = p if p.is_file() else Path(sts[0]["path"])
+    recognized = _recognize_catalog_ckpt(ckpt)
+    if recognized is None:
+        raise HTTPException(
+            400,
+            "This checkpoint is not a recognized built-in variant, so a config "
+            "cannot be generated safely. Use the config JSON from wherever the "
+            "checkpoint came from.",
+        )
+    if not recognized["config_available"]:
+        raise HTTPException(
+            409,
+            f"Recognized as {recognized['model']}, but the matching config "
+            f"({recognized['config_name']}) is not on disk or in the HF cache, "
+            "and local-only rules forbid downloading it here.",
+        )
+    target = ckpt.with_suffix(".json")
+    if target.exists():
+        raise HTTPException(
+            409, f"{target.name} already exists next to the checkpoint."
+        )
+    try:
+        shutil.copyfile(recognized["config_src"], target)
+    except OSError as e:
+        raise HTTPException(500, f"Could not write {target}: {e}") from e
+    log.info("storage: generated config %s from %s", target, recognized["config_src"])
+    return {"created": str(target), "model": recognized["model"]}
+
+
+@router.delete("/checkpoints/{ck_id:path}")
+def storage_remove_checkpoint(ck_id: str) -> dict:
+    if not get_registry().remove_checkpoint(ck_id):
+        raise HTTPException(404, f"No registered checkpoint {ck_id!r}")
+    return {"removed": ck_id}
+
+
+class LocalOnlyBody(BaseModel):
+    enabled: bool
+
+
+@router.get("/local-only")
+def storage_local_only() -> dict:
+    return {"enabled": get_registry().local_only()}
+
+
+@router.put("/local-only")
+def storage_set_local_only(body: LocalOnlyBody) -> dict:
+    return {"enabled": get_registry().set_local_only(body.enabled)}
+
+
+class OpenBody(BaseModel):
+    path: str
+
+
+def _allowed_open_roots() -> list[str]:
+    roots = [str(p) for _, _, p in _windows_locations()]
+    roots += [e["path"] for e in get_registry().list_checkpoints()]
+    distro = _wsl_distro()
+    if distro:
+        roots.append(f"\\\\wsl.localhost\\{distro}")
+    return [os.path.normpath(r).lower().rstrip("\\/") for r in roots]
+
+
+@router.post("/open", dependencies=[Depends(refuse_cross_site)])
+def storage_open(body: OpenBody) -> dict:
+    """Open a location in Explorer. Only paths under a known location are allowed.
+
+    The check runs on the normalized path, so a ``..`` segment cannot step out
+    of a known location. Explorer is started with ``child_env``: it launches
+    whatever handles the path, and that program must not inherit the launch
+    token."""
+    target = body.path.strip()
+    location = os.path.normpath(target) if target else target
+    normalized = location.lower().rstrip("\\/")
+    if not any(
+        normalized == root
+        or normalized.startswith(root + "\\")
+        or normalized.startswith(root + "/")
+        for root in _allowed_open_roots()
+    ):
+        raise HTTPException(403, "That path is not one of theDAW's model locations.")
+    if sys.platform != "win32":
+        raise HTTPException(501, "Open-in-explorer is implemented for Windows only.")
+    # Explorer handed a missing path opens its default folder and reports
+    # nothing, so a missing location is answered here.
+    if not os.path.exists(location):
+        raise HTTPException(404, f"Could not open {target!r}: nothing is there.")
+    try:
+        subprocess.Popen(["explorer", location], env=child_env())
+    except OSError as e:
+        raise HTTPException(404, f"Could not open {target!r}: {e}") from e
+    return {"opened": target}
+
+
+# The native dialogs come from backend.core.folder_dialog: PowerShell WinForms
+# on Windows, owned by a TopMost form so they never open behind theDAW, and
+# tkinter elsewhere. The frontend cannot read absolute paths from a browser file
+# input, so theDAW, running as a trusted local app, asks the backend to show them.
+# ``refuse_cross_site`` keeps a page on another site from opening a dialog on
+# this machine, since CORS on this server is open. A machine with no dialog to
+# show (a headless Linux host) answers 501, so the frontend can fall back to a
+# browser download.
+
+
+def _require_picker() -> None:
+    if not folder_dialog.picker_available():
+        raise HTTPException(501, "This machine has no native file dialog.")
+
+
+def _picker_failed(error: folder_dialog.PickerError) -> HTTPException:
+    """The answer for a dialog that failed: ``error.status_code`` (504 for a
+    timeout, else 500) with folder_dialog's message."""
+    return HTTPException(error.status_code, str(error))
+
+
+def _checkpoint_start_dir() -> str | None:
+    """Where a checkpoint dialog opens when no folder was sent or remembered:
+    the first local model folder that exists, else the folder holding the
+    newest registered checkpoint whose folder still exists."""
+    try:
+        for folder in _local_search_dirs():
+            if os.path.isdir(folder):
+                return str(folder)
+        registered = get_registry().list_checkpoints()
+    except (OSError, ValueError) as e:
+        log.debug("storage: no checkpoint start folder: %s", e)
+        return None
+
+    def newest(item: tuple[int, dict]) -> tuple[float, int]:
+        at = item[1].get("added_at")
+        number = at if isinstance(at, (int, float)) and not isinstance(at, bool) else 0
+        return (float(number), item[0])
+
+    for _, entry in sorted(enumerate(registered), key=newest, reverse=True):
+        path = entry.get("path")
+        if not isinstance(path, str) or not path.strip():
+            continue
+        parent = os.path.dirname(os.path.abspath(path))
+        if os.path.isdir(parent):
+            return parent
+    return None
+
+
+# Kinds whose dialog, with no folder of their own yet, opens where the model
+# files are.
+_MODEL_FILE_KINDS = ("checkpoint", "lora")
+
+
+def _start_dir(initial_dir: str | None, kind: str | None) -> str | None:
+    """The folder a dialog opens in: ``initial_dir`` when it exists, else the
+    folder last used for ``kind`` (or that kind's default), else for a
+    checkpoint or LoRA the folder ``_checkpoint_start_dir`` finds, else
+    ``initial_dir`` as given.
+
+    An ``initial_dir`` on a share or device path is dropped before anything
+    checks it, because the request body names it, and Windows authenticates to
+    a share's host as soon as a path on it is checked."""
+    wanted = (initial_dir or "").strip()
+    if known_paths.is_remote_or_device_path(wanted):
+        wanted = ""
+    if wanted and os.path.isdir(wanted):
+        return wanted
+    if kind:
+        folder = known_paths.last_folder(kind)
+        if folder:
+            return folder
+        if kind in _MODEL_FILE_KINDS:
+            folder = _checkpoint_start_dir()
+            if folder:
+                return folder
+    return wanted or None
+
+
+def _remember_pick(path: str, kind: str | None) -> None:
+    """Record a picked path with source 'pick'.
+
+    A file whose extension names a different extension kind is listed under
+    its own kind, so a .als picked from the .tasmo field shows in DAW project
+    menus. The picker's kind still remembers the folder, so that field's next
+    dialog opens there. A kind no extension produces (``backup-zip``) is kept.
+
+    A checkpoint pick is listed without moving the last folder of the kind it
+    is listed under. The folder that holds the picked checkpoint becomes where
+    the next checkpoint dialog opens, among its sibling checkpoints."""
+    by_ext = known_paths.kind_for_path(path)
+    listed_as = kind or None
+    if (
+        kind
+        and kind != by_ext
+        and kind in known_paths.EXTENSION_KINDS
+        and by_ext in known_paths.EXTENSION_KINDS
+    ):
+        listed_as = by_ext
+    parent = os.path.dirname(os.path.abspath(path))
+    if kind == "checkpoint":
+        known_paths.record(path, listed_as, source="pick", update_folder=False)
+        known_paths.record_folder("checkpoint", parent)
+        return
+    # Without a kind the path is remembered under its extension kind, or as a
+    # 'folder'.
+    known_paths.record(path, listed_as, source="pick")
+    if kind and listed_as != kind:
+        known_paths.record_folder(kind, parent)
+
+
+class PickFolderRequest(BaseModel):
+    title: str | None = None
+    initial_dir: str | None = None
+    # known_paths kind: where the dialog opens, and what the choice is remembered as.
+    kind: str | None = None
+
+
+@router.post("/pick-folder", dependencies=[Depends(refuse_cross_site)])
+def storage_pick_folder(req: PickFolderRequest | None = None) -> dict:
+    _require_picker()
+    r = req or PickFolderRequest()
+    try:
+        path = folder_dialog.pick_folder(
+            title=r.title or "Select a folder for theDAW",
+            initial=_start_dir(r.initial_dir, r.kind),
+        )
+    except folder_dialog.PickerError as e:
+        raise _picker_failed(e) from e
+    if not path:
+        return {"path": None, "cancelled": True}
+    _remember_pick(path, r.kind)
+    return {"path": path, "cancelled": False}
+
+
+class PickFileRequest(BaseModel):
+    # Optional OpenFileDialog filter, e.g.
+    # "Audio (*.wav;*.flac)|*.wav;*.flac|All files (*.*)|*.*". Defaults to all
+    # files so the dialog never hides project/audio files behind a model filter.
+    filter: str | None = None
+    title: str | None = None
+    initial_dir: str | None = None
+    kind: str | None = None
+
+
+@router.post("/pick-file", dependencies=[Depends(refuse_cross_site)])
+def storage_pick_file(req: PickFileRequest | None = None) -> dict:
+    _require_picker()
+    r = req or PickFileRequest()
+    try:
+        path = folder_dialog.pick_open_file(
+            title=r.title or "Select a file for theDAW",
+            initial_dir=_start_dir(r.initial_dir, r.kind),
+            filter_spec=r.filter or "All files (*.*)|*.*",
+        )
+    except folder_dialog.PickerError as e:
+        raise _picker_failed(e) from e
+    if not path:
+        return {"path": None, "cancelled": True}
+    _remember_pick(path, r.kind)
+    return {"path": path, "cancelled": False}
+
+
+class PickSaveRequest(BaseModel):
+    filter: str | None = None
+    title: str | None = None
+    initial_dir: str | None = None
+    initial_name: str | None = None
+    default_ext: str | None = None
+    kind: str | None = None
+
+
+@router.post("/pick-save", dependencies=[Depends(refuse_cross_site)])
+def storage_pick_save(req: PickSaveRequest | None = None) -> dict:
+    """Open a native Save As dialog (for .tasmo project saves etc.). Returns
+    ``{cancelled, path, grant}``.
+
+    The chosen path gets a one-time grant for POST /api/places/save, and
+    ``grant`` is the nonce that write has to carry. A network share or device
+    path, and a file type theDAW never writes
+    (``known_paths.BLOCKED_SAVE_EXTS``), answer 400 and grant nothing. For a
+    refused file type the chosen folder still becomes where the next Save
+    dialog of this kind opens. The file does not exist yet, so only the folder
+    is remembered here; the save records the file once it is written."""
+    _require_picker()
+    r = req or PickSaveRequest()
+    try:
+        path = folder_dialog.pick_save_file(
+            title=r.title or "Save as",
+            initial_dir=_start_dir(r.initial_dir, r.kind),
+            initial_name=r.initial_name,
+            default_ext=r.default_ext,
+            filter_spec=r.filter,
+        )
+    except folder_dialog.PickerError as e:
+        raise _picker_failed(e) from e
+    if not path:
+        return {"cancelled": True, "path": None}
+    if known_paths.is_remote_or_device_path(path):
+        raise HTTPException(400, "theDAW saves only to folders on this computer.")
+    known_paths.record_folder(
+        r.kind or known_paths.kind_for_path(path),
+        os.path.dirname(os.path.abspath(path)),
+    )
+    grant = known_paths.grant_save(path)
+    if grant is None:
+        raise HTTPException(400, "That file type cannot be saved from theDAW.")
+    return {"cancelled": False, "path": path, "grant": grant}

@@ -1,0 +1,1092 @@
+"""Manage the stem-separation sidecar process and proxy requests to it.
+
+The integration-package ships its own FastAPI server with Demucs +
+LARSNET. Its code is vendored in this repo at integration-package/backend
+(the first search candidate below; a sibling checkout or the
+theDAW_STEMS_PACKAGE env var override both still win for dev layouts).
+It needs heavy deps (demucs, torchcrepe, torchcodec) that we
+deliberately keep OUT of the main app's environment.
+
+This module:
+
+  * Locates the package and the Python interpreter that can run it
+    (defaults to the main venv; overridable via theDAW_STEMS_PYTHON
+    so users can point at an isolated venv where the heavy deps live).
+  * ``probe()`` — non-spawning health check: does the package exist?
+    Does the configured Python import demucs? Are the LARSNET weights the
+    12-stem drum split loads on disk (``larsnet_weights()``)?
+  * ``ensure_running()`` — lazy spawn. Starts the sidecar as a
+    subprocess via ``run_backend.py``, watches for ``backend_port.txt``
+    to appear, polls ``/health`` until ready, then caches the port.
+  * ``stop()`` — terminates the sidecar gracefully.
+  * Async ``submit_separation()`` / ``poll_status()`` / ``fetch_stems_zip()``
+    wrappers around the sidecar's HTTP API.
+
+We never auto-start at app boot. The user opts in via Settings → enable
+the ``stems`` module + flip an auto-toggle, OR via an explicit
+``POST /api/stems/start`` call (manual mode).
+"""
+
+from __future__ import annotations
+
+import asyncio
+import json
+import logging
+import os
+import socket
+import subprocess
+import sys
+import threading
+import time
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Optional
+
+import httpx
+from backend.lib.launch_token import child_env
+
+from .manifest import LARSNET_PARTS, LARSNET_WEIGHTS_LICENSE
+
+log = logging.getLogger(__name__)
+
+
+# Packages the sidecar really needs to serve a separation. demucs imports but
+# is useless without torch/torchaudio; torchcrepe drives the crepe pitch path.
+# The historical probe only checked demucs, so a venv with demucs present but
+# torch/torchcrepe missing spawned anyway — then run_backend.py tried to self-
+# install them and blew the entire 300s readiness window. We now gate on ALL of
+# these being importable before spawning.
+#
+# fastapi/uvicorn belong here too. Without them the sidecar dies before it ever
+# binds a port, which is indistinguishable from a hang: probe() reported
+# ok=True for a venv that could never serve, and the only symptom the user got
+# was an opaque 300s port-file timeout.
+_CRITICAL_PACKAGES: tuple[str, ...] = (
+    "demucs",
+    "torch",
+    "torchaudio",
+    "torchcrepe",
+    "fastapi",
+    "uvicorn",
+)
+
+
+def _probe_packages(python_exe: Path) -> dict:
+    """Import every critical package in the sidecar Python in ONE subprocess.
+
+    Returns ``{pkg: {"ok": bool, "version": str|None, "error": str|None}}``,
+    or ``{"_error": ...}`` if the probe itself couldn't run. Cheap (a single
+    interpreter start) and never raises."""
+    script = (
+        "import json, importlib\n"
+        f"pkgs = {list(_CRITICAL_PACKAGES)!r}\n"
+        "out = {}\n"
+        "for p in pkgs:\n"
+        "    try:\n"
+        "        m = importlib.import_module(p)\n"
+        "        out[p] = {'ok': True, 'version': getattr(m, '__version__', None)}\n"
+        # The venv can hold a CPU-only torch while the app asks for CUDA. Report
+        # what the sidecar can actually DO, not just what is installed, so the
+        # caller can stop claiming a device it will never get.
+        "        if p == 'torch':\n"
+        "            try:\n"
+        "                out[p]['cuda_build'] = m.version.cuda\n"
+        "                out[p]['cuda_available'] = bool(m.cuda.is_available())\n"
+        "                out[p]['device_count'] = int(m.cuda.device_count())\n"
+        "            except Exception as e:\n"
+        "                out[p]['cuda_error'] = repr(e)[:200]\n"
+        "    except Exception as e:\n"
+        "        out[p] = {'ok': False, 'error': repr(e)[:300]}\n"
+        "print(json.dumps(out))\n"
+    )
+    try:
+        result = subprocess.run(
+            [str(python_exe), "-c", script],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=30,
+            env=child_env(),
+        )
+    except (subprocess.TimeoutExpired, OSError) as e:
+        return {"_error": repr(e)}
+    if result.returncode != 0:
+        return {"_error": result.stderr.strip()[:300] or "probe subprocess failed"}
+    try:
+        return json.loads(result.stdout.strip().splitlines()[-1])
+    except (ValueError, IndexError) as e:
+        return {"_error": f"probe parse failed: {e}"}
+
+
+# Repo root (…/stable-audio-3): backend/modules/stems/sidecar.py -> parents[3].
+_REPO_ROOT = Path(__file__).resolve().parents[3]
+
+
+def _stems_package_candidates() -> list[Path]:
+    """Portable search order for the integration-package backend when
+    theDAW_STEMS_PACKAGE is unset. Every entry is derived from this file's
+    location, so it resolves the same on any install with no machine-
+    specific paths baked in. The first candidate containing run_backend.py
+    wins; if none do, the first entry is used so diagnostics name a path
+    local to THIS install rather than one from the build machine."""
+    return [
+        _REPO_ROOT / "integration-package" / "backend",  # bundled inside the app
+        _REPO_ROOT.parent / "integration-package" / "backend",  # sibling of repo
+        _REPO_ROOT.parent.parent / "integration-package" / "backend",  # dev layout
+    ]
+
+
+def _default_package_path() -> Path:
+    candidates = _stems_package_candidates()
+    for c in candidates:
+        if (c / "run_backend.py").is_file():
+            return c
+    return candidates[0]
+
+
+DEFAULT_PACKAGE_PATH = _default_package_path()
+PORT_FILENAME = "backend_port.txt"
+# run_backend.py does a dependency check + possible pip install on first
+# spawn — that can take minutes. Give it five before we give up.
+HEALTH_TIMEOUT_SEC = 300.0
+HEALTH_POLL_INTERVAL_SEC = 1.0
+
+
+@dataclass
+class SidecarConfig:
+    package_path: Path
+    python_exe: Path
+    auto_port: bool = True
+    port: Optional[int] = None
+    extra_args: list[str] = field(default_factory=list)
+
+
+SIDECAR_VENV_DIRNAME = ".sidecar_venv"
+
+
+def _sidecar_venv_python(package_path: Path) -> Path:
+    venv_dir = package_path / SIDECAR_VENV_DIRNAME
+    if sys.platform == "win32":
+        return venv_dir / "Scripts" / "python.exe"
+    return venv_dir / "bin" / "python"
+
+
+def resolve_config() -> SidecarConfig:
+    pkg = os.getenv("theDAW_STEMS_PACKAGE")
+    package_path = Path(pkg).expanduser().resolve() if pkg else DEFAULT_PACKAGE_PATH
+    py = os.getenv("theDAW_STEMS_PYTHON")
+    if py:
+        python_exe = Path(py).expanduser().resolve()
+    else:
+        # Default to the package's dedicated, isolated venv. We create it
+        # on demand (see _bootstrap_sidecar_venv) so the sidecar's heavy
+        # ML deps never collide with the main app's environment. The
+        # integration-package's requirements.txt pins its own exact versions
+        # (demucs, torchcodec, LARSNET's stack), which must not be resolved
+        # together with the main venv's packages.
+        python_exe = _sidecar_venv_python(package_path)
+    port_env = os.getenv("theDAW_STEMS_PORT")
+    port = int(port_env) if (port_env and port_env.isdigit()) else None
+    return SidecarConfig(
+        package_path=package_path,
+        python_exe=python_exe,
+        auto_port=port is None,
+        port=port,
+    )
+
+
+def _bootstrap_sidecar_venv(cfg: SidecarConfig) -> dict:
+    """Create the integration-package's isolated venv if it doesn't
+    exist yet. Returns ``{ok, created, tool, stderr?}``.
+
+    Uses ``uv venv`` (fast, the host project already uses uv) and falls
+    back to stdlib ``python -m venv`` if uv isn't on PATH.
+    """
+    venv_dir = cfg.python_exe.parent.parent  # <pkg>/.sidecar_venv
+    if cfg.python_exe.is_file():
+        return {"ok": True, "created": False, "tool": "existing"}
+    venv_dir.parent.mkdir(parents=True, exist_ok=True)
+    # Prefer uv venv — fast + already on PATH for this repo.
+    try:
+        result = subprocess.run(
+            ["uv", "venv", str(venv_dir), "--python", sys.executable, "--seed"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=180,
+            env=child_env(),
+        )
+        if result.returncode == 0 and cfg.python_exe.is_file():
+            return {"ok": True, "created": True, "tool": "uv"}
+    except (OSError, subprocess.TimeoutExpired) as e:
+        log.info("stems.sidecar: uv venv unavailable (%s), falling back", e)
+    # Fall back to stdlib venv (slower; includes pip via --seed-equivalent).
+    try:
+        result = subprocess.run(
+            [sys.executable, "-m", "venv", str(venv_dir)],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=180,
+            env=child_env(),
+        )
+    except (OSError, subprocess.TimeoutExpired) as e:
+        return {"ok": False, "created": False, "tool": "venv", "error": repr(e)}
+    return {
+        "ok": result.returncode == 0 and cfg.python_exe.is_file(),
+        "created": True,
+        "tool": "venv",
+        "stderr": result.stderr[-2000:],
+    }
+
+
+def _port_file(cfg: SidecarConfig) -> Path:
+    return cfg.package_path / PORT_FILENAME
+
+
+def _is_port_in_use(host: str, port: int) -> bool:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.settimeout(0.5)
+        try:
+            s.connect((host, port))
+            return True
+        except OSError:
+            return False
+
+
+LARSNET_DIRNAME = "larsnet"
+LARSNET_MODELS_DIRNAME = "pretrained_larsnet_models"
+LARSNET_MODELS_ZIP = "pretrained_larsnet_models.zip"
+
+
+def _larsnet_model_paths(config_path: Path) -> dict[str, str]:
+    """The ``inference_models`` block of LARSNET's ``config.yaml``: kit part
+    -> checkpoint path relative to the config's folder, which is where
+    ``LarsNet`` resolves them. The block is flat ``part: 'path'`` lines, so it
+    is read line by line and the probe needs no YAML parser."""
+    out: dict[str, str] = {}
+    in_block = False
+    for raw in config_path.read_text(encoding="utf-8").splitlines():
+        line = raw.split("#", 1)[0].rstrip()
+        if not line.strip():
+            continue
+        if not line[0].isspace():
+            in_block = line.strip() == "inference_models:"
+            continue
+        if in_block:
+            key, sep, value = line.strip().partition(":")
+            if sep and value.strip():
+                out[key.strip()] = value.strip().strip("'\"")
+    return out
+
+
+def larsnet_weights(package_path: Path) -> dict:
+    """Whether the LARSNET checkpoints the 12-stem drum split loads are on
+    disk, one per kit part, at the paths its ``config.yaml`` names.
+
+    ``state`` is ``present`` (every part's weights are there), ``packed``
+    (none are, but ``pretrained_larsnet_models.zip`` is, which the sidecar
+    unpacks on the first 12-stem run) or ``missing``. Without every part's
+    weights a 12-stem run keeps the undivided ``drums`` stem.
+    """
+    base = package_path / LARSNET_DIRNAME
+    config = base / "config.yaml"
+    zip_path = base / LARSNET_MODELS_ZIP
+    report: dict = {
+        "ok": False,
+        "state": "missing",
+        "config_path": str(config),
+        "config_found": config.is_file(),
+        "models_dir": str(base / LARSNET_MODELS_DIRNAME),
+        "zip_path": str(zip_path),
+        "zip_present": zip_path.is_file(),
+        "license": LARSNET_WEIGHTS_LICENSE,
+        "weights": {},
+        "missing": [],
+    }
+    paths: dict[str, str] = {}
+    if report["config_found"]:
+        try:
+            paths = _larsnet_model_paths(config)
+        except (OSError, UnicodeDecodeError) as e:
+            report["error"] = f"config.yaml unreadable: {e}"
+    parts = list(paths) or list(LARSNET_PARTS)
+    for part in parts:
+        rel = paths.get(part)
+        path = base / rel if rel else None
+        present = bool(path and path.is_file() and path.stat().st_size > 0)
+        report["weights"][part] = {
+            "path": str(path) if path else None,
+            "present": present,
+        }
+        if not present:
+            report["missing"].append(part)
+    report["ok"] = bool(paths) and not report["missing"]
+    if report["ok"]:
+        report["state"] = "present"
+    elif report["zip_present"] and len(report["missing"]) == len(parts):
+        report["state"] = "packed"
+    return report
+
+
+def probe(cfg: Optional[SidecarConfig] = None) -> dict:
+    """Non-spawning health snapshot used by /api/stems/probe."""
+    cfg = cfg or resolve_config()
+    venv_dir = cfg.python_exe.parent.parent
+    out: dict = {
+        "ok": False,
+        "package_path": str(cfg.package_path),
+        "python_exe": str(cfg.python_exe),
+        "python_exe_exists": cfg.python_exe.is_file(),
+        "sidecar_venv": str(venv_dir),
+        "sidecar_venv_exists": venv_dir.exists(),
+        "package_exists": cfg.package_path.is_dir(),
+        "run_backend_exists": (cfg.package_path / "run_backend.py").is_file(),
+        "demucs_importable": False,
+        "demucs_error": None,
+        "port_hint": cfg.port,
+        "running": False,
+    }
+    out["larsnet"] = larsnet_weights(cfg.package_path)
+    out["larsnet_weights_ok"] = out["larsnet"]["ok"]
+    if not out["package_exists"]:
+        out["error"] = (
+            f"integration-package not found at {cfg.package_path}. "
+            f"Set theDAW_STEMS_PACKAGE to point at it, or clone it from "
+            f"its source repository."
+        )
+        return out
+
+    # Per-package import check (demucs + torch + torchaudio + torchcrepe), not
+    # demucs alone — a venv can import demucs while torch/torchcrepe are missing
+    # or broken, which is exactly what stalled the sidecar before.
+    out["packages"] = {}
+    out["missing_critical"] = []
+    out["critical_ok"] = False
+    if cfg.python_exe.is_file():
+        pkgs = _probe_packages(cfg.python_exe)
+        if "_error" in pkgs:
+            out["demucs_error"] = pkgs["_error"]
+            out["missing_critical"] = list(_CRITICAL_PACKAGES)
+        else:
+            out["packages"] = pkgs
+            out["missing_critical"] = [
+                p for p in _CRITICAL_PACKAGES if not pkgs.get(p, {}).get("ok")
+            ]
+            out["critical_ok"] = len(out["missing_critical"]) == 0
+            demucs_info = pkgs.get("demucs", {})
+            out["demucs_importable"] = bool(demucs_info.get("ok"))
+            if demucs_info.get("ok"):
+                out["demucs_version"] = demucs_info.get("version")
+            else:
+                out["demucs_error"] = demucs_info.get("error")
+            # Surface the first broken critical so logs/UI name a real cause.
+            if out["missing_critical"]:
+                first = out["missing_critical"][0]
+                first_err = pkgs.get(first, {}).get("error")
+                if first_err and not out.get("demucs_error"):
+                    out["demucs_error"] = f"{first}: {first_err}"
+    else:
+        # The user-facing reason must say what to do; the raw interpreter path
+        # is already in out["python_exe"] for diagnostics. A bare
+        # "python_exe not found: <path>" in the Settings tooltip left the first
+        # Pinokio user hunting for a folder that does not exist yet.
+        out["demucs_error"] = (
+            "Demucs is not set up yet. Click Install dependencies on the Stems "
+            "card (it builds the sidecar environment automatically), or run any "
+            "stem separation and the app sets it up on first use."
+        )
+        out["missing_critical"] = list(_CRITICAL_PACKAGES)
+
+    port_file = _port_file(cfg)
+    if port_file.is_file():
+        try:
+            port = int(port_file.read_text().strip())
+            out["last_port"] = port
+            out["running"] = _is_port_in_use("127.0.0.1", port)
+        except (ValueError, OSError):
+            pass
+
+    out["ok"] = (
+        out["package_exists"] and out["run_backend_exists"] and out["critical_ok"]
+    )
+    return out
+
+
+def _terminate_tree(proc: subprocess.Popen) -> None:
+    """Kill the launcher AND everything it spawned.
+
+    run_backend.py is only a launcher: it execs uvicorn as a *child*, so
+    terminating the Popen we hold leaves uvicorn running and still holding the
+    port. The next ensure_running() then finds that port occupied, connects to
+    the orphan, and serves stale code forever — a restart that silently does
+    nothing. Kill the tree instead.
+    """
+    if proc.poll() is not None:
+        return
+    if sys.platform == "win32":
+        # taskkill /T walks the child chain; Popen.terminate does not.
+        try:
+            subprocess.run(
+                ["taskkill", "/F", "/T", "/PID", str(proc.pid)],
+                capture_output=True,
+                timeout=30,
+                env=child_env(),
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            pass
+    else:
+        import signal
+
+        try:
+            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+        except (OSError, ProcessLookupError):
+            pass
+    try:
+        proc.wait(timeout=10.0)
+    except subprocess.TimeoutExpired:
+        try:
+            proc.kill()
+            proc.wait(timeout=5.0)
+        except OSError:
+            pass
+
+
+class StemsSidecar:
+    """Lifecycle wrapper around the integration-package's FastAPI server.
+
+    One instance per process. ``ensure_running()`` is idempotent — calling
+    it when the sidecar is already up just returns the cached port.
+    """
+
+    def __init__(self, cfg: Optional[SidecarConfig] = None) -> None:
+        self.cfg = cfg or resolve_config()
+        self._process: Optional[subprocess.Popen] = None
+        self._port: Optional[int] = None
+        self._client: Optional[httpx.AsyncClient] = None
+        self._client_port: Optional[int] = None
+        self._stdout_log: Optional[Path] = None
+        self._stderr_log: Optional[Path] = None
+        # Serializes spawn: without it a threadpool route and an event-loop
+        # task racing ensure_running() both pass the `running` check and
+        # double-spawn the sidecar (the loser's process leaks untracked).
+        self._spawn_lock = threading.Lock()
+
+    @property
+    def stdout_log(self) -> Optional[Path]:
+        return self._stdout_log
+
+    @property
+    def stderr_log(self) -> Optional[Path]:
+        return self._stderr_log
+
+    @property
+    def port(self) -> Optional[int]:
+        return self._port
+
+    @property
+    def running(self) -> bool:
+        if self._process is None:
+            return False
+        return self._process.poll() is None
+
+    def ensure_running(self) -> int:
+        """Spawn the sidecar if it isn't already running, return its port.
+
+        If demucs (or other heavy deps) aren't installed in the configured
+        Python, the integration-package's ``run_backend.py`` will pip-
+        install them as part of its boot sequence. That can take several
+        minutes on first run; HEALTH_TIMEOUT_SEC is sized to allow it.
+        Raises only if the install actually fails or never produces a
+        port file.
+        """
+        with self._spawn_lock:
+            return self._ensure_running_locked()
+
+    def _ensure_running_locked(self) -> int:
+        if self.running and self._port:
+            return self._port
+
+        if not self.cfg.package_path.is_dir():
+            raise RuntimeError(
+                f"stems integration-package not found at {self.cfg.package_path}. "
+                f"Set theDAW_STEMS_PACKAGE to point at the package's backend/ dir."
+            )
+        run_backend = self.cfg.package_path / "run_backend.py"
+        if not run_backend.is_file():
+            raise RuntimeError(f"stems sidecar launcher missing: {run_backend}")
+
+        # If ANY critical package (demucs/torch/torchaudio/torchcrepe) is
+        # missing or broken, install deps ourselves BEFORE spawning rather
+        # than letting run_backend.py try (it uses plain `python -m pip`,
+        # which fails in uv-managed venvs without pip AND can spend the whole
+        # readiness window resolving torch conflicts, the original 300s-stall
+        # bug). We use ensurepip / uv-pip fallback.
+        pr = probe(self.cfg)
+        if not pr.get("critical_ok"):
+            missing = pr.get("missing_critical") or ["demucs"]
+            log.info(
+                "stems.sidecar: critical deps not ready (%s) — installing first",
+                ", ".join(missing),
+            )
+            install_result = install_dependencies(self.cfg)
+            if not install_result.get("ok"):
+                err_blob = (
+                    install_result.get("stderr") or install_result.get("error") or ""
+                )
+                raise RuntimeError(
+                    "stems sidecar dep install failed "
+                    f"({install_result.get('install_mode', 'unknown')}); "
+                    f"missing before install: {', '.join(missing)}. "
+                    f"{err_blob[:600]}"
+                )
+            # Re-probe so a post-install gap surfaces here with a clear list
+            # instead of as an opaque 300s port-file timeout downstream.
+            pr2 = probe(self.cfg)
+            if not pr2.get("critical_ok"):
+                still = pr2.get("missing_critical") or []
+                raise RuntimeError(
+                    "stems sidecar deps still missing after install: "
+                    f"{', '.join(still)}. See install logs / sidecar venv "
+                    f"({self.cfg.python_exe})."
+                )
+
+        # Clear any stale port file.
+        port_file = _port_file(self.cfg)
+        if port_file.exists():
+            try:
+                port_file.unlink()
+            except OSError:
+                pass
+
+        cmd = [str(self.cfg.python_exe), str(run_backend), "--log-level", "warning"]
+        if self.cfg.port is not None:
+            cmd.extend(["--port", str(self.cfg.port)])
+        cmd.extend(self.cfg.extra_args)
+
+        log.info("stems.sidecar: spawning %s", " ".join(cmd))
+        # Capture stdout/stderr to log files in the package dir so the
+        # user can see what the launcher is doing (dependency install,
+        # model download, etc.).
+        log_dir = self.cfg.package_path / ".sidecar_logs"
+        log_dir.mkdir(parents=True, exist_ok=True)
+        self._stdout_log = log_dir / "stdout.log"
+        self._stderr_log = log_dir / "stderr.log"
+        try:
+            stdout_fp = open(self._stdout_log, "wb")
+            stderr_fp = open(self._stderr_log, "wb")
+            # Own process group/session: lets _terminate_tree reap the
+            # uvicorn child along with the launcher on both platforms.
+            group_kwargs = (
+                {"creationflags": getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)}
+                if sys.platform == "win32"
+                else {"start_new_session": True}
+            )
+            self._process = subprocess.Popen(
+                cmd,
+                cwd=str(self.cfg.package_path),
+                stdout=stdout_fp,
+                stderr=stderr_fp,
+                env=child_env(),
+                **group_kwargs,
+            )
+        except OSError as e:
+            raise RuntimeError(f"failed to spawn stems sidecar: {e}") from e
+
+        port = self._wait_for_port(port_file)
+        if port is None:
+            stdout_tail = _tail_log(self._stdout_log)
+            stderr_tail = _tail_log(self._stderr_log)
+            # Snapshot dep state so the failure names a concrete cause rather
+            # than just "timed out" (deps were already installed above, so a
+            # gap here points at a different boot problem).
+            post = probe(self.cfg)
+            missing = post.get("missing_critical") or []
+            self.stop()
+            dep_note = (
+                f" Critical deps still missing: {', '.join(missing)}."
+                if missing
+                else " All critical deps import OK — check the log tails for a boot error."
+            )
+            raise RuntimeError(
+                f"stems sidecar didn't write {PORT_FILENAME} within "
+                f"{HEALTH_TIMEOUT_SEC}s.{dep_note}\n"
+                f"stdout tail: {stdout_tail[:500]}\n"
+                f"stderr tail: {stderr_tail[:500]}"
+            )
+
+        if not self._wait_for_health(port):
+            stdout_tail = _tail_log(self._stdout_log)
+            stderr_tail = _tail_log(self._stderr_log)
+            self.stop()
+            raise RuntimeError(
+                f"stems sidecar on port {port} didn't return healthy.\n"
+                f"stdout tail: {stdout_tail[:500]}\n"
+                f"stderr tail: {stderr_tail[:500]}"
+            )
+
+        self._port = port
+        log.info("stems.sidecar: healthy on port %d", port)
+        return port
+
+    def _wait_for_port(self, port_file: Path) -> Optional[int]:
+        deadline = time.monotonic() + HEALTH_TIMEOUT_SEC
+        while time.monotonic() < deadline:
+            if self._process is None or self._process.poll() is not None:
+                return None
+            if port_file.is_file():
+                try:
+                    txt = port_file.read_text().strip()
+                    if txt:
+                        return int(txt)
+                except (ValueError, OSError):
+                    pass
+            time.sleep(HEALTH_POLL_INTERVAL_SEC)
+        return None
+
+    def _wait_for_health(self, port: int) -> bool:
+        deadline = time.monotonic() + HEALTH_TIMEOUT_SEC
+        url = f"http://127.0.0.1:{port}/health"
+        while time.monotonic() < deadline:
+            try:
+                with httpx.Client(timeout=2.0) as client:
+                    r = client.get(url)
+                if r.status_code == 200:
+                    return True
+            except (httpx.HTTPError, OSError):
+                pass
+            time.sleep(HEALTH_POLL_INTERVAL_SEC)
+        return False
+
+    def stop(self) -> None:
+        if self._process is not None:
+            try:
+                _terminate_tree(self._process)
+            except OSError:
+                pass
+            finally:
+                self._process = None
+                self._port = None
+        # Drop the cached client too: after a crash/stop the next spawn gets a
+        # new auto-assigned port, and a client pinned to the old base_url would
+        # fail with connection-refused forever.
+        self._client = None
+
+    # ---- Async proxy -------------------------------------------------------
+
+    async def _ensure_client(self) -> httpx.AsyncClient:
+        # ensure_running() blocks for MINUTES on a cold start (dep probe,
+        # optional venv install, health polls) — run it off the event loop so
+        # /api/health and every other request keep answering meanwhile.
+        port = await asyncio.to_thread(self.ensure_running)
+        if self._client is None or self._client_port != port:
+            self._client = httpx.AsyncClient(
+                base_url=f"http://127.0.0.1:{port}",
+                timeout=httpx.Timeout(30.0, read=300.0),
+            )
+            self._client_port = port
+        return self._client
+
+    async def submit_separation(
+        self,
+        audio_path: Path,
+        *,
+        stems: int = 4,
+        device: Optional[str] = None,
+        quality: Optional[str] = None,
+    ) -> dict:
+        client = await self._ensure_client()
+        with audio_path.open("rb") as f:
+            files = {"file": (audio_path.name, f, "audio/wav")}
+            params: dict = {"stems": stems}
+            if device:
+                params["device"] = device
+            if quality:
+                params["quality"] = quality
+            r = await client.post("/upload", files=files, params=params)
+        r.raise_for_status()
+        return r.json()
+
+    async def poll_status(self, task_id: str) -> dict:
+        """One status poll. A dropped connection (the sidecar's single worker
+        is busy inside Demucs, or the GPU is contended and it stalls) is
+        retried a few times before it is reported — one blip must not turn a
+        20-minute separation into a 500."""
+        last: Exception | None = None
+        for attempt in range(6):
+            try:
+                client = await self._ensure_client()
+                r = await client.get(f"/status/{task_id}")
+                r.raise_for_status()
+                return r.json()
+            except (httpx.TransportError, httpx.RemoteProtocolError) as e:
+                last = e
+                log.warning(
+                    "stems.sidecar: status poll %s failed (%s: %s), retry %d/5",
+                    task_id,
+                    type(e).__name__,
+                    e,
+                    attempt + 1,
+                )
+                # Drop the client so the next attempt reconnects cleanly.
+                if self._client is not None:
+                    try:
+                        await self._client.aclose()
+                    except Exception:  # noqa: BLE001
+                        pass
+                    self._client = None
+                await asyncio.sleep(1.5 * (attempt + 1))
+        raise RuntimeError(
+            "the stems sidecar stopped answering while separating "
+            f"({type(last).__name__ if last else 'unknown'}). It is usually "
+            "starved of GPU memory by another model (Magenta loading, whisper, "
+            "the resident SA3 model) — wait for that to finish, or stop it, and "
+            "run the separation again."
+        )
+
+    async def list_stems(self, task_id: str) -> dict:
+        client = await self._ensure_client()
+        r = await client.get(f"/stems/{task_id}")
+        r.raise_for_status()
+        return r.json()
+
+    async def fetch_stem_bytes(self, task_id: str, filename: str) -> bytes:
+        client = await self._ensure_client()
+        r = await client.get(f"/stems/{task_id}/{filename}")
+        r.raise_for_status()
+        return r.content
+
+
+_singleton: Optional[StemsSidecar] = None
+
+
+def get_sidecar() -> StemsSidecar:
+    global _singleton
+    if _singleton is None:
+        _singleton = StemsSidecar()
+    return _singleton
+
+
+def reset_sidecar() -> None:
+    """For tests only: drop the cached singleton (does not stop a running process)."""
+    global _singleton
+    _singleton = None
+
+
+def _tail_log(path: Optional[Path], n_bytes: int = 1024) -> str:
+    """Return the last ``n_bytes`` of a log file as a short string, for
+    error messages. Returns '' if the file is missing / unreadable."""
+    if path is None or not path.is_file():
+        return ""
+    try:
+        size = path.stat().st_size
+        with path.open("rb") as f:
+            if size > n_bytes:
+                f.seek(size - n_bytes)
+            return f.read().decode("utf-8", errors="replace").strip()
+    except OSError:
+        return ""
+
+
+def _stems_install_cmd(python_exe: Path, req: Path) -> tuple[list[str], str]:
+    """Pick the right pip-install invocation for ``python_exe``.
+
+    Prefer ``uv pip install --python <exe>`` because the host project
+    is uv-based and uv resolves conflicts that classic pip rejects with
+    ResolutionImpossible (integration-package's requirements.txt pins
+    exact versions and takes torch from the PyTorch CUDA index, which uv
+    resolves in one fresh pass when targeting a clean venv).
+    """
+    # Prefer uv when available — it's the host project's package manager
+    # and side-steps pip's classic resolver entirely.
+    try:
+        uv_check = subprocess.run(
+            ["uv", "--version"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=10,
+            env=child_env(),
+        )
+        if uv_check.returncode == 0:
+            return (
+                ["uv", "pip", "install", "--python", str(python_exe), "-r", str(req)],
+                "uv-pip",
+            )
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+
+    # Fall back to pip / ensurepip if uv isn't on PATH.
+    pip_check = subprocess.run(
+        [str(python_exe), "-c", "import pip"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=15,
+        env=child_env(),
+    )
+    if pip_check.returncode == 0:
+        return ([str(python_exe), "-m", "pip", "install", "-r", str(req)], "pip")
+    ensurepip = subprocess.run(
+        [str(python_exe), "-m", "ensurepip", "--upgrade", "--default-pip"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=120,
+        env=child_env(),
+    )
+    if ensurepip.returncode == 0:
+        return (
+            [str(python_exe), "-m", "pip", "install", "-r", str(req)],
+            "pip-after-ensurepip",
+        )
+    return (
+        [str(python_exe), "-m", "pip", "install", "-r", str(req)],
+        "pip-no-bootstrap",
+    )
+
+
+# Optional / problematic dependencies stripped from the
+# integration-package's requirements.txt before install. Each one has a
+# graceful fallback inside the package (audio-separator is documented
+# as optional, used only as a BS-RoFormer wrapper).
+_FILTERED_REQS = {
+    "audio-separator",
+}
+
+
+# FFmpeg shared builds for Windows decode support (BtbN publishes rolling
+# assets under the "latest" release tag; asset names verified 2026-07-04).
+# torchcodec loads avcodec/avformat/avutil/swresample/swscale shared DLLs at
+# import time; the version-pinned FFmpeg 8 build matches torchcodec's
+# supported range today, with the master build as a fallback if the pinned
+# asset is ever retired.
+_FFMPEG_ZIP_URLS = (
+    "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.1-latest-win64-lgpl-shared-8.1.zip",
+    "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-lgpl-shared.zip",
+)
+
+# Auto-loaded by every Python invocation in the sidecar venv. Python 3.8+ on
+# Windows no longer searches %PATH% for ctypes loads, so torchcodec's
+# libtorchcodec_core*.dll can only find the FFmpeg DLLs next to python.exe
+# through an explicit os.add_dll_directory call.
+_SITECUSTOMIZE_SRC = '''"""Auto-loaded by every Python invocation in this venv.
+
+Adds the venv's Scripts/ dir (where FFmpeg shared DLLs live alongside
+python.exe) to the DLL search path so torchcodec's libtorchcodec_core*.dll
+can find avcodec-*.dll / avformat-*.dll / avutil-*.dll / swresample-*.dll /
+swscale-*.dll. Python 3.8+ on Windows no longer searches %PATH% for ctypes
+loads, so this explicit call is required.
+"""
+
+import os
+import sys
+from pathlib import Path
+
+if sys.platform == "win32":
+    try:
+        scripts_dir = Path(sys.prefix) / "Scripts"
+        if scripts_dir.is_dir():
+            os.add_dll_directory(str(scripts_dir))
+    except Exception:
+        pass
+'''
+
+
+def _ensure_windows_decode_support(cfg: SidecarConfig) -> dict:
+    """Provision what torchaudio/torchcodec decode needs on Windows.
+
+    Two pieces, both idempotent:
+
+      1. ``sitecustomize.py`` in the venv's site-packages, adding Scripts/
+         to the DLL search path.
+      2. The FFmpeg shared DLLs themselves, extracted into Scripts/ from a
+         BtbN shared build (skipped when an avcodec DLL is already there).
+
+    Non-Windows platforms return ``{ok: True, skipped: True}`` (FFmpeg libs
+    come from the system there). Failures are reported, not raised — the
+    sidecar can still separate stems fed as WAV even when MP3/video decode
+    is unavailable.
+    """
+    if sys.platform != "win32":
+        return {"ok": True, "skipped": True}
+
+    out: dict = {"ok": False, "sitecustomize": False, "ffmpeg_dlls": False}
+    venv_dir = cfg.python_exe.parent.parent
+    scripts_dir = cfg.python_exe.parent
+    site_packages = venv_dir / "Lib" / "site-packages"
+
+    try:
+        if site_packages.is_dir():
+            sc = site_packages / "sitecustomize.py"
+            if not sc.is_file():
+                sc.write_text(_SITECUSTOMIZE_SRC, encoding="utf-8")
+            out["sitecustomize"] = True
+        else:
+            out["error"] = f"site-packages not found at {site_packages}"
+            return out
+    except OSError as e:
+        out["error"] = f"could not write sitecustomize.py: {e}"
+        return out
+
+    if list(scripts_dir.glob("avcodec-*.dll")):
+        out["ffmpeg_dlls"] = True
+        out["ok"] = True
+        return out
+
+    import tempfile
+    import zipfile
+
+    last_err: str | None = None
+    for url in _FFMPEG_ZIP_URLS:
+        tmp_path: Optional[Path] = None
+        try:
+            log.info("stems.sidecar: fetching FFmpeg shared DLLs from %s", url)
+            with tempfile.NamedTemporaryFile(suffix=".zip", delete=False) as tmp:
+                tmp_path = Path(tmp.name)
+                with httpx.stream(
+                    "GET", url, follow_redirects=True, timeout=600.0
+                ) as resp:
+                    resp.raise_for_status()
+                    for chunk in resp.iter_bytes(1024 * 1024):
+                        tmp.write(chunk)
+            extracted = 0
+            with zipfile.ZipFile(tmp_path) as zf:
+                for member in zf.namelist():
+                    name = member.rsplit("/", 1)[-1]
+                    if "/bin/" in member and name.lower().endswith(".dll"):
+                        with zf.open(member) as src_fp:
+                            (scripts_dir / name).write_bytes(src_fp.read())
+                        extracted += 1
+            if extracted == 0:
+                last_err = f"no DLLs found inside {url}"
+                continue
+            out["ffmpeg_dlls"] = True
+            out["dll_count"] = extracted
+            out["ok"] = True
+            log.info(
+                "stems.sidecar: placed %d FFmpeg DLLs in %s", extracted, scripts_dir
+            )
+            return out
+        except (httpx.HTTPError, OSError, zipfile.BadZipFile) as e:
+            last_err = f"{url}: {e!r}"
+            log.warning("stems.sidecar: FFmpeg fetch failed: %s", last_err)
+        finally:
+            if tmp_path is not None:
+                try:
+                    tmp_path.unlink()
+                except OSError:
+                    pass
+    out["error"] = last_err or "all FFmpeg sources failed"
+    return out
+
+
+def _materialize_filtered_requirements(cfg: SidecarConfig) -> Path:
+    """Read requirements.txt, drop entries in _FILTERED_REQS, write the
+    cleaned list to ``<pkg>/.sidecar_venv_requirements.txt`` and return
+    that path. audio-separator was filtered because it needed
+    scipy>=1.13.0 while the integration-package pinned scipy==1.11.4
+    (ResolutionImpossible). The requirements now pin scipy 1.18.1, with
+    which audio-separator 0.47.0 resolves, but it stays filtered until a
+    sidecar install with it is tested. The package gracefully degrades
+    without it."""
+    src = cfg.package_path / "requirements.txt"
+    dst = cfg.package_path / ".sidecar_venv_requirements.txt"
+    cleaned_lines: list[str] = []
+    for raw in src.read_text(encoding="utf-8").splitlines():
+        stripped = raw.split("#", 1)[0].strip()
+        # Match the canonical package name in the line.
+        first_token = stripped.split("==", 1)[0].split(">=", 1)[0].split("<", 1)[0]
+        first_token = first_token.split("[", 1)[0].strip().lower()
+        if first_token in _FILTERED_REQS:
+            cleaned_lines.append(f"# filtered out by stems sidecar: {raw}")
+            continue
+        cleaned_lines.append(raw)
+    dst.write_text("\n".join(cleaned_lines) + "\n", encoding="utf-8")
+    return dst
+
+
+def install_dependencies(cfg: Optional[SidecarConfig] = None) -> dict:
+    """Bootstrap the dedicated sidecar venv if needed, then install
+    the (filtered) integration-package requirements.txt into it.
+
+    Returns a dict with ``ok, install_mode, stdout, stderr, returncode``
+    plus a ``venv_bootstrap`` block and the path of the filtered reqs.
+    """
+    cfg = cfg or resolve_config()
+    req_src = cfg.package_path / "requirements.txt"
+    out: dict = {"ok": False, "python_exe": str(cfg.python_exe)}
+    if not req_src.is_file():
+        out["error"] = f"requirements.txt not found at {req_src}"
+        return out
+
+    # Bootstrap the venv first so install lands in an isolated environment.
+    bootstrap = _bootstrap_sidecar_venv(cfg)
+    out["venv_bootstrap"] = bootstrap
+    if not bootstrap.get("ok"):
+        out["error"] = (
+            "could not create sidecar venv at "
+            f"{cfg.python_exe.parent.parent}: {bootstrap.get('stderr', bootstrap.get('error', '?'))}"
+        )
+        return out
+
+    # Materialize the filtered requirements (drops audio-separator).
+    try:
+        req = _materialize_filtered_requirements(cfg)
+        out["requirements_used"] = str(req)
+        out["filtered_packages"] = sorted(_FILTERED_REQS)
+    except OSError as e:
+        out["error"] = f"failed to write filtered requirements: {e}"
+        return out
+
+    try:
+        argv, install_mode = _stems_install_cmd(cfg.python_exe, req)
+        out["install_mode"] = install_mode
+        result = subprocess.run(
+            argv,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=15 * 60,
+            env=child_env(),
+        )
+    except (subprocess.TimeoutExpired, OSError) as e:
+        out["error"] = repr(e)
+        return out
+    out["returncode"] = result.returncode
+    out["stdout"] = result.stdout[-4000:]
+    out["stderr"] = result.stderr[-4000:]
+    out["ok"] = result.returncode == 0
+
+    # On Windows, torchaudio decodes through torchcodec, which needs FFmpeg
+    # shared DLLs on the venv's DLL search path. Provision them (plus the
+    # sitecustomize hook) right after a successful dep install. A failure
+    # here is surfaced but doesn't fail the install — WAV-only separation
+    # still works without the decoder DLLs.
+    if out["ok"]:
+        out["windows_decode"] = _ensure_windows_decode_support(cfg)
+        if not out["windows_decode"].get("ok"):
+            log.warning(
+                "stems.sidecar: Windows decode support incomplete: %s",
+                out["windows_decode"].get("error"),
+            )
+    return out
+
+
+__all__ = [
+    "DEFAULT_PACKAGE_PATH",
+    "SidecarConfig",
+    "StemsSidecar",
+    "get_sidecar",
+    "install_dependencies",
+    "probe",
+    "reset_sidecar",
+    "resolve_config",
+]

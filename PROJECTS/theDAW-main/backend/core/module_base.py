@@ -1,0 +1,186 @@
+"""ToolModule — the reusable backbone for every tool family.
+
+A family (mastering, restoration, …) declares a list of ``ToolSpec``s and calls
+``build_router(family, tools)``. That returns a FastAPI ``APIRouter`` exposing:
+
+    GET  /tools            → manifest of this family's tools (drives the UI)
+    POST /process          → run one tool on an uploaded file, return audio
+
+Dispatch is by ``ToolSpec.mode``:
+    filter   → handler(params) -> list[str] ffmpeg filter args (or FilterGraph)
+    process  → async handler(input_path, output_path, params) -> None
+    macro    → async handler(input_path, output_path, params) -> None  (uses macro_runner)
+    sidecar  → async handler(input_path, output_path, params, job) -> None (GPU model)
+
+A filter-mode render comes out at the SOURCE's bit depth, because ffmpeg's WAV
+default is pcm_s16le and an EQ move should not also be a bit-depth reduction.
+For a compressed upload there is nothing to preserve — ffprobe reports no word
+length for MP3 or Opus — so those stay on ffmpeg's own default, unchanged.
+
+Tools whose ``handler is None`` answer 501 with a clear, honest message — never
+fake output.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import inspect
+import json
+import tempfile
+from pathlib import Path
+
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi.responses import JSONResponse, Response
+
+from ..lib import ffmpeg, ffmpeg_tools, resampler
+from ..lib.audio_depth import ffmpeg_pcm_args, probe_depth
+from ..lib.filtergraph import FilterGraph
+from ..lib.params import ToolSpec
+
+MIME = {
+    "wav": "audio/wav",
+    "flac": "audio/flac",
+    "ogg": "audio/ogg",
+    "mp3": "audio/mpeg",
+    "aac": "audio/aac",
+    "opus": "audio/opus",
+    "m4a": "audio/mp4",
+}
+
+
+def tool_manifest(tool: ToolSpec) -> dict:
+    """``tool.to_dict()`` plus whether it can run on this machine.
+
+    ``notice`` carries the swr fallback message for a tool that prefers
+    libsoxr on an FFmpeg without it; the tool stays available.
+
+    ``available`` is False, with ``unavailable_reason`` naming the missing
+    library, the fix and the FFmpeg in use, when the tool requires libsoxr and
+    the resolved FFmpeg has none. It reads the resolution the startup probe
+    cached (the same one ``GET /api/health`` reports) and never probes; before
+    that probe finishes a tool reads as available."""
+    d = tool.to_dict()
+    reason = ffmpeg_tools.soxr_unavailable_reason() if "soxr" in tool.requires else None
+    d["available"] = reason is None
+    d["unavailable_reason"] = reason
+    # A tool that prefers libsoxr still runs without it (swr at matching
+    # quality); ``notice`` says so, with the fix, and is None otherwise.
+    d["notice"] = resampler.swr_notice() if "soxr" in tool.prefers else None
+    return d
+
+
+def build_router(family: str, tools: list[ToolSpec]) -> APIRouter:
+    router = APIRouter()
+    by_id = {t.id: t for t in tools}
+
+    @router.get("/tools")
+    async def list_tools():
+        return {
+            "family": family,
+            "count": len(tools),
+            "tools": [tool_manifest(t) for t in tools],
+        }
+
+    @router.get("/tools/{tool_id}")
+    async def get_tool(tool_id: str):
+        tool = by_id.get(tool_id)
+        if not tool:
+            raise HTTPException(404, f"Unknown tool: {tool_id}")
+        return tool_manifest(tool)
+
+    @router.post("/process")
+    async def process(
+        effect: str = Form(...),
+        params: str = Form("{}"),
+        output_format: str = Form("wav"),
+        audio: UploadFile = File(...),
+    ):
+        tool = by_id.get(effect)
+        if not tool:
+            raise HTTPException(404, f"Unknown tool: {effect}")
+        if output_format not in MIME:
+            raise HTTPException(400, f"Unsupported format: {output_format}")
+
+        try:
+            raw = json.loads(params or "{}")
+        except json.JSONDecodeError:
+            raise HTTPException(400, "Invalid params JSON")
+        try:
+            validated = tool.validate_params(raw)
+        except ValueError as e:
+            raise HTTPException(400, str(e))
+
+        if tool.handler is None:
+            return JSONResponse(
+                status_code=501,
+                content={
+                    "error": "not_implemented",
+                    "tool": tool.id,
+                    "mode": tool.mode,
+                    "engine": tool.engine,
+                    "message": (
+                        f"'{tool.name}' is scaffolded but its {tool.mode} handler "
+                        f"is not wired yet. See docs/edit-tool-stack for the spec."
+                    ),
+                    "params": validated,
+                },
+            )
+
+        tmp = Path(tempfile.mkdtemp(prefix=f"edit_{family}_"))
+        try:
+            in_path = tmp / "input.wav"
+            out_path = tmp / f"output.{output_format}"
+            await ffmpeg.stream_upload_to(in_path, audio)
+            # A handler that picks its resampler (backend.lib.resampler) asks
+            # the resolved FFmpeg; before the startup probe has finished that
+            # would probe on the event loop, so resolve here, off the loop.
+            await ffmpeg_tools.aresolve()
+
+            if tool.mode == "filter":
+                built = tool.handler(validated)
+                filter_args = (
+                    built.args() if isinstance(built, FilterGraph) else list(built)
+                )
+                await ffmpeg.render(
+                    in_path,
+                    out_path,
+                    filter_args,
+                    extra_out_args=ffmpeg_pcm_args(probe_depth(in_path), output_format),
+                )
+            else:
+                # process / macro / sidecar — handler owns the full render.
+                # Async handlers await ffmpeg subprocesses and never block;
+                # pure-sync handlers are CPU-bound numpy/scipy DSP that would
+                # stall the whole event loop for the render, so they run on a
+                # worker thread instead.
+                if inspect.iscoroutinefunction(tool.handler):
+                    await tool.handler(in_path, out_path, validated)
+                else:
+                    await asyncio.to_thread(tool.handler, in_path, out_path, validated)
+
+            if not out_path.exists():
+                raise HTTPException(500, "Tool produced no output")
+            data = await asyncio.to_thread(out_path.read_bytes)
+            return Response(
+                content=data,
+                media_type=MIME.get(output_format, "audio/wav"),
+                headers={
+                    "Content-Disposition": f'attachment; filename="processed.{output_format}"'
+                },
+            )
+        except ffmpeg.FFmpegCapabilityError as e:
+            # The whole message: it names the missing library and the FFmpeg
+            # in use, and the path can run past the 400-char stderr tail.
+            raise HTTPException(500, f"{tool.name}: {e}")
+        except ffmpeg.FFmpegError as e:
+            raise HTTPException(500, f"ffmpeg error: {e.stderr[-400:]}")
+        except HTTPException:
+            raise
+        except NotImplementedError as e:
+            raise HTTPException(501, str(e) or f"{tool.name} not implemented")
+        except Exception as e:  # noqa: BLE001 — surface the real error, never swallow
+            raise HTTPException(500, f"{tool.name} failed: {e}")
+        finally:
+            ffmpeg.cleanup(tmp)
+
+    return router

@@ -1,0 +1,231 @@
+"""FastAPI router for the stems module.
+
+Endpoints (prefix from module.json → ``/api/stems``):
+
+    GET  /probe              non-spawning health snapshot
+    GET  /status             current sidecar state (port, running)
+    POST /start              manually spawn the sidecar
+    POST /stop               manually stop the sidecar
+    POST /{entry_id}/run     separate a library entry's audio into stems
+                             (foreground; holds the idle gate)
+    GET  /{entry_id}         list persisted stems for an entry
+"""
+
+from __future__ import annotations
+
+import asyncio
+import json
+import logging
+from pathlib import Path
+from typing import Any, Optional
+
+from fastapi import APIRouter, HTTPException
+
+from backend.modules.library.router import get_store as get_library_store
+
+from .engine import get_progress, request_abort
+from .manifest import MANIFEST_FILENAME, classify
+from .sidecar import get_sidecar, install_dependencies, probe, reset_sidecar
+
+log = logging.getLogger(__name__)
+
+
+router = APIRouter()
+
+
+@router.get("/probe")
+def stems_probe() -> dict:
+    return probe()
+
+
+@router.get("/status")
+def stems_status() -> dict:
+    sc = get_sidecar()
+    return {
+        "running": sc.running,
+        "port": sc.port,
+        "package_path": str(sc.cfg.package_path),
+        "python_exe": str(sc.cfg.python_exe),
+    }
+
+
+@router.post("/start")
+def stems_start() -> dict:
+    sc = get_sidecar()
+    try:
+        port = sc.ensure_running()
+        return {"ok": True, "port": port}
+    except RuntimeError as e:
+        raise HTTPException(503, str(e))
+
+
+@router.post("/install")
+def stems_install() -> dict:
+    """Pip-install the integration-package's requirements (demucs,
+    torchcrepe, audio-separator, …) into the configured Python.
+    Blocking; can take several minutes the first time."""
+    try:
+        from backend.core.idle import get_idle_manager
+
+        get_idle_manager().bump_activity(tag="stems-install")
+    except Exception:
+        pass
+    try:
+        result = install_dependencies()
+        if not result.get("ok"):
+            raise HTTPException(500, result)
+        return result
+    finally:
+        try:
+            from backend.core.idle import get_idle_manager
+
+            get_idle_manager().release("stems-install")
+        except Exception:
+            pass
+
+
+@router.post("/stop")
+def stems_stop() -> dict:
+    sc = get_sidecar()
+    sc.stop()
+    reset_sidecar()
+    return {"ok": True, "running": False}
+
+
+@router.post("/{entry_id}/abort")
+def abort_run(entry_id: str) -> dict:
+    """Signal an in-flight separation to bail out. The actual cancel
+    happens at the next poll tick (≤2s)."""
+    ok = request_abort(entry_id)
+    return {"ok": ok, "entry_id": entry_id}
+
+
+@router.get("/{entry_id}/progress")
+def get_entry_progress(entry_id: str) -> dict:
+    """Current progress snapshot for an in-flight separation. Returns
+    ``{phase, message, progress, task_id, updated_at}`` or
+    ``{phase: 'idle'}`` if there's no run in progress for that entry."""
+    snap = get_progress(entry_id)
+    if snap is None:
+        return {"phase": "idle"}
+    return snap
+
+
+def _read_manifest(entry_dir: Optional[Path]) -> Optional[dict[str, Any]]:
+    """The run manifest for an entry, or None when there isn't a usable one.
+
+    Runs separated before manifests existed have no file; a truncated or
+    hand-edited one is treated the same way, because a caller that can tell
+    "no manifest" from "a manifest" must never be handed a third case.
+    """
+    if entry_dir is None:
+        return None
+    path = entry_dir / "stems" / MANIFEST_FILENAME
+    try:
+        if not path.is_file():
+            return None
+        loaded = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        log.warning("stems: ignoring unreadable manifest %s (%s)", path, e)
+        return None
+    return loaded if isinstance(loaded, dict) else None
+
+
+@router.get("/{entry_id}")
+def list_entry_stems(entry_id: str) -> dict:
+    store = get_library_store()
+    if store.db is None:
+        raise HTTPException(503, "library DB not available")
+    record = store.get_entry(entry_id)
+    if record is None:
+        raise HTTPException(404, f"entry {entry_id!r} not found")
+
+    rows = store.db.list_stems(entry_id)
+    # Roles for every row, manifest or not: an old run has no manifest.json,
+    # and a caller mixing its stems still has to know that ``no_vocals`` is a
+    # sum of the others and that the LARSNET parts were re-gained. They are
+    # derived from the rows that exist now rather than copied out of the
+    # manifest, so a stem deleted since the run does not leave a stale role.
+    described = {e["name"]: e for e in classify(str(r["stem_name"]) for r in rows)}
+    for row in rows:
+        entry = described.get(str(row["stem_name"]))
+        if entry is None:
+            continue
+        row["role"] = entry["role"]
+        row["gain_normalized"] = entry["gain_normalized"]
+        if "aggregate_of" in entry:
+            row["aggregate_of"] = entry["aggregate_of"]
+
+    return {
+        "entry_id": entry_id,
+        "stems": rows,
+        "manifest": _read_manifest(store._dir_for(entry_id)),  # noqa: SLF001
+    }
+
+
+@router.post("/{entry_id}/run")
+async def run_separation(
+    entry_id: str,
+    stems: int = 4,
+    device: Optional[str] = None,
+    quality: Optional[str] = None,
+) -> dict:
+    if stems not in (2, 4, 6, 12):
+        raise HTTPException(400, "stems must be 2, 4, 6, or 12")
+    store = await asyncio.to_thread(get_library_store)
+    if store.db is None:
+        raise HTTPException(503, "library DB not available")
+    record = store.get_entry(entry_id)
+    if record is None:
+        raise HTTPException(404, f"entry {entry_id!r} not found")
+    audio_path = store.get_audio_path(entry_id)
+    if audio_path is None or not Path(audio_path).is_file():
+        raise HTTPException(404, f"audio for entry {entry_id!r} not on disk")
+    entry_dir = store._dir_for(entry_id)  # noqa: SLF001
+    if entry_dir is None:
+        raise HTTPException(500, f"entry directory missing for {entry_id!r}")
+
+    try:
+        from backend.core.idle import get_idle_manager
+
+        get_idle_manager().bump_activity(tag="stems-manual")
+    except Exception:
+        pass
+
+    try:
+        from backend.core import pipeline
+
+        # A manual run re-separates on purpose (a different stem count), but
+        # never alongside a separation already in flight for the entry: that
+        # one is joined instead, and the GPU lane serialises it with whisper
+        # and MIDI conversion.
+        if pipeline.in_flight(f"stems:{entry_id}"):
+            await pipeline.ensure_stems(entry_id)
+            return {
+                "entry_id": entry_id,
+                "joined": True,
+                "stems": store.db.list_stems(entry_id),
+            }
+        await pipeline.ensure_stems(
+            entry_id, force=True, stems=stems, device=device, quality=quality
+        )
+        return {"entry_id": entry_id, "stems": store.db.list_stems(entry_id)}
+    except RuntimeError as e:
+        raise HTTPException(503, str(e))
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 - never let a sidecar hiccup become an ASGI traceback
+        log.exception("stems: separation failed for %s", entry_id)
+        raise HTTPException(
+            503,
+            f"stem separation failed ({type(e).__name__}: {e}). The sidecar "
+            "log has the details; if Magenta or whisper was loading at the same "
+            "time, the GPU ran out — let it finish and run again.",
+        )
+    finally:
+        try:
+            from backend.core.idle import get_idle_manager
+
+            get_idle_manager().release("stems-manual")
+        except Exception:
+            pass

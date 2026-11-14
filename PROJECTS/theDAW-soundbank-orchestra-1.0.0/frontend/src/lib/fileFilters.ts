@@ -1,0 +1,75 @@
+// OpenFileDialog filters for the native file picker (PathInput fileFilter /
+// storageClient.pickFile). Each is "Label (*.ext;...)|*.ext;...|All files (*.*)|*.*"
+// so the relevant types show first while "All files" stays available.
+
+export const DAW_PROJECT_FILTER =
+  'DAW projects (*.als;*.rpp;*.rpp-bak;*.flp;*.aup3;*.aup;*.sesx;*.bwproject;*.dawproject;*.avc;*.logicx;*.cpr;*.ptx;*.swayproj)' +
+  '|*.als;*.rpp;*.rpp-bak;*.flp;*.aup3;*.aup;*.sesx;*.bwproject;*.dawproject;*.avc;*.logicx;*.cpr;*.ptx;*.swayproj' +
+  '|All files (*.*)|*.*';
+
+export const TASMO_FILTER = 'theDAW project (*.tasmo)|*.tasmo|All files (*.*)|*.*';
+
+// The Session tab accepts both a saved theDAW project and any DAW project file.
+export const SESSION_IMPORT_FILTER =
+  'Session sources (*.tasmo;*.als;*.swayproj;*.rpp;*.flp;*.aup3;*.sesx;*.bwproject;*.dawproject;*.avc;*.logicx)' +
+  '|*.tasmo;*.als;*.swayproj;*.rpp;*.rpp-bak;*.flp;*.aup3;*.aup;*.sesx;*.bwproject;*.dawproject;*.avc;*.logicx;*.cpr;*.ptx' +
+  '|All files (*.*)|*.*';
+
+export const GAN_FILTER = 'GAN plugin (*.gan)|*.gan|All files (*.*)|*.*';
+
+/** A VST Foundry export is its project.json. */
+export const FOUNDRY_EXPORT_FILTER = 'VST Foundry export (*.json)|*.json|All files (*.*)|*.*';
+
+export const BACKUP_ZIP_FILTER = 'theDAW backup (*.zip)|*.zip|All files (*.*)|*.*';
+
+/**
+ * Every audio extension the library backend will take on import — the same set
+ * `_resolve_audio_file` resolves in backend/modules/library/store.py, including
+ * the DAW-native containers a float workflow reaches for (.w64, .rf64, .bwf,
+ * .caf, .aifc).
+ *
+ * Spelled out rather than left to `audio/*`: Windows hands a lot of these over
+ * with an empty mime type — a 32-bit float .wav written by another DAW, a .caf,
+ * anything with no registered handler — and an `accept="audio/*"` picker then
+ * greys out a file the backend would have imported fine.
+ */
+export const AUDIO_EXTS = [
+  'wav', 'wave', 'w64', 'rf64', 'bwf', 'caf',
+  'aif', 'aiff', 'aifc',
+  'mp3', 'flac', 'ogg', 'oga', 'opus', 'm4a', 'aac', 'wma',
+] as const;
+
+/** The same set as an `accept` list for `input[type=file]` (mime + extensions). */
+export const AUDIO_ACCEPT = `audio/*,${AUDIO_EXTS.map((e) => `.${e}`).join(',')}`;
+
+/** True when the filename's extension is one of AUDIO_EXTS (case-insensitive).
+ *  Use this rather than a mime check on its own — the mime is often empty. */
+export const hasAudioExt = (name: string): boolean => {
+  const dot = name.lastIndexOf('.');
+  // dot > 0 so a bare "wav" or a dotfile ".wav" is not read as an extension.
+  return dot > 0 && (AUDIO_EXTS as readonly string[]).includes(name.slice(dot + 1).toLowerCase());
+};
+
+const AUDIO_GLOBS = AUDIO_EXTS.map((e) => `*.${e}`).join(';');
+export const AUDIO_FILTER = `Audio (${AUDIO_GLOBS})|${AUDIO_GLOBS}|All files (*.*)|*.*`;
+
+/**
+ * MIDI extensions, spelled out for the same reason as AUDIO_EXTS: `audio/midi`
+ * alone greys out a .mid on a machine with no registered MIDI handler, which is
+ * most Windows installs. Lives here rather than being hardcoded at each file
+ * input — three of them had drifted apart before this constant existed.
+ */
+export const MIDI_EXTS = ['mid', 'midi', 'smf'] as const;
+
+/** The same set as an `accept` list for `input[type=file]` (mime + extensions). */
+export const MIDI_ACCEPT = `audio/midi,audio/x-midi,${MIDI_EXTS.map((e) => `.${e}`).join(',')}`;
+
+/** True when the filename's extension is one of MIDI_EXTS (case-insensitive). */
+export const hasMidiExt = (name: string): boolean => {
+  const dot = name.lastIndexOf('.');
+  return dot > 0 && (MIDI_EXTS as readonly string[]).includes(name.slice(dot + 1).toLowerCase());
+};
+
+/** Strip a MIDI extension for a clip / track label. */
+export const midiFileLabel = (name: string): string =>
+  name.replace(/\.(midi?|smf)$/i, '') || name;

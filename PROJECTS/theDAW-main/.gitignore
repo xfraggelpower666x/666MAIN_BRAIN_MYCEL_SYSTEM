@@ -1,0 +1,502 @@
+# Local tools
+codegraph/
+.codegraph/
+
+# Secrets & user data
+data/api_key_pools.json
+# TOUR third-party keys (ORS, OpenChargeMap), saved filter preset, provider cache
+data/tour_keys.json
+data/tour_filters.json
+data/tour_cache/
+data/playable-cache/
+# Underfit upstream-update check cache (written by backend/modules/underfit/updater.py)
+data/underfit_update.json
+# App update check cache (written by backend/modules/updates/router.py)
+data/updates_check.json
+# Quest deploy config: adb path override, last APK, default package (user-local)
+data/quest.json
+# Quest deploy APK downloads pulled from theDAW-XR releases (~150 MB each)
+data/quest/
+data/generations/
+data/performance-sets/
+# The LYRIC tab's notebook: drafts the writer has not published anywhere.
+data/lyric-documents/
+data/settings.json
+# The LAN HTTPS switch as this build last wrote it into settings.json
+# (backend/lib/lan_https.py record_path), per machine like settings.json
+data/lan_https.json
+data/recent_projects.json
+# Paths theDAW saved, installed, picked or downloaded (absolute, per machine)
+data/known_paths.json
+# Per-machine /clip-audio folder grants (absolute paths to the user's audio
+# folders): this build's file, and the list older builds read
+data/clip_audio_roots.json
+data/media_roots.json
+# Cockpit-saved Sway projects (contain absolute paths to the user's media)
+data/sway-projects/
+# Sound banks the app downloaded (backend/modules/modeldl/soundbanks.py) and
+# sound fonts it installed, with their registry (backend/modules/soundfonts/store.py)
+data/soundbanks/
+data/soundfonts/
+# The live VST host's per-session folders and logs (backend/modules/vst/live_host.py)
+data/vst_live/
+data/local_checkpoints.json
+data/library.db
+data/library.db-*
+# Suno cloud-gen key/jobs + local session change logs (never committed)
+data/suno_api_key.json
+data/suno_jobs.json
+# Installed/built .gan plugins + their extracted runtime (regenerated on demand)
+data/plugins/
+# Machine-specific VST3 scan cache (regenerated on scan)
+backend/modules/vst/vst3_scan_cache.json
+# Captured VST3 native-editor state (per-plugin presets, machine-specific)
+data/vst_presets/
+# LAN pairing token (a secret, generated per install)
+data/pairing_token.txt
+# Self-signed HTTPS certificate + private key for the LAN listener, generated
+# per install by backend/lib/lan_cert.py. The key is a secret; the certificate
+# names this machine's LAN addresses and hostname.
+data/lan-cert/
+# One-time notation migration bookkeeping (regenerated on demand)
+data/notation_migrations.json
+CHANGES-LOGS/
+backend/rag_index/
+archive/
+# Generated git-history visualisation (scripts/gen_git_graph.py) — a local artifact
+docs/git-history.html
+*.png
+!docs/UI/**/*.png
+!docs/guides/**/*.png
+!docs/readme/**/*.png
+# Bundled .gan plugin artwork (The Owl) — a required runtime asset, not a capture still
+!frontend/public/owl/*.png
+# Bundled .gan plugin artwork (Ares) — the VST Foundry export's background.png beside
+# its project.json; required to package ares.gan (without it the surface has no background)
+!backend/modules/plugin/assets/**/*.png
+# The desktop app icon — electron-builder's buildResources auto-discovers it and
+# converts to .ico/.icns. It MUST be tracked: a fresh CI checkout otherwise builds
+# installers with the default Electron icon (local builds mask this because the
+# file exists untracked on the dev machine).
+!electron-ui/resources/icon.png
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+# Python build artifact dirs — anchored to repo root so `frontend/src/lib/`
+# (our shared frontend module directory) isn't accidentally ignored.
+/lib/
+/lib64/
+/parts/
+/sdist/
+/var/
+# Ignore build-artifact wheels, but TRACK the vendored prebuilt aubio wheels:
+# aubio is source-only on PyPI, so these bundled per-platform wheels (pinned in
+# pyproject [tool.uv.sources], built by .github/workflows/build-aubio-wheels.yml)
+# are what let a compiler-less Windows / macOS / Linux box install aubio.
+/wheels/*
+!/wheels/aubio-0.4.9-cp310-cp310-win_amd64.whl
+!/wheels/aubio-0.4.9-cp310-cp310-macosx_11_0_arm64.whl
+!/wheels/aubio-0.4.9-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+#   For a library or package, you might want to ignore these files since the code is
+#   intended to run in multiple environments; otherwise, check them in:
+# .python-version
+
+# pipenv
+#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
+#   However, in case of collaboration, if having platform-specific dependencies or dependencies
+#   having no cross-platform support, pipenv may install dependencies that don't work, or not
+#   install all needed dependencies.
+#Pipfile.lock
+
+# poetry
+#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
+#   This is especially recommended for binary packages to ensure reproducibility, and is more
+#   commonly ignored for libraries.
+#   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
+#poetry.lock
+
+# pdm
+#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
+#pdm.lock
+#   pdm stores project-wide configurations in .pdm.toml, but it is recommended to not include it
+#   in version control.
+#   https://pdm.fming.dev/#use-with-ide
+.pdm.toml
+
+# PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+# A second project env (e.g. .venv-py312) built alongside the live one so a
+# running backend is never rebuilt underneath itself; swap by renaming.
+.venv-*
+env/
+venv/
+ENV/
+
+# uv package cache kept on the repo's drive so wheels hardlink into .venv
+# (set by theDAW.bat / install/setup.ps1). Runtime-only, can be multi-GB.
+.uv-cache/
+env.bak/
+venv.bak/
+
+# Isolated runtime venv + filtered reqs for the faster-whisper transcription sidecar
+backend/modules/vocal/transcription/.whisper_venv/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# PyCharm
+#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
+#  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
+#  and can be added to the global gitignore or merged into this file.  For a more nuclear
+#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
+#.idea/
+
+*.ckpt
+*.wav
+wandb/*
+*.out
+
+.gradio
+.DS_Store
+*.safetensors
+.claude
+# Custom ignores
+repomix-output.md
+*.bak-*
+.playwright-mcp/
+.serena/
+local_models.txt
+grafting_day/frontend-graft-manifest.json
+frontend.bak*/
+
+# TypeScript incremental build cache — regenerated by tsc -b on every build,
+# noisy in diffs, and machine-specific timestamps.
+*.tsbuildinfo
+
+# Node dependency folders — generated by npm/pnpm/yarn installs. Keep lockfiles
+# committed, but never vendor package trees from frontend or sidecars.
+node_modules/
+
+# Local backup snapshots — never commit
+_RECOVERY_BACKUP/
+
+
+# Reference PDFs kept locally, not version-controlled (large binaries)
+docs/*.pdf
+
+# Local archive of superseded/scratch files (see archive/README.md) — not tracked
+/archive/
+/research/
+.vite/
+.orb_attachments/
+
+# Generated exports (VJ renders, transcodes, PNG-sequence zips, etc.) — NEVER
+# commit exports of any kind. The VJ exporter writes here by default.
+/exports/
+
+# Session changelogs — local dev notes, not version-controlled
+/docs/changes/
+
+# Session/branch reports — local working notes, not version-controlled
+/docs/reports/
+
+# Loose capture stills & scratch media at repo root (mirror the *.png policy so
+# ad-hoc .jpeg screenshots like shot01_*.jpeg never get committed). Anchored to
+# root so frontend image assets are unaffected.
+/*.jpeg
+/*.jpg
+/.tmp-shots/
+
+# VS Code workspace files are per-user / machine-specific — never commit.
+*.code-workspace
+
+# Showcase assets are local-only (demo video, screenshots, scripts, raw media).
+# Kept on disk but not shipped in everyone's clone.
+/showcase/
+
+# Root-level scratch artifacts (debug dumps, one-off harnesses, reference
+# prototypes, personal media) stay local. Anchored to root so real assets
+# elsewhere are unaffected.
+/_*.json
+/_*.py
+/*.mp3
+/dna-polyphonic-splice*.html
+/temp-tools/doc-audit-*/
+/temp-tools/doc-audit-manifest.json
+
+# Local audit artifacts: vulnerability details stay off the remote.
+/CODEBASE_AUDIT_*.md
+/audit-reports/
+
+# Internal working-notes and status docs — local only, not user documentation.
+# Kept out of the tracked tree and the installer.
+/docs/plans/
+/docs/audits/
+/docs/changes/
+/docs/in-flight-work.md
+/docs/WHERE-WE-STAND.md
+/docs/TASMO-VST-DAW-IMPORT-ROADMAP.md
+/docs/DESIGN_PRINCIPLES.md
+/docs/DESIGN_WIREFRAME.svg
+
+# Electron desktop shell — build artifacts + runtime logs (deps via node_modules/ above)
+electron-ui/out/
+electron-ui/release/
+# Bundled runtime binaries fetched at build time (uv.exe, ffmpeg.exe) — large,
+# downloaded from official sources by scripts/fetch-runtime-tools.mjs.
+electron-ui/resources/tools/
+# Staged VJ production build (gantasmo/VJ-9000 dist), regenerated at package
+# time by scripts/fetch-vj-build.mjs.
+electron-ui/resources/vj-dist/
+# Staged SwayCommand cockpit embed build (SwayCommand's `npm run
+# build:renderer:embed` output). Build artifact of a separate repo — stage it,
+# don't commit it. backend/modules/sway/sidecar.py also accepts a theDAW_SWAY_DIST
+# override or a sibling SwayCommand checkout.
+electron-ui/resources/sway-dist/
+# Staged VST Foundry production bundle (dist/ + prod node_modules), regenerated
+# at package time by scripts/fetch-foundry-build.mjs.
+electron-ui/resources/foundry-app/
+logs/
+
+# Editing/backup cruft (e.g. vendored apps' *.bak-<date> files)
+*.bak
+*.bak-*
+deprecated/
+# ...except the backend's, which is a live import target:
+# tests/test_assistant_stream_lock.py imports
+# backend/deprecated/assistant_claude_spawn_20260915.py (the pre-T07 Claude
+# spawn paths, moved not deleted). The directory has to be re-included
+# BEFORE its contents - git will not descend into an excluded directory.
+!backend/deprecated/
+!backend/deprecated/**
+# ...but the re-include above also overrides the global __pycache__/ rule
+# (line 62) inside that tree, so put the bytecode back out.
+backend/deprecated/**/__pycache__/
+backend/deprecated/**/*.pyc
+
+# Local model weights (multi-GB safetensors + configs) - never commit.
+# ROOT-anchored on purpose: a bare `models/` matches at any depth and was
+# silently swallowing underfit/dashboard/models/ — the small registry JSON
+# files the Underfit dashboard builds its model list from — so every clone
+# and Pinokio install got an empty model picker (GH-133).
+/models/
+
+# Underfit is vendored as a git-subrepo (dada-bots/underfit + local mods): its
+# CODE is tracked by theDAW; only its heavy runtime dirs are excluded here (also
+# covered by underfit/.gitignore). state/ is multi-GB — never commit it.
+/underfit/state/
+/underfit/.venv/
+/underfit/.gradio/
+/underfit/**/node_modules/
+/underfit/**/__pycache__/
+
+# Stems sidecar (integration-package/backend) runtime artifacts.
+# Only the sidecar's code is committed; its venv, logs, results, and the
+# LARSNET weights are created or placed at runtime.
+integration-package/backend/.sidecar_venv/
+integration-package/backend/.sidecar_logs/
+integration-package/backend/.sidecar_venv_requirements.txt
+integration-package/backend/backend_port.txt
+integration-package/backend/logs/
+integration-package/backend/results/
+integration-package/backend/larsnet/pretrained_larsnet_models/
+integration-package/backend/larsnet/pretrained_larsnet_models.zip
+
+# Untracked video/marketing scripts (local working material, not part of the product).
+video-scripts/
+
+
+#Ignore vscode AI rules
+.github/instructions/codacy.instructions.md
+
+# In-app installs and engine prefs (Settings → Models): Lyria clone, Magenta model choice, key file, download logs
+/lyria/
+data/magenta_engine.json
+data/lyria_gemini_key.json
+data/lyria_provider_keys.json
+# Lyria checkouts an Update moved whose npm install has not finished
+data/lyria_deps_pending.json
+# The commit the Lyria checkout is at and the version that last ran with keys
+data/lyria_checkout.json
+logs/magenta-download-*.log
+
+# Chimera v2 per-clip analysis cache (sha256-keyed JSON)
+data/cache/
+
+# Rhythm analysis cache the app writes (meter maps per analysed file)
+data/rhythm/
+
+# UNCANNY demo album staging (converted audio + stems; distributed separately)
+data/uncanny/
+
+# Opus transcodes the example projects embed. scripts/build_examples.py
+# regenerates them from the masters; the .tasmo files carry the audio.
+examples/audio/
+
+# Codacy's generated config records absolute paths for the machine that
+# ran it, which do not belong in the repository.
+/.codacy/codacy.config.json
+/.codacy/codacy.config.baseline.json
+oss-refs/
+
+# Local-only parking areas (never-delete backups, old runtime venvs, caches,
+# scratch API dumps). Kept on disk, never committed: _deprecated/ alone is 7+ GB
+# of site-packages. Same intent as the deprecated/ rule above.
+_deprecated/
+_backup/
+.scratch/
+
+# ── Session scratch that must never be committed ──────────────────────────────
+# Orchestration run logs. Same class as /docs/plans/ and /docs/audits/ above:
+# local working notes about HOW a batch was built, not product documentation.
+/docs/runs/
+# Session, audit and "theirs vs ours" reports. /docs/reports/ was already
+# ignored; these landed at the repo root instead and slipped through.
+/reports/
+# Donor reference code read for its design and re-implemented in our own tree.
+# Cited in "adapted from" comments only — never imported, never shipped.
+/docs/design/repair-pack/
+# Screenshot-capture scratch: one-off _probe*.mjs DOM dumps and the group
+# runners. Not in CI, npm, or docs; their output dir is already ignored.
+/scripts/screenshots/callouts/
+/scripts/screenshots/label_guide_shots.py
+# Browser QA harness. Drives a RUNNING app by hand; `npm test` only collects
+# *.test.ts(x) under src/, so nothing here is ever run automatically.
+/frontend/qa/
+# One-off benchmarks.
+/scripts/bench_*.py
+# Interactive user guides that inline screenshots as base64. A 13.6 MB HTML of
+# the running app is not documentation the repo should carry.
+/docs/guides/*_Interactive_*.html
+# Suno/Harvester bulk cache ingestion — a personal tool, not a product feature.
+# The stage/promote pipeline that walks a ~200k-song provider cache stays out
+# of the repo. NOT covered by this: reading the metadata a provider embeds in
+# the audio file itself (backend/modules/library/tags.py), which is generic and
+# ships.
+/backend/modules/library/suno_stage.py
+/backend/modules/library/suno_promote.py
+/scripts/stage_suno_cache.py
+/scripts/promote_suno_stage.py
+/tests/test_suno_stage.py
+/tests/test_suno_promote*.py
+/backend/modules/library/suno_routes.py
+
+# Local scratch and captures that must never ship (kept in place, untracked)
+/2026-09-18
+/300mb
+/VST-Foundry-UI/VST-UI-FOUNDRY/exports/
+/docs/design/repair-expansion-report-and-plan.html
+/docs/guides/screenshots.7z
+/docs/guides/screenshots/
+/docs/guides/t37a-roll-initial.png
+# A cockpit build set aside while a newer one is staged.
+electron-ui/resources/sway-dist.*-backup/

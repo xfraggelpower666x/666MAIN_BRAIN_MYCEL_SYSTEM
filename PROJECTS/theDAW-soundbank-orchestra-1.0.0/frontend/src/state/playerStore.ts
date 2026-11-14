@@ -1,0 +1,668 @@
+import { create } from 'zustand';
+import { logError, logInfo, logWarn } from './logStore';
+import { setDecodeContext } from '../lib/djAudioCache';
+
+/**
+ * Global playback engine — a single HTMLAudioElement piped through a single
+ * Web Audio graph (master gain + AnalyserNode + destination). Every audio
+ * source in the app should route through this graph so the visualizer + HUD
+ * always reflect whatever's audible.
+ *
+ *   HTMLAudioElement ──┐
+ *                      ├──▶ master bus ──▶ [master insert] ──▶ [live-FX insert] ──▶ [safety insert] ──▶ analyser ──▶ monitor ──▶ destination
+ *   editor preview  ───┤                                                        ▲
+ *   sequencer voices ──┘                                                        └── meter taps here (getMeterTap)
+ *
+ * `master` is a UNITY summing bus. Listening volume lives on `monitor`, the last
+ * node before the speakers, so metering and visualization are independent of how
+ * loud the user is monitoring.
+ *
+ * The [master insert] is a passthrough bus (insertIn ─▶ insertOut) sitting on
+ * the summed output. A live effect rack (the MIX psychoacoustic rack) splices
+ * itself between insertIn and insertOut so it processes everything audible on
+ * the footer transport without rebuilding when the source/clip changes.
+ *
+ * The [live-FX insert] is a second passthrough bus (fxIn ─▶ fxOut) after the
+ * rack. The always-available live master FX chain (lib/liveMasterFx — the
+ * VST-Foundry "Live Audio" bind-test surface) splices itself there, so it
+ * shapes the final mixed output independently of the MIX rack.
+ *
+ * The [safety insert] is a third passthrough bus (safetyIn ─▶ safetyOut) at the
+ * end of the chain, where the soundfont engine splices its safety limiter
+ * (lib/synthOutputStage): a sound bank preset lifted above unity by its
+ * playback gain can take the sum past full scale, and the limiter holds it
+ * under -0.3 dBFS while such a preset plays. The meters read its output.
+ */
+
+let _ctx: AudioContext | null = null;
+let _master: GainNode | null = null;
+let _analyser: AnalyserNode | null = null;
+// Master-output insert bus: master -> insertIn -> [rack] -> insertOut -> analyser.
+let _insertIn: GainNode | null = null;
+let _insertOut: GainNode | null = null;
+// Live-FX insert bus: insertOut -> fxIn -> [live master FX] -> fxOut -> analyser.
+let _fxIn: GainNode | null = null;
+let _fxOut: GainNode | null = null;
+// Safety insert: fxOut -> safetyIn -> [safety limiter] -> safetyOut -> analyser.
+let _safetyIn: GainNode | null = null;
+let _safetyOut: GainNode | null = null;
+let _monitor: GainNode | null = null;
+let _audioEl: HTMLAudioElement | null = null;
+let _mediaSrc: MediaElementAudioSourceNode | null = null;
+let _objectUrl: string | null = null;
+// What load() put behind _objectUrl. The live editor mixer writes the store's
+// label and entry id without loading anything, so the URL only belongs to the
+// track on screen while these still match the store (see getLoadedAudioUrl).
+let _loadedMeta: { label: string; entryId: string | null } | null = null;
+// Set by load() to a real library entry id; the first 'play' event after a
+// load counts one play for it (then clears, so resume/seek do not re-count).
+let _pendingPlayCountId: string | null = null;
+// Set by the playlist queue; fired when a (non-looping) track ends so the queue
+// can auto-advance. Null for ordinary single-track playback.
+let _onEnded: (() => void) | null = null;
+// The editor timeline reuses this sentinel as its entry id so the footer and
+// playhead treat it like a normally-loaded track. Transport delegation to the
+// live mixer is gated on this being the active track (see activeLive).
+const EDITOR_ENTRY_ID = 'editor-timeline';
+
+type EngineHandles = {
+  ctx: AudioContext;
+  master: GainNode;
+  analyser: AnalyserNode;
+  audioEl: HTMLAudioElement;
+};
+
+// Was the engine first touched from inside a real user-gesture call
+// path (click/keydown/touchstart)? Until that happens the AudioContext
+// is constructed but kept suspended — calling .resume() before a gesture
+// prints "The AudioContext was not allowed to start" to the console on
+// every render. Flipped to true by the first user-input listener (see
+// the module-load auto-resume below) and by play().
+let _userGesture = false;
+
+export const ensureEngine = (): EngineHandles => {
+  if (_ctx && _master && _analyser && _audioEl) {
+    // Only resume once we know a user gesture has happened; otherwise
+    // the browser refuses + warns. ensureEngine() is also called from
+    // pure read paths (analyzer visualizer, getMasterGain, etc).
+    if (_userGesture && _ctx.state === 'suspended') {
+      void _ctx.resume().catch(() => { /* swallowed; will retry on next gesture */ });
+    }
+    return { ctx: _ctx, master: _master, analyser: _analyser, audioEl: _audioEl };
+  }
+  const Ctor =
+    (window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext);
+  const ctx = new Ctor();
+  // Every waveform decode made from here on runs through this context, so
+  // it lands at the rate playback runs at and shares its cache entry with
+  // the deck that plays the same file (lib/djAudioCache). Before this the
+  // cache never learned the engine existed and decoded everything at the
+  // offline fallback's 44.1 kHz.
+  setDecodeContext(ctx);
+  const master = ctx.createGain();
+  master.gain.value = 1;
+  const analyser = ctx.createAnalyser();
+  analyser.fftSize = 2048;
+  analyser.smoothingTimeConstant = 0.7;
+  // Master-output insert bus: master -> insertIn -> insertOut -> analyser. A live
+  // rack (the MIX psychoacoustic rack) splices itself between insertIn/insertOut
+  // so it processes the full mixed output on the footer transport; the default is
+  // a clean passthrough so audio flows with no rack and with no rack overhead.
+  const insertIn = ctx.createGain();
+  const insertOut = ctx.createGain();
+  // Live-FX insert: a second passthrough bus after the rack insert, where the
+  // always-available live master FX chain (lib/liveMasterFx) splices itself.
+  const fxIn = ctx.createGain();
+  const fxOut = ctx.createGain();
+  // Monitor (listening) volume. This is the LAST node before the speakers, not
+  // the first: it used to live on `master` at the head of the chain, which made
+  // every downstream tap post-fader — so the LUFS/true-peak meter moved when you
+  // turned your speakers down, and read pre-master-FX besides. `master` is now a
+  // pure unity summing bus (which is all any getMasterGain() caller ever used it
+  // as — nothing in the app writes its .gain), and turning the monitor down no
+  // longer changes what the meter or the visualizer sees.
+  const monitor = ctx.createGain();
+  monitor.gain.value = 1;
+  master.connect(insertIn);
+  insertIn.connect(insertOut);
+  insertOut.connect(fxIn);
+  fxIn.connect(fxOut);
+  // Safety insert: a passthrough until the soundfont engine splices its limiter in.
+  const safetyIn = ctx.createGain();
+  const safetyOut = ctx.createGain();
+  fxOut.connect(safetyIn);
+  safetyIn.connect(safetyOut);
+  safetyOut.connect(analyser);
+  analyser.connect(monitor);
+  monitor.connect(ctx.destination);
+  // A device may already have been chosen before anything built the graph
+  // (Settings loads before the first sound). Apply it now the graph exists.
+  void applyEngineSink(ctx);
+
+  const audioEl = new Audio();
+  audioEl.crossOrigin = 'anonymous';
+  audioEl.preload = 'auto';
+  const mediaSrc = ctx.createMediaElementSource(audioEl);
+  mediaSrc.connect(master);
+
+  audioEl.addEventListener('timeupdate', () => {
+    usePlayerStore.setState({ currentTime: audioEl.currentTime });
+  });
+  audioEl.addEventListener('loadedmetadata', () => {
+    usePlayerStore.setState({ duration: Number.isFinite(audioEl.duration) ? audioEl.duration : 0 });
+  });
+  audioEl.addEventListener('play', () => {
+    usePlayerStore.setState({ isPlaying: true });
+    if (_pendingPlayCountId) {
+      const id = _pendingPlayCountId;
+      _pendingPlayCountId = null;
+      void import('./libraryStore')
+        .then(({ useLibraryStore }) => useLibraryStore.getState().registerPlay(id))
+        .catch(() => { /* play-count is best-effort */ });
+    }
+  });
+  audioEl.addEventListener('pause', () => {
+    usePlayerStore.setState({ isPlaying: false });
+  });
+  audioEl.addEventListener('ended', () => {
+    if (!audioEl.loop) {
+      usePlayerStore.setState({ isPlaying: false, currentTime: 0 });
+      _onEnded?.();
+    }
+  });
+  audioEl.addEventListener('error', () => {
+    logError('player', `Audio element error: ${audioEl.error?.message ?? 'unknown'}`);
+    usePlayerStore.setState({ isPlaying: false });
+  });
+
+  _ctx = ctx;
+  _master = master;
+  _analyser = analyser;
+  _insertIn = insertIn;
+  _insertOut = insertOut;
+  _fxIn = fxIn;
+  _fxOut = fxOut;
+  _safetyIn = safetyIn;
+  _safetyOut = safetyOut;
+  _monitor = monitor;
+  _audioEl = audioEl;
+  _mediaSrc = mediaSrc;
+  return { ctx, master, analyser, audioEl };
+};
+
+/* ── main output device ───────────────────────────────────────────────────── */
+
+/**
+ * The device the whole graph is meant to play through ('' = the OS default).
+ * Held separately from `_appliedSinkId` because a choice can arrive before the
+ * context exists — Settings loads long before the first sound — and must then
+ * be applied by ensureEngine() rather than dropped.
+ */
+let _desiredSinkId = '';
+let _appliedSinkId = '';
+
+type SinkCapableContext = AudioContext & { setSinkId?: (id: string) => Promise<void> };
+
+/**
+ * Move the shared graph to `_desiredSinkId`.
+ *
+ * One call moves EVERY module that routes through getMasterGain (the footer
+ * transport, the sequencer, the DJ decks, the live mixer, previews) because
+ * they all share this context. `AudioContext.setSinkId` is not in the DOM lib
+ * yet, hence the cast — the same shape djEngine uses for the cue element.
+ *
+ * The context is never rebuilt to change a device: rebuilding would destroy the
+ * MediaElementAudioSourceNode (an element can be attached to exactly one, ever),
+ * the rack insert, the live-FX insert and every deck.
+ */
+async function applyEngineSink(ctx: AudioContext): Promise<boolean> {
+  const c = ctx as SinkCapableContext;
+  if (typeof c.setSinkId !== 'function') return false;
+  if (_appliedSinkId === _desiredSinkId) return true;
+  const before = ctx.outputLatency;
+  try {
+    await c.setSinkId(_desiredSinkId);
+    _appliedSinkId = _desiredSinkId;
+  } catch (e) {
+    logError('player', `Main output routing failed: ${e instanceof Error ? e.message : String(e)}`);
+    return false;
+  }
+  const after = ctx.outputLatency;
+  // The play-along latency calibration and the score time map both read
+  // ctx.outputLatency, so a device with a different buffer size silently
+  // shifts every timing that was calibrated on the old one. Say so.
+  if (Number.isFinite(before) && Number.isFinite(after) && Math.abs(after - before) > 0.002) {
+    logWarn(
+      'player',
+      `Output latency changed ${Math.round(before * 1000)} ms -> ${Math.round(after * 1000)} ms with the new device; re-run the play-along latency calibration.`,
+    );
+  }
+  return true;
+}
+
+/**
+ * Choose the device the main mix plays through. '' = the OS default, which is
+ * exactly what a user who never opens the I/O menu gets: no setSinkId call is
+ * made while nothing has ever been chosen.
+ */
+export const setEngineSink = async (deviceId: string): Promise<boolean> => {
+  _desiredSinkId = deviceId;
+  if (!_ctx) return false; // ensureEngine() applies it when the graph is built
+  return applyEngineSink(_ctx);
+};
+
+/** The device the graph is actually on ('' = OS default). */
+export const getEngineSinkId = (): string => _appliedSinkId;
+
+/**
+ * Sample rate + output latency of the live graph, or null when nothing has
+ * built it yet. Read-only on purpose: it must NOT construct an AudioContext
+ * just because a settings panel is open.
+ */
+export const getEngineOutputInfo = (): { sampleRate: number; outputLatencyMs: number | null } | null =>
+  _ctx
+    ? {
+        sampleRate: _ctx.sampleRate,
+        outputLatencyMs: Number.isFinite(_ctx.outputLatency) ? Math.round(_ctx.outputLatency * 1000) : null,
+      }
+    : null;
+
+/** Other sources (editor preview, sequencer voices) connect here so they go through the same analyser. */
+export const getMasterGain = (): GainNode => ensureEngine().master;
+
+/**
+ * The correct tap point for metering: the end of the processing chain (after the
+ * MIX rack insert and the live master FX) but BEFORE the monitor fader. This is
+ * the signal that actually gets exported, which is what a LUFS / true-peak meter
+ * must measure. Do not meter `getMasterGain()` — that is the pre-FX summing bus
+ * and, before the monitor node was moved, was also post-listening-volume. It is
+ * the safety insert's output, so the meters read what the speakers get.
+ */
+export const getMeterTap = (): GainNode => {
+  ensureEngine();
+  return _safetyOut!;
+};
+
+/**
+ * The safety insert at the end of the master chain, after the live-FX insert:
+ * `input -> output`, a passthrough until the soundfont engine splices its
+ * safety limiter between them (lib/synthOutputStage).
+ */
+export const getSafetyInsert = (): { ctx: AudioContext; input: GainNode; output: GainNode } => {
+  ensureEngine();
+  return { ctx: _ctx!, input: _safetyIn!, output: _safetyOut! };
+};
+export const getAnalyser = (): AnalyserNode => ensureEngine().analyser;
+export const getEngineCtx = (): AudioContext => ensureEngine().ctx;
+
+/**
+ * The master-output insert bus. A live effect rack wires itself between `input`
+ * and `output` — master -> input -> [rack] -> output -> analyser — so it
+ * processes everything audible on the footer transport. The default wiring is a
+ * clean `input -> output` passthrough, so an empty rack colours nothing. The rack
+ * lives on this bus independently of the loaded source, so loading a new clip
+ * never tears it down (see mixLiveRack).
+ */
+export const getMasterInsert = (): { ctx: AudioContext; input: GainNode; output: GainNode } => {
+  ensureEngine();
+  return { ctx: _ctx!, input: _insertIn!, output: _insertOut! };
+};
+
+/**
+ * The live-FX insert bus, directly after the MIX rack insert. The live master
+ * FX chain (lib/liveMasterFx — driven by the VST-Foundry "Live Audio" bindable
+ * targets) wires itself between `input` and `output`, so it shapes the final
+ * mixed output live and non-destructively. Default wiring is a clean
+ * `input -> output` passthrough, so an unattached chain colours nothing.
+ */
+export const getLiveFxInsert = (): { ctx: AudioContext; input: GainNode; output: GainNode } => {
+  ensureEngine();
+  return { ctx: _ctx!, input: _fxIn!, output: _fxOut! };
+};
+
+/**
+ * Live transport override. When the EDIT timeline plays through the real-time
+ * `liveMixer` (per-track nodes, not the <audio> element), it registers itself
+ * here so the footer's ordinary transport buttons drive it instead of the
+ * audio element. Loading any new track (library, etc.) supersedes it.
+ */
+export interface LiveTransport {
+  play: () => void;
+  pause: () => void;
+  stop: () => void;
+  seek: (sec: number) => void;
+}
+let _live: LiveTransport | null = null;
+export const setLiveTransport = (t: LiveTransport | null): void => {
+  _live = t;
+};
+
+/** The live editor transport is the ACTIVE audio source only while the editor
+ *  timeline is the loaded track. After a real library track loads, _live can
+ *  linger because the editor stays mounted, yet the <audio> element is what is
+ *  audible. Returning null in that case routes transport to the element instead
+ *  of the idle mixer. Without this, a footer pause hit the idle mixer (whose
+ *  pause() early-returns), left isPlaying stuck true, and the button stayed on
+ *  Pause while audio kept playing. */
+const activeLive = (): LiveTransport | null =>
+  _live && usePlayerStore.getState().currentEntryId === EDITOR_ENTRY_ID ? _live : null;
+
+/** Register a callback fired when a non-looping track ends (the playlist queue
+ *  uses this to advance). Pass null to clear. */
+export const setQueueOnEnded = (cb: (() => void) | null): void => {
+  _onEnded = cb;
+};
+
+/**
+ * The object URL of the bytes the footer track was loaded from, or null when
+ * the track on screen has none: nothing loaded yet, or the EDIT timeline
+ * playing live through the mixer (it writes the store's label and entry id
+ * without calling load()). `fetch()` on the URL returns the Blob, which is how
+ * a stem, a MIX render or the MIDI beat reaches the footer's track menu.
+ */
+export const getLoadedAudioUrl = (): string | null => {
+  if (!_objectUrl || !_loadedMeta) return null;
+  const { currentLabel, currentEntryId, hasTrack } = usePlayerStore.getState();
+  if (!hasTrack || currentLabel !== _loadedMeta.label || currentEntryId !== _loadedMeta.entryId) return null;
+  return _objectUrl;
+};
+
+// Auto-warm-up: the first time the user interacts with the page in
+// ANY way (click / keydown / pointerdown / touchstart), flip the gesture
+// flag and resume any suspended AudioContext. Eliminates the console
+// warning on initial load and means the visualizer is alive the instant
+// the user does anything.
+if (typeof window !== 'undefined') {
+  const onFirstGesture = () => {
+    _userGesture = true;
+    if (_ctx && _ctx.state === 'suspended') {
+      void _ctx.resume().catch(() => { /* swallowed */ });
+    }
+    window.removeEventListener('click', onFirstGesture);
+    window.removeEventListener('keydown', onFirstGesture);
+    window.removeEventListener('pointerdown', onFirstGesture);
+    window.removeEventListener('touchstart', onFirstGesture);
+  };
+  window.addEventListener('click', onFirstGesture, { once: false, passive: true });
+  window.addEventListener('keydown', onFirstGesture, { once: false, passive: true });
+  window.addEventListener('pointerdown', onFirstGesture, { once: false, passive: true });
+  window.addEventListener('touchstart', onFirstGesture, { once: false, passive: true });
+}
+
+/**
+ * Transport repeat, in the three states a music player has:
+ *   'off' - the track ends and the queue moves on; at the end of the list,
+ *           playback stops.
+ *   'all' - the queue wraps, so a library list plays forever.
+ *   'one' - the <audio> element loops natively and never fires `ended`.
+ *
+ * `isLooping` is kept in lockstep with `mode === 'one'` because MIDI mapping,
+ * the control-surface bridge and the live mixer all read and write that flag;
+ * they mean "loop this one thing", which is exactly 'one'.
+ */
+export type RepeatMode = 'off' | 'all' | 'one';
+
+export const REPEAT_ORDER: RepeatMode[] = ['off', 'all', 'one'];
+
+interface PlayerStoreState {
+  // Currently-loaded track meta
+  currentLabel: string | null;
+  currentEntryId: string | null;
+  duration: number;
+  currentTime: number;
+  isPlaying: boolean;
+  isLooping: boolean;
+  repeatMode: RepeatMode;
+  // Whether a track is loaded at all (for footer UI states)
+  hasTrack: boolean;
+
+  load: (blob: Blob, meta: { label: string; entryId?: string }) => Promise<void>;
+  play: () => void;
+  pause: () => void;
+  toggle: () => void;
+  stop: () => void;
+  seek: (sec: number) => void;
+  seekByFraction: (frac: number) => void;
+  toggleLoop: () => void;
+  /** off -> all -> one -> off. What the LOOP key in the footer does. */
+  cycleRepeat: () => void;
+  setRepeatMode: (mode: RepeatMode) => void;
+  setMasterGain: (gain: number) => void;
+}
+
+export const usePlayerStore = create<PlayerStoreState>()((set, get) => ({
+  currentLabel: null,
+  currentEntryId: null,
+  duration: 0,
+  currentTime: 0,
+  isPlaying: false,
+  // Playing a track from the library plays the rest of the list after it, so
+  // the default is 'all' rather than looping the one track forever.
+  isLooping: false,
+  repeatMode: 'all',
+  hasTrack: false,
+
+  load: async (blob, meta) => {
+    const { audioEl } = ensureEngine();
+    // Loading a real audio file (library track, etc.) supersedes any live
+    // editor session — drop the live transport so transport drives the
+    // <audio> element again. Skip this for the editor's own bounce path
+    // (it sets up its own session; entryId 'editor-timeline' is the live one).
+    if (_live && meta.entryId !== 'editor-timeline') {
+      _live = null;
+    }
+    // Revoke previous object URL if we created one for the engine.
+    if (_objectUrl) {
+      try { URL.revokeObjectURL(_objectUrl); } catch { /* ignore */ }
+      _objectUrl = null;
+    }
+    _objectUrl = URL.createObjectURL(blob);
+    _loadedMeta = { label: meta.label, entryId: meta.entryId ?? null };
+    audioEl.src = _objectUrl;
+    audioEl.loop = get().isLooping;
+    set({
+      currentLabel: meta.label,
+      currentEntryId: meta.entryId ?? null,
+      hasTrack: true,
+      currentTime: 0,
+    });
+    // Arm the play counter for real library tracks (skip the live editor session).
+    _pendingPlayCountId =
+      meta.entryId && meta.entryId !== 'editor-timeline' ? meta.entryId : null;
+    try {
+      // Wait for metadata so duration is known.
+      await new Promise<void>((resolve, reject) => {
+        const onLoaded = () => { cleanup(); resolve(); };
+        const onErr = () => { cleanup(); reject(new Error(audioEl.error?.message ?? 'load failed')); };
+        const cleanup = () => {
+          audioEl.removeEventListener('loadedmetadata', onLoaded);
+          audioEl.removeEventListener('error', onErr);
+        };
+        audioEl.addEventListener('loadedmetadata', onLoaded);
+        audioEl.addEventListener('error', onErr);
+      });
+      logInfo('player', `Loaded: ${meta.label} (${audioEl.duration.toFixed(2)}s)`);
+    } catch (e) {
+      logError('player', `Failed to load: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  },
+
+  play: () => {
+    // play() is always invoked from a user gesture (button click,
+    // keyboard shortcut, drag-drop). Mark the gesture so subsequent
+    // ensureEngine() calls are allowed to resume the suspended ctx.
+    _userGesture = true;
+    const { audioEl, ctx } = ensureEngine();
+    if (ctx.state === 'suspended') {
+      void ctx.resume().catch(() => { /* swallowed; will retry */ });
+    }
+    const live = activeLive();
+    if (live) { live.play(); return; } // live editor timeline
+    if (!audioEl.src) return;
+    void audioEl.play().catch((err) => {
+      logError('player', `Play rejected: ${err instanceof Error ? err.message : String(err)}`);
+    });
+  },
+
+  pause: () => {
+    const live = activeLive();
+    if (live) { live.pause(); return; }
+    const { audioEl } = ensureEngine();
+    audioEl.pause();
+  },
+
+  toggle: () => {
+    const live = activeLive();
+    if (live) {
+      if (get().isPlaying) live.pause();
+      else get().play();
+      return;
+    }
+    const { audioEl } = ensureEngine();
+    if (!audioEl.src) return;
+    if (audioEl.paused) get().play();
+    else get().pause();
+  },
+
+  stop: () => {
+    const live = activeLive();
+    if (live) { live.stop(); return; }
+    const { audioEl } = ensureEngine();
+    audioEl.pause();
+    audioEl.currentTime = 0;
+    set({ currentTime: 0, isPlaying: false });
+  },
+
+  seek: (sec) => {
+    if (!Number.isFinite(sec)) return;
+    const live = activeLive();
+    if (live) { live.seek(sec); return; }
+    const { audioEl } = ensureEngine();
+    audioEl.currentTime = Math.max(0, Math.min(audioEl.duration || 0, sec));
+    set({ currentTime: audioEl.currentTime });
+  },
+
+  seekByFraction: (frac) => {
+    const clamped = Math.max(0, Math.min(1, frac));
+    const live = activeLive();
+    if (live) { live.seek(clamped * (get().duration || 0)); return; }
+    const { audioEl } = ensureEngine();
+    const dur = audioEl.duration || 0;
+    if (!dur) return;
+    const target = clamped * dur;
+    audioEl.currentTime = target;
+    set({ currentTime: target });
+  },
+
+  toggleLoop: () => {
+    // Kept for the callers that mean "loop this one thing" (MIDI mapping, the
+    // control-surface bridge): it flips between 'one' and 'off'.
+    get().setRepeatMode(get().isLooping ? 'off' : 'one');
+  },
+
+  cycleRepeat: () => {
+    const i = REPEAT_ORDER.indexOf(get().repeatMode);
+    get().setRepeatMode(REPEAT_ORDER[(i + 1) % REPEAT_ORDER.length]);
+  },
+
+  setRepeatMode: (mode) => {
+    set({ repeatMode: mode, isLooping: mode === 'one' });
+    const { audioEl } = ensureEngine();
+    audioEl.loop = mode === 'one';
+  },
+
+  setMasterGain: (gain) => {
+    // Writes the MONITOR node at the end of the chain, not the `master` summing
+    // bus at the head — so changing listening volume no longer moves the meter.
+    const { ctx } = ensureEngine();
+    _monitor?.gain.setTargetAtTime(Math.max(0, gain), ctx.currentTime, 0.01);
+  },
+}));
+
+/* --- diagnostic: what is actually attenuating the output -------------------
+   "It got WAY too quiet" is a report about a number nobody can see. The chain
+   is assembled by several modules that each own one segment (this file's
+   master/insert/monitor nodes, mixLiveRack's psychoacoustic insert, liveMixer's
+   per-track nodes), so no single place can answer the question. Each segment
+   registers a probe; dumpAudioChain() prints all of them at once, and DEV also
+   hangs it on window so it can be run from the console the moment the symptom
+   shows up. Opt-in only: nothing calls it on its own. */
+
+export type ChainProbe = () => Record<string, unknown>;
+const chainProbes = new Map<string, ChainProbe>();
+
+/** Contribute one named section to dumpAudioChain(). Later calls replace the
+ *  section, so a module can re-register after it rebuilds its nodes. */
+export const registerChainProbe = (name: string, probe: ChainProbe): void => {
+  chainProbes.set(name, probe);
+};
+
+const gainOf = (n: GainNode | null): number | null => (n ? n.gain.value : null);
+
+/** Print every gain between a source and the speakers, plus whatever the other
+ *  segments report. Returns the same object so a console caller can inspect it. */
+export const dumpAudioChain = (): Record<string, unknown> => {
+  const engine: Record<string, unknown> = _ctx
+    ? {
+        ctxState: _ctx.state,
+        sampleRate: _ctx.sampleRate,
+        destinationChannels: _ctx.destination.channelCount,
+        // Which physical output the graph is on. Without this a "no sound"
+        // report is undiagnosable: the chain can be perfect and the audio
+        // still be going to a monitor nobody is listening to.
+        sinkId: _appliedSinkId || '(system default)',
+        sinkWanted: _desiredSinkId || '(system default)',
+        outputLatencyMs: Number.isFinite(_ctx.outputLatency) ? Math.round(_ctx.outputLatency * 1000) : null,
+        master: gainOf(_master),
+        rackInsertIn: gainOf(_insertIn),
+        rackInsertOut: gainOf(_insertOut),
+        liveFxIn: gainOf(_fxIn),
+        liveFxOut: gainOf(_fxOut),
+        monitor: gainOf(_monitor),
+        audioElVolume: _audioEl ? _audioEl.volume : null,
+        audioElMuted: _audioEl ? _audioEl.muted : null,
+        currentLabel: usePlayerStore.getState().currentLabel,
+      }
+    : { ctxState: 'not built' };
+  const out: Record<string, unknown> = { engine };
+  for (const [name, probe] of chainProbes) {
+    try {
+      out[name] = probe();
+    } catch (e) {
+      out[name] = `probe failed: ${e instanceof Error ? e.message : String(e)}`;
+    }
+  }
+  // Both surfaces: the console for a dev, the LOG strip for the user who is
+  // sitting in front of the problem and can read it back without devtools.
+  console.info('[theDAW] audio chain', out);
+  logInfo('player', `Audio chain: ${JSON.stringify(out)}`);
+  return out;
+};
+
+// `?.`: plain tsx has no import.meta.env, and a node test that installs a
+// jsdom window before importing this module still loads it.
+if (typeof window !== 'undefined' && import.meta.env?.DEV) {
+  (window as unknown as { dumpAudioChain?: () => Record<string, unknown> }).dumpAudioChain =
+    dumpAudioChain;
+}
+
+/** One-shot analyser sample helpers, used by the visualizer + HUD. */
+export const samplePeakAndRMS = (): { peakDb: number; rmsDb: number; peak: number; rms: number } => {
+  const analyser = getAnalyser();
+  const buf = new Float32Array(analyser.fftSize);
+  analyser.getFloatTimeDomainData(buf);
+  let peak = 0;
+  let sumSq = 0;
+  for (let i = 0; i < buf.length; i += 1) {
+    const v = buf[i];
+    const a = Math.abs(v);
+    if (a > peak) peak = a;
+    sumSq += v * v;
+  }
+  const rms = Math.sqrt(sumSq / buf.length);
+  const peakDb = peak > 0 ? 20 * Math.log10(peak) : -Infinity;
+  const rmsDb = rms > 0 ? 20 * Math.log10(rms) : -Infinity;
+  return { peakDb, rmsDb, peak, rms };
+};
+

@@ -1,0 +1,8 @@
+{
+    "cmake.ignoreCMakeListsMissing": true,
+    // Vendored stems sidecar: runs in its own venv (integration-package/backend/
+    // .sidecar_venv), so its imports do not resolve against the main venv.
+    "python.analysis.exclude": [
+        "integration-package"
+    ]
+}

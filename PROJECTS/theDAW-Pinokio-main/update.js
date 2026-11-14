@@ -1,0 +1,225 @@
+module.exports = {
+  run: [{
+    method: "shell.run",
+    params: {
+      message: "git pull"
+    }
+  }, {
+    // `npm install` (frontend, electron-ui) and `uv sync` rewrite tracked
+    // lockfiles on an ordinary run, and a clone can carry a local commit, so
+    // `git pull` here died with either
+    //   error: Your local changes to the following files would be
+    //   overwritten by merge
+    // or, from Pinokio's own git (2.33+, no pull.rebase configured),
+    //   fatal: Need to specify how to reconcile divergent branches.
+    // with nothing the user could do about it from inside Pinokio. This clone
+    // is launcher-managed, so it is moved onto the published main with a fetch
+    // and a hard reset. Untracked and ignored content -- data/, vj/, .venv,
+    // node_modules, downloaded models -- is never touched by either command.
+    method: "shell.run",
+    params: {
+      message: "git fetch origin main",
+      path: "app"
+    }
+  }, {
+    method: "shell.run",
+    params: {
+      message: "git reset --hard FETCH_HEAD",
+      path: "app"
+    }
+  }, {
+    method: "shell.run",
+    params: {
+      message: "git submodule update --init --recursive",
+      path: "app"
+    }
+  }, {
+    // The app ships its git hooks in .githooks (ruff on every commit, the
+    // cross-platform lock check). theDAW.bat / theDAW.sh set this on every
+    // launch; the launcher sets it on every Install and Update instead.
+    method: "shell.run",
+    params: {
+      message: "git config core.hooksPath .githooks",
+      path: "app"
+    }
+  }, {
+    // pyk4a-bundle (Azure Kinect backend for AKVJ) only ships a
+    // manylinux_2_38 wheel. On older glibc the whole sync fails on it, so
+    // retry without it, exactly like theDAW.sh and the Dockerfile do.
+    when: "{{platform === 'linux'}}",
+    method: "shell.run",
+    params: {
+      path: "app",
+      message: [
+        "uv sync --group dev || uv sync --group dev --no-install-package pyk4a-bundle"
+      ]
+    }
+  }, {
+    when: "{{platform === 'darwin'}}",
+    method: "shell.run",
+    params: {
+      path: "app",
+      env: { "CFLAGS": "-Wno-incompatible-function-pointer-types" },
+      message: [
+        "uv sync --group dev"
+      ]
+    }
+  }, {
+    when: "{{platform === 'win32'}}",
+    method: "shell.run",
+    params: {
+      path: "app",
+      message: [
+        "uv sync --group dev"
+      ]
+    }
+  }, {
+    // The Underfit trainer tab has its own venv (~2.5 GB of torch). Only
+    // re-sync it when a previous Install or the app's self-repair built it.
+    when: "{{exists('app/underfit/pyproject.toml') && exists('app/underfit/.venv')}}",
+    method: "shell.run",
+    params: {
+      path: "app/underfit",
+      message: [
+        "uv sync --inexact"
+      ]
+    }
+  }, {
+    method: "shell.run",
+    params: {
+      path: "app/frontend",
+      message: [
+        "npm install"
+      ]
+    }
+  }, {
+    when: "{{exists('app/VST-Foundry-UI/VST-UI-FOUNDRY/package.json')}}",
+    method: "shell.run",
+    params: {
+      path: "app/VST-Foundry-UI/VST-UI-FOUNDRY",
+      message: [
+        "npm install"
+      ]
+    }
+  }, {
+    // git pull never re-provisions the VJ app (it's a separate clone, not a
+    // submodule), so once app/vj goes missing the VJ tab stays broken across
+    // every Update. Re-clone it here when absent so Update self-heals.
+    when: "{{!exists('app/vj')}}",
+    method: "shell.run",
+    params: {
+      path: "app",
+      message: [
+        "git clone https://github.com/gantasmo/VJ-9000 vj"
+      ]
+    }
+  }, {
+    // sharp (a VJ-9000 dependency) skips its prebuilt binary and builds from
+    // source whenever pkg-config finds a system libvips, which a Linux
+    // desktop often has, and that build aborts on a missing node-addon-api
+    // and takes the whole Update with it. SHARP_IGNORE_GLOBAL_LIBVIPS makes
+    // sharp use the prebuilt binary on every machine.
+    method: "shell.run",
+    params: {
+      path: "app/vj",
+      env: { "SHARP_IGNORE_GLOBAL_LIBVIPS": "1" },
+      message: [
+        "npm install"
+      ]
+    }
+  }, {
+    // npm 11 warns about dependencies whose install scripts have not been
+    // reviewed, and npm 12 will BLOCK them. theDAW records its own approvals
+    // in frontend/package.json and electron-ui/package.json; VJ-9000 is a
+    // separate repository, so its approvals are written into the clone here.
+    // Tolerant on purpose: an npm without the command must not fail Update.
+    method: "shell.run",
+    params: {
+      path: "app/vj",
+      message: [
+        "npm approve-scripts --all --no-allow-scripts-pin || echo skipped: this npm has no approve-scripts"
+      ]
+    }
+  }, {
+    // The SWAY tab is served from a compiled SwayCommand cockpit, and that
+    // build is not committed to the repo -- so a Pinokio install had no way to
+    // get one and the tab was empty on every source install. The repo is
+    // public, the build needs two packages and about a second, so the launcher
+    // makes it here. theDAW resolves <launcher>/SwayCommand/dist-embed by
+    // itself (backend/modules/sway/sidecar.py), so nothing is copied or
+    // configured afterwards.
+    when: "{{!exists('SwayCommand')}}",
+    method: "shell.run",
+    params: {
+      message: [
+        "git clone --depth 1 https://github.com/danieljtrujillo/SwayCommand SwayCommand"
+      ]
+    }
+  }, {
+    // Shallow clone: fetch + reset rather than pull, so a force-push upstream
+    // cannot leave Update stuck on a merge it can never do.
+    method: "shell.run",
+    params: {
+      path: "SwayCommand",
+      message: [
+        "git fetch --depth 1 origin main"
+      ]
+    }
+  }, {
+    method: "shell.run",
+    params: {
+      path: "SwayCommand",
+      message: [
+        "git reset --hard FETCH_HEAD"
+      ]
+    }
+  }, {
+    // --no-save: the bundler needs esbuild and three, and the clone stays
+    // clean, so the fetch/reset above never collides with a dirtied manifest.
+    method: "shell.run",
+    params: {
+      path: "SwayCommand",
+      message: [
+        "npm install --no-save --no-audit --no-fund esbuild three"
+      ]
+    }
+  }, {
+    method: "shell.run",
+    params: {
+      path: "SwayCommand",
+      message: [
+        "npm run build:renderer:embed"
+      ]
+    }
+  }, {
+    // Live VST3 (instruments, plugin windows, hosted effects) runs in the
+    // app's native plugin host, a Windows-only C++ program that is never
+    // committed, so a clone has none until build.ps1 makes it. Pinokio's AI
+    // bundle installs the Visual Studio Build Tools, build.ps1 finds them
+    // through vswhere, and CMake comes from conda. conda's CMake is installed
+    // even when another cmake is on PATH: build.ps1 takes the newest Visual
+    // Studio its cmake can generate for, and an old cmake skips a current
+    // Visual Studio for an older one that may have no compiler.
+    // CMAKE_GENERATOR is cleared so build.ps1 picks the Visual Studio
+    // generator itself: Pinokio's own cmake module sets it to MinGW Makefiles.
+    // -NoWerror because a user's compiler is not the one CI builds with.
+    // Tolerant on purpose: the host is optional and must not fail Update.
+    // Pinokio ends a step with an error as soon as its output matches
+    // /error:/i or /errno /i, whatever the exit code, so both patterns are
+    // switched off here and the `||` fallback says what happened.
+    // build-vst-host.json runs the same build and reports a failure.
+    when: "{{platform === 'win32' && exists('app/native/vst-host/build.ps1')}}",
+    method: "shell.run",
+    params: {
+      path: "app",
+      on: [
+        { event: "/error:/i", break: false },
+        { event: "/errno /i", break: false }
+      ],
+      message: [
+        "conda install -y -c conda-forge cmake || echo theDAW: CMake could not be installed, so the live VST3 host is skipped.",
+        "(set \"CMAKE_GENERATOR=\" & powershell -NoProfile -ExecutionPolicy Bypass -File native\\vst-host\\build.ps1 -NoWerror) || echo theDAW: the live VST3 host did not build. Everything else works. Run Build VST3 Host from the launcher menu to see the error."
+      ]
+    }
+  }]
+}

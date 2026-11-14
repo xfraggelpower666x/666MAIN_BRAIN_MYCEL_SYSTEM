@@ -1,0 +1,818 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+  /* Orbitron, the @font-face below, for wordmarks and group headings. */
+  --font-display: "Orbitron", "Segoe UI", ui-sans-serif, sans-serif;
+
+  /* The colour names orb-kit was written against.
+   *
+   * frontend/src/orb-kit/AssistantPanel.tsx and ProviderModelSelector.tsx were
+   * ported from a host whose Tailwind config defined `surface`, `border`,
+   * `primary` and `muted`. theDAW never did, so all 71 of their uses —
+   * `bg-surface/95`, `border-border`, `text-primary`, `text-muted`,
+   * `bg-primary`, `from-primary` — compiled to NOTHING. Confirmed against the
+   * shipped bundle: `.bg-surface`, `.border-border`, `.text-muted`,
+   * `.text-primary` and `.bg-primary` appear zero times in it, while
+   * `.backdrop-blur-sm` and `.shadow-2xl` on the very same element appear once
+   * each.
+   *
+   * The visible consequence: the assistant's chat panel had no fill at all. It
+   * was a bare `backdrop-filter: blur(8px)` pane, so it took the colour of
+   * whatever sat behind it. On theDAW's dark chrome that passed for deliberate
+   * dark glass, which is why it went unnoticed. Over the SCORE tab it does not:
+   * the sheet is painted white (ScoreView `[&>svg]:bg-white`, SheetStrip's
+   * `bg-white` pane), so the panel and its near-white text both went white and
+   * unreadable.
+   *
+   * The values are theDAW's OWN palette from the `:root` block below, not new
+   * colours, so the panel now matches every other panel in the app. Keep them
+   * in step with it:
+   *   surface = --panel · border = --panel-border · primary = --accent ·
+   *   muted = --text-secondary
+   * Literal hex rather than `var(--panel)` because `bg-surface/95` needs a
+   * colour Tailwind can mix an alpha into.
+   *
+   * `text-primary` is the ACCENT here, not body text — `bg-primary/20
+   * text-primary` at AssistantPanel.tsx:745 is an accent pill, and :847 uses it
+   * to emphasise a value beside a `text-muted` label. One token serves
+   * text/bg/from correctly. */
+  --color-surface: #110e1a;
+  --color-border: #231e38;
+  --color-primary: #8b5cf6;
+  --color-muted: #94a3b8;
+}
+
+/* Theme ink / border utilities (see lib/editThemes.ts + the APP THEMING block
+   below). Real Tailwind utilities, so variants compose: `hover:et-ink`,
+   `focus-visible:et-outline`. Use these in chrome that must read on EVERY
+   theme instead of a hardcoded zinc shade. */
+@utility et-ink { color: rgb(var(--et-ink)); }
+@utility et-ink-2 { color: rgb(var(--et-ink-2)); }
+@utility et-ink-3 { color: rgb(var(--et-ink-3)); }
+@utility et-ink-inv { color: rgb(var(--et-ink-inv)); }
+/* A latched key's legend and the dock's accent readouts: the theme accent as
+   ink on a key tile or a field, mixed 15% toward white so a 12px legend holds
+   4.5:1 on a dark tile (the default purple: 5.4:1); light themes take it darker
+   below. A latched key's bottom edge stays the pure accent. (--et-accent-ink is
+   a different colour: the ink that reads on a solid accent fill.) */
+@utility et-accent-legend { color: color-mix(in srgb, rgb(var(--et-accent)) 85%, white); }
+@utility et-border { border-color: rgb(var(--et-border)); }
+@utility et-outline { outline-color: rgb(var(--et-ink)); }
+@utility et-bg-tint { background-color: rgb(var(--et-tint) / 0.12); }
+
+/* Orbitron — techno display face for the boot wordmark ("by GANTASMO").
+   Bundled locally (frontend/public/Orbitron.ttf) so the boot needs no network. */
+@font-face {
+  font-family: "Orbitron";
+  src: url("/Orbitron.ttf") format("truetype");
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Boot screen animations (loading bar sweep + the "brought to you by" glitch). */
+@keyframes boot-sweep {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(360%); }
+}
+@keyframes boot-glitch {
+  0% { opacity: 0; transform: translateX(-6px); clip-path: inset(40% 0 40% 0); }
+  20% { opacity: 1; transform: translateX(4px); clip-path: inset(0 0 70% 0); text-shadow: 2px 0 #5cf0ff, -2px 0 #ff3b6b; }
+  40% { transform: translateX(-3px); clip-path: inset(60% 0 10% 0); text-shadow: -2px 0 #5cf0ff, 2px 0 #ff3b6b; }
+  60% { transform: translateX(2px); clip-path: inset(10% 0 30% 0); text-shadow: none; }
+  100% { opacity: 1; transform: translateX(0); clip-path: inset(0 0 0 0); text-shadow: none; }
+}
+.boot-glitch {
+  animation: boot-glitch 0.9s steps(2, end) 1 both, boot-flicker 2.2s ease-in-out infinite;
+}
+@keyframes boot-flicker {
+  0%, 100% { opacity: 0.92; }
+  50% { opacity: 1; }
+}
+
+@layer base {
+  :root {
+    --bg: #07050a;
+    --panel: #110e1a;
+    --panel-border: #231e38;
+    --accent: #8b5cf6;
+    --accent-glow: rgba(139, 92, 246, 0.4);
+    --text-primary: #f5f3ff;
+    --text-secondary: #94a3b8;
+    --muted: #4b4453;
+  }
+
+  body {
+    @apply bg-(--bg) text-(--text-primary) antialiased selection:bg-purple-500/30 font-sans overflow-hidden h-screen w-screen;
+    background: radial-gradient(circle at 50% -20%, #1e1333 0%, var(--bg) 60%);
+  }
+}
+
+@layer components {
+  /* CHANGED: hide scrollbars while keeping scroll — used by the new Catalogue
+     and Suno panels (ported components reference `.no-scrollbar`). */
+  .no-scrollbar {
+    scrollbar-width: none;          /* Firefox */
+    -ms-overflow-style: none;       /* old Edge/IE */
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;                  /* Chromium/WebKit */
+  }
+
+  /* Always-visible scrollbar for the LOG (and anywhere legibility beats
+     minimalism). Hardcoded colors so it reads on ANY theme — the global 5px
+     bg-white/5 thumb vanishes on both dark and light surfaces. */
+  .log-scroll {
+    scrollbar-width: thin;                                    /* Firefox */
+    scrollbar-color: rgba(139, 92, 246, 0.75) rgba(120, 120, 140, 0.18);
+    scrollbar-gutter: stable;
+  }
+  .log-scroll::-webkit-scrollbar {
+    width: 10px;
+  }
+  .log-scroll::-webkit-scrollbar-track {
+    background: rgba(120, 120, 140, 0.18);
+    border-radius: 6px;
+  }
+  .log-scroll::-webkit-scrollbar-thumb {
+    background: rgba(139, 92, 246, 0.75);
+    border-radius: 6px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    min-height: 32px;
+  }
+  .log-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(139, 92, 246, 0.95);
+    background-clip: padding-box;
+  }
+
+  /* Shell scale. The DAW is laid out on a fixed logical canvas and rendered
+     under CSS `zoom` so that canvas always fits the window. The factor is a
+     CONTINUOUS function of BOTH window width and height (lib/layoutScale.ts:
+     min(innerWidth / DESIGN_W, (innerHeight - footer) / DESIGN_SHELL_H),
+     clamped) and is published by Shell.tsx as the inline `--layout-zoom`
+     custom property — this rule only turns that property into the zoom.
+     --layout-zoom stays the contract for every consumer that pre-compensates
+     (`calc(... / var(--layout-zoom))`, canvasScale.effectiveZoom, the
+     LineageModal counter-zoom). The old width-only 0.85 / 0.95 / 1.1
+     breakpoint tiers are gone: they had no height term and a cliff at 1440px. */
+  .dense-layout {
+    --layout-zoom: 1;
+    zoom: var(--layout-zoom);
+  }
+
+  /* DJ performance pads: the pad grid is a size container so the pads shrink
+     to whatever height their surface cell has (instead of overflowing and being
+     clipped), and the tiny top caption drops out when a pad gets too short. */
+  .dj-pad-grid {
+    container-type: size;
+  }
+  @container (max-height: 34px) {
+    .dj-pad-top {
+      display: none;
+    }
+  }
+
+  .hardware-card {
+    @apply bg-(--panel) border border-(--panel-border) rounded shadow-xl p-2 overflow-hidden flex flex-col;
+  }
+
+  .compact-input {
+    @apply bg-black/40 border border-(--panel-border) rounded px-1.5 py-0.5 text-[11px] font-mono text-white focus:border-purple-500 outline-none transition-all placeholder:text-zinc-700;
+  }
+
+  .pro-slider {
+    @apply w-full h-0.75 bg-zinc-800 rounded-full appearance-none cursor-pointer accent-purple-500;
+  }
+  .pro-slider::-webkit-slider-thumb {
+    @apply w-3 h-3 bg-purple-500 rounded-full appearance-none border-2 border-white/10 shadow-lg;
+  }
+
+  .mono-label {
+    @apply font-mono text-[9px] uppercase tracking-wider text-(--text-secondary);
+  }
+
+  .mono-tag {
+    @apply font-mono text-[8px] uppercase tracking-tighter bg-purple-500/10 text-purple-400 px-1 py-0.5 rounded border border-purple-500/20 leading-none;
+  }
+
+  .btn-primary {
+    @apply bg-purple-600 hover:bg-purple-500 text-white font-bold py-1.5 px-3 rounded text-[11px] uppercase tracking-widest transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .btn-ghost {
+    @apply bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/5 py-1 px-2 rounded text-[10px] transition-all;
+  }
+
+  /* High-contrast <select> matching .compact-input. Carries no padding /
+     text-size so it composes with each control's own sizing classes
+     (px/py/text-*). color-scheme keeps the native option popup dark. */
+  .form-select {
+    @apply bg-black/40 border border-(--panel-border) rounded text-white outline-none focus:border-purple-500 cursor-pointer transition-colors;
+    color-scheme: dark;
+  }
+}
+
+/* Native <select> popups render dark + legible everywhere (the browser
+   default is a white option list that clashes with theDAW's dark panels);
+   option rows take the panel palette so the open list matches the app. */
+select { color-scheme: dark; }
+select option,
+select optgroup {
+  background-color: var(--panel);
+  color: var(--text-primary);
+}
+
+@theme {
+  --grid-template-columns-16: repeat(16, minmax(0, 1fr));
+  --grid-template-columns-32: repeat(32, minmax(0, 1fr));
+}
+
+/* Scrollbar Tweaks */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { @apply bg-white/5 rounded-full; }
+::-webkit-scrollbar-thumb:hover { @apply bg-white/10; }
+
+.custom-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 8px;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+ * App-wide TEXT-ONLY resizer (Settings → Edit Layout Settings → Text size).
+ * Multiplies every font-size utility by --text-scale (default 1 = no change).
+ * font-size ONLY — padding, widths, icons, gaps are untouched, so the layout
+ * does not balloon. Rules are UNLAYERED + !important so they win over Tailwind
+ * utilities, including the important `!` variants (e.g. `text-[9px]!`).
+ * Set from App.tsx via document.documentElement.style --text-scale.
+ * ─────────────────────────────────────────────────────────────────────────── */
+:root { --text-scale: 1; }
+
+/* Custom text classes bake their size in via @apply, so scale them too. Listed
+ * BEFORE the text-[Npx] rules so an explicit `text-[Npx]` still wins when an
+ * element uses both (e.g. `mono-label text-[10px]!`). */
+.compact-input { font-size: calc(11px * var(--text-scale, 1)) !important; }
+.mono-label    { font-size: calc(9px  * var(--text-scale, 1)) !important; }
+.mono-tag      { font-size: calc(8px  * var(--text-scale, 1)) !important; }
+.btn-primary   { font-size: calc(11px * var(--text-scale, 1)) !important; }
+.btn-ghost     { font-size: calc(10px * var(--text-scale, 1)) !important; }
+
+.text-\[6px\],  .text-\[6px\]\!  { font-size: calc(6px  * var(--text-scale, 1)) !important; }
+.text-\[7px\],  .text-\[7px\]\!  { font-size: calc(7px  * var(--text-scale, 1)) !important; }
+.text-\[8px\],  .text-\[8px\]\!  { font-size: calc(8px  * var(--text-scale, 1)) !important; }
+.text-\[9px\],  .text-\[9px\]\!  { font-size: calc(9px  * var(--text-scale, 1)) !important; }
+.text-\[10px\], .text-\[10px\]\! { font-size: calc(10px * var(--text-scale, 1)) !important; }
+.text-\[11px\], .text-\[11px\]\! { font-size: calc(11px * var(--text-scale, 1)) !important; }
+.text-\[12px\], .text-\[12px\]\! { font-size: calc(12px * var(--text-scale, 1)) !important; }
+.text-\[13px\], .text-\[13px\]\! { font-size: calc(13px * var(--text-scale, 1)) !important; }
+.text-\[15px\], .text-\[15px\]\! { font-size: calc(15px * var(--text-scale, 1)) !important; }
+.text-\[18px\], .text-\[18px\]\! { font-size: calc(18px * var(--text-scale, 1)) !important; }
+
+.text-xs,   .text-xs\!   { font-size: calc(0.75rem  * var(--text-scale, 1)) !important; }
+.text-sm,   .text-sm\!   { font-size: calc(0.875rem * var(--text-scale, 1)) !important; }
+.text-base, .text-base\! { font-size: calc(1rem     * var(--text-scale, 1)) !important; }
+
+/* ---------------------------------------------------------------------------
+ * Genealogy graph hover glow (LineageModal's GenealogyView).
+ * The classes + the --glow custom property are toggled imperatively via
+ * classList so React never re-renders the mounted SVG while the mouse moves.
+ * Deliberately NO transitions on any of these rules: transitioned filters on
+ * hundreds of SVG groups forced a repaint storm; glow must apply and clear in
+ * a single frame.
+ * Node cards are small (140x140) so their drop-shadow filter surfaces stay
+ * cheap. Edges must NOT use drop-shadow: a bezier edge's <g> bounding box can
+ * span thousands of px, and the oversized filter surface makes Chromium drop
+ * or checkerboard the layer (edges visibly flash out of existence). Lit edges
+ * therefore glow via full opacity + a 3x stroke instead.
+ * ------------------------------------------------------------------------- */
+.genealogy-svg.gen-hovering g[data-node-id]:not(.gen-lit) { opacity: 0.35; }
+.genealogy-svg.gen-hovering g[data-edge-from]:not(.gen-lit) { opacity: 0.12; }
+.genealogy-svg g.gen-lit[data-node-id] { filter: drop-shadow(0 0 14px var(--glow)) brightness(1.3); }
+.genealogy-svg g.gen-lit-hot[data-node-id] { filter: drop-shadow(0 0 26px var(--glow)) drop-shadow(0 0 10px var(--glow)) brightness(1.6) saturate(1.35); }
+.genealogy-svg g.gen-lit-hot[data-node-id] > rect:first-of-type { stroke-width: 4; }
+.genealogy-svg g.gen-lit[data-edge-from] { opacity: 1; }
+.genealogy-svg g.gen-lit[data-edge-from] path { stroke-width: 4.5; }
+
+/* ───────────────────────────────────────────────────────────────────────────
+ * APP THEMING.
+ * The Shell root carries `.edit-theme-scope` and inline `--et-*` variables (see
+ * lib/editThemes.ts + state/editThemeStore.ts), so the theme applies across the
+ * whole app (every tab + chrome). These UNLAYERED rules remap the neutral
+ * chrome — every black-opacity surface, white-opacity fill, and white/hex
+ * border — onto those variables. Unlayered beats Tailwind's utilities layer, so
+ * no per-element class edits are needed; the default "Midnight" variables
+ * reproduce the original palette exactly, so an un-themed app is pixel-identical.
+ * Semantic accents (purple/red/amber/…) are intentionally NOT remapped. Modals
+ * portaled to <body> sit outside the scope and keep the default dark chrome.
+ * ─────────────────────────────────────────────────────────────────────────── */
+.edit-theme-scope {
+  background: var(--et-root-bg);
+  /* Drive the app design tokens so every hardware-card and token-built box
+     (MAKE / MIX / chrome) re-themes, not only the hardcoded-utility surfaces. */
+  --bg: var(--et-canvas);
+  --panel: var(--et-panel);
+  --panel-border: var(--et-line-hex);
+}
+
+/* Black-opacity surface fills → themed shade (one base preserves the hierarchy). */
+.edit-theme-scope .bg-black\/20 { background-color: rgb(var(--et-shade) / 0.20); }
+.edit-theme-scope .bg-black\/30 { background-color: rgb(var(--et-shade) / 0.30); }
+.edit-theme-scope .bg-black\/40 { background-color: rgb(var(--et-shade) / 0.40); }
+.edit-theme-scope .bg-black\/50 { background-color: rgb(var(--et-shade) / 0.50); }
+.edit-theme-scope .bg-black\/60 { background-color: rgb(var(--et-shade) / 0.60); }
+.edit-theme-scope .bg-black\/80 { background-color: rgb(var(--et-shade) / 0.80); }
+.edit-theme-scope .bg-black\/90 { background-color: rgb(var(--et-shade) / 0.90); }
+.edit-theme-scope .bg-black\/95 { background-color: rgb(var(--et-shade) / 0.95); }
+
+/* Solid hex + neutral (zinc/slate) surfaces across the whole app, grouped by
+   depth tier so panels keep their relative elevation under any theme. */
+.edit-theme-scope .bg-\[\#07050a\],
+.edit-theme-scope .bg-\[\#07080c\] { background-color: var(--et-canvas); }
+.edit-theme-scope .bg-\[\#0a080f\],
+.edit-theme-scope .bg-\[\#0a0c14\],
+.edit-theme-scope .bg-\[\#0d0b16\],
+.edit-theme-scope .bg-\[\#0f0f12\],
+.edit-theme-scope .bg-\[\#101215\],
+.edit-theme-scope .bg-\[\#111114\],
+.edit-theme-scope .bg-zinc-950,
+.edit-theme-scope .bg-zinc-900 { background-color: var(--et-popup); }
+.edit-theme-scope .bg-\[\#0c0a12\],
+.edit-theme-scope .bg-\[\#0c0a14\],
+.edit-theme-scope .bg-\[\#15171b\],
+.edit-theme-scope .bg-\[\#150f22\],
+.edit-theme-scope .bg-\[\#140e20\],
+.edit-theme-scope .bg-zinc-800,
+.edit-theme-scope .bg-zinc-700 { background-color: var(--et-panel); }
+.edit-theme-scope .bg-\[\#202329\],
+.edit-theme-scope .bg-\[\#343841\],
+.edit-theme-scope .bg-\[\#3a3d45\],
+.edit-theme-scope .bg-\[\#3b3f47\],
+.edit-theme-scope .bg-\[\#454a54\],
+.edit-theme-scope .bg-\[\#4a4f59\],
+.edit-theme-scope .bg-zinc-600,
+.edit-theme-scope .bg-zinc-500 { background-color: var(--et-elevated, var(--et-panel)); }
+.edit-theme-scope .bg-zinc-950\/95,
+.edit-theme-scope .bg-zinc-900\/95 { background-color: rgb(var(--et-shade) / 0.95); }
+.edit-theme-scope .bg-zinc-500\/10 { background-color: rgb(var(--et-tint) / 0.10); }
+.edit-theme-scope .bg-zinc-500\/20 { background-color: rgb(var(--et-tint) / 0.20); }
+.edit-theme-scope .bg-slate-500\/30 { background-color: rgb(var(--et-tint) / 0.14); }
+
+/* Surfaces drawn over other content (a dialog across a pane, a sticky head
+   over a scrolling list, a menu) carry `et-opaque`. Brushed Steel, the
+   gradient themes and the custom image give the canvas, popup and panel tiers
+   translucent values so the backdrop shows through the panes; on an overlay
+   that shows the content underneath. These take the tier's own colour at full
+   alpha, which leaves every theme with an opaque tier unchanged.
+   Pinned by components/layout/sing/opaqueOverlays.test.ts. */
+.edit-theme-scope .et-opaque:is(.bg-\[\#07050a\], .bg-\[\#07080c\]) { background-color: rgb(from var(--et-canvas) r g b / 1); }
+.edit-theme-scope .et-opaque:is(.bg-\[\#0a080f\], .bg-\[\#0a0c14\], .bg-\[\#0d0b16\], .bg-\[\#0f0f12\],
+  .bg-\[\#101215\], .bg-\[\#111114\], .bg-zinc-950, .bg-zinc-900) { background-color: rgb(from var(--et-popup) r g b / 1); }
+.edit-theme-scope .et-opaque:is(.bg-\[\#0c0a12\], .bg-\[\#0c0a14\], .bg-\[\#15171b\], .bg-\[\#150f22\],
+  .bg-\[\#140e20\], .bg-zinc-800, .bg-zinc-700) { background-color: rgb(from var(--et-panel) r g b / 1); }
+
+/* White-opacity subtle fills → themed tint. */
+.edit-theme-scope .bg-white\/2 { background-color: rgb(var(--et-tint) / 0.02); }
+.edit-theme-scope .bg-white\/5 { background-color: rgb(var(--et-tint) / 0.05); }
+.edit-theme-scope .bg-white\/10 { background-color: rgb(var(--et-tint) / 0.10); }
+.edit-theme-scope .bg-white\/20 { background-color: rgb(var(--et-tint) / 0.20); }
+.edit-theme-scope .bg-white\/30 { background-color: rgb(var(--et-tint) / 0.30); }
+.edit-theme-scope .bg-white\/40 { background-color: rgb(var(--et-tint) / 0.40); }
+.edit-theme-scope .bg-white\/60 { background-color: rgb(var(--et-tint) / 0.60); }
+.edit-theme-scope .bg-white\/70 { background-color: rgb(var(--et-tint) / 0.70); }
+
+/* Borders. */
+.edit-theme-scope .border-white\/5 { border-color: rgb(var(--et-line) / 0.05); }
+.edit-theme-scope .border-white\/8 { border-color: rgb(var(--et-line) / 0.08); }
+.edit-theme-scope .border-white\/10 { border-color: rgb(var(--et-line) / 0.10); }
+.edit-theme-scope .border-white\/12 { border-color: rgb(var(--et-line) / 0.12); }
+.edit-theme-scope .border-white\/15 { border-color: rgb(var(--et-line) / 0.15); }
+.edit-theme-scope .border-white\/25 { border-color: rgb(var(--et-line) / 0.25); }
+.edit-theme-scope .border-white\/30 { border-color: rgb(var(--et-line) / 0.30); }
+.edit-theme-scope .border-white\/40 { border-color: rgb(var(--et-line) / 0.40); }
+.edit-theme-scope .border-\[\#1a1528\],
+.edit-theme-scope .border-\[\#221d36\],
+.edit-theme-scope .border-\[\#1a1d28\],
+.edit-theme-scope .border-zinc-800,
+.edit-theme-scope .border-zinc-700 { border-color: var(--et-line-hex); }
+.edit-theme-scope .border-zinc-600,
+.edit-theme-scope .border-zinc-500 { border-color: rgb(var(--et-line) / 0.30); }
+.edit-theme-scope .border-zinc-600\/40 { border-color: rgb(var(--et-line) / 0.26); }
+.edit-theme-scope .border-zinc-500\/30 { border-color: rgb(var(--et-line) / 0.20); }
+.edit-theme-scope .border-zinc-500\/20 { border-color: rgb(var(--et-line) / 0.15); }
+.edit-theme-scope .border-slate-500\/60 { border-color: rgb(var(--et-line) / 0.32); }
+
+/* ───────────────────────────────────────────────────────────────────────────
+ * INK TIERS — high-visibility text on EVERY theme.
+ * The app's labels are hardcoded zinc utilities tuned for the dark default
+ * (text-zinc-500/600/700 at 7–10px is everywhere), so on dark themes muted
+ * labels sat far under 4.5:1 and on light themes light-on-light happened.
+ * Each theme now defines ink tokens (lib/editThemes.ts) chosen against ITS
+ * surfaces: --et-ink ≥ 7:1 (primary), --et-ink-2 ≥ 4.5:1 (secondary),
+ * --et-ink-3 ≥ 4.5:1 (muted / meta — still legible), --et-ink-inv (text on
+ * accent fills), --et-border ≥ 3:1 (interactive-control border floor). The
+ * rules below re-point the hardcoded utilities onto those tiers. Hover /
+ * group-hover variants are remapped too (an unlayered base rule would
+ * otherwise beat the layered hover utility and freeze hover feedback).
+ * ─────────────────────────────────────────────────────────────────────────── */
+.edit-theme-scope {
+  color: rgb(var(--et-ink));
+  --text-primary: rgb(var(--et-ink));
+  --text-secondary: rgb(var(--et-ink-2));
+  --muted: rgb(var(--et-ink-3));
+  /* Inline-coloured labels (MIX I/O meter titles, module palette names) read
+     this hook first: ink for the glyphs, the palette colour stays as a glow. */
+  --mix-label: rgb(var(--et-ink));
+}
+
+/* Primary tier. */
+.edit-theme-scope :is(.text-white, .text-zinc-50, .text-zinc-100, .text-zinc-200, .text-zinc-300,
+  .text-gray-300, .text-slate-200, .text-\[\#f5f3ff\], .text-white\/80, .text-white\/90) { color: rgb(var(--et-ink)); }
+/* Secondary tier. */
+.edit-theme-scope :is(.text-zinc-400, .text-gray-400, .text-white\/70) { color: rgb(var(--et-ink-2)); }
+/* Muted tier — floored so meta text is still readable. (zinc-800/900 are
+ * dark-on-light text, e.g. piano keys, and are left alone.) */
+.edit-theme-scope :is(.text-zinc-500, .text-zinc-600, .text-zinc-700, .text-gray-500, .text-gray-600,
+  .text-slate-500, .text-white\/40, .text-white\/50, .text-white\/60) { color: rgb(var(--et-ink-3)); }
+/* Placeholders — every field, whatever utility (or none) it carries. */
+.edit-theme-scope :is(input, textarea)::placeholder,
+.edit-theme-scope :is(.placeholder\:text-zinc-500, .placeholder\:text-zinc-600, .placeholder\:text-zinc-800,
+  .placeholder-zinc-500)::placeholder { color: rgb(var(--et-ink-3)); opacity: 1; }
+/* Hover / group-hover variants (higher specificity than the tier rules). */
+.edit-theme-scope :is(.hover\:text-white, .hover\:text-zinc-50, .hover\:text-zinc-100, .hover\:text-zinc-200, .hover\:text-zinc-300):hover,
+.edit-theme-scope :is(.group-hover\:text-white, .group-hover\:text-zinc-100, .group-hover\:text-zinc-200, .group-hover\:text-zinc-300):is(:where(.group):hover *) { color: rgb(var(--et-ink)); }
+.edit-theme-scope :is(.hover\:text-zinc-400):hover,
+.edit-theme-scope :is(.group-hover\:text-zinc-400):is(:where(.group):hover *) { color: rgb(var(--et-ink-2)); }
+.edit-theme-scope :is(.hover\:text-zinc-500):hover { color: rgb(var(--et-ink-3)); }
+
+/* Interactive-control border floor: a bordered button / field / slider reads
+ * as a control on every theme (≥ 3:1). Plain panel dividers keep their
+ * subtle themed line. */
+.edit-theme-scope :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"],
+  [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-white\/3, .border-white\/4, .border-white\/5,
+  .border-white\/8, .border-white\/10, .border-white\/12, .border-white\/15, .border-white\/20, .border-white\/25,
+  .border-zinc-800, .border-zinc-700, .border-zinc-600, .border-zinc-500, .border-\[\#1a1528\], .border-\[\#221d36\],
+  .border-\[\#1a1d28\]) { border-color: rgb(var(--et-border)); }
+/* Keyboard focus is always visible, whatever the control's own ring does. */
+.edit-theme-scope :is(button, input, select, textarea, a[href], [role="slider"], [role="button"], [role="tab"],
+  [role="switch"], [role="checkbox"], [role="combobox"], [tabindex]):focus-visible {
+  outline: 2px solid rgb(var(--et-ink));
+  outline-offset: 1px;
+}
+
+/* Accent text on DARK themes: the -400 step of the cool hues (and every
+ * -500/-600 used as text) sits under 4.5:1 on the dark panels — lift one or
+ * two steps within the same hue. */
+.edit-theme-scope:not([data-et-light="1"]) .text-purple-400,
+.edit-theme-scope:not([data-et-light="1"]) .text-purple-500,
+.edit-theme-scope:not([data-et-light="1"]) .text-purple-600 { color: var(--color-purple-300, #d8b4fe); }
+.edit-theme-scope:not([data-et-light="1"]) .text-violet-400,
+.edit-theme-scope:not([data-et-light="1"]) .text-violet-500,
+.edit-theme-scope:not([data-et-light="1"]) .text-violet-600 { color: var(--color-violet-300, #c4b5fd); }
+.edit-theme-scope:not([data-et-light="1"]) .text-indigo-400,
+.edit-theme-scope:not([data-et-light="1"]) .text-indigo-500,
+.edit-theme-scope:not([data-et-light="1"]) .text-indigo-600 { color: var(--color-indigo-300, #a5b4fc); }
+.edit-theme-scope:not([data-et-light="1"]) .text-blue-400,
+.edit-theme-scope:not([data-et-light="1"]) .text-blue-500,
+.edit-theme-scope:not([data-et-light="1"]) .text-blue-600 { color: var(--color-blue-300, #93c5fd); }
+.edit-theme-scope:not([data-et-light="1"]) .text-red-400,
+.edit-theme-scope:not([data-et-light="1"]) .text-red-500,
+.edit-theme-scope:not([data-et-light="1"]) .text-red-600 { color: var(--color-red-300, #fca5a5); }
+.edit-theme-scope:not([data-et-light="1"]) .text-rose-400,
+.edit-theme-scope:not([data-et-light="1"]) .text-rose-500,
+.edit-theme-scope:not([data-et-light="1"]) .text-rose-600 { color: var(--color-rose-300, #fda4af); }
+.edit-theme-scope:not([data-et-light="1"]) .text-pink-400,
+.edit-theme-scope:not([data-et-light="1"]) .text-pink-500,
+.edit-theme-scope:not([data-et-light="1"]) .text-pink-600 { color: var(--color-pink-300, #f9a8d4); }
+.edit-theme-scope:not([data-et-light="1"]) .text-fuchsia-400,
+.edit-theme-scope:not([data-et-light="1"]) .text-fuchsia-500,
+.edit-theme-scope:not([data-et-light="1"]) .text-fuchsia-600 { color: var(--color-fuchsia-300, #f0abfc); }
+.edit-theme-scope:not([data-et-light="1"]) .text-orange-400,
+.edit-theme-scope:not([data-et-light="1"]) .text-orange-500,
+.edit-theme-scope:not([data-et-light="1"]) .text-orange-600 { color: var(--color-orange-300, #fdba74); }
+.edit-theme-scope:not([data-et-light="1"]) .text-emerald-500,
+.edit-theme-scope:not([data-et-light="1"]) .text-emerald-600 { color: var(--color-emerald-400, #34d399); }
+.edit-theme-scope:not([data-et-light="1"]) .text-green-500,
+.edit-theme-scope:not([data-et-light="1"]) .text-green-600 { color: var(--color-green-400, #4ade80); }
+.edit-theme-scope:not([data-et-light="1"]) .text-teal-500,
+.edit-theme-scope:not([data-et-light="1"]) .text-teal-600 { color: var(--color-teal-400, #2dd4bf); }
+.edit-theme-scope:not([data-et-light="1"]) .text-cyan-500,
+.edit-theme-scope:not([data-et-light="1"]) .text-cyan-600 { color: var(--color-cyan-400, #22d3ee); }
+.edit-theme-scope:not([data-et-light="1"]) .text-sky-500,
+.edit-theme-scope:not([data-et-light="1"]) .text-sky-600 { color: var(--color-sky-400, #38bdf8); }
+.edit-theme-scope:not([data-et-light="1"]) .text-amber-600 { color: var(--color-amber-400, #fbbf24); }
+.edit-theme-scope:not([data-et-light="1"]) .text-yellow-600 { color: var(--color-yellow-400, #facc15); }
+.edit-theme-scope:not([data-et-light="1"]) .text-lime-600 { color: var(--color-lime-400, #a3e635); }
+
+/* LIGHT THEMES: accent text inverts within its hue — the pale -50…-300 steps
+ * that read on dark panels become the deep -900 step, and -400/-500/-600 become
+ * -700 (cool hues) / -800 (bright hues) — so tab labels, badges and status text keep their colour identity
+ * and pass 4.5:1 on light surfaces. */
+/* A latched dock key's accent legend sits on a tinted tile, not the page: 20%
+ * toward black keeps it at 4.5:1 or better there (paper: 5.6:1). */
+.edit-theme-scope[data-et-light="1"] .et-accent-legend { color: color-mix(in srgb, rgb(var(--et-accent)) 80%, black); }
+.edit-theme-scope[data-et-light="1"] :is(.text-purple-50, .text-purple-100, .text-purple-200, .text-purple-300) { color: var(--color-purple-900, #581c87); }
+.edit-theme-scope[data-et-light="1"] :is(.text-purple-400, .text-purple-500, .text-purple-600) { color: var(--color-purple-700, #7e22ce); }
+.edit-theme-scope[data-et-light="1"] :is(.text-violet-50, .text-violet-100, .text-violet-200, .text-violet-300) { color: var(--color-violet-900, #4c1d95); }
+.edit-theme-scope[data-et-light="1"] :is(.text-violet-400, .text-violet-500, .text-violet-600) { color: var(--color-violet-700, #6d28d9); }
+.edit-theme-scope[data-et-light="1"] :is(.text-indigo-50, .text-indigo-100, .text-indigo-200, .text-indigo-300) { color: var(--color-indigo-900, #312e81); }
+.edit-theme-scope[data-et-light="1"] :is(.text-indigo-400, .text-indigo-500, .text-indigo-600) { color: var(--color-indigo-700, #4338ca); }
+.edit-theme-scope[data-et-light="1"] :is(.text-blue-50, .text-blue-100, .text-blue-200, .text-blue-300) { color: var(--color-blue-900, #1e3a8a); }
+.edit-theme-scope[data-et-light="1"] :is(.text-blue-400, .text-blue-500, .text-blue-600) { color: var(--color-blue-700, #1d4ed8); }
+.edit-theme-scope[data-et-light="1"] :is(.text-sky-50, .text-sky-100, .text-sky-200, .text-sky-300) { color: var(--color-sky-900, #0c4a6e); }
+.edit-theme-scope[data-et-light="1"] :is(.text-sky-400, .text-sky-500, .text-sky-600) { color: var(--color-sky-800, #075985); }
+.edit-theme-scope[data-et-light="1"] :is(.text-cyan-50, .text-cyan-100, .text-cyan-200, .text-cyan-300) { color: var(--color-cyan-900, #164e63); }
+.edit-theme-scope[data-et-light="1"] :is(.text-cyan-400, .text-cyan-500, .text-cyan-600) { color: var(--color-cyan-800, #155e75); }
+.edit-theme-scope[data-et-light="1"] :is(.text-teal-50, .text-teal-100, .text-teal-200, .text-teal-300) { color: var(--color-teal-900, #134e4a); }
+.edit-theme-scope[data-et-light="1"] :is(.text-teal-400, .text-teal-500, .text-teal-600) { color: var(--color-teal-800, #115e59); }
+.edit-theme-scope[data-et-light="1"] :is(.text-emerald-50, .text-emerald-100, .text-emerald-200, .text-emerald-300) { color: var(--color-emerald-900, #064e3b); }
+.edit-theme-scope[data-et-light="1"] :is(.text-emerald-400, .text-emerald-500, .text-emerald-600) { color: var(--color-emerald-800, #065f46); }
+.edit-theme-scope[data-et-light="1"] :is(.text-green-50, .text-green-100, .text-green-200, .text-green-300) { color: var(--color-green-900, #14532d); }
+.edit-theme-scope[data-et-light="1"] :is(.text-green-400, .text-green-500, .text-green-600) { color: var(--color-green-800, #166534); }
+.edit-theme-scope[data-et-light="1"] :is(.text-lime-50, .text-lime-100, .text-lime-200, .text-lime-300) { color: var(--color-lime-900, #365314); }
+.edit-theme-scope[data-et-light="1"] :is(.text-lime-400, .text-lime-500, .text-lime-600) { color: var(--color-lime-800, #3f6212); }
+.edit-theme-scope[data-et-light="1"] :is(.text-yellow-50, .text-yellow-100, .text-yellow-200, .text-yellow-300) { color: var(--color-yellow-900, #713f12); }
+.edit-theme-scope[data-et-light="1"] :is(.text-yellow-400, .text-yellow-500, .text-yellow-600) { color: var(--color-yellow-800, #854d0e); }
+.edit-theme-scope[data-et-light="1"] :is(.text-amber-50, .text-amber-100, .text-amber-200, .text-amber-300) { color: var(--color-amber-900, #78350f); }
+.edit-theme-scope[data-et-light="1"] :is(.text-amber-400, .text-amber-500, .text-amber-600) { color: var(--color-amber-800, #92400e); }
+.edit-theme-scope[data-et-light="1"] :is(.text-orange-50, .text-orange-100, .text-orange-200, .text-orange-300) { color: var(--color-orange-900, #7c2d12); }
+.edit-theme-scope[data-et-light="1"] :is(.text-orange-400, .text-orange-500, .text-orange-600) { color: var(--color-orange-800, #9a3412); }
+.edit-theme-scope[data-et-light="1"] :is(.text-red-50, .text-red-100, .text-red-200, .text-red-300) { color: var(--color-red-900, #7f1d1d); }
+.edit-theme-scope[data-et-light="1"] :is(.text-red-400, .text-red-500, .text-red-600) { color: var(--color-red-700, #b91c1c); }
+.edit-theme-scope[data-et-light="1"] :is(.text-rose-50, .text-rose-100, .text-rose-200, .text-rose-300) { color: var(--color-rose-900, #881337); }
+.edit-theme-scope[data-et-light="1"] :is(.text-rose-400, .text-rose-500, .text-rose-600) { color: var(--color-rose-700, #be123c); }
+.edit-theme-scope[data-et-light="1"] :is(.text-pink-50, .text-pink-100, .text-pink-200, .text-pink-300) { color: var(--color-pink-900, #831843); }
+.edit-theme-scope[data-et-light="1"] :is(.text-pink-400, .text-pink-500, .text-pink-600) { color: var(--color-pink-700, #be185d); }
+.edit-theme-scope[data-et-light="1"] :is(.text-fuchsia-50, .text-fuchsia-100, .text-fuchsia-200, .text-fuchsia-300) { color: var(--color-fuchsia-900, #701a75); }
+.edit-theme-scope[data-et-light="1"] :is(.text-fuchsia-400, .text-fuchsia-500, .text-fuchsia-600) { color: var(--color-fuchsia-700, #a21caf); }
+
+/* LIGHT THEMES: light text that sits ON a solid accent fill (bg-purple-600
+ * text-white, gradient CTA buttons, …) must stay light — the fill is still
+ * saturated/dark on a light theme. */
+.edit-theme-scope[data-et-light="1"] :is(
+  .bg-purple-400, .bg-purple-500, .bg-purple-600, .bg-purple-700, .bg-purple-800, .bg-purple-900,
+  .bg-violet-400, .bg-violet-500, .bg-violet-600, .bg-violet-700, .bg-violet-800, .bg-violet-900,
+  .bg-indigo-400, .bg-indigo-500, .bg-indigo-600, .bg-indigo-700, .bg-indigo-800, .bg-indigo-900,
+  .bg-blue-500, .bg-blue-600, .bg-blue-700, .bg-blue-800, .bg-blue-900,
+  .bg-sky-500, .bg-sky-600, .bg-sky-700, .bg-sky-800, .bg-sky-900,
+  .bg-cyan-500, .bg-cyan-600, .bg-cyan-700, .bg-cyan-800, .bg-cyan-900,
+  .bg-teal-500, .bg-teal-600, .bg-teal-700, .bg-teal-800, .bg-teal-900,
+  .bg-emerald-500, .bg-emerald-600, .bg-emerald-700, .bg-emerald-800, .bg-emerald-900,
+  .bg-green-500, .bg-green-600, .bg-green-700, .bg-green-800, .bg-green-900,
+  .bg-amber-600, .bg-amber-700, .bg-amber-800, .bg-orange-500, .bg-orange-600, .bg-orange-700, .bg-orange-800,
+  .bg-red-500, .bg-red-600, .bg-red-700, .bg-red-800, .bg-red-900,
+  .bg-rose-500, .bg-rose-600, .bg-rose-700, .bg-rose-800, .bg-rose-900,
+  .bg-pink-500, .bg-pink-600, .bg-pink-700, .bg-pink-800, .bg-pink-900,
+  .bg-fuchsia-500, .bg-fuchsia-600, .bg-fuchsia-700, .bg-fuchsia-800, .bg-fuchsia-900,
+  .bg-black, .bg-zinc-900, .bg-zinc-950,
+  .bg-linear-to-r, .bg-linear-to-l, .bg-linear-to-t, .bg-linear-to-b, .bg-linear-to-br, .bg-linear-to-bl, .bg-linear-to-tr, .bg-linear-to-tl
+) :is(.text-white, .text-zinc-50, .text-zinc-100, .text-zinc-200, .text-zinc-300),
+.edit-theme-scope[data-et-light="1"] :is(
+  .bg-purple-400, .bg-purple-500, .bg-purple-600, .bg-purple-700, .bg-purple-800, .bg-purple-900,
+  .bg-violet-400, .bg-violet-500, .bg-violet-600, .bg-violet-700, .bg-violet-800, .bg-violet-900,
+  .bg-indigo-400, .bg-indigo-500, .bg-indigo-600, .bg-indigo-700, .bg-indigo-800, .bg-indigo-900,
+  .bg-blue-500, .bg-blue-600, .bg-blue-700, .bg-blue-800, .bg-blue-900,
+  .bg-sky-500, .bg-sky-600, .bg-sky-700, .bg-sky-800, .bg-sky-900,
+  .bg-cyan-500, .bg-cyan-600, .bg-cyan-700, .bg-cyan-800, .bg-cyan-900,
+  .bg-teal-500, .bg-teal-600, .bg-teal-700, .bg-teal-800, .bg-teal-900,
+  .bg-emerald-500, .bg-emerald-600, .bg-emerald-700, .bg-emerald-800, .bg-emerald-900,
+  .bg-green-500, .bg-green-600, .bg-green-700, .bg-green-800, .bg-green-900,
+  .bg-amber-600, .bg-amber-700, .bg-amber-800, .bg-orange-500, .bg-orange-600, .bg-orange-700, .bg-orange-800,
+  .bg-red-500, .bg-red-600, .bg-red-700, .bg-red-800, .bg-red-900,
+  .bg-rose-500, .bg-rose-600, .bg-rose-700, .bg-rose-800, .bg-rose-900,
+  .bg-pink-500, .bg-pink-600, .bg-pink-700, .bg-pink-800, .bg-pink-900,
+  .bg-fuchsia-500, .bg-fuchsia-600, .bg-fuchsia-700, .bg-fuchsia-800, .bg-fuchsia-900,
+  .bg-black, .bg-zinc-900, .bg-zinc-950,
+  .bg-linear-to-r, .bg-linear-to-l, .bg-linear-to-t, .bg-linear-to-b, .bg-linear-to-br, .bg-linear-to-bl, .bg-linear-to-tr, .bg-linear-to-tl
+):is(.text-white, .text-zinc-50, .text-zinc-100, .text-zinc-200, .text-zinc-300) { color: rgb(var(--et-ink-inv)); }
+
+
+/* Alpha-modified accent TEXT (`text-purple-300/70`, `text-amber-200/90`, …)
+ * are distinct utilities the tier rules above never see, and the alpha is
+ * what sinks them under 4.5:1. Resolve each to its hue's solid legible step:
+ * dark themes -300 for the pale/-400 steps and -400 for the bright hues'
+ * -500/-600, light themes -900 (pale steps) / -700 cool or -800 bright
+ * (the -400/-500 steps). Generated from the classes in use. */
+.edit-theme-scope:not([data-et-light="1"]) :is(.text-amber-200\/80, .text-amber-200\/90, .text-amber-300\/70, .text-amber-300\/80, .text-amber-300\/90) { color: var(--color-amber-300, #fcd34d); }
+.edit-theme-scope:not([data-et-light="1"]) :is(.text-amber-400\/70, .text-amber-400\/80, .text-amber-500\/70) { color: var(--color-amber-400, #fbbf24); }
+.edit-theme-scope:not([data-et-light="1"]) :is(.text-blue-300\/70) { color: var(--color-blue-300, #93c5fd); }
+.edit-theme-scope:not([data-et-light="1"]) :is(.text-cyan-200\/90, .text-cyan-300\/70, .text-cyan-300\/80) { color: var(--color-cyan-300, #67e8f9); }
+.edit-theme-scope:not([data-et-light="1"]) :is(.text-cyan-400\/70, .text-cyan-400\/80, .text-cyan-500\/80) { color: var(--color-cyan-400, #22d3ee); }
+.edit-theme-scope:not([data-et-light="1"]) :is(.text-emerald-200\/70, .text-emerald-200\/80, .text-emerald-200\/90, .text-emerald-300\/60, .text-emerald-300\/70, .text-emerald-300\/75, .text-emerald-300\/80) { color: var(--color-emerald-300, #6ee7b7); }
+.edit-theme-scope:not([data-et-light="1"]) :is(.text-emerald-400\/70) { color: var(--color-emerald-400, #34d399); }
+.edit-theme-scope:not([data-et-light="1"]) :is(.text-fuchsia-200\/90) { color: var(--color-fuchsia-300, #f0abfc); }
+.edit-theme-scope:not([data-et-light="1"]) :is(.text-green-500\/80) { color: var(--color-green-400, #4ade80); }
+.edit-theme-scope:not([data-et-light="1"]) :is(.text-indigo-200\/70, .text-indigo-300\/70, .text-indigo-400\/70, .text-indigo-400\/80) { color: var(--color-indigo-300, #a5b4fc); }
+.edit-theme-scope:not([data-et-light="1"]) :is(.text-lime-300\/80) { color: var(--color-lime-300, #bef264); }
+.edit-theme-scope:not([data-et-light="1"]) :is(.text-purple-100\/85, .text-purple-200\/40, .text-purple-300\/50, .text-purple-300\/60, .text-purple-300\/70, .text-purple-300\/80, .text-purple-300\/90, .text-purple-400\/30, .text-purple-400\/60, .text-purple-400\/70, .text-purple-400\/80, .text-purple-50\/80) { color: var(--color-purple-300, #d8b4fe); }
+.edit-theme-scope:not([data-et-light="1"]) :is(.text-red-100\/80, .text-red-200\/70, .text-red-300\/90, .text-red-400\/40, .text-red-400\/50, .text-red-400\/60, .text-red-400\/70) { color: var(--color-red-300, #fca5a5); }
+.edit-theme-scope:not([data-et-light="1"]) :is(.text-rose-200\/80, .text-rose-200\/90, .text-rose-300\/70, .text-rose-300\/80, .text-rose-400\/70) { color: var(--color-rose-300, #fda4af); }
+.edit-theme-scope:not([data-et-light="1"]) :is(.text-sky-300\/80) { color: var(--color-sky-300, #7dd3fc); }
+.edit-theme-scope:not([data-et-light="1"]) :is(.text-sky-400\/60, .text-sky-400\/80) { color: var(--color-sky-400, #38bdf8); }
+.edit-theme-scope:not([data-et-light="1"]) :is(.text-teal-300\/60, .text-teal-300\/70) { color: var(--color-teal-300, #5eead4); }
+.edit-theme-scope:not([data-et-light="1"]) :is(.text-teal-400\/80) { color: var(--color-teal-400, #2dd4bf); }
+.edit-theme-scope[data-et-light="1"] :is(.text-amber-200\/80, .text-amber-200\/90, .text-amber-300\/70, .text-amber-300\/80, .text-amber-300\/90) { color: var(--color-amber-900, #78350f); }
+.edit-theme-scope[data-et-light="1"] :is(.text-amber-400\/70, .text-amber-400\/80, .text-amber-500\/70) { color: var(--color-amber-800, #92400e); }
+.edit-theme-scope[data-et-light="1"] :is(.text-blue-300\/70) { color: var(--color-blue-900, #1e3a8a); }
+.edit-theme-scope[data-et-light="1"] :is(.text-cyan-200\/90, .text-cyan-300\/70, .text-cyan-300\/80) { color: var(--color-cyan-900, #164e63); }
+.edit-theme-scope[data-et-light="1"] :is(.text-cyan-400\/70, .text-cyan-400\/80, .text-cyan-500\/80) { color: var(--color-cyan-800, #155e75); }
+.edit-theme-scope[data-et-light="1"] :is(.text-emerald-200\/70, .text-emerald-200\/80, .text-emerald-200\/90, .text-emerald-300\/60, .text-emerald-300\/70, .text-emerald-300\/75, .text-emerald-300\/80) { color: var(--color-emerald-900, #064e3b); }
+.edit-theme-scope[data-et-light="1"] :is(.text-emerald-400\/70) { color: var(--color-emerald-800, #065f46); }
+.edit-theme-scope[data-et-light="1"] :is(.text-fuchsia-200\/90) { color: var(--color-fuchsia-900, #701a75); }
+.edit-theme-scope[data-et-light="1"] :is(.text-green-500\/80) { color: var(--color-green-800, #166534); }
+.edit-theme-scope[data-et-light="1"] :is(.text-indigo-200\/70, .text-indigo-300\/70) { color: var(--color-indigo-900, #312e81); }
+.edit-theme-scope[data-et-light="1"] :is(.text-indigo-400\/70, .text-indigo-400\/80) { color: var(--color-indigo-700, #4338ca); }
+.edit-theme-scope[data-et-light="1"] :is(.text-lime-300\/80) { color: var(--color-lime-900, #365314); }
+.edit-theme-scope[data-et-light="1"] :is(.text-purple-100\/85, .text-purple-200\/40, .text-purple-300\/50, .text-purple-300\/60, .text-purple-300\/70, .text-purple-300\/80, .text-purple-300\/90, .text-purple-50\/80) { color: var(--color-purple-900, #581c87); }
+.edit-theme-scope[data-et-light="1"] :is(.text-purple-400\/30, .text-purple-400\/60, .text-purple-400\/70, .text-purple-400\/80) { color: var(--color-purple-700, #7e22ce); }
+.edit-theme-scope[data-et-light="1"] :is(.text-red-100\/80, .text-red-200\/70, .text-red-300\/90) { color: var(--color-red-900, #7f1d1d); }
+.edit-theme-scope[data-et-light="1"] :is(.text-red-400\/40, .text-red-400\/50, .text-red-400\/60, .text-red-400\/70) { color: var(--color-red-700, #b91c1c); }
+.edit-theme-scope[data-et-light="1"] :is(.text-rose-200\/80, .text-rose-200\/90, .text-rose-300\/70, .text-rose-300\/80) { color: var(--color-rose-900, #881337); }
+.edit-theme-scope[data-et-light="1"] :is(.text-rose-400\/70) { color: var(--color-rose-700, #be123c); }
+.edit-theme-scope[data-et-light="1"] :is(.text-sky-300\/80) { color: var(--color-sky-900, #0c4a6e); }
+.edit-theme-scope[data-et-light="1"] :is(.text-sky-400\/60, .text-sky-400\/80) { color: var(--color-sky-800, #075985); }
+.edit-theme-scope[data-et-light="1"] :is(.text-teal-300\/60, .text-teal-300\/70) { color: var(--color-teal-900, #134e4a); }
+.edit-theme-scope[data-et-light="1"] :is(.text-teal-400\/80) { color: var(--color-teal-800, #115e59); }
+
+/* Accent BORDERS on interactive controls (`border-purple-500/30` …): at
+ * ≤ 60% alpha they sit near 1.4:1 on the dark panels and light surfaces
+ * alike. Floor them to the hue's solid step that clears 3:1 — dark themes
+ * -400, light themes -700 cool / -800 bright — keeping the hue as the
+ * control's identity. Generated from the classes in use; non-interactive
+ * accent frames keep their soft alpha. */
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-amber-400\/25, .border-amber-400\/30, .border-amber-400\/50, .border-amber-400\/60, .border-amber-500\/20, .border-amber-500\/25, .border-amber-500\/30, .border-amber-500\/40, .border-amber-500\/50, .border-amber-500\/70) { border-color: var(--color-amber-400, #fbbf24); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-blue-500\/30, .border-blue-500\/50) { border-color: var(--color-blue-400, #60a5fa); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-cyan-300\/60, .border-cyan-400\/30, .border-cyan-400\/40, .border-cyan-400\/60, .border-cyan-500\/20, .border-cyan-500\/25, .border-cyan-500\/30, .border-cyan-500\/40, .border-cyan-500\/50) { border-color: var(--color-cyan-400, #22d3ee); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-emerald-400\/25, .border-emerald-400\/30, .border-emerald-400\/40, .border-emerald-400\/50, .border-emerald-400\/60, .border-emerald-500\/15, .border-emerald-500\/20, .border-emerald-500\/25, .border-emerald-500\/30, .border-emerald-500\/40, .border-emerald-500\/50, .border-emerald-900\/70) { border-color: var(--color-emerald-400, #34d399); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-fuchsia-400\/40, .border-fuchsia-400\/60, .border-fuchsia-500\/20, .border-fuchsia-500\/25, .border-fuchsia-500\/30, .border-fuchsia-500\/40, .border-fuchsia-500\/50) { border-color: var(--color-fuchsia-400, #e879f9); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-green-500\/20, .border-green-500\/30) { border-color: var(--color-green-400, #4ade80); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-indigo-400\/60, .border-indigo-500\/20, .border-indigo-500\/30, .border-indigo-500\/40, .border-indigo-500\/50) { border-color: var(--color-indigo-400, #818cf8); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-lime-400\/60, .border-lime-500\/25, .border-lime-500\/30, .border-lime-500\/40, .border-lime-500\/50) { border-color: var(--color-lime-400, #a3e635); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-orange-500\/30) { border-color: var(--color-orange-400, #fb923c); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-pink-500\/30, .border-pink-500\/40, .border-pink-500\/50) { border-color: var(--color-pink-400, #f472b6); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-purple-300\/40, .border-purple-400\/30, .border-purple-400\/40, .border-purple-400\/50, .border-purple-400\/60, .border-purple-500\/10, .border-purple-500\/15, .border-purple-500\/20, .border-purple-500\/25, .border-purple-500\/30, .border-purple-500\/40, .border-purple-500\/50, .border-purple-500\/60, .border-purple-900\/40) { border-color: var(--color-purple-400, #c084fc); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-red-400\/20, .border-red-400\/40, .border-red-500\/20, .border-red-500\/30, .border-red-500\/40, .border-red-500\/50, .border-red-500\/60, .border-red-500\/70, .border-red-900\/70) { border-color: var(--color-red-400, #f87171); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-rose-400\/30, .border-rose-400\/40, .border-rose-400\/60, .border-rose-500\/20, .border-rose-500\/25, .border-rose-500\/30, .border-rose-500\/40, .border-rose-500\/50) { border-color: var(--color-rose-400, #fb7185); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-sky-400\/25, .border-sky-400\/40, .border-sky-400\/60, .border-sky-500\/20, .border-sky-500\/25, .border-sky-500\/30, .border-sky-500\/40, .border-sky-500\/50) { border-color: var(--color-sky-400, #38bdf8); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-teal-400\/50, .border-teal-400\/60, .border-teal-500\/20, .border-teal-500\/25, .border-teal-500\/30, .border-teal-500\/40, .border-teal-500\/60) { border-color: var(--color-teal-400, #2dd4bf); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-violet-300\/50, .border-violet-400\/15, .border-violet-400\/20, .border-violet-400\/40, .border-violet-400\/60, .border-violet-500\/30, .border-violet-500\/50) { border-color: var(--color-violet-400, #a78bfa); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-yellow-400\/40, .border-yellow-500\/20, .border-yellow-500\/25, .border-yellow-500\/30, .border-yellow-500\/50) { border-color: var(--color-yellow-400, #facc15); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-amber-400\/25, .border-amber-400\/30, .border-amber-400\/50, .border-amber-400\/60, .border-amber-400\/70, .border-amber-500\/20, .border-amber-500\/25, .border-amber-500\/30, .border-amber-500\/40, .border-amber-500\/50, .border-amber-500\/70) { border-color: var(--color-amber-800, #92400e); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-blue-500\/30, .border-blue-500\/50) { border-color: var(--color-blue-700, #1d4ed8); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-cyan-300\/60, .border-cyan-400\/30, .border-cyan-400\/40, .border-cyan-400\/60, .border-cyan-500\/20, .border-cyan-500\/25, .border-cyan-500\/30, .border-cyan-500\/40, .border-cyan-500\/50) { border-color: var(--color-cyan-800, #155e75); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-emerald-400\/25, .border-emerald-400\/30, .border-emerald-400\/40, .border-emerald-400\/50, .border-emerald-400\/60, .border-emerald-500\/15, .border-emerald-500\/20, .border-emerald-500\/25, .border-emerald-500\/30, .border-emerald-500\/40, .border-emerald-500\/50, .border-emerald-900\/70) { border-color: var(--color-emerald-800, #065f46); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-fuchsia-400\/40, .border-fuchsia-400\/60, .border-fuchsia-500\/20, .border-fuchsia-500\/25, .border-fuchsia-500\/30, .border-fuchsia-500\/40, .border-fuchsia-500\/50) { border-color: var(--color-fuchsia-700, #a21caf); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-green-500\/20, .border-green-500\/30) { border-color: var(--color-green-800, #166534); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-indigo-400\/60, .border-indigo-500\/20, .border-indigo-500\/30, .border-indigo-500\/40, .border-indigo-500\/50) { border-color: var(--color-indigo-700, #4338ca); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-lime-400\/60, .border-lime-500\/25, .border-lime-500\/30, .border-lime-500\/40, .border-lime-500\/50) { border-color: var(--color-lime-800, #3f6212); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-orange-500\/30) { border-color: var(--color-orange-800, #9a3412); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-pink-500\/30, .border-pink-500\/40, .border-pink-500\/50) { border-color: var(--color-pink-700, #be185d); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-purple-300\/40, .border-purple-400\/30, .border-purple-400\/40, .border-purple-400\/50, .border-purple-400\/60, .border-purple-400\/70, .border-purple-500\/10, .border-purple-500\/15, .border-purple-500\/20, .border-purple-500\/25, .border-purple-500\/30, .border-purple-500\/40, .border-purple-500\/50, .border-purple-500\/60, .border-purple-900\/40) { border-color: var(--color-purple-700, #7e22ce); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-red-400\/20, .border-red-400\/40, .border-red-500\/20, .border-red-500\/30, .border-red-500\/40, .border-red-500\/50, .border-red-500\/60, .border-red-500\/70, .border-red-900\/70) { border-color: var(--color-red-700, #b91c1c); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-rose-400\/30, .border-rose-400\/40, .border-rose-400\/60, .border-rose-400\/70, .border-rose-500\/20, .border-rose-500\/25, .border-rose-500\/30, .border-rose-500\/40, .border-rose-500\/50) { border-color: var(--color-rose-700, #be123c); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-sky-400\/25, .border-sky-400\/40, .border-sky-400\/60, .border-sky-500\/20, .border-sky-500\/25, .border-sky-500\/30, .border-sky-500\/40, .border-sky-500\/50) { border-color: var(--color-sky-800, #075985); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-teal-300\/70, .border-teal-400\/50, .border-teal-400\/60, .border-teal-500\/20, .border-teal-500\/25, .border-teal-500\/30, .border-teal-500\/40, .border-teal-500\/60) { border-color: var(--color-teal-800, #115e59); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-violet-300\/50, .border-violet-400\/15, .border-violet-400\/20, .border-violet-400\/40, .border-violet-400\/60, .border-violet-500\/30, .border-violet-500\/50) { border-color: var(--color-violet-700, #6d28d9); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-yellow-400\/40, .border-yellow-500\/20, .border-yellow-500\/25, .border-yellow-500\/30, .border-yellow-500\/50) { border-color: var(--color-yellow-800, #854d0e); }
+
+
+/* SOLID accent borders on interactive controls. Dark themes: the -700…-900
+ * steps sink under 3:1 on the dark panels — lift to -500. Light themes: the
+ * -400…-600 steps (the active top tab's -500, a chip's -400) sit under 3:1 on
+ * light surfaces — deepen to -700 (cool hues) / -800 (bright hues). */
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-purple-700, .border-purple-800, .border-purple-900) { border-color: var(--color-purple-500, #a855f7); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-violet-700, .border-violet-800, .border-violet-900) { border-color: var(--color-violet-500, #8b5cf6); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-indigo-700, .border-indigo-800, .border-indigo-900) { border-color: var(--color-indigo-500, #6366f1); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-blue-700, .border-blue-800, .border-blue-900) { border-color: var(--color-blue-500, #3b82f6); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-sky-700, .border-sky-800, .border-sky-900) { border-color: var(--color-sky-500, #0ea5e9); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-cyan-700, .border-cyan-800, .border-cyan-900) { border-color: var(--color-cyan-500, #06b6d4); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-teal-700, .border-teal-800, .border-teal-900) { border-color: var(--color-teal-500, #14b8a6); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-emerald-700, .border-emerald-800, .border-emerald-900) { border-color: var(--color-emerald-500, #10b981); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-green-700, .border-green-800, .border-green-900) { border-color: var(--color-green-500, #22c55e); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-lime-700, .border-lime-800, .border-lime-900) { border-color: var(--color-lime-500, #84cc16); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-yellow-700, .border-yellow-800, .border-yellow-900) { border-color: var(--color-yellow-500, #eab308); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-amber-700, .border-amber-800, .border-amber-900) { border-color: var(--color-amber-500, #f59e0b); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-orange-700, .border-orange-800, .border-orange-900) { border-color: var(--color-orange-500, #f97316); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-red-700, .border-red-800, .border-red-900) { border-color: var(--color-red-500, #ef4444); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-rose-700, .border-rose-800, .border-rose-900) { border-color: var(--color-rose-500, #f43f5e); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-pink-700, .border-pink-800, .border-pink-900) { border-color: var(--color-pink-500, #ec4899); }
+.edit-theme-scope:not([data-et-light="1"]) :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-fuchsia-700, .border-fuchsia-800, .border-fuchsia-900) { border-color: var(--color-fuchsia-500, #d946ef); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-purple-400, .border-purple-500, .border-purple-600) { border-color: var(--color-purple-700, #7e22ce); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-violet-400, .border-violet-500, .border-violet-600) { border-color: var(--color-violet-700, #6d28d9); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-indigo-400, .border-indigo-500, .border-indigo-600) { border-color: var(--color-indigo-700, #4338ca); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-blue-400, .border-blue-500, .border-blue-600) { border-color: var(--color-blue-700, #1d4ed8); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-sky-400, .border-sky-500, .border-sky-600) { border-color: var(--color-sky-800, #075985); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-cyan-400, .border-cyan-500, .border-cyan-600) { border-color: var(--color-cyan-800, #155e75); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-teal-400, .border-teal-500, .border-teal-600) { border-color: var(--color-teal-800, #115e59); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-emerald-400, .border-emerald-500, .border-emerald-600) { border-color: var(--color-emerald-800, #065f46); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-green-400, .border-green-500, .border-green-600) { border-color: var(--color-green-800, #166534); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-lime-400, .border-lime-500, .border-lime-600) { border-color: var(--color-lime-800, #3f6212); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-yellow-400, .border-yellow-500, .border-yellow-600) { border-color: var(--color-yellow-800, #854d0e); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-amber-400, .border-amber-500, .border-amber-600) { border-color: var(--color-amber-800, #92400e); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-orange-400, .border-orange-500, .border-orange-600) { border-color: var(--color-orange-800, #9a3412); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-red-400, .border-red-500, .border-red-600) { border-color: var(--color-red-700, #b91c1c); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-rose-400, .border-rose-500, .border-rose-600) { border-color: var(--color-rose-700, #be123c); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-pink-400, .border-pink-500, .border-pink-600) { border-color: var(--color-pink-700, #be185d); }
+.edit-theme-scope[data-et-light="1"] :is(button, input, select, textarea, [role="slider"], [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="combobox"]):is(.border-fuchsia-400, .border-fuchsia-500, .border-fuchsia-600) { border-color: var(--color-fuchsia-700, #a21caf); }
+
+/* Component classes bake their colours in via @apply (compact-input,
+ * form-select, btn-ghost, mono-tag), so the utility remaps never reach them —
+ * re-point them onto the tiers here. */
+.edit-theme-scope :is(.compact-input, .form-select, .btn-ghost) { color: rgb(var(--et-ink)); }
+.edit-theme-scope .compact-input::placeholder { color: rgb(var(--et-ink-3)); opacity: 1; }
+.edit-theme-scope :is(.compact-input, .form-select, .btn-ghost),
+.edit-theme-scope :is(input, select, textarea, button).border-\(--panel-border\) { border-color: rgb(var(--et-border)); }
+.edit-theme-scope:not([data-et-light="1"]) .mono-tag { color: var(--color-purple-300, #d8b4fe); }
+.edit-theme-scope[data-et-light="1"] .mono-tag { color: var(--color-purple-800, #6b21a8); }
+/* A clickable mono-tag (the INIT / INPAINT ON-OFF toggles) is a control: its
+ * border-purple-500/20 frame gets the same ≥ 3:1 floor as other controls. */
+.edit-theme-scope:not([data-et-light="1"]) button.mono-tag { border-color: var(--color-purple-400, #c084fc); }
+.edit-theme-scope[data-et-light="1"] button.mono-tag { border-color: var(--color-purple-700, #7e22ce); }
+.edit-theme-scope[data-et-light="1"] .form-select { color-scheme: light; }
+
+/* Light themes: the hardware faders / knobs paint their scale numbers and
+ * value readouts inline (a fisheye grey ramp and the control's neon --accent),
+ * which vanish on light surfaces. Both read these hooks first. */
+.edit-theme-scope[data-et-light="1"] {
+  --ts-mark: rgb(var(--et-ink-2));
+  --ts-readout: rgb(var(--et-ink));
+}
+
+/* Light themes: fields are the LIGHTEST surface. Their `bg-black/α` fill turns
+ * into a mid grey under a light theme's shade, which is where dark ink and
+ * placeholders were failing — give every native field the popup surface. */
+.edit-theme-scope[data-et-light="1"] :is(input, textarea, select):is(.bg-black\/20, .bg-black\/30, .bg-black\/40,
+  .bg-black\/50, .bg-black\/60, .compact-input, .form-select) { background-color: var(--et-popup); }
+
+/* Translucent hex chrome (header, footer, dock strip, floating docks). These
+ * `/α` spellings are DISTINCT utility classes from their solid forms, so
+ * without their own remaps they stay near-black under every theme — while the
+ * light-theme text rules above turn their labels dark = invisible text. Mix
+ * the themed surface with transparency at the same opacity the class asked
+ * for, so blur-backed chrome keeps its translucency in every theme. */
+.edit-theme-scope .bg-\[\#0a080f\]\/40 { background-color: color-mix(in srgb, var(--et-popup) 40%, transparent); }
+.edit-theme-scope .bg-\[\#0a080f\]\/60,
+.edit-theme-scope .bg-\[\#08060c\]\/60,
+.edit-theme-scope .bg-\[\#0b0910\]\/60 { background-color: color-mix(in srgb, var(--et-popup) 60%, transparent); }
+.edit-theme-scope .bg-\[\#0a080f\]\/80 { background-color: color-mix(in srgb, var(--et-popup) 80%, transparent); }
+.edit-theme-scope .bg-\[\#0a080f\]\/90 { background-color: color-mix(in srgb, var(--et-popup) 90%, transparent); }
+.edit-theme-scope .bg-\[\#0a080f\]\/95,
+.edit-theme-scope .bg-\[\#050712\]\/95 { background-color: color-mix(in srgb, var(--et-popup) 95%, transparent); }
+.edit-theme-scope .bg-\[\#0c0a12\]\/70 { background-color: color-mix(in srgb, var(--et-panel) 70%, transparent); }
+.edit-theme-scope .bg-\[\#0c0a14\]\/95 { background-color: color-mix(in srgb, var(--et-panel) 95%, transparent); }
+.edit-theme-scope .bg-\[\#0c0a14\]\/97 { background-color: color-mix(in srgb, var(--et-panel) 97%, transparent); }
+
+/* NodeF.I. runs a LARGER, BOLDER type ramp than the rest of the chrome (user
+ * mandate: the 9px mono labels were unreadable). Scoped to the surface via its
+ * key-scope attribute; !important + calc keeps the app-wide text-scale
+ * setting composing on top. */
+[data-keyscope="nodefi"] .mono-label {
+  font-size: calc(11px * var(--text-scale, 1)) !important;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+[data-keyscope="nodefi"] .compact-input {
+  font-size: calc(12px * var(--text-scale, 1)) !important;
+}
+[data-keyscope="nodefi"] .form-select {
+  font-weight: 600;
+}
+
+/* Bottom-dock bodies emerge from their toggle buttons in the strip (see
+ * Shell.tsx ShellBottomDock): a short rise + fade with the origin at the
+ * bottom edge, so the panel visually grows out of the button that opened it. */
+@keyframes dock-emerge {
+  from {
+    transform: translateY(12px);
+    opacity: 0.3;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* LOOM (views/LoomView.tsx): the plane reads as woven cloth. A faint warp/weft
+ * grid on the surface, generator tiles carry a diagonal thread, a live column
+ * breathes. Everything sits on theme tokens so light themes keep contrast. */
+.loom-surface {
+  background-image:
+    repeating-linear-gradient(0deg, rgb(var(--et-ink) / 0.035) 0 1px, transparent 1px 11px),
+    repeating-linear-gradient(90deg, rgb(var(--et-ink) / 0.035) 0 1px, transparent 1px 11px);
+}
+.loom-plane { scrollbar-gutter: stable; }
+.loom-gen {
+  background-image: repeating-linear-gradient(135deg, rgb(var(--et-ink) / 0.10) 0 2px, transparent 2px 7px);
+}
+.loom-ghost {
+  background-image: repeating-linear-gradient(135deg, rgb(var(--et-ink) / 0.05) 0 1px, transparent 1px 6px);
+}
+@keyframes loom-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(251 191 36 / 0.45); }
+  50% { box-shadow: 0 0 14px 3px rgb(251 191 36 / 0.25); }
+}
+.loom-live { animation: loom-breathe 0.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .loom-live { animation: none; } }

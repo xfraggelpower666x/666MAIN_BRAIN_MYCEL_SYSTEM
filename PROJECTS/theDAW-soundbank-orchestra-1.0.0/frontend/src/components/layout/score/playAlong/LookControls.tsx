@@ -1,0 +1,92 @@
+import React, { useId } from 'react';
+import {
+  HIGHLIGHT_INKS,
+  INK_TRAILS,
+  NOW_LINE_POSITIONS,
+  usePlayAlongStore,
+  type HighlightInk,
+  type InkTrail,
+  type NowLinePos,
+} from '../../../../state/playAlongStore';
+
+const NOW_LABELS: Record<NowLinePos, string> = {
+  left: 'Left',
+  center: 'Center',
+};
+
+/** The look preferences every follow view shares: where the "now" sits
+ *  across the pane (left third, or dead centre), the ink the sounding note
+ *  and the hairline are painted in, and whether played notes hold that ink or
+ *  flash. All stored in playAlongStore, so the PAGE, STRIP, TAB, CHORDS and
+ *  HIGHWAY views follow the same choice.
+ *
+ *  The ids are per instance: ScoreView keeps PAGE alive behind the STRIP/TAB/
+ *  CHORDS/HIGHWAY views and both footers render this, so fixed ids would sit
+ *  in the document twice and every `htmlFor` would bind to whichever mounted
+ *  first — the strip's labels driving the page's selects. */
+export const LookControls: React.FC = () => {
+  const uid = useId();
+  const nowId = `score-now-line-${uid}`;
+  const inkId = `score-ink-${uid}`;
+  const trailId = `score-ink-trail-${uid}`;
+  const nowLine = usePlayAlongStore((s) => s.nowLine);
+  const ink = usePlayAlongStore((s) => s.ink);
+  const inkTrail = usePlayAlongStore((s) => s.inkTrail);
+  const setNowLine = usePlayAlongStore((s) => s.setNowLine);
+  const setInk = usePlayAlongStore((s) => s.setInk);
+  const setInkTrail = usePlayAlongStore((s) => s.setInkTrail);
+  return (
+    <span className="flex items-center gap-1">
+      <label htmlFor={nowId} className="text-zinc-500 select-none" title="Where the music sounding now sits across the pane">
+        NOW
+      </label>
+      <select
+        id={nowId}
+        name={nowId}
+        className="form-select text-xs font-bold px-1 py-0.5"
+        value={nowLine}
+        onChange={(e) => setNowLine(e.target.value as NowLinePos)}
+      >
+        {NOW_LINE_POSITIONS.map((pos) => (
+          <option key={pos} value={pos}>{NOW_LABELS[pos]}</option>
+        ))}
+      </select>
+      <label htmlFor={inkId} className="text-zinc-500 select-none" title="Colour of the sounding note and the now-line">
+        INK
+      </label>
+      <select
+        id={inkId}
+        name={inkId}
+        className="form-select text-xs font-bold px-1 py-0.5"
+        value={ink}
+        onChange={(e) => setInk(e.target.value as HighlightInk)}
+        style={{ borderColor: HIGHLIGHT_INKS[ink].color }}
+      >
+        {(Object.keys(HIGHLIGHT_INKS) as HighlightInk[]).map((key) => (
+          <option key={key} value={key}>{HIGHLIGHT_INKS[key].label}</option>
+        ))}
+      </select>
+      <label
+        htmlFor={trailId}
+        className="text-zinc-500 select-none"
+        title="Hold keeps every played note inked (nothing flashes); Flash inks only the sounding note"
+      >
+        TRAIL
+      </label>
+      <select
+        id={trailId}
+        name={trailId}
+        className="form-select text-xs font-bold px-1 py-0.5"
+        value={inkTrail}
+        onChange={(e) => setInkTrail(e.target.value as InkTrail)}
+        title={INK_TRAILS[inkTrail].title}
+      >
+        {(Object.keys(INK_TRAILS) as InkTrail[]).map((key) => (
+          <option key={key} value={key}>{INK_TRAILS[key].label}</option>
+        ))}
+      </select>
+    </span>
+  );
+};
+
+export default LookControls;

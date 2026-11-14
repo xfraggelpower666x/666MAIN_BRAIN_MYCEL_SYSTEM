@@ -1,0 +1,1259 @@
+// theDAW launch-video capture — ONE warm session, built around ONE song.
+//
+// Boots the app ONCE in a single headed (real-GPU) page, loads "Et Tu Machina"
+// (the hero song — imported, stem-separated, and MIDI-converted ahead of time),
+// then clicks + drives the Zustand stores tab-by-tab through every scene while
+// recording one continuous video. Each scene's stable hold is timestamped, and
+// the long recording is sliced into per-scene clips afterward.
+//
+// Why one session: spawning a fresh context per shot re-runs the boot splash and
+// congests the single-worker backend (the splash then bleeds into the clip). With
+// the app already loaded and isBackendReady already true, switching tabs via the
+// store never re-raises the splash — including the TRAIN tab, which always splashed
+// under cold per-shot capture.
+//
+// Run from frontend/:  node _capture_clips.mjs        (all scenes)
+//                      ONLY=20_train,02_dj-console node _capture_clips.mjs
+//                      SKIP=72_crispr-dna,74_magenta-live-generate node _capture_clips.mjs
+//
+// A scene that throws is logged into _capture-log.json with its error and the
+// run CONTINUES — the recording is one continuous take sliced afterwards, so a
+// failed scene costs only its own clip, never the session.
+// Output: showcase/clips-recorded/<id>_h.mp4  (+ the raw session webm, kept for re-slicing)
+import { chromium } from 'playwright';
+import path from 'node:path';
+import fs from 'node:fs';
+import { spawn, execFileSync } from 'node:child_process';
+
+const APP = 'http://localhost:5173';
+const ROOT = path.resolve(process.cwd(), '..');
+const OUT = path.resolve(ROOT, 'showcase', 'clips-recorded');
+fs.mkdirSync(OUT, { recursive: true });
+
+// CAST — which library tracks star in the film. Library ids differ per machine, so
+// showcase/_cast.json (gitignored) overrides the defaults below; without it the
+// harness shoots the original Et Tu Machina cast.
+let CAST = {};
+try { CAST = JSON.parse(fs.readFileSync(path.resolve(ROOT, 'showcase', '_cast.json'), 'utf8')); } catch (e) {}
+
+// "Et Tu Machina" — the song the whole film is built around. Imported to the
+// library, separated into 4 stems, and converted to MIDI before capture, so the
+// EDIT timeline, MIX source, DJ deck, and piano roll all carry the same track.
+const HERO_ID = CAST.heroId || '68006988e370427d9108e5c5d724a9f5';
+const HERO = {
+  heroUrl: '/api/library/audio/' + HERO_ID,
+  heroLabel: CAST.heroLabel || 'Et Tu Machina',
+  heroId: HERO_ID,
+};
+const DECK_B = { url: '/api/library/audio/' + (CAST.deckBId || '81a3d137-2b6f-44fe-9e49-0f540d6ec3fc_00'), label: CAST.deckBLabel || 'Deck B' };
+const STEM_BASE = CAST.stemsBase || HERO_ID;
+const STEMS = (CAST.stems || ['drums', 'bass', 'vocals', 'other']).map((n) => ({
+  name: n, url: `/api/library/stems/${STEM_BASE}__${n}/audio`,
+}));
+// Notation scenes use a track that already has MIDI + notation artifacts (tab,
+// arrangement) and analysis, so the Score panel renders a real tab + sheet and
+// the Details panel can infer a prompt. Verified to render cleanly.
+const NOTATION = { notationId: CAST.notationId || '03591710a6474479a9720780f40885a3' };
+// Et Tu Machina's MIDI, windowed to a clean 64-step piano-roll pattern (see _make_pianoroll.py).
+let ETU_PIANO = { bpm: 120, totalSteps: 64, notes: [] };
+try { ETU_PIANO = JSON.parse(fs.readFileSync(path.resolve(ROOT, 'showcase', '_etu_pianoroll.json'), 'utf8')); } catch (e) {}
+// The Magenta RT2 NVIDIA port — its standalone Studio UI + a repo/readme card (both static, file://).
+const fileUrl = (p) => 'file:///' + path.resolve(ROOT, p).replace(/\\/g, '/');
+const MAGENTA_STUDIO = fileUrl('sidecars/magenta-rt2-nvidia/app/index.html');
+const MAGENTA_CARD = fileUrl('showcase/_magenta_card.html');
+
+// Full coverage: every tab + every feature, with Et Tu Machina present throughout so
+// the film reads as one song being made. Bottom-panel features are MAXIMIZED so the
+// feature fills the work area; the library is collapsed unless the scene is the
+// catalogue itself. Lineage goes fullscreen. Order groups by tab so the warm page
+// transitions cleanly. nav-scenes (file://) navigate away and run strictly LAST.
+const SCENES = [
+  // ── MAKE: generation + every sub-feature ──
+  { id: '08_make',           tab: 'make',  play: true,  hold: 6 },
+  { id: '23_chimera',        tab: 'make',  play: false, chimeraBuild: true, hold: 6 },
+  { id: '21_inpaint',        tab: 'make',  play: false, inpaint: true, hold: 6 },
+  { id: '25_init-audio',     tab: 'make',  play: false, initAudio: true, hold: 6 },
+  { id: '27_lora',           tab: 'make',  play: false, lora: true, hold: 6 },
+  { id: '30_compare',        tab: 'make',  play: false, compare: true, hold: 6 },
+  { id: '45_saved-prompts',  tab: 'make',  play: false, savedPrompts: true, hold: 6 },
+  { id: '58_spectrogram',    tab: 'make',  play: true,  spectro: true, hold: 14 },
+  // ── cymatics + ferrofluid: ONE long fullscreen shot cycling all 4 modes ──
+  { id: '50_cymatics', tab: 'make', play: true, vizCycle: true, vizFull: true, hold: 26 },
+  // ── EDIT: the multitrack arrangement in depth (chopped / faded / staggered / mixed sources) ──
+  { id: '03_edit-stems',     tab: 'edit',  play: true,  buildStems: true, hold: 6 },
+  { id: '31_edit-mix',       tab: 'edit',  play: true,  buildStems: true, editMix: true, hold: 6 },
+  { id: '22_cut-edit',       tab: 'edit',  play: false, buildStems: true, cutEdit: true, hold: 6 },
+  { id: '40_inpaint-region', tab: 'edit',  play: false, buildStems: true, inpaintRegion: true, hold: 6 },
+  { id: '41_delete-clip',    tab: 'edit',  play: false, buildStems: true, deleteClip: true, hold: 6 },
+  { id: '59_commit-edit',    tab: 'edit',  play: false, buildStems: true, commitEdit: true, hold: 7 },
+  // ── MIX: effects browser + populated chain + EVERY effect on the real clip + the UI editor ──
+  { id: '07_mix-effects',    tab: 'mix',   play: true,  studioSource: true, hold: 6 },
+  { id: '32_mix-chain',      tab: 'mix',   play: true,  studioSource: true, mixChain: true, hold: 6 },
+  { id: '57_mix-all-effects',tab: 'mix',   play: true,  studioSource: true, mixAll: true, hold: 13 },
+  { id: '39_design-mode',    tab: 'mix',   play: false, studioSource: true, designMode: true, designDrag: true, hold: 9 },
+  // ── DJ: console + performance (cue/loop/slip/fx) + automix + live stems + sampler ──
+  { id: '02_dj-console',     tab: 'dj',    play: true,  djDecks: true, levelAnim: true, hold: 7 },
+  { id: '54_dj-perform',     tab: 'dj',    play: true,  djDecks: true, djPerf: true, hold: 12 },
+  { id: '55_dj-automix',     tab: 'dj',    play: true,  djDecks: true, djAutomix: true, hold: 11 },
+  { id: '56_dj-stems',       tab: 'dj',    play: true,  djDecks: true, djStems: true, hold: 9 },
+  { id: '33_dj-sampler',     tab: 'dj',    play: true,  djDecks: true, djSampler: true, hold: 6 },
+  // ── VJ / TRAIN ──
+  { id: '19_vj-visualizer',  tab: 'vj',    play: true,  vjClip: true, vjTour: true, hold: 12 },
+  { id: '20_train',          tab: 'train', play: false, hold: 6 },
+  // ── the center tabs the original 65-scene list predates. CENTER_TABS is the
+  // source of truth for these ids (appUiStore.ts) — note PERFORM is 'session',
+  // and 'train' above is an ALIAS that already resolves to 'underfit', so
+  // 20_train and 81_underfit shoot the same workspace from different entry
+  // points. All are React.lazy chunks: sceneActions waits out the Suspense
+  // fallback before the hold so the clip is the view, not "loading…". ──
+  { id: '78_perform-session', tab: 'session',  play: true,  performUse: true,  hold: 9 },
+  { id: '79_sway-surface',    tab: 'sway',     play: true,  swayUse: true,     hold: 13 },
+  { id: '80_foundry',         tab: 'foundry',  play: false, foundryUse: true,  hold: 12 },
+  { id: '81_underfit',        tab: 'underfit', play: false, underfitUse: true, hold: 10 },
+  { id: '82_audimate',        tab: 'audimate', play: true,  audimateUse: true, hold: 12 },
+  { id: '83_tour',            tab: 'tour',     play: false, tourMap: true,   hold: 10 },
+  { id: '84_tour-routing',    tab: 'tour',     play: false, tourRoutes: true, hold: 11 },
+  // ── LEARN: 2D click-a-node, 3D fly-around, per-track lineage ──
+  { id: '01a_learn-2d-hero', tab: 'learn', play: false, learn: '2d', lineageFull: true, lineageHover: true, hold: 48 },
+  { id: '01b_learn-3d-hero', tab: 'learn', play: false, learn: '3d', lineageFull: true, flyAround: true, hold: 13 },
+  { id: '48_galaxy-preset',  tab: 'learn', play: false, learn: '3d', lineageFull: true, vizPreset: 'constellation', flyAround: true, hold: 11 },
+  // ── bottom-panel features, each MAXIMIZED into a fullscreen hero ──
+  { id: '04_visualize',      tab: 'make',  play: true,  bottomTab: 'spectral',   maximizePanel: true, hold: 6 },
+  { id: '15_analyzer-scope', tab: 'make',  play: true,  bottomTab: 'spectral',   maximizePanel: true, modeBtn: 'Oscilloscope', hold: 6 },
+  { id: '16_analyzer-radial',tab: 'make',  play: true,  bottomTab: 'spectral',   maximizePanel: true, modeBtn: 'Radial', hold: 6 },
+  { id: '05_sequencer',      tab: 'make',  play: false, bottomTab: 'step-seq',   maximizePanel: true, seqFill: true, hold: 7 },
+  { id: '06_piano-roll',     tab: 'make',  play: false, bottomTab: 'piano-roll', maximizePanel: true, pianoFill: true, sendToEditor: true, hold: 7 },
+  { id: '12_slide-surface',  tab: 'make',  play: true,  bottomTab: 'slide',      maximizePanel: true, dragFader: true, hold: 7 },
+  { id: '24_focus',          tab: 'make',  play: true,  bottomTab: 'slide',      maximizePanel: true, slideView: 'focus', hold: 6 },
+  { id: '17_controller',     tab: 'make',  play: false, bottomTab: 'slide',      maximizePanel: true, slideView: 'controller', hold: 6 },
+  { id: '18_media-bucket',   tab: 'make',  play: false, bottomTab: 'bucket',     maximizePanel: true, fillBucket: true, hold: 6 },
+  { id: '44_url-import',     tab: 'make',  play: false, bottomTab: 'bucket',     maximizePanel: true, fillBucket: true, urlImport: true, hold: 6 },
+  { id: '13_details',        tab: 'make',  play: false, bottomTab: 'details',    maximizePanel: true, detailsTrack: true, hold: 6 },
+  // ── NOTATION: Score panel (tablature + sheet music) + prompt inference ──
+  { id: '76_score-tabs',     tab: 'make',  play: false, bottomTab: 'score',      maximizePanel: true, notation: true, notationTabs: true,  hold: 9 },
+  { id: '75_score-arrange',  tab: 'make',  play: false, bottomTab: 'score',      maximizePanel: true, notation: true, notationArrange: true, hold: 8 },
+  { id: '77_prompt-infer',   tab: 'make',  play: false, bottomTab: 'details',    maximizePanel: true, notation: true, notationPrompt: true, hold: 7 },
+  // ── overlays / cloud / library actions / global chrome ──
+  { id: '11_assistant-orb',  tab: 'make',  play: false, openOrb: true, hold: 6 },
+  { id: '14_catalogue',      tab: 'make',  play: false, catalogue: true, scrollList: true, hold: 7 },
+  { id: '42_lib-actions',    tab: 'make',  play: false, catalogue: true, libContext: true, hold: 6 },
+  { id: '43_stems-modal',    tab: 'make',  play: false, catalogue: true, stemsModal: true, hold: 6 },
+  { id: '10_suno-cloud',     tab: 'make',  play: false, sunoModel: true, hold: 6 },
+  { id: '60_magenta-make',   tab: 'make',  play: false, magentaMake: true, hold: 6 },
+  { id: '36_log',            tab: 'make',  play: true,  logPanel: true, hold: 5 },
+  { id: '37_docs',           tab: 'make',  play: false, docsModal: true, hold: 6 },
+  { id: '38_settings',       tab: 'make',  play: false, settingsModal: true, hold: 6 },
+  // ── feature-coverage gap fills (from the showcase doc) ──
+  { id: '64_node-inspector',    tab: 'learn', play: false, learn: '2d', lineageFull: true, nodeInspect: true, hold: 8 },
+  { id: '66_module-gui',        tab: 'mix',   play: true,  studioSource: true, moduleGui: true, hold: 9 },
+  { id: '68_audio-to-midi',     tab: 'make',  play: false, catalogue: true, audioToMidi: true, hold: 7 },
+  { id: '67_prompt-enhance',    tab: 'make',  play: false, promptEnhance: true, hold: 6 },
+  { id: '70_vj-mobile',         tab: 'vj',    play: true,  vjClip: true, vjMobile: true, hold: 8 },
+  { id: '71_dj-midi-learn',     tab: 'dj',    play: true,  djDecks: true, djMidiLearn: true, hold: 7 },
+  { id: '69_controller-vision', tab: 'make',  play: false, bottomTab: 'slide', maximizePanel: true, slideView: 'controller', controllerVision: true, hold: 7 },
+  // ── NEW since the last shoot (2026-06-10): the full MRT2 conditioning panel + the ENTIRE
+  //    CRISPR DNA splice sequence through a REAL generation run (analyze → chop → weave → fuse).
+  //    72 runs a real GPU job, so it sits last among app scenes; only nav scenes follow it. ──
+  { id: '73_magenta-conditioning', tab: 'make', play: false, magentaCond: true, hold: 10 },
+  // The REAL sidecar on film: an actual in-app Magenta generation against the live
+  // extended engine (requires the engine running — pick Magenta in the dropdown first).
+  { id: '74_magenta-live-generate', tab: 'make', play: false, magentaCond: true, magentaLive: true, hold: 60, holdUntilComplete: 180 },
+  { id: '72_crispr-dna', tab: 'make', play: false, chimeraBuild: true, crisprRun: true, hold: 150, holdUntilComplete: 330 },
+  // ── nav-scenes (file://) — Magenta RT2 NVIDIA port. MUST stay last (they navigate away). ──
+  { id: '63_magenta-studio-live', nav: CAST.magentaStudioUrl || 'http://localhost:8778', hold: 7 },
+  { id: '61_magenta-port-ui', nav: MAGENTA_STUDIO, hold: 7 },
+  { id: '62_magenta-card',    nav: MAGENTA_CARD,   hold: 7 },
+];
+
+// Capture size / mode / supersample are env-configurable. A HEADED browser caps at the screen
+// width (1920 here); HEADLESS can exceed it (true higher-res so 9:16 punch-ins stay sharp).
+// DSF supersamples within the size. Fixed mouse coords scale by KX/KY off the 1920x1080 base.
+const VW = +(process.env.CAPW || 1920), VH = +(process.env.CAPH || 1080);
+const DSF = +(process.env.DSF || 1);
+const HEADLESS = process.env.HEADLESS === '1';
+const SIZE = { width: VW, height: VH };
+// Recording size can be decoupled from the viewport (CAPRECW/CAPRECH) so the
+// 1920-logical layout the crops + mouse coords assume can be recorded at true
+// 4K via DSF=2 (viewport 1920x1080, deviceScaleFactor 2, record 3840x2160).
+const RW = +(process.env.CAPRECW || VW), RH = +(process.env.CAPRECH || VH);
+const REC = { width: RW, height: RH };
+const CX = Math.round(VW / 2), CY = Math.round(VH / 2), KX = VW / 1920, KY = VH / 1080;
+
+// Per-scene store driving. Heavy one-time builds (hero/stems/decks/studio/bucket)
+// are guarded by window.__cap so they run once across the whole session. Every other
+// piece of state is set explicitly each scene so nothing bleeds in from the last one.
+async function applyScene(spec) {
+  const log = [];
+  const imp = (p) => import(p);
+  // Nothing in here may await unbounded. page.evaluate has no timeout, so a single
+  // stalled fetch/decode hangs the WHOLE take: the run stops mid-scene, the marks
+  // are only written after the last scene, and the session recording keeps rolling
+  // on a frozen frame. Every network + Web Audio await below is wrapped in this.
+  const withTimeout = (p, ms, what) => Promise.race([
+    p,
+    new Promise((_, rej) => setTimeout(() => rej(new Error('timeout ' + ms + 'ms: ' + what)), ms)),
+  ]);
+  const C = (window.__cap = window.__cap || {});
+  const appUi = (await imp('/src/state/appUiStore.ts')).useAppUiStore;
+  const lib = (await imp('/src/state/libraryStore.ts')).useLibraryStore;
+  const pMod = await imp('/src/state/playerStore.ts');
+  const player = pMod.usePlayerStore;
+  const edMod = await imp('/src/state/editorStore.ts');
+  const editor = edMod.useEditorStore;
+  const computePeaks = edMod.computePeaks;
+  const bp = (await imp('/src/state/bottomPanelStore.ts')).useBottomPanelStore;
+
+  // ── one-time: library + hero audio (kept playing the whole session) ──
+  if (!C.heroLoaded) {
+    try { if (lib.getState().entries.length === 0) await lib.getState().load(); } catch (e) { log.push('lib ' + e.message); }
+    try { const c = pMod.getEngineCtx && pMod.getEngineCtx(); if (c && c.resume) await c.resume(); } catch (e) {}
+    try {
+      const blob = await withTimeout((await fetch(spec.heroUrl)).blob(), 30000, 'fetch hero');
+      await player.getState().load(blob, { label: spec.heroLabel, entryId: spec.heroId });
+      C.heroLoaded = true;
+    } catch (e) { log.push('hero ' + e.message); }
+  }
+  try { if (!player.getState().isPlaying) player.getState().play(); } catch (e) {}
+
+  // ── one-time heavy build: a REAL multitrack arrangement of Et Tu Machina ──
+  // Each stem becomes a track, clips are windowed + staggered for arrangement entrances,
+  // a couple are chopped, a few carry fades, and a 5th track holds a different source clip,
+  // so the timeline reads as a song being arranged rather than 6 bars stacked at t=0.
+  if (spec.buildStems && !C.stemsBuilt) {
+    const palette = ['#06b6d4', '#f97316', '#ec4899', '#a855f7', '#10b981', '#facc15'];
+    // name → [startSec, durationSec, offsetIntoSource] (a meaty mid-song window)
+    const plan = { drums: [0, 22, 30], bass: [0, 22, 30], other: [3, 19, 35], vocals: [6, 16, 40] };
+    let idx = 0;
+    const firstIds = [];
+    // Fetch + decode every stem CONCURRENTLY, then build the tracks in list order.
+    // Serially this cost ~4.5 minutes of the take: each stem is ~28 MB / 160 s and
+    // streams through the vite dev proxy at well under a MB/s, and the slowest one
+    // blew its timeout and got dropped from the arrangement entirely. The build loop
+    // below is unchanged and still runs in order, so the result is deterministic.
+    // computePeaks spins up its own AudioContext per stem; both legs stay bounded so
+    // a stem that will not load is dropped rather than taking the session down.
+    const grab = async (url, what) => {
+      const blob = await withTimeout((await fetch(url)).blob(), 90000, 'fetch ' + what);
+      const { peaks, duration } = await withTimeout(computePeaks(blob, 240), 60000, 'decode ' + what);
+      return { blob, peaks, duration };
+    };
+    // deckB is kicked off here rather than after the loop so it rides along with the
+    // stems instead of adding another serial ~50 s leg of its own.
+    const deckBPromise = grab(spec.deckB.url, 'deckB').catch((e) => { log.push('import-track ' + e.message); return null; });
+    const loaded = await Promise.all(spec.stems.map(async (s) => {
+      try { return { s, ...(await grab(s.url, s.name)) }; }
+      catch (e) { log.push('stem ' + s.name + ' ' + e.message); return null; }
+    }));
+    for (const item of loaded) {
+      try {
+        if (!item) continue;              // dropped stem — idx still advances below
+        const { s, blob, peaks, duration } = item;
+        const [st, dur, off] = plan[s.name] || [idx * 2, 18, 30];
+        const tracks = editor.getState().tracks;
+        let trackId;
+        if (idx === 0 && tracks.length && editor.getState().clips.filter((c) => c.trackId === tracks[0].id).length === 0) trackId = tracks[0].id;
+        else trackId = editor.getState().addTrack({ name: s.name, color: palette[idx % palette.length] });
+        editor.getState().updateTrack(trackId, { name: s.name });
+        const clipId = editor.getState().addClipToTrack({
+          trackId, label: s.name, audioBlob: blob, mimeType: 'audio/wav',
+          sourceDuration: duration, offsetIntoSource: Math.min(off, Math.max(0, duration - dur - 1)),
+          durationSec: Math.min(dur, duration), startSec: st, color: palette[idx % palette.length],
+        });
+        editor.getState().cachePeaks(clipId, peaks);
+        firstIds.push(clipId);
+      } catch (e) { log.push('stem build ' + e.message); }
+      idx++;
+    }
+    // a 5th track with a DIFFERENT source (an imported clip) for source variety
+    try {
+      const db = await deckBPromise;
+      if (!db) throw new Error('deckB unavailable');
+      const { blob: b2, peaks, duration } = db;
+      const tId = editor.getState().addTrack({ name: 'import', color: palette[4] });
+      const cId = editor.getState().addClipToTrack({
+        trackId: tId, label: 'import', audioBlob: b2, mimeType: 'audio/wav',
+        sourceDuration: duration, offsetIntoSource: Math.min(20, Math.max(0, duration - 13)),
+        durationSec: Math.min(12, duration), startSec: 10, color: palette[4],
+      });
+      editor.getState().cachePeaks(cId, peaks);
+      editor.getState().updateClip(cId, { fadeOutSec: 2.0 });
+    } catch (e) { log.push('import-track ' + e.message); }
+    // chop a couple stems + apply fades so it reads as a worked arrangement
+    try {
+      if (firstIds[0]) { editor.getState().splitClipAt(firstIds[0], 8); editor.getState().splitClipAt(firstIds[0], 4); editor.getState().updateClip(firstIds[0], { fadeInSec: 0.8 }); }
+      if (firstIds[2]) editor.getState().splitClipAt(firstIds[2], 12);
+      if (firstIds[3]) editor.getState().updateClip(firstIds[3], { fadeInSec: 1.5 });
+    } catch (e) { log.push('arrange ' + e.message); }
+    try { editor.getState().setBpm(124); editor.getState().setSnap('1/8'); editor.getState().setZoom(34); editor.getState().setScrollSec(0); } catch (e) {}
+    C.stemsBuilt = true;
+  }
+  if (spec.djDecks && !C.decksLoaded) {
+    try {
+      const dj = await imp('/src/state/djEngine.ts');
+      await dj.loadDeck('A', spec.heroUrl, spec.heroLabel);
+      await dj.loadDeck('B', spec.deckB.url, spec.deckB.label);
+      for (const fn of ['play', 'playDeck', 'startDeck', 'togglePlay']) { try { if (typeof dj[fn] === 'function') { dj[fn]('A'); dj[fn]('B'); break; } } catch (e) {} }
+      C.decksLoaded = true;
+    } catch (e) { log.push('dj ' + e.message); }
+  }
+  // DJ live stems: ride the separated stems on the deck's per-stem faders (uses the
+  // already-separated Et Tu Machina stems — no Demucs job needed at capture time).
+  if (spec.djStems && !C.djStemsLoaded) {
+    try { const dj = await imp('/src/state/djEngine.ts'); await dj.loadDeckStems('A', spec.stems.map((s) => ({ name: s.name, url: s.url }))); C.djStemsLoaded = true; } catch (e) { log.push('djstems ' + e.message); }
+  }
+  if (spec.studioSource && !C.studioSet) {
+    try {
+      const blob = await (await fetch(spec.heroUrl)).blob();
+      const f = new File([blob], 'et-tu-machina.wav', { type: 'audio/wav' });
+      (await imp('/src/state/studioStore.ts')).useStudioStore.getState().setSourceFile(f);
+      // The MIX INPUT field + processChain read the advanced-editor source — set it too so
+      // EVERY mix scene shows the imported track's waveform loaded, not an empty stage.
+      try { (await imp('/src/state/advancedEditorStore.ts')).useAdvancedEditorSourceStore.getState().setSource(f); } catch (e) {}
+      C.studioSet = true;
+    } catch (e) { log.push('studio ' + e.message); }
+  }
+  if (spec.fillBucket && !C.bucketFilled) {
+    try { const mb = (await imp('/src/state/mediaBucketStore.ts')).useMediaBucketStore; const b = await withTimeout((await fetch(spec.heroUrl)).blob(), 30000, 'fetch hero/bucket'); mb.getState().add(new File([b], spec.heroLabel.replace(/ +/g, '-') + '.wav', { type: 'audio/wav' })); C.bucketFilled = true; } catch (e) { log.push('bucket ' + e.message); }
+  }
+
+  // ── per-scene UI state (fully specified every time) ──
+  if (spec.bottomTab) bp.setState({ activeTab: spec.bottomTab, isOpen: true, multiMaximized: !!spec.maximizePanel, multiHeight: Math.max(380, bp.getState().multiHeight || 0) });
+  else bp.setState({ isOpen: false, multiMaximized: false });
+
+  try { appUi.getState().setLibraryExpanded(!!spec.catalogue); } catch (e) {}
+
+  try {
+    const gp = (await imp('/src/state/generateParamsStore.ts')).useGenerateParamsStore;
+    gp.getState().setField('model', spec.sunoModel ? 'suno' : ((spec.magentaMake || spec.magentaCond) ? 'magenta-small' : 'medium'));
+    // Magenta scenes: surface the model option without the sidecar probe, and for the
+    // conditioning scene populate the FULL conditioning panel (notes + knobs + style source).
+    if (spec.magentaMake || spec.magentaCond) { try { gp.getState().setField('magentaAvailable', true); } catch (e) {} }
+    if (spec.magentaCond) {
+      try {
+        gp.getState().setField('magNotes', [48, 55, 60, 63, 67, 70]);
+        gp.getState().setField('magTemperature', 1.1);
+        gp.getState().setField('magTopK', 30);
+        gp.getState().setField('magCfgMusiccoca', 4.0);
+        gp.getState().setField('magCfgNotes', 2.5);
+        gp.getState().setField('magDrums', 1);
+        gp.getState().setField('magSeed', 42);
+      } catch (e) { log.push('magcond ' + e.message); }
+    }
+    if (!C.srcFile) { const b = await withTimeout((await fetch(spec.heroUrl)).blob(), 30000, 'fetch hero/src'); C.srcFile = new File([b], 'et-tu-machina.wav', { type: 'audio/wav' }); }
+    if (spec.inpaint) {
+      gp.getState().setField('initAudioFile', C.srcFile);
+      gp.getState().setField('inpaintAudioFile', C.srcFile);
+      gp.getState().setField('inpaintEnabled', true);
+    } else if (spec.initAudio) {
+      gp.getState().setField('initAudioFile', C.srcFile);
+      gp.getState().setField('initAudioEnabled', true);
+      gp.getState().setField('inpaintEnabled', false);
+    } else {
+      gp.getState().setField('inpaintEnabled', false);
+    }
+    // Build a CHIMERA stack — fold Et Tu Machina + two of its stems into 3 chimera tracks.
+    // Guard on the CLIPS being present (not a one-time flag): non-chimera scenes clear the
+    // stack, and 72_crispr-dna needs a fresh rebuild long after 23_chimera ran.
+    if (spec.chimeraBuild && gp.getState().chimera.clips.length === 0) {
+      const srcs = [{ u: spec.heroUrl, l: spec.heroLabel }, { u: spec.stems[0].url, l: 'Drums' }, { u: spec.stems[2].url, l: 'Vocals' }];
+      for (const s of srcs) { try { const b = await withTimeout((await fetch(s.u)).blob(), 30000, 'fetch chimera ' + s.l); gp.getState().addChimeraClip({ blob: b, mimeType: 'audio/wav', label: s.l }); } catch (e) { log.push('chimera ' + e.message); } }
+      try { gp.getState().setChimeraField('targetBpm', 124); gp.getState().setChimeraField('alignMode', 'weave'); } catch (e) {}
+      C.chimeraBuilt = true;
+    } else if (!spec.chimeraBuild) {
+      try { if (gp.getState().chimera.clips.length) gp.getState().clearChimera(); } catch (e) {}
+    }
+  } catch (e) {}
+
+  // Spectrogram viewer (COMPARE tab) renders from lastAudioUrl — point it at the song.
+  if (spec.spectro) {
+    try { const gs = (await imp('/src/state/generateStore.ts')).useGenerateStore; gs.setState({ lastAudioUrl: spec.heroUrl }); } catch (e) { log.push('spectro ' + e.message); }
+  }
+
+  // EDIT mixing: solo/mute/pan the stems so the per-track faders read as a live mix.
+  try {
+    if (spec.editMix) {
+      const ts = editor.getState().tracks;
+      if (ts[0]) editor.getState().updateTrack(ts[0].id, { volume: 0.9, pan: -0.4 });
+      if (ts[2]) editor.getState().toggleSolo(ts[2].id);
+      if (ts[4]) editor.getState().updateTrack(ts[4].id, { mute: true });
+      if (ts[1]) editor.getState().updateTrack(ts[1].id, { pan: 0.5, volume: 0.7 });
+    }
+  } catch (e) { log.push('editmix ' + e.message); }
+
+  // MIX: stack a real processing chain so the chain column shows live modules.
+  try {
+    const ec = (await imp('/src/state/effectChainStore.ts')).useEffectChainStore;
+    if (spec.mixChain && !C.mixChained) {
+      for (const fx of ['mastering_chain', 'reverb_delay', 'sub_exciter', 'stereo_widener', 'compression', 'lofi_vinyl']) ec.getState().addEffect(fx);
+      C.mixChained = true;
+    } else if (spec.mixAll && !C.mixAllBuilt) {
+      // EVERY effect, on the ACTUAL Et Tu Machina clip. The advanced-editor source store
+      // is what the MIX INPUT field + processChain() read (studioStore.sourceFile is not).
+      try {
+        const aes = (await imp('/src/state/advancedEditorStore.ts')).useAdvancedEditorSourceStore;
+        aes.getState().setSource(C.srcFile);
+      } catch (e) { log.push('mixall-src ' + e.message); }
+      ec.getState().clearChain();
+      for (const fx of ['mastering_chain', 'compression', 'eq_mid', 'sub_exciter', 'stereo_widener', 'reverb_delay', 'delay', 'echo', 'lofi_vinyl', 'phase_isolation', 'pitch_shift', 'loudnorm', 'vocal_processing', 'highpass']) ec.getState().addEffect(fx);
+      C.mixAllBuilt = true;
+    } else if (!spec.mixChain && !spec.mixAll) {
+      try { if (ec.getState().chain.length) ec.getState().clearChain(); } catch (e) {}
+    }
+  } catch (e) { log.push('mixchain ' + e.message); }
+
+  // DJ: load the sampler bank + stage tracks in the side list.
+  try {
+    if (spec.djSampler && !C.djStaged) {
+      const samp = (await imp('/src/state/djSamplerStore.ts')).useDjSampler;
+      const labels = ['Kick', 'Snare', 'Hat', 'Stab', 'Vox', 'FX'];
+      for (let i = 0; i < labels.length; i++) { try { samp.getState().setPad(i, { entryId: spec.heroId, name: labels[i] }); } catch (e) {} }
+      try { const sl = (await imp('/src/state/djSideListStore.ts')).useDjSideList; sl.getState().add({ entryId: spec.deckB.url, label: spec.deckB.label }); sl.getState().add({ entryId: spec.heroId, label: 'Et Tu Machina' }); } catch (e) {}
+      C.djStaged = true;
+    }
+  } catch (e) { log.push('djsamp ' + e.message); }
+
+  // Global chrome: LOG dock, DOCS modal, SETTINGS modal.
+  try { bp.setState({ isLogOpen: !!spec.logPanel }); } catch (e) {}
+  try { appUi.getState().setDocsOpen(!!spec.docsModal); } catch (e) {}
+  if (spec.settingsModal) { try { window.dispatchEvent(new Event('thedaw:open-settings')); } catch (e) {} }
+
+  // EDIT cut/razor: switch to the cut tool and make SEVERAL real splits across stems so
+  // it reads as a track actively being chopped up.
+  try {
+    if (spec.cutEdit) {
+      editor.getState().setTool('cut');
+      if (!C.didCut) {
+        const clips = editor.getState().clips.slice();
+        const fracs = [0.25, 0.5, 0.7];
+        for (let i = 0; i < Math.min(4, clips.length); i++) {
+          const c = clips[i];
+          const f = fracs[i % fracs.length];
+          try { editor.getState().splitClipAt(c.id, c.startSec + c.durationSec * f); } catch (e) {}
+        }
+        C.didCut = true;
+      }
+    } else {
+      editor.getState().setTool('move');
+    }
+  } catch (e) { log.push('cut ' + e.message); }
+
+  // PIANO ROLL: load Et Tu Machina's own MIDI (windowed to 64 steps) and start it playing
+  // so the grid carries the actual song melody with the playhead moving.
+  try {
+    if (spec.pianoFill) {
+      const piano = (await imp('/src/state/pianoRollStore.ts')).usePianoRollStore;
+      const etu = spec.etuPiano;
+      if (etu && etu.notes && etu.notes.length) {
+        piano.getState().setTotalSteps(etu.totalSteps || 64);
+        piano.getState().replaceAll(etu.notes.map((x) => ({ ...x })));
+      } else {
+        piano.getState().setTotalSteps(64);
+        const scale = [60, 62, 63, 65, 67, 68, 70, 72];
+        const notes = [];
+        for (let step = 0; step < 64; step += 2) {
+          const n = scale[(step / 2) % scale.length];
+          notes.push({ note: n, step, length: 2, velocity: 80 + (step % 5) * 6 });
+          if (step % 4 === 0) notes.push({ note: n - 12, step, length: 4, velocity: 70 });
+          if (step % 8 === 0) notes.push({ note: n + 7, step, length: 2, velocity: 64 });
+        }
+        piano.getState().replaceAll(notes.map((x) => ({ ...x })));
+      }
+      piano.getState().setPlaying(true);
+    }
+  } catch (e) { log.push('piano ' + e.message); }
+
+  // EDIT paintbrush INPAINT region + DELETE-from-timeline.
+  try {
+    if (spec.inpaintRegion) {
+      const c = editor.getState().clips[0];
+      if (c) { editor.getState().setInpaintSelection({ clipId: c.id, startSec: c.startSec + c.durationSec * 0.3, endSec: c.startSec + c.durationSec * 0.62 }); editor.getState().setSelected(c.id); }
+    } else { try { editor.getState().clearInpaintSelection(); } catch (e) {} }
+    if (spec.deleteClip && !C.didDelete) {
+      const c = editor.getState().clips[0];
+      if (c) { const rid = editor.getState().splitClipAt(c.id, c.startSec + c.durationSec * 0.5); if (rid) editor.getState().removeClip(rid); }
+      C.didDelete = true;
+    }
+  } catch (e) { log.push('editops ' + e.message); }
+
+  try {
+    const ss = (await imp('/src/state/slideStore.ts')).useSlideStore;
+    ss.getState().setView(spec.slideView || 'row');
+  } catch (e) {}
+
+  try { lib.getState().setSelectedEntry(spec.notation ? spec.notationId : ((spec.detailsTrack || spec.libContext) ? spec.heroId : null)); } catch (e) {}
+
+  if (spec.tab) appUi.getState().setCenterTab(spec.tab);
+  await new Promise((r) => setTimeout(r, 250));
+  return { tracks: editor.getState().tracks.length, clips: editor.getState().clips.length, playing: player.getState().isPlaying, log };
+}
+
+const onlyIds = (process.env.ONLY || '').split(',').map((s) => s.trim()).filter(Boolean);
+// SKIP is the inverse of ONLY, for "capture everything except these". Needed for
+// a no-GPU pass: the handful of scenes that run a real model are excluded, and
+// listing the ~58 that remain in ONLY would be unreadable. SKIP applies after
+// ONLY, so the two compose.
+const skipIds = (process.env.SKIP || '').split(',').map((s) => s.trim()).filter(Boolean);
+const VJ_SOURCE = path.join(OUT, '_vjsource.mp4');
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const clickByTitle = (page, re) => page.evaluate((src) => { const rx = new RegExp(src, 'i'); const b = [...document.querySelectorAll('button')].find((x) => rx.test(x.getAttribute('title') || '')); if (b) b.click(); }, re.source).catch(() => {});
+const clickByText = (page, re) => page.evaluate((src) => { const rx = new RegExp(src, 'i'); const b = [...document.querySelectorAll('button')].find((x) => rx.test(x.textContent || '')); if (b) b.click(); }, re.source).catch(() => {});
+// A REAL mouse click (transient user activation) on the nth titled button — needed for
+// requestFullscreen() on the cymatics panels, which a synthetic .click() can't activate.
+async function realClickByTitle(page, re, nth = 0) {
+  const box = await page.evaluate(({ s, n }) => {
+    const rx = new RegExp(s, 'i');
+    const bs = [...document.querySelectorAll('button')].filter((x) => rx.test(x.getAttribute('title') || ''));
+    const b = bs[n]; if (!b) return null; const q = b.getBoundingClientRect();
+    if (q.width < 1 || q.height < 1) return null;
+    return { x: q.x + q.width / 2, y: q.y + q.height / 2 };
+  }, { s: re.source, n: nth }).catch(() => null);
+  if (box) { await page.mouse.click(box.x, box.y); return true; }
+  return false;
+}
+
+const waitSplashGone = (page) => page.waitForFunction(() => {
+  // LoadingScreen unmounts (AnimatePresence) once the backend is ready AND the boot
+  // cinematic finishes. Keyed off its data-boot-splash attribute: the previous check
+  // matched the "Stable Audio 3" wordmark, which the rebrand to theDAW removed, so it
+  // matched nothing, resolved instantly, and let the splash bleed into the clips.
+  // Test DOM PRESENCE, not offsetParent — position:fixed always reports null there.
+  return !document.querySelector('[data-boot-splash]');
+}, { timeout: 60000 }).catch(() => {});
+
+// Per-scene DOM choreography that the stores can't do (graph fullscreen, analyzer
+// mode buttons, the assistant orb, the VJ source import). Runs after the view mounts.
+async function sceneActions(page, scene) {
+  let err = null;
+  // Most center tabs are React.lazy chunks behind <Suspense fallback={<TabFallback/>}>,
+  // which renders a pulsing "loading…" span on first visit. Without this the whole hold
+  // can be that fallback. Resolves instantly for any tab already warmed this session.
+  await page.waitForFunction(() => ![...document.querySelectorAll('span')]
+    .some((e) => (e.textContent || '').trim() === 'loading…' && e.getClientRects().length),
+    { timeout: 25000 }).catch(() => {});
+  // ── the newer workspaces, driven rather than merely opened ──────────────────
+  // A tab held static only proves it exists. Each of these clicks the controls that
+  // are the point of the workspace, so the clip shows what the tab actually DOES.
+  const clickNth = (re, n) => page.evaluate(([src, idx]) => {
+    const rx = new RegExp(src, 'i');
+    const hits = [...document.querySelectorAll('button')]
+      .filter((b) => rx.test((b.textContent || '').trim()) && b.getClientRects().length);
+    if (hits[idx]) hits[idx].click();
+  }, [re.source, n]).catch(() => {});
+  const setSelect = (key, idx) => page.evaluate(([k, n]) => {
+    const s = document.querySelector(`#${k}, [name="${k}"], [id="${k}"]`);
+    if (s && s.options && s.options.length > n) {
+      s.selectedIndex = n;
+      s.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  }, [key, idx]).catch(() => {});
+
+  if (scene.swayUse) {
+    // SWAY maps gestures and body pose onto parameters: arm MIDI, then re-route
+    // several gesture and pose slots and put two of them into learn mode.
+    await clickByText(page, /enable midi/i); await sleep(700);
+    for (const [k, n] of [['sway-route-strike', 1], ['sway-route-sway', 2], ['sway-route-pulse', 1],
+                          ['pose-route-handLeft', 1], ['pose-route-handRight', 2],
+                          ['pose-route-armSpan', 1], ['sway-pad-mode', 1]]) {
+      await setSelect(k, n); await sleep(520);
+    }
+    await clickNth(/^learn$/i, 0); await sleep(900);
+    await clickNth(/^learn$/i, 2); await sleep(900);
+  }
+  if (scene.foundryUse) {
+    // FOUNDRY hosts plugin front-ends: load one design, then the other.
+    await clickByText(page, /senpai/i); await sleep(2600);
+    await clickByText(page, /kouhai/i); await sleep(2600);
+    await clickByText(page, /senpai/i); await sleep(1500);
+  }
+  if (scene.underfitUse) {
+    await clickByText(page, /start underfit/i); await sleep(3500);
+  }
+  if (scene.audimateUse) {
+    // AUDIMATE is a node graph — build one out of the palette, then run it.
+    for (const label of [/^library$/i, /^generate$/i, /^effect$/i, /merge \/ mix/i, /^feedback$/i, /^output$/i]) {
+      await clickByText(page, label); await sleep(700);
+    }
+    await clickByText(page, /^run$/i); await sleep(2200);
+  }
+  if (scene.performUse) {
+    // No .als/.tasmo ships with the repo, so drive the import affordance itself:
+    // focusing the path field opens the recent-projects list.
+    await page.click('#session-import-path', { timeout: 4000 }).catch(() => {});
+    await sleep(900);
+    await page.keyboard.type('C:\\Sets\\' + HERO.heroLabel.replace(/[^A-Za-z0-9]+/g, '') + '.als', { delay: 55 }).catch(() => {});
+    await sleep(1400);
+  }
+
+  // TOUR is a venue/routing map. Held static it reads as an empty basemap, so drive
+  // it: pick a genre, run the region search, then pan and zoom so the map is visibly
+  // a map. tourRoutes goes further and opens the VENUES / ROUTES / EV panels.
+  if (scene.tourMap || scene.tourRoutes) {
+    await clickByText(page, /electronic/i);
+    await sleep(400);
+    await clickByText(page, /^\s*search\s*$/i);
+    await sleep(2200);
+    await page.mouse.move(960, 520);
+    await page.mouse.down();
+    for (let i = 0; i < 12; i += 1) { await page.mouse.move(960 - i * 14, 520 - i * 6); await sleep(40); }
+    await page.mouse.up();
+    await sleep(500);
+    await page.mouse.wheel(0, -300);
+    await sleep(900);
+  }
+  if (scene.tourRoutes) {
+    for (const label of [/venues/i, /routes/i, /\bev\b/i]) {
+      await clickByText(page, label);
+      await sleep(1800);
+    }
+  }
+  if (scene.learn === '2d') {
+    await clickByText(page, /genealogy/i);
+    // Wait for the family-tree to actually finish loading (nodes present), not just a
+    // fixed delay — the graph fetch can lag and otherwise we capture "Loading lineage…".
+    await page.waitForFunction(() => {
+      let n = 0;
+      for (const g of document.querySelectorAll('svg g')) { const r = g.getBoundingClientRect(); if (r.width > 0 && r.width < 360 && r.height > 0 && r.height < 280) n++; }
+      return n > 20;
+    }, { timeout: 18000 }).catch(() => {});
+    await sleep(1200);
+    if (scene.lineageFull) { await clickByTitle(page, /full screen/i); await sleep(1500); }
+    try {
+      // The app lights a node's FULL lineage on HOVER (opacity 1 for the lineage, 0.12 for
+      // the rest). Probe each node box — hover it, count how many boxes stay bright — to
+      // rank nodes by lineage size, then keep the densest handful to hover during the hold.
+      const boxes = await page.evaluate(() => {
+        const out = [];
+        for (const g of document.querySelectorAll('svg g')) {
+          const r = g.getBoundingClientRect();
+          if (r.width > 40 && r.width < 360 && r.height > 20 && r.height < 280) out.push({ cx: r.x + r.width / 2, cy: r.y + r.height / 2 });
+        }
+        return out;
+      });
+      const scored = [];
+      for (const b of boxes.slice(0, 90)) {
+        await page.mouse.move(b.cx, b.cy); await sleep(60);
+        const lit = await page.evaluate(() => { let n = 0; for (const g of document.querySelectorAll('svg g')) { if (parseFloat(getComputedStyle(g).opacity || '1') > 0.5) n++; } return n; });
+        scored.push({ b, lit });
+      }
+      // When hovering, lit-count = the lineage size of that node. Densest = most lit.
+      scored.sort((a, b) => b.lit - a.lit);
+      const picks = [];
+      for (const s of scored) { if (picks.every((p) => Math.hypot(p.cx - s.b.cx, p.cy - s.b.cy) > 36)) picks.push(s.b); if (picks.length >= 40) break; }
+      scene._targets = picks;  // densest-first; the hold hovers a long parade of them
+      await page.mouse.move(960, 230);
+      if (!picks.length) err = '2d:no-nodes';
+    } catch (e) { err = '2d:' + e.message; }
+  } else if (scene.learn === '3d') {
+    await clickByText(page, /3d\s*graph/i);
+    if (scene.lineageFull) { await clickByTitle(page, /full screen/i); await sleep(1400); }
+    // No search, no refresh — just let the galaxy render; the fly-around happens during
+    // the hold (see flyAround3d).
+    await page.waitForSelector('#lineage-graph-search', { timeout: 12000 }).catch(() => {});
+    await sleep(2200);
+  } else if (scene.learn === 'track') {
+    // per-track lineage: the Track tab shows the selected entry's ancestors + descendants
+    await clickByText(page, /^\s*track\s*$/i); await sleep(1600);
+    if (scene.lineageFull) { await clickByTitle(page, /full screen/i); await sleep(1200); }
+    await sleep(1500);
+  }
+  if (scene.lora) { await clickByText(page, /^\s*lora\b/i); await sleep(800); }
+  if (scene.compare) { await clickByText(page, /\bcompare\b/i); await sleep(800); }
+  if (scene.savedPrompts) { await clickByText(page, /saved\s*\(/i); await sleep(900); }
+  if (scene.designMode) { await clickByText(page, /edit layout/i); await sleep(1600); }
+  // Cymatics / ferrofluid: enter fullscreen on the orb; the hold cycles all 4 modes.
+  if (scene.vizCycle) {
+    await realClickByTitle(page, /ferrofluid orb/i, 0);
+    await sleep(500);
+    if (scene.vizFull) { await realClickByTitle(page, /^fullscreen$/i, 0); await sleep(1300); }
+  } else if (scene.vizMode) {
+    await realClickByTitle(page, new RegExp(scene.vizMode, 'i'), 0);
+    await sleep(600);
+    if (scene.vizFull) { await realClickByTitle(page, /^fullscreen$/i, 0); await sleep(1300); }
+  }
+  // Spectrogram viewer (COMPARE hero-tab): wait for /api/spectrogram, then toggle ON the Mel /
+  // STFT / Chroma / CQT layers so the STACK of spectrograms renders (default shows only the WF).
+  if (scene.spectro) {
+    await clickByText(page, /\bcompare\b/i);
+    await sleep(5200);
+    for (const m of ['Mel', 'STFT', 'Chroma', 'CQT']) { await page.evaluate((t) => { const b = [...document.querySelectorAll('button')].find((x) => (x.textContent || '').trim() === t); if (b) b.click(); }, m).catch(() => {}); await sleep(250); }
+    await sleep(1500);
+  }
+  // DJ automix: engage the hands-free auto-mixer (the crossfader then travels on its own).
+  if (scene.djAutomix) { await clickByText(page, /automix/i); await sleep(900); }
+  // Magenta panel (theDAW integrated): select the Magenta RT2 model option if the sidecar surfaced it.
+  if (scene.magentaMake) {
+    await page.evaluate(() => { const el = [...document.querySelectorAll('button,[role="option"],li,div,span')].find((x) => /magenta\s*rt2/i.test(x.textContent || '') && (x.textContent || '').length < 60); if (el) el.click(); }).catch(() => {});
+    await sleep(1000);
+  }
+  // EDIT commit: name the mixdown and click Commit Edit (offline 44.1k stereo render).
+  if (scene.commitEdit) {
+    try { await page.evaluate((name) => { const i = document.querySelector('#editor-mixdown-name'); if (i) { i.value = name + ' (mixdown)'; i.dispatchEvent(new Event('input', { bubbles: true })); } }, HERO.heroLabel); } catch (e) {}
+    await clickByText(page, /commit\s*edit/i); await sleep(900);
+  }
+  // ── feature-coverage gap fills ──
+  // Node inspector: click the densest 2D node's actual <g> element → its params + lineage panel.
+  if (scene.nodeInspect && scene._targets && scene._targets.length) {
+    const t = scene._targets[0];
+    await page.evaluate(({ x, y }) => { const el = document.elementFromPoint(x, y); const g = el && (el.closest('g') || el); if (g) g.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: x, clientY: y })); }, { x: t.cx, y: t.cy }).catch(() => {});
+    await page.mouse.click(t.cx, t.cy);
+    await sleep(1600);
+  }
+  // Edit Tool Stack: open a Studio Module's exact instrument GUI in the MIX effect stage.
+  if (scene.moduleGui) {
+    await page.evaluate(() => { const el = [...document.querySelectorAll('button')].find((x) => /studio/i.test(x.textContent || '') && (x.textContent || '').replace(/\s/g, '').length < 12); if (el) el.click(); }).catch(() => {});
+    await sleep(800);
+    for (const m of ['Imager', 'Maximizer', 'Exciter', 'Character FX', 'EQ']) { const ok = await page.evaluate((t) => { const b = [...document.querySelectorAll('button')].find((x) => { const s = (x.textContent || '').trim(); return new RegExp('^' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i').test(s) && s.length > t.length; }); if (b) { b.click(); return true; } return false; }, m); if (ok) break; }
+    await sleep(2400);
+  }
+  // Audio-to-MIDI: right-click a catalogue track → show the menu with "Convert to MIDI" highlighted.
+  if (scene.audioToMidi) {
+    try {
+      await page.mouse.click(360, 130, { button: 'right' }); await sleep(800);
+      const box = await page.evaluate(() => { const b = [...document.querySelectorAll('*')].find((x) => /convert to midi/i.test(x.textContent || '') && x.children.length === 0); if (!b) return null; const r = b.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
+      if (box) await page.mouse.move(box.x, box.y);
+      await sleep(900);
+    } catch (e) { err = (err || '') + ' a2m:' + e.message; }
+  }
+  // Prompt enhancement: type a prompt, hit the AI-enhance (wand) button.
+  if (scene.promptEnhance) {
+    try { await page.fill('textarea', 'lo-fi boom bap, dusty rhodes chords, vinyl crackle, 84 bpm'); } catch (e) {}
+    await sleep(300); await clickByTitle(page, /ai-enhance prompt/i); await sleep(1400);
+  }
+  // VJ mobile mirror: show the LAN QR + URL popover, then toggle the camera input.
+  if (scene.vjMobile) {
+    await clickByTitle(page, /mobile url/i); await sleep(1000);
+    await clickByTitle(page, /camera (on|off)/i); await sleep(700);
+  }
+  // DJ MIDI-learn: open the learn overlay and arm a binding.
+  if (scene.djMidiLearn) {
+    await clickByTitle(page, /^\s*midi\s*$/i); await sleep(800);
+    await clickByText(page, /^\s*learn\s*$/i); await sleep(1000);
+  }
+  // Controller Vision: Set up device → Identify by photo (AI) → the detect/identify modal.
+  if (scene.controllerVision) {
+    await clickByText(page, /set up device/i); await sleep(700);
+    await clickByText(page, /identify by photo/i); await sleep(1300);
+  }
+  if (scene.urlImport) {
+    try { await page.fill('input[placeholder*="YouTube" i]', 'https://www.youtube.com/watch?v=2Vv-BfVoq4g'); } catch (e) { err = (err || '') + ' url:' + e.message; }
+    await sleep(700);
+  }
+  if (scene.stemsModal) {
+    // right-click a catalogue row → "Separate stems…" opens the modal (we don't run it)
+    try {
+      await page.mouse.click(360, 110, { button: 'right' }); await sleep(700);
+      await clickByText(page, /separate stems/i); await sleep(1200);
+    } catch (e) { err = (err || '') + ' stems:' + e.message; }
+  }
+  if (scene.vizPreset) {
+    // open the 3D appearance drawer and pick a vivid preset (galaxy / constellation …)
+    await clickByTitle(page, /appearance/i); await sleep(900);
+    await page.evaluate((preset) => {
+      const sel = [...document.querySelectorAll('select')].find((s) => [...s.options].some((o) => o.value === preset));
+      if (sel) { sel.value = preset; sel.dispatchEvent(new Event('change', { bubbles: true })); }
+    }, scene.vizPreset).catch(() => {});
+    await sleep(1500);
+  }
+  if (scene.modeBtn) {
+    await page.evaluate((t) => { const b = [...document.querySelectorAll('button')].find((x) => (x.getAttribute('title') || '') === t || (x.textContent || '').trim() === t[0]); if (b) b.click(); }, scene.modeBtn).catch(() => {});
+    await sleep(700);
+  }
+  if (scene.openOrb) {
+    try { await page.click('[aria-label="Toggle orb panel"]', { timeout: 3500 }); } catch (e) { err = (err || '') + ' orb:' + e.message; }
+    try { await page.waitForSelector('input[placeholder="Ask anything..."]', { timeout: 4000 }); await page.fill('input[placeholder="Ask anything..."]', 'lo-fi boom bap, dusty rhodes chords, vinyl crackle, 84 bpm'); } catch (e) {}
+    await sleep(700);
+  }
+  if (scene.seqFill) {
+    // fill the step grid (RANDOM), add voices, and start it playing → no empty tracks
+    await clickByTitle(page, /add track/i); await sleep(300);
+    await clickByTitle(page, /add track/i); await sleep(300);
+    await clickByTitle(page, /randomize all step/i); await sleep(400);
+    await clickByTitle(page, /^\s*play\s*$/i); await sleep(300);
+  }
+  if (scene.sendToEditor) { await clickByText(page, /send to editor/i); await sleep(500); }
+  if (scene.vjClip) {
+    try {
+      await clickByText(page, /import video|select.*video|video clip/i); await sleep(1600);
+      await clickByText(page, /\bMEM\b/i); await sleep(800);
+    } catch (e) { err = (err || '') + ' vj:' + e.message; }
+    await sleep(1000);
+  }
+  // Notation: Score panel renders a real guitar tab (alphaTab) or sheet music (OSMD)
+  // from the selected track's notation artifacts; Details infers a Stable Audio prompt.
+  // Generate live (MAKE TABS / MAKE SHEET explicitly select + render the new artifact,
+  // which is more reliable than racing the artifact list's auto-select).
+  const waitEnabled = (re) => page.waitForFunction((src) => { const rx = new RegExp(src, 'i'); const b = [...document.querySelectorAll('button')].find((x) => rx.test(x.textContent || '')); return !!b && !b.disabled; }, re.source, { timeout: 14000 }).catch(() => {});
+  if (scene.notationTabs) {
+    await waitEnabled(/make tabs/i);
+    await clickByText(page, /make tabs/i);
+    await sleep(12000);  // fretboard arrange + alphaTab import + Bravura font + layout
+  }
+  if (scene.notationArrange) {
+    await waitEnabled(/^\s*arrange\s*$/i);
+    await clickByText(page, /^\s*arrange\s*$/i);
+    await sleep(9000);  // music21 piano-reduction + OpenSheetMusicDisplay render
+  }
+  if (scene.notationPrompt) {
+    await waitEnabled(/^\s*infer\s*$/i);
+    await clickByText(page, /^\s*infer\s*$/i); await sleep(3200);
+  }
+  return err;
+}
+
+// Walk the VJ control surface: cycle canvas formats + toggle every geometry / feedback /
+// performance option so the whole rig is shown working, not a static panel.
+async function vjTour(page, seconds) {
+  const t0 = Date.now();
+  const groups = [
+    ['16:9', '4:3', '9:16', '1:1', '21:9', 'FREE'],
+    ['MIRROR X', 'MIRROR Y', 'KALEIDO', 'SOFT EDGES', 'HDR', 'FB IO'],
+    ['RADIAL', 'GRID', 'FEEDBACK', 'STROBE', 'CORRUPT'],
+    ['HIGH', 'MED', 'LOW'],
+  ];
+  let gi = 0;
+  while ((Date.now() - t0) / 1000 < seconds) {
+    const g = groups[gi % groups.length];
+    for (const label of g) {
+      await page.evaluate((s) => { const rx = new RegExp(s, 'i'); const b = [...document.querySelectorAll('button')].find((x) => rx.test(x.textContent || '')); if (b) b.click(); }, label).catch(() => {});
+      await sleep(260);
+      if ((Date.now() - t0) / 1000 >= seconds) break;
+    }
+    gi++;
+  }
+}
+
+// Full DJ performance workout: fire hotcues, toggle beat loops + a loop-roll, slip,
+// beat-jump, and sweep the per-deck FX (flanger / reverb / wah) + EQ + filter so every
+// pad and knob on the console is visibly working.
+async function djPerf(page, seconds) {
+  const t0 = Date.now();
+  const clickTitle = (rx) => page.evaluate((s) => { const r = new RegExp(s, 'i'); const b = [...document.querySelectorAll('button')].find((x) => r.test(x.getAttribute('title') || '')); if (b) b.click(); }, rx).catch(() => {});
+  const seq = ['cue 1', 'cue 2', '1-beat loop', 'jump \\+1 beat', 'cue 3', '½-beat loop', 'slip mode', 'jump -4 beats', 'cue 4', 'exit loop', '2-beat loop'];
+  let i = 0;
+  while ((Date.now() - t0) / 1000 < seconds) {
+    const p = (Date.now() - t0) / 1000;
+    await page.evaluate(async (ph) => {
+      try {
+        const dj = await import('/src/state/djEngine.ts');
+        if (dj.setDeckFx) { dj.setDeckFx('A', 'flanger', Math.sin(ph) * 0.5 + 0.5); dj.setDeckFx('A', 'reverb', Math.cos(ph * 0.7) * 0.5 + 0.5); dj.setDeckFx('B', 'wahwah', Math.sin(ph * 1.3) * 0.5 + 0.5); }
+        if (dj.setDeckEq) { dj.setDeckEq('A', 'low', Math.sin(ph) * 12); dj.setDeckEq('B', 'high', Math.cos(ph) * 12); }
+        if (dj.setDeckFilter) dj.setDeckFilter('A', Math.sin(ph * 0.8) * 0.7);
+      } catch (e) {}
+    }, p);
+    await clickTitle(seq[i % seq.length]);
+    i++;
+    await sleep(820);
+  }
+  // loop-roll flourish: press-and-hold a roll pad, then release
+  try {
+    const box = await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find((x) => /loop-roll/i.test(x.getAttribute('title') || '')); if (!b) return null; const r = b.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
+    if (box) { await page.mouse.move(box.x, box.y); await page.mouse.down(); await sleep(700); await page.mouse.up(); }
+  } catch (e) {}
+}
+
+// Automix is engaged (sceneActions clicked it); the crossfader auto-travels. Ride a gentle
+// EQ/filter sweep so console knobs also move while the auto-transition runs.
+async function djAutomix(page, seconds) {
+  const t0 = Date.now();
+  while ((Date.now() - t0) / 1000 < seconds) {
+    const p = (Date.now() - t0) / 1000;
+    await page.evaluate(async (ph) => { try { const dj = await import('/src/state/djEngine.ts'); if (dj.setDeckEq) { dj.setDeckEq('A', 'mid', Math.sin(ph) * 8); dj.setDeckEq('B', 'low', Math.cos(ph) * 8); } if (dj.setDeckFilter) dj.setDeckFilter('B', Math.sin(ph * 0.6) * 0.5); } catch (e) {} }, p);
+    await sleep(160);
+  }
+}
+
+// Ride the deck's live stem faders (drums/bass/vocals/other) up and down.
+async function djStems(page, seconds) {
+  const t0 = Date.now();
+  const names = ['drums', 'bass', 'vocals', 'other'];
+  while ((Date.now() - t0) / 1000 < seconds) {
+    const p = (Date.now() - t0) / 1000;
+    await page.evaluate(async ({ ph, nm }) => { try { const dj = await import('/src/state/djEngine.ts'); if (dj.setStemGain) nm.forEach((n, i) => dj.setStemGain('A', n, Math.abs(Math.sin(ph * 0.6 + i)))); } catch (e) {} }, { ph: p, nm: names });
+    await sleep(150);
+  }
+}
+
+// MIX: cycle the populated chain — click each chain row (its purple mono label) to open
+// that effect's instrument over the loaded Et Tu Machina waveform.
+async function mixCycle(page, seconds) {
+  const t0 = Date.now();
+  const rows = await page.evaluate(() => {
+    const out = [];
+    for (const s of document.querySelectorAll('span')) {
+      const c = (typeof s.className === 'string') ? s.className : '';
+      if (/font-mono/.test(c) && /text-purple-300/.test(c) && /font-semibold/.test(c)) {
+        const r = s.getBoundingClientRect();
+        if (r.width > 0 && r.height > 0) out.push({ x: r.x + r.width / 2, y: r.y + r.height / 2 });
+      }
+    }
+    return out;
+  }).catch(() => []);
+  let i = 0;
+  while ((Date.now() - t0) / 1000 < seconds) {
+    if (rows.length) { await page.mouse.click(rows[i % rows.length].x, rows[i % rows.length].y); }
+    i++;
+    await sleep(1050);
+  }
+}
+
+// Undo cross-tab overlays so the next scene is clean (lineage fullscreen unmounts with
+// the tab; the assistant orb is global and must be toggled back off; cymatics fullscreen
+// must be Escaped).
+async function sceneCleanup(page, scene) {
+  if (scene.openOrb) { try { await page.click('[aria-label="Toggle orb panel"]', { timeout: 1500 }); } catch (e) {} await sleep(250); }
+  if (scene.vizFull) { try { await page.keyboard.press('Escape'); } catch (e) {} await sleep(300); }
+  if (scene.settingsModal || scene.docsModal) { try { await page.keyboard.press('Escape'); } catch (e) {} await sleep(250); }
+}
+
+// Design Mode (Edit Layout): grab panels / control groups and drag them to new positions so
+// the recording shows the INTERFACE BEING REARRANGED, not just the toggle being flipped.
+async function designDrag(page, seconds) {
+  const t0 = Date.now();
+  const click = (rx) => page.evaluate((s) => { const r = new RegExp(s, 'i'); const b = [...document.querySelectorAll('button')].find((x) => r.test(x.getAttribute('title') || '')); if (b) b.click(); }, rx).catch(() => {});
+  // The layout-action buttons — each visibly reflows the surface (scaling + padding shift).
+  const actions = ['balance the layout', 'mirror the left', 'mirror the right', 'add an empty panel', 'reset to the saved'];
+  let i = 0;
+  while ((Date.now() - t0) / 1000 < seconds) {
+    // DRAG A RESIZE EDGE (Splitter handle) — the two neighbouring panels scale + repad live.
+    const sp = await page.evaluate(() => {
+      const out = [];
+      for (const el of document.querySelectorAll('[class*="cursor-col-resize"],[class*="cursor-row-resize"]')) {
+        const r = el.getBoundingClientRect();
+        if (r.width > 0 && r.height > 0) out.push({ x: r.x + r.width / 2, y: r.y + r.height / 2, ax: /col-resize/.test(el.className) ? 'x' : 'y' });
+      }
+      return out;
+    }).catch(() => []);
+    if (sp.length) {
+      const s = sp[i % sp.length], d = (i % 2 ? 170 : -150);
+      await page.mouse.move(s.x, s.y); await page.mouse.down();
+      if (s.ax === 'x') { await page.mouse.move(s.x + d, s.y, { steps: 12 }); await page.mouse.move(s.x, s.y, { steps: 10 }); }
+      else { await page.mouse.move(s.x, s.y + d, { steps: 12 }); await page.mouse.move(s.x, s.y, { steps: 10 }); }
+      await page.mouse.up();
+    }
+    await sleep(350);
+    // PRESS A LAYOUT-ACTION BUTTON (center / mirror / add panel / reset) so its effect is shown.
+    await click(actions[i % actions.length]);
+    await sleep(750);
+    i++;
+  }
+}
+
+// Cymatics: ONE fullscreen shot that cycles all 4 modes (sceneActions started on the orb +
+// fullscreen). Switch mode every ~6s by clicking the panel's mode buttons while still fullscreen.
+async function vizCycle(page, seconds) {
+  const t0 = Date.now();
+  const modes = ['cymatic platform', 'liquid chrome', 'ferrofluid valley'];
+  let i = 0;
+  while ((Date.now() - t0) / 1000 < seconds) {
+    await sleep(6000);
+    if ((Date.now() - t0) / 1000 >= seconds) break;
+    if (i < modes.length) await realClickByTitle(page, new RegExp(modes[i], 'i'), 0);
+    i++;
+  }
+}
+
+// Fly the 3D genealogy galaxy. Mouse-drag orbits (always-on motion) PLUS the spaceship-flight
+// keys the app binds — WASD thrust + periodic hold-F FTL hyperspace warp — so the recording
+// shows the velocity flight + warp the showcase calls out, not just a slow pan.
+async function flyAround3d(page, seconds) {
+  const cx = 960, cy = 540;
+  const t0 = Date.now();
+  await page.mouse.click(cx, cy);   // focus the canvas so the flight keys register
+  await page.mouse.move(cx, cy);
+  await page.mouse.down();
+  let i = 0;
+  while ((Date.now() - t0) / 1000 < seconds) {
+    const a = i * 0.22;
+    await page.mouse.move(cx + Math.cos(a) * 300, cy + Math.sin(a) * 150, { steps: 10 });
+    const k = ['w', 'd', 'w', 'a'][i % 4];
+    await page.keyboard.down(k); await sleep(110); await page.keyboard.up(k);
+    if (i % 6 === 5) { await page.keyboard.down('f'); await sleep(650); await page.keyboard.up('f'); } // FTL warp
+    i++;
+  }
+  await page.mouse.up();
+}
+
+// What happens DURING a scene's hold. Most scenes just sit (audio-reactive meters keep
+// moving); the interactive ones drive their controls so the whole rig is shown working.
+async function holdAction(page, scene) {
+  const secs = scene.hold;
+  const t0 = Date.now();
+  // CRISPR DNA / live Magenta: press CREATE exactly like the footer button, then
+  // film the run until a terminal label (COMPLETE/FAILED) or the cap.
+  if (scene.crisprRun || scene.magentaLive) {
+    if (scene.crisprRun) {
+      const tA = Date.now();
+      while (Date.now() - tA < 30000) {
+        const ready = await page.evaluate(async () => {
+          const gp = (await import('/src/state/generateParamsStore.ts')).useGenerateParamsStore;
+          const cs = gp.getState().chimera.clips;
+          return cs.length > 0 && cs.every((c) => c.detectedBpm != null || (c.beats && c.beats.length));
+        }).catch(() => false);
+        if (ready) break;
+        await sleep(1000);
+      }
+    }
+    await page.evaluate(async (live) => {
+      const gs = await import('/src/state/generateStore.ts');
+      const gp = (await import('/src/state/generateParamsStore.ts')).useGenerateParamsStore;
+      if (live) {
+        gp.getState().setField('prompt', 'neon synthwave arps over a driving beat, wide analog pads');
+        gp.getState().setField('duration', 12);
+      }
+      void gs.useGenerateStore.getState().submitGeneration(gs.buildGenerateParamsFromState(gp.getState()));
+    }, !!scene.magentaLive).catch(() => {});
+    const cap = (scene.holdUntilComplete || 300) * 1000;
+    let label = '';
+    while (Date.now() - t0 < cap) {
+      label = await page.evaluate(async () => (await import('/src/state/generateStore.ts')).useGenerateStore.getState().statusLabel).catch(() => '');
+      if (/^(COMPLETE|FAILED|SERVER RESET|STOPPED)/i.test(label || '')) break;
+      await sleep(1000);
+    }
+    console.log(`  crispr run ended with statusLabel=${label} after ${((Date.now() - t0) / 1000).toFixed(0)}s`);
+    await sleep(6000); // hold the fused output strand
+    return;
+  }
+  if (scene.flyAround) return flyAround3d(page, secs);
+  if (scene.vjTour) return vjTour(page, secs);
+  if (scene.djPerf) return djPerf(page, secs);
+  if (scene.djAutomix) return djAutomix(page, secs);
+  if (scene.djStems) return djStems(page, secs);
+  if (scene.mixAll) return mixCycle(page, secs);
+  if (scene.designDrag) return designDrag(page, secs);
+  if (scene.vizCycle) return vizCycle(page, secs);
+  if (scene.lineageHover) {
+    // Walk a long PARADE of nodes, densest-first; each hover lights that node's full
+    // ancestry + descendant chain. Cycles the densest ~40 so the big lineages recur.
+    const tg = scene._targets || [];
+    if (!tg.length) { await sleep(secs * 1000); return; }
+    let i = 0;
+    while ((Date.now() - t0) / 1000 < secs) {
+      const t = tg[i % tg.length];
+      await page.mouse.move(t.cx, t.cy, { steps: 4 });
+      await sleep(1100);
+      i++;
+    }
+    return;
+  }
+  if (scene.levelAnim) {
+    // Full DJ workout — sweep the crossfader + both decks' EQ / filter / pitch so every
+    // knob and fader on the console is visibly moving.
+    while ((Date.now() - t0) / 1000 < secs) {
+      const p = (Date.now() - t0) / 1000;
+      await page.evaluate(async (ph) => {
+        try {
+          const dj = await import('/src/state/djEngine.ts');
+          dj.setCrossfade && dj.setCrossfade(Math.sin(ph * 1.1));
+          if (dj.setDeckEq) { dj.setDeckEq('A', 'low', Math.sin(ph) * 12); dj.setDeckEq('A', 'mid', Math.cos(ph * 1.3) * 9); dj.setDeckEq('A', 'high', Math.sin(ph * 0.8) * 12); dj.setDeckEq('B', 'low', Math.cos(ph) * 12); dj.setDeckEq('B', 'high', Math.sin(ph * 1.2) * 12); }
+          if (dj.setDeckFilter) { dj.setDeckFilter('A', Math.sin(ph * 0.7) * 0.7); dj.setDeckFilter('B', Math.cos(ph * 0.9) * 0.7); }
+          if (dj.setDeckPitch) { dj.setDeckPitch('A', Math.sin(ph) * 6); dj.setDeckPitch('B', Math.cos(ph) * 6); }
+        } catch (e) {}
+      }, p);
+      await sleep(130);
+    }
+    await page.evaluate(async () => { try { const dj = await import('/src/state/djEngine.ts'); dj.setCrossfade && dj.setCrossfade(0); } catch (e) {} });
+    return;
+  }
+  if (scene.dragFader) {
+    // grab the maximised SLIDE capsule faders and ride them up/down
+    const xs = [220, 470, 720, 970, 1220, 1470];
+    while ((Date.now() - t0) / 1000 < secs) {
+      for (const x of xs) {
+        await page.mouse.move(x, 560); await page.mouse.down();
+        await page.mouse.move(x, 460, { steps: 6 }); await page.mouse.move(x, 660, { steps: 6 }); await page.mouse.move(x, 540, { steps: 4 });
+        await page.mouse.up();
+        if ((Date.now() - t0) / 1000 >= secs) break;
+      }
+    }
+    return;
+  }
+  if (scene.scrollList) {
+    let down = true;
+    await page.mouse.move(960, 400);
+    while ((Date.now() - t0) / 1000 < secs) { await page.mouse.wheel(0, down ? 260 : -260); await sleep(380); if (((Date.now() - t0) / 1000) > secs * 0.6) down = false; }
+    return;
+  }
+  await sleep(secs * 1000);
+}
+
+const launchArgs = ['--autoplay-policy=no-user-gesture-required'];
+if (HEADLESS) launchArgs.push('--use-angle=gl', '--ignore-gpu-blocklist', '--enable-gpu', '--enable-webgl', '--enable-accelerated-2d-canvas');
+// Headed: CAPX/CAPY pin the window to a specific monitor so the take runs on a
+// screen nobody is using. Chrome's --window-position is in DIP of the desktop's
+// virtual space, and it is IGNORED alongside --start-fullscreen/--start-maximized,
+// so the two paths are exclusive. CAPWINW/CAPWINH size the window to that monitor;
+// the recorded viewport stays SIZE regardless (Playwright overrides device metrics),
+// so a monitor smaller than 1920x1080 still yields a 1920x1080 clip.
+else if (process.env.CAPX !== undefined || process.env.CAPY !== undefined) {
+  const wx = +(process.env.CAPX || 0), wy = +(process.env.CAPY || 0);
+  const ww = +(process.env.CAPWINW || VW), wh = +(process.env.CAPWINH || VH);
+  launchArgs.push(`--window-position=${wx},${wy}`, `--window-size=${ww},${wh}`);
+} else launchArgs.push('--start-fullscreen', '--start-maximized');
+// ATTACH mode — CDP=http://localhost:9223 drives a window that is ALREADY open (the
+// Electron app started with --remote-debugging-port=9223, or _testwin.mjs) instead of
+// launching one, and records the screen region CAPX/CAPY + CAPW/CAPH with ffmpeg
+// gdigrab (real-time, so slice marks map 1:1). The user's page is never navigated or
+// reloaded: no init script, no goto, no fullscreen promotion, and the file:// nav
+// scenes are skipped because they would take the app away.
+const CDP = process.env.CDP || '';
+function startScreenRecorder() {
+  const file = path.join(OUT, '_session-live.mp4');
+  // Desktop Duplication (ddagrab) reads the GPU's output directly: DPI-proof, cheap,
+  // and immune to the GDI virtualization a scaling-unaware ffmpeg would get. CAPMON
+  // picks the monitor; CAPX/CAPY + CAPW/CAPH crop a region of it (default: all of it).
+  const x = +(process.env.CAPX || 0), y = +(process.env.CAPY || 0);
+  const w = +(process.env.CAPW || VW), h = +(process.env.CAPH || VH);
+  const crop = (x || y || w !== VW || h !== VH) ? `crop=${w - (w % 2)}:${h - (h % 2)}:${x}:${y},` : '';
+  const args = ['-y', '-loglevel', 'error',
+    '-f', 'lavfi', '-i', `ddagrab=output_idx=${+(process.env.CAPMON || 0)}:framerate=30:draw_mouse=0,hwdownload,format=bgra`,
+    '-vf', `${crop}fps=30,format=yuv420p`, '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '17', '-g', '30', file];
+  const rec = spawn('ffmpeg', args, { stdio: ['pipe', 'ignore', 'inherit'] });
+  return { rec, recFile: file };
+}
+let browser, ctx, rec = null, recFile = null;
+if (CDP) {
+  browser = await chromium.connectOverCDP(CDP);
+  ctx = browser.contexts()[0];
+  if (!ctx) throw new Error('attach: no browser context at ' + CDP);
+} else {
+  browser = await chromium.launch({ headless: HEADLESS, args: launchArgs });
+  ctx = await browser.newContext({ viewport: SIZE, deviceScaleFactor: DSF, recordVideo: { dir: OUT, size: REC } });
+}
+// Playwright launches a throwaway profile, so every run looks like a genuine first
+// run: App.tsx auto-starts the onboarding tour, and on dismissing it opens the home
+// screen. Both dim the whole UI and would sit on top of all 65 clips. Seed the two
+// zustand-persist keys before any script runs so neither ever arms.
+// (Shape: zustand/middleware persist -> {state: <partialize output>, version: 0}.)
+if (!CDP) await ctx.addInitScript(() => {
+  const seed = (k, state) => {
+    try { localStorage.setItem(k, JSON.stringify({ state, version: 0 })); } catch (e) {}
+  };
+  seed('thedaw-onboarding', { seen: true, neverShow: true });
+  seed('thedaw-home-screen-v1', { showAtStartup: false });
+});
+const page = CDP
+  ? (ctx.pages().find((p) => /localhost:5173|thedaw/i.test(p.url())) || ctx.pages()[0])
+  : await ctx.newPage();
+if (!page) throw new Error('attach: no page found at ' + CDP + ' (is the app open?)');
+if (CDP) { ({ rec, recFile } = startScreenRecorder()); console.log('attached to', page.url(), '— recording the screen region'); }
+const tRec = Date.now();       // recording starts at context/page creation → this is video t=0.
+                               // (Anchoring AFTER the splash wait shifts every slice earlier by
+                               // the boot duration and lands scene 1 inside the splash. It is
+                               // taken before the fullscreen promotion below for the same reason:
+                               // that CDP round-trip would otherwise shift every slice late.)
+// True fullscreen on the pinned monitor. --start-fullscreen cannot be combined with
+// --window-position (Chrome ignores the position), so the window is placed first and
+// promoted to fullscreen afterwards over CDP. setWindowBounds rejects windowState in
+// the same call as a geometry change, hence the two calls. Purely cosmetic for the
+// operator watching — the recorded frames are SIZE either way.
+if (!CDP && !HEADLESS && process.env.CAPX !== undefined && process.env.CAPFULL !== '0') {
+  try {
+    const cdp = await ctx.newCDPSession(page);
+    const { windowId } = await cdp.send('Browser.getWindowForTarget');
+    await cdp.send('Browser.setWindowBounds', { windowId, bounds: {
+      left: +(process.env.CAPX || 0), top: +(process.env.CAPY || 0),
+      width: +(process.env.CAPWINW || VW), height: +(process.env.CAPWINH || VH),
+    } });
+    await cdp.send('Browser.setWindowBounds', { windowId, bounds: { windowState: 'fullscreen' } });
+    await cdp.detach();
+  } catch (e) { console.log('fullscreen skipped:', e.message); }
+}
+page.on('filechooser', (fc) => { fc.setFiles(VJ_SOURCE).catch(() => {}); });
+
+const scenes = (onlyIds.length ? SCENES.filter((s) => onlyIds.includes(s.id)) : SCENES)
+  .filter((s) => !skipIds.includes(s.id))
+  .filter((s) => !(CDP && s.nav));
+if (CDP) console.log('attach mode: file:// nav scenes skipped');
+if (skipIds.length) console.log('skipping:', skipIds.join(', '));
+const marks = [];
+const results = [];
+
+if (!CDP) await page.goto(APP, { waitUntil: 'domcontentloaded' });
+await sleep(CDP ? 600 : 2600);
+await waitSplashGone(page);    // the ONLY splash wait — once, up front
+// If it is still up, the boot stalled (no backend, or the WebGL cinematic never
+// completed). LoadingScreen exposes its escape hatch at 40s / on boot error, which
+// the 60s wait above has already outlasted — take it rather than shoot the splash.
+if (await page.$('[data-boot-splash]')) {
+  console.log('splash still up after wait — taking the boot escape hatch');
+  await clickByText(page, /continue without backend/i).catch(() => {});
+  await sleep(1500);
+}
+await page.mouse.click(8, 8);
+
+for (const scene of scenes) {
+  let info = null, err = null;
+  try {
+    if (scene.nav) {
+      // file:// scenes (the Magenta port UI + repo card) navigate away — they run last.
+      await page.goto(scene.nav, { waitUntil: 'domcontentloaded' }).catch((e) => { err = 'nav ' + e.message; });
+      await sleep(1600);
+      const start = (Date.now() - tRec) / 1000;
+      await holdAction(page, scene);
+      const end = (Date.now() - tRec) / 1000;
+      marks.push({ id: scene.id, start, end });
+    } else {
+      info = await page.evaluate(applyScene, { ...HERO, ...NOTATION, deckB: DECK_B, stems: STEMS, etuPiano: ETU_PIANO, ...scene });
+      await sleep(1200);                       // let the tab transition + view settle
+      err = await sceneActions(page, scene);
+      await sleep(500);
+      const start = (Date.now() - tRec) / 1000; // stable-hold window begins here
+      await holdAction(page, scene);
+      const end = (Date.now() - tRec) / 1000;
+      marks.push({ id: scene.id, start, end });
+      await sceneCleanup(page, scene);
+    }
+  } catch (e) { err = String(e).slice(0, 200); }
+  results.push({ id: scene.id, info, err });
+  console.log(`${scene.id}`, err ? ('ERR ' + err) : JSON.stringify(info));
+}
+
+const video = CDP ? null : page.video();
+const wallTotal = (Date.now() - tRec) / 1000;   // wall-clock length of the take
+if (CDP) {
+  // Stop the screen recorder and leave the user's window exactly as it is.
+  try { rec.stdin.write('q'); } catch (e) {}
+  await new Promise((r) => { rec.on('exit', r); setTimeout(r, 15000); });
+} else {
+  await ctx.close();             // flush the recording
+  await browser.close();
+}
+// Session file is stamped per run: overwriting a fixed name destroyed a completed
+// take once, and with it the ability to re-slice any scene without reshooting.
+const stamp = new Date(tRec).toISOString().replace(/[-:T.]/g, '').slice(0, 14);
+const sessionWebm = path.join(OUT, `_session-${stamp}.${CDP ? 'mp4' : 'webm'}`);
+try { const vp = CDP ? recFile : await video.path(); fs.renameSync(vp, sessionWebm); } catch (e) { console.log('session rename', e.message); }
+
+const probe = (f) => {
+  try {
+    return parseFloat(execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration',
+      '-of', 'default=nw=1:nk=1', f]).toString().trim());
+  } catch (e) { return NaN; }
+};
+// The recording's own timeline runs SHORTER than wall-clock — Playwright's screencast
+// drops frames under WebGL load, so a mark taken at wall T lands at roughly T*ratio in
+// the file. Slicing by raw wall marks therefore drifts further out of sync the longer
+// the run, and every clip ends up holding an EARLIER scene than its name. Rescale by
+// the measured ratio so marks map onto the video's real timeline.
+const videoDur = probe(sessionWebm);
+let ratio = 1;
+if (Number.isFinite(videoDur) && videoDur > 0 && wallTotal > 0) {
+  ratio = videoDur / wallTotal;
+  console.log(`timeline: wall ${wallTotal.toFixed(1)}s -> video ${videoDur.toFixed(1)}s  ratio ${ratio.toFixed(4)}`);
+  if (ratio < 0.5 || ratio > 1.5) { console.log('  ratio out of range — slicing 1:1 instead'); ratio = 1; }
+}
+
+// Slice the one long recording into per-scene clips (trim the transition edges).
+for (const m of marks) {
+  const ss = (m.start * ratio + 0.4).toFixed(2);
+  const dur = Math.max(0.5, (m.end - m.start) * ratio - 0.6).toFixed(2);
+  const out = path.join(OUT, `${m.id}_h.mp4`);
+  try {
+    execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-ss', ss, '-t', dur, '-i', sessionWebm,
+      '-an', '-vf', `scale=${RW}:${RH},fps=30,format=yuv420p`, '-c:v', 'libx264', '-preset', 'medium', '-crf', '14', out]);
+    console.log(`  sliced ${m.id}_h.mp4  (${dur}s @ ${ss}s)`);
+  } catch (e) { console.log(`  slice FAIL ${m.id}`, e.message); }
+}
+
+fs.writeFileSync(path.join(OUT, '_capture-log.json'), JSON.stringify({ marks, results }, null, 2));
+console.log('DONE ->', OUT);

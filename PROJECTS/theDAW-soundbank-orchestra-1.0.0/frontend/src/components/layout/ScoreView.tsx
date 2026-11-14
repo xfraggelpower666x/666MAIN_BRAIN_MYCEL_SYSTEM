@@ -1,0 +1,1945 @@
+import React, { useCallback, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { ChevronDown, ChevronLeft, ChevronRight, Download, Expand, Loader2, Minus, Plus, RefreshCw, Shrink, Waves } from 'lucide-react';
+import { useLibraryStore, type LibraryEntry } from '../../state/libraryStore';
+import { isAudioEntry } from '../../state/libraryEntry';
+import { usePlayerStore } from '../../state/playerStore';
+import { logError, logInfo } from '../../state/logStore';
+import { useFeatureToggleStore } from '../../state/featureToggleStore';
+import { RhythmBlock } from './RhythmBlock';
+import type { AnalysisSummary } from './rhythmReport';
+import {
+  buildTimeMap,
+  createCursorDriver,
+  createScoreClock,
+  findStepIndexBySeconds,
+  type CursorDriver,
+  type ScoreClock,
+  type ScoreTimeMap,
+} from './scoreTimeMap';
+import { readSoundingTempi } from './soundingTempo';
+import {
+  exportArtifact,
+  performScore,
+  getMuseScoreStatus,
+  getNotationCapabilities,
+  listNotationArtifacts,
+  renderScoreAudio,
+  fetchArtifactText,
+  invalidateArtifactText,
+  type MuseScoreRenderStatus,
+  type NotationArtifact,
+  type NotationCapabilities,
+} from '../../lib/notationClient';
+import type { AlphaTabApi } from '@coderline/alphatab';
+import { effectiveZoom } from '../../lib/canvasScale';
+import {
+  A4_RATIO,
+  applySheetEngraving,
+  clampZoom,
+  describeArtifact,
+  highlightColor,
+  inkHolds,
+  readingPos,
+  PAGE_GAP,
+  prepareMusicXml,
+  createZoomSettler,
+  useWheelZoom,
+  ZOOM_DEFAULT,
+  ZOOM_MAX,
+  ZOOM_MIN,
+  ZOOM_STEP,
+  ZoomControls,
+  type ExternalMediaOutput,
+} from './score/scoreShared';
+import { fitZoomToPage, type FitReport } from './score/scoreFit';
+import { NotationMaker } from './score/NotationMaker';
+import { stemOf } from './score/notationMakerModel';
+import { announceImportedScore, ScoreImport } from './score/ScoreImport';
+
+// The zoom a score fitted to per (artifact, page width): a re-open renders
+// once at that zoom instead of measuring-and-fitting again. Bounded.
+//
+// Persisted, because the thing it saves is expensive and does not change: each
+// auto-fit pass is a whole synchronous OSMD engrave (measured at ~10 s for a
+// 7-part band score), so an in-memory-only cache made every browser reload pay
+// the fit again. The fitted zoom is a pure function of (artifact, page width),
+// so a stored value stays correct until the artifact is re-engraved — and
+// `invalidateArtifactText` already drops those keys when it is.
+// Engraving a score is one synchronous OSMD pass on the main thread, and it
+// scales with the file: measured on this machine at roughly 2.2 s per MB of
+// MusicXML (a 4.7 MB 7-part band score costs ~10 s a pass, ~22 s the first
+// time when the auto-fit adds a second one). Past this size the PAGE view asks
+// before it engraves, so a click is never a surprise half-minute freeze; the
+// STRIP view stays instant either way. A yes lasts the session.
+const HEAVY_SCORE_CHARS = 1_500_000;
+const HEAVY_SECONDS_PER_MB = 2.2;
+const confirmedHeavy = new Set<string>();
+
+const FIT_CACHE_KEY = 'score.fitZoom.v1';
+const FIT_CACHE_MAX = 64;
+
+const readFitCache = (): Map<string, number> => {
+  try {
+    const raw = localStorage.getItem(FIT_CACHE_KEY);
+    if (!raw) return new Map();
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return new Map();
+    return new Map(
+      Object.entries(parsed as Record<string, unknown>).filter(
+        (pair): pair is [string, number] => typeof pair[1] === 'number' && Number.isFinite(pair[1]),
+      ),
+    );
+  } catch {
+    return new Map();
+  }
+};
+
+const fitZoomCache = readFitCache();
+
+const rememberFit = (key: string, zoom: number): void => {
+  fitZoomCache.set(key, zoom);
+  while (fitZoomCache.size > FIT_CACHE_MAX) {
+    const oldest = fitZoomCache.keys().next().value;
+    if (oldest === undefined) break;
+    fitZoomCache.delete(oldest);
+  }
+  try {
+    localStorage.setItem(FIT_CACHE_KEY, JSON.stringify(Object.fromEntries(fitZoomCache)));
+  } catch {
+    /* private mode / quota: the in-memory map still serves this session */
+  }
+};
+import { LookControls } from './score/playAlong/LookControls';
+import {
+  allowedModes,
+  modeForInstrument,
+  PLAY_ALONG_INSTRUMENTS,
+  usePlayAlongStore,
+  type PlayAlongInstrument,
+  type PlayAlongMode,
+} from '../../state/playAlongStore';
+import { ModeSwitch } from './score/playAlong/ModeSwitch';
+import { ExportMenu } from './score/ExportMenu';
+import { LegacySheetNotice } from './score/LegacySheetNotice';
+import { PlayAlongTransportCompact } from './score/playAlong/PlayAlongTransport';
+import { usePlayAlong } from './score/playAlong/usePlayAlongClock';
+import { SurfacePlayKey } from '../ui/SurfacePlayKey';
+import { CollapsibleRail } from '../ui/CollapsibleRail';
+import { applyInstrumentPreset, discoverParts, knownParts, useKnownParts } from './score/playAlong/partRegistry';
+
+// The play-along views load on demand: OSMD and alphaTab are already dynamic
+// imports in the PAGE view, three.js has its own chunk, and none of them is
+// needed to show a page of sheet music.
+const SheetStrip = React.lazy(() => import('./score/strip/SheetStrip'));
+const TabStrip = React.lazy(() => import('./score/strip/TabStrip'));
+const ChordPlayAlong = React.lazy(() => import('./score/chords/ChordPlayAlong'));
+const Highway = React.lazy(() => import('./score/highway/Highway'));
+const BeatSaberPackView = React.lazy(() => import('./score/beatsaber/BeatSaberPackView'));
+const BeatSaberExportPopover = React.lazy(() => import('./score/beatsaber/BeatSaberExportPopover'));
+
+const INSTRUMENT_LABELS: Record<PlayAlongInstrument, string> = {
+  all: 'All parts',
+  guitar: 'Guitar',
+  bass: 'Bass',
+  keys: 'Keys',
+  drums: 'Drums',
+  vocals: 'Vocals',
+  strings: 'Strings',
+};
+
+/** Artifact kinds whose views work without a library track (a strip or a
+ *  page can be read unplayed); everything else needs audio to derive chords. */
+const KINDS_WITHOUT_ENTRY = ['musicxml', 'alphatex', 'notechart', 'chordtrack'];
+
+/** The header's play key needs only the play-along transport, not its frames. */
+const NO_FRAME = (): void => {};
+
+const LazyFallback: React.FC = () => (
+  <div className="h-full grid place-items-center text-xs font-bold text-zinc-400">Loading…</div>
+);
+
+export const ScoreView: React.FC = () => {
+  const selectedEntryId = useLibraryStore((s) => s.selectedEntryId);
+  const entries = useLibraryStore((s) => s.entries);
+  // An entry off every loaded page (an imported composition is never on the
+  // audio pages) is fetched by id; lookupVersion bumps when it lands.
+  const lookupVersion = useLibraryStore((s) => s.lookupVersion);
+  const libraryEntry = useMemo<LibraryEntry | null>(
+    () => {
+      if (!selectedEntryId) return null;
+      return entries.find((candidate) => candidate.id === selectedEntryId)
+        ?? useLibraryStore.getState().getById(selectedEntryId)
+        ?? null;
+    },
+    [entries, selectedEntryId, lookupVersion],
+  );
+  // The track the play-along follows: only an audio entry has a recording. A
+  // composition (kind 'score') is read unplayed, like a sheet with no track.
+  const entry = libraryEntry && isAudioEntry(libraryEntry) ? libraryEntry : null;
+  const [artifacts, setArtifacts] = useState<NotationArtifact[]>([]);
+  // Focus mode: pop the whole Score panel to a fullscreen overlay and hide the
+  // artifact sidebar, so the follow-along (strip/highway/chords) is large and
+  // isolated instead of a tiny afterthought. Additive; default off.
+  const [focused, setFocused] = useState(false);
+  useEffect(() => {
+    if (!focused) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setFocused(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [focused]);
+  // The panel lives inside the bottom dock, whose row is `relative z-30`
+  // (Shell.tsx) — a stacking context. An in-tree `z-50` overlay is therefore
+  // ordered WITHIN z-30 and paints UNDER the app header (z-40) and the library
+  // edge tab (z-50), which keep intercepting clicks. Raising the child z-index
+  // cannot beat a sibling context, so in Focus mode we escape the context by
+  // portalling the panel to <body>. To keep the toggle from reloading the score,
+  // the portal target is a STABLE host node that we REPARENT NATIVELY
+  // (Node.appendChild moves a subtree without recreating it): React keeps
+  // rendering into the same host element across the toggle, so the heavy
+  // alphaTab/OSMD children are never unmounted/remounted. <body> has no
+  // transform ancestor, so the fixed overlay is not re-contained.
+  //
+  // The host is held in a LAZY REF, not useMemo: useMemo is a performance hint
+  // that React may drop, and a new container would remount the whole
+  // alphaTab/OSMD subtree AND orphan the superseded host (with stale DOM)
+  // inside the anchor. A ref guarantees one identity for the component's life,
+  // and because refs survive StrictMode's double render the node is created
+  // exactly once.
+  const hostRef = useRef<HTMLDivElement | null>(null);
+  if (!hostRef.current && typeof document !== 'undefined') {
+    hostRef.current = document.createElement('div');
+  }
+  const overlayHost = hostRef.current;
+  const focusAnchorRef = useRef<HTMLDivElement | null>(null);
+  const focusToggleRef = useRef<HTMLButtonElement | null>(null);
+  // Only pull focus back on a real exit, never on the initial mount.
+  const wasFocusedRef = useRef(false);
+  useLayoutEffect(() => {
+    const host = overlayHost;
+    if (!host) return;
+    if (focused) {
+      // `z-60` is the repo's existing fullscreen-overlay step (HomeScreen.tsx,
+      // Shell.tsx), so reuse it rather than a one-off literal. It clears the
+      // header (z-40) and the edge tab (z-50). Where z ties (a z-50 modal or
+      // any other equal-z sibling), the body-APPENDED host wins on DOM order,
+      // since equal-z siblings paint in tree order. The tall modals
+      // (z-200/z-300) still draw above this.
+      //
+      // The transport footer is also z-50, so z alone would cover it. Instead we
+      // clear it GEOMETRICALLY: the footer is `fixed bottom-0 … h-16`
+      // (PlayerFooter.tsx), so `bottom-16` matches its height token exactly and
+      // leaves it visible — a follow-along you cannot play/pause/scrub is broken.
+      host.className = 'fixed inset-x-0 top-0 bottom-16 z-60';
+      if (host.parentNode !== document.body) document.body.appendChild(host);
+      // Keep the keyboard inside the overlay (Escape still exits: the handler
+      // is bound to window, and focus inside the host bubbles there).
+      host.tabIndex = -1;
+      host.focus();
+      wasFocusedRef.current = true;
+    } else {
+      // Reparent back into the in-flow anchor so default rendering is unchanged.
+      host.className = 'h-full';
+      const anchor = focusAnchorRef.current;
+      if (anchor && host.parentNode !== anchor) anchor.appendChild(host);
+      if (wasFocusedRef.current) {
+        wasFocusedRef.current = false;
+        focusToggleRef.current?.focus();
+      }
+    }
+  }, [focused, overlayHost]);
+  useEffect(() => () => { overlayHost?.remove(); }, [overlayHost]);
+  const [selectedArtifactId, setSelectedArtifactId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [caps, setCaps] = useState<NotationCapabilities | null>(null);
+  // RENDER WITH MUSESCORE's status (GET /musescore); null until read.
+  const [musescoreStatus, setMusescoreStatus] = useState<MuseScoreRenderStatus | null>(null);
+  const [exporting, setExporting] = useState<string | null>(null);
+  // Bumped when a sheet is rewritten in place (same artifact id, new bytes),
+  // so the preview, keyed by it, reads the file again.
+  const [previewRevision, setPreviewRevision] = useState(0);
+  // METER MAP popover: the same RhythmBlock the library menu (save-meter-map)
+  // and DETAILS embed, reached here so a track opened straight into SCORE (or
+  // the SING split) does not need a trip back to DETAILS just to read it.
+  const [meterOpen, setMeterOpen] = useState(false);
+  const meterPanelRef = useRef<HTMLDivElement | null>(null);
+  const meterToggleRef = useRef<HTMLButtonElement | null>(null);
+  // Focus lands here when the dialog opens (WAI-ARIA dialog pattern), and it
+  // is what stopPropagation below is protecting: this component's own
+  // focus-mode toggle (above) listens for Escape on `window` too, and
+  // `document` precedes `window` in the bubble chain, so without
+  // stopPropagation one press exited fullscreen focus mode AND closed this
+  // dialog at once. RhythmBlock's own SAVE menu no longer competes here — it
+  // stops its OWN Escape via a React onKeyDown on its menu wrapper, not a
+  // second document listener.
+  const meterDialogRef = useRef<HTMLDivElement | null>(null);
+  const meterPanelId = `score-meter-map-${useId()}`;
+  useEffect(() => {
+    if (!meterOpen) return;
+    meterDialogRef.current?.focus();
+    const onDown = (e: PointerEvent) => {
+      if (!meterPanelRef.current?.contains(e.target as Node)) setMeterOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.stopPropagation();
+      setMeterOpen(false);
+      meterToggleRef.current?.focus();
+    };
+    document.addEventListener('pointerdown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [meterOpen]);
+  // Beat Saber export popover: open flag, and the part names it offers (learnt
+  // from a loaded view or fetched from the sheet's part-list; null = all).
+  const [bsOpen, setBsOpen] = useState(false);
+  const [bsParts, setBsParts] = useState<string[] | null>(null);
+  const bsForRef = useRef<string | null>(null);
+  // Chart part indices a per-part BEAT SABER menu entry pre-selects in the
+  // popover; null = every pitched part.
+  const [bsInitialParts, setBsInitialParts] = useState<number[] | null>(null);
+  // True while the EXPORT menu is reading a sheet's part-list, and the sheet
+  // it is reading for: a stale finish must not end a newer read's spinner.
+  const [partsLoading, setPartsLoading] = useState(false);
+  const partsForRef = useRef<string | null>(null);
+  const mode = usePlayAlongStore((s) => s.mode);
+  const setMode = usePlayAlongStore((s) => s.setMode);
+  const setSkin = usePlayAlongStore((s) => s.setSkin);
+  const instrument = usePlayAlongStore((s) => s.instrument);
+  const setInstrument = usePlayAlongStore((s) => s.setInstrument);
+  // One play key in the header serves every mode below it: PAGE, STRIP,
+  // CHORDS, HIGHWAY and the tab's PAGE all follow this same entry on the same
+  // player. Inside the SING split, SING's own key already plays this entry, so
+  // the header drops it (PlayAlongTransportCompact).
+  const playAlong = usePlayAlong(entry, NO_FRAME, { enabled: false });
+  const compact = useContext(PlayAlongTransportCompact);
+  const playingHere = playAlong.isSameTrack && playAlong.isPlaying;
+  const transportLabel = entry ? `${playingHere ? 'Pause' : 'Play'} ${entry.title}` : 'No track selected';
+  // The global artist/composer name now lives in Settings (notation.artist); the
+  // sheet preview reads it directly when rendering.
+
+  const selectedArtifact = artifacts.find((artifact) => artifact.id === selectedArtifactId) ?? null;
+  const midiArtifacts = artifacts.filter((artifact) => artifact.kind === 'midi');
+  // What the EXPORT menu offers, and why an entry is disabled, is decided in
+  // score/exportMenuModel.ts from caps.formats; nothing about exports is guessed here.
+  // Which play-along views the selected artifact supports. A Beat Saber pack
+  // has its own card; anything that is not a sheet, tab, chart or chord track
+  // (a MIDI, a vocal transcript) only offers chords, and only with a track to
+  // derive them from.
+  const selectedKind = selectedArtifact?.kind ?? null;
+  const hasEntry = !!entry;
+  const allowed = useMemo<PlayAlongMode[]>(() => {
+    if (!selectedKind || selectedKind === 'beatsaber') return [];
+    if (KINDS_WITHOUT_ENTRY.includes(selectedKind) || hasEntry) return allowedModes(selectedKind);
+    return [];
+  }, [selectedKind, hasEntry]);
+  // The persisted mode when this artifact supports it; else PAGE when the
+  // artifact has a plain view; else the one view its kind has.
+  const effectiveMode: PlayAlongMode = allowed.includes(mode)
+    ? mode
+    : allowed.includes('page')
+      ? 'page'
+      : (allowed[0] ?? 'page');
+  const selectedParts = useKnownParts(selectedArtifact?.id ?? null);
+  const modeHint = selectedParts && selectedParts.length >= 5 && effectiveMode === 'page' && allowed.includes('strip')
+    ? `${selectedParts.length} staves — try STRIP`
+    : undefined;
+  const analysisBpmRaw = entry?.analysis?.bpm;
+  const analysisBpm = typeof analysisBpmRaw === 'number' && Number.isFinite(analysisBpmRaw) ? analysisBpmRaw : null;
+
+  // Dropping the artifact TEXT cache is for the callers that can change what an
+  // artifact id resolves to: a conversion, or the explicit refresh button. They
+  // keep the default. The mount/entry-change effect passes keepText, because
+  // that effect also runs on every MOUNT of this component and the cache is the
+  // only thing that keeps a multi-MB MusicXML off the wire on a re-open.
+  const loadArtifacts = async (opts: { keepText?: boolean } = {}) => {
+    if (!opts.keepText) invalidateArtifactText();
+    if (!selectedEntryId) return;
+    setLoading(true);
+    try {
+      const next = await listNotationArtifacts(selectedEntryId);
+      setArtifacts(next);
+      setSelectedArtifactId((prev) => (
+        prev && next.some((artifact) => artifact.id === prev)
+          ? prev
+          : (next.find((artifact) => artifact.kind === 'musicxml') ?? next[0] ?? null)?.id ?? null
+      ));
+    } catch (e) {
+      logError('score', `Could not load notation artifacts: ${e instanceof Error ? e.message : String(e)}`);
+      setArtifacts([]);
+      setSelectedArtifactId(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // keepText: this runs on mount as well as on an entry change, and the SING
+    // tab's LYRICS / BOTH / SCORE / STUDY toggle unmounts and remounts the whole
+    // SCORE tab on every click. Clearing the cache here threw the score's text
+    // away and re-fetched it (4.7 MB on a band score) once per click, on top of
+    // the engraving pass. Artifact ids in the list we just fetched are the same
+    // ids the cached text is keyed by, so keeping it cannot go stale.
+    void loadArtifacts({ keepText: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedEntryId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void getNotationCapabilities()
+      .then((next) => { if (!cancelled) setCaps(next); })
+      .catch(() => { if (!cancelled) setCaps(null); });
+    void getMuseScoreStatus()
+      .then((next) => { if (!cancelled) setMusescoreStatus(next); })
+      .catch(() => {
+        if (!cancelled) setMusescoreStatus({ found: false, path: null, muse_sounds: false, reason: 'MuseScore status unreadable' });
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  /** RENDER WITH MUSESCORE: MuseScore 4 plays the sheet (or one part) with
+   *  Muse Sounds into a WAV the backend adds to the Library as a new entry. */
+  const renderWithMuseScore = async (partIndex: number | null) => {
+    if (!selectedEntryId || !selectedArtifact) return;
+    setExporting('audio');
+    const partName = partIndex === null ? null : (selectedParts?.[partIndex]?.name || `part ${partIndex + 1}`);
+    logInfo('score', `Rendering ${partName ?? 'the score'} with MuseScore and Muse Sounds…`);
+    try {
+      const options = partIndex === null ? undefined : { parts: [partIndex] };
+      const made = await renderScoreAudio(selectedEntryId, selectedArtifact.id, options);
+      logInfo('score', `MuseScore render added to the Library: ${made.title}`);
+      await useLibraryStore.getState().refresh();
+    } catch (e) {
+      logError('score', `MuseScore render failed: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setExporting(null);
+    }
+  };
+
+  // Any part, any format: options.parts scopes every export-route format to
+  // one part (the backend filters the sheet with stage_parts, then converts);
+  // null exports the whole sheet. A MIDI artifact exports the same way (the
+  // backend stages it through music21 first).
+  const exportSelectedAs = async (format: string, partIndex: number | null = null) => {
+    if (!selectedEntryId || !selectedArtifact) return;
+    if (selectedArtifact.kind !== 'musicxml' && selectedArtifact.kind !== 'midi') return;
+    if (format === 'audio') {
+      await renderWithMuseScore(partIndex);
+      return;
+    }
+    setExporting(format);
+    try {
+      const options = partIndex === null ? undefined : { parts: [partIndex] };
+      // PERFORM has its own route; its MIDI lands in the artifact list like
+      // any export's result and is opened the same way below.
+      const artifact = format === 'perform'
+        ? await performScore(selectedEntryId, selectedArtifact.id, analysisBpm ?? undefined)
+        : await exportArtifact(selectedEntryId, selectedArtifact.id, format, options);
+      const partName = partIndex === null ? null : (selectedParts?.[partIndex]?.name || `part ${partIndex + 1}`);
+      logInfo(
+        'score',
+        format === 'perform'
+          ? `Performed ${selectedArtifact.id} as MIDI${artifact?.path ? ` (${artifact.path})` : ''}`
+          : partName
+            ? `Exported ${format.toUpperCase()} of ${partName} from ${selectedArtifact.id}`
+            : `Exported ${format.toUpperCase()} from ${selectedArtifact.id}`,
+      );
+      await loadArtifacts();
+      if (artifact?.id) setSelectedArtifactId(artifact.id);
+    } catch (e) {
+      logError('score', `${format.toUpperCase()} export failed: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setExporting(null);
+    }
+  };
+
+  // ---- Play-along integration ---------------------------------------------
+
+  /** "Rewrite from MIDI" wrote the selected sheet again over the same file:
+   *  list it (dropping its cached text) and read it again. */
+  const onSheetRewritten = async (artifact: NotationArtifact | null) => {
+    await loadArtifacts();
+    if (artifact?.id) setSelectedArtifactId(artifact.id);
+    setPreviewRevision((r) => r + 1);
+  };
+
+  /** The maker made something: list it, open it, and open a chord track in
+   *  the CHORDS view. */
+  const onMade = async (artifact: NotationArtifact | null, way: string) => {
+    await loadArtifacts();
+    if (!artifact?.id) return;
+    setSelectedArtifactId(artifact.id);
+    if (way === 'chords') setMode('chords');
+  };
+
+  /** Write the INSTRUMENT preset into an artifact's part visibility, learning
+   *  the parts of a sheet no view has rendered yet from its part-list. A note
+   *  chart's parts are learnt by the highway when it loads. */
+  const applyPreset = useCallback(async (target: NotationArtifact, inst: PlayAlongInstrument, force: boolean) => {
+    if (applyInstrumentPreset(target.id, inst, { force })) return;
+    if (target.kind !== 'musicxml') return;
+    try {
+      await discoverParts(target.id);
+      applyInstrumentPreset(target.id, inst, { force });
+    } catch (e) {
+      logError('score', `Could not read the parts of ${target.id} for the ${inst} preset: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }, []);
+
+  const onPlayAlongInstrument = (value: string) => {
+    const inst: PlayAlongInstrument = (PLAY_ALONG_INSTRUMENTS as readonly string[]).includes(value)
+      ? (value as PlayAlongInstrument)
+      : 'all';
+    setInstrument(inst);
+    if (!selectedArtifact) return;
+    // 'All parts' only resets the part filter; it does not pull the reader out
+    // of the view they chose.
+    if (inst !== 'all') {
+      const pick = modeForInstrument(inst, selectedArtifact.kind);
+      if (allowed.includes(pick.mode)) setMode(pick.mode);
+      if (pick.skin) setSkin(pick.skin);
+    }
+    void applyPreset(selectedArtifact, inst, true);
+  };
+
+  // A preset chosen earlier follows the reader to the next artifact they open
+  // (first sight only: manual PART toggles on an artifact are kept).
+  useEffect(() => {
+    if (!selectedArtifact || instrument === 'all') return;
+    void applyPreset(selectedArtifact, instrument, false);
+    // selectedArtifact is looked up from selectedArtifactId; the id is the identity.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedArtifactId, instrument, applyPreset]);
+
+  // The Beat Saber popover and the part read belong to one sheet; selecting
+  // another closes the popover, forgets its pre-selected part and drops the
+  // "Reading parts…" hint. (The EXPORT menu resets itself.)
+  useEffect(() => {
+    setBsOpen(false);
+    setBsInitialParts(null);
+    setPartsLoading(false);
+    partsForRef.current = null;
+  }, [selectedArtifactId]);
+
+  /** Open the Beat Saber popover; a part index (from a per-part EXPORT menu
+   *  entry) pre-selects that one part, null offers every pitched part. */
+  const openBeatSaber = (partIndex: number | null = null) => {
+    if (!selectedArtifact || (selectedArtifact.kind !== 'musicxml' && selectedArtifact.kind !== 'midi')) return;
+    const id = selectedArtifact.id;
+    bsForRef.current = id;
+    const known = knownParts(id);
+    setBsParts(known ? known.map((p) => p.name) : null);
+    setBsInitialParts(partIndex === null ? null : [partIndex]);
+    setBsOpen(true);
+    // A MIDI has no <part-list> to read; the backend maps every pitched part.
+    if (!known && selectedArtifact.kind === 'musicxml') {
+      discoverParts(id)
+        .then((parts) => {
+          if (bsForRef.current === id) setBsParts(parts.map((p) => p.name));
+        })
+        .catch(() => {
+          /* the backend maps every pitched part when no selection is sent */
+        });
+    }
+  };
+
+  const onBeatSaberDone = async (artifact: NotationArtifact | null) => {
+    setBsOpen(false);
+    await loadArtifacts();
+    if (artifact?.id) setSelectedArtifactId(artifact.id);
+  };
+
+  // The EXPORT menu lists the sheet's parts, which only a loaded STRIP or
+  // highway registers; in PAGE mode nobody has, so read the part-list when
+  // the menu opens. discoverParts goes through the artifact text cache, so a
+  // sheet a view already fetched is not downloaded again; useKnownParts picks
+  // up the registration and the menu fills in.
+  const onExportMenuOpen = () => {
+    if (!selectedArtifact || selectedArtifact.kind !== 'musicxml' || selectedParts) return;
+    const id = selectedArtifact.id;
+    partsForRef.current = id;
+    setPartsLoading(true);
+    discoverParts(id)
+      .catch((e) => {
+        logError('score', `Could not read the parts of ${id}: ${e instanceof Error ? e.message : String(e)}`);
+      })
+      .finally(() => {
+        if (partsForRef.current === id) setPartsLoading(false);
+      });
+  };
+
+  // The EXPORT menu's LOCATE MUSESCORE… entry (offered when no engraver is
+  // present): pick the executable, save it in Settings (notation.musescore_path),
+  // then re-read what the backend can do so PDF/SVG light up without a restart.
+  // In a browser there is no file picker; Settings has the path field instead.
+  const onExportAction = async (id: string) => {
+    if (id !== 'locate-musescore') return;
+    const selectFile = (window as unknown as {
+      electronAPI?: {
+        selectFile?: (options?: { defaultPath?: string; title?: string }) => Promise<{ canceled: boolean; filePaths: string[] }>;
+      };
+    }).electronAPI?.selectFile;
+    if (!selectFile) {
+      window.dispatchEvent(new Event('thedaw:open-settings'));
+      logInfo('score', 'Set the MuseScore path in Settings: the artist button (top right of Settings) opens the field.');
+      return;
+    }
+    try {
+      // The dialog opens at the MuseScore path already saved, if there is one.
+      const currentPath = useFeatureToggleStore.getState().settings.notation?.musescore_path;
+      const r = await selectFile({ defaultPath: currentPath || undefined, title: 'Locate MuseScore' });
+      if (r.canceled || !r.filePaths[0]) return;
+      const chosen = r.filePaths[0];
+      const saved = await useFeatureToggleStore.getState().patch({ notation: { musescore_path: chosen } });
+      if (!saved) {
+        logError('score', `Could not save the MuseScore path ${chosen}`);
+        return;
+      }
+      const next = await getNotationCapabilities();
+      setCaps(next);
+      if (next.musescore_render) setMusescoreStatus(next.musescore_render);
+      logInfo(
+        'score',
+        next.musescore
+          ? `MuseScore set to ${chosen}`
+          : `MuseScore path saved (${chosen}), but the backend could not run it — check it is the MuseScore executable`,
+      );
+    } catch (e) {
+      logError('score', `Could not set the MuseScore path: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  };
+
+  // PAGE and STRIP are the expensive mounts (an engraving pass per open); once
+  // a mode has been shown for this artifact it stays mounted, hidden, so
+  // switching back is instant. The set resets per artifact.
+  const visitedRef = useRef<{ id: string; modes: Set<string> }>({ id: '', modes: new Set() });
+  if (selectedArtifact && visitedRef.current.id !== selectedArtifact.id) {
+    visitedRef.current = { id: selectedArtifact.id, modes: new Set() };
+  }
+  if (selectedArtifact) visitedRef.current.modes.add(effectiveMode);
+  const keepAlive = (mode: string, node: React.ReactNode): React.ReactNode =>
+    visitedRef.current.modes.has(mode) ? (
+      <div key={mode} className="absolute inset-0" hidden={effectiveMode !== mode}>{node}</div>
+    ) : null;
+  const onlyWhen = (mode: string, node: React.ReactNode): React.ReactNode =>
+    effectiveMode === mode ? <div key={mode} className="absolute inset-0">{node}</div> : null;
+
+  const renderPreview = (): React.ReactNode => {
+    if (!selectedArtifact) {
+      return (
+        <div className="h-full grid place-items-center text-xs font-bold text-zinc-400">
+          Select a score artifact to preview.
+        </div>
+      );
+    }
+    const lazy = (node: React.ReactNode) => <React.Suspense fallback={<LazyFallback />}>{node}</React.Suspense>;
+    const chords = () => lazy(
+      <ChordPlayAlong
+        entry={entry}
+        artifacts={artifacts}
+        artifact={selectedArtifact}
+        caps={caps}
+        onArtifactsChanged={() => void loadArtifacts()}
+      />,
+    );
+    const highway = () => lazy(
+      <Highway
+        entry={entry}
+        artifact={selectedArtifact}
+        artifacts={artifacts}
+        onArtifactsChanged={() => void loadArtifacts()}
+      />,
+    );
+    switch (selectedArtifact.kind) {
+      case 'musicxml':
+        return (
+          <>
+            {keepAlive('page', <MusicXmlPreview artifact={selectedArtifact} entry={entry} />)}
+            {keepAlive('strip', lazy(<SheetStrip artifact={selectedArtifact} entry={entry} artifacts={artifacts} />))}
+            {onlyWhen('chords', chords())}
+            {onlyWhen('highway', highway())}
+          </>
+        );
+      case 'alphatex':
+        return (
+          <>
+            {keepAlive('page', <TabPreview artifact={selectedArtifact} entry={entry} />)}
+            {keepAlive('strip', lazy(<TabStrip artifact={selectedArtifact} entry={entry} />))}
+            {onlyWhen('chords', chords())}
+          </>
+        );
+      case 'notechart':
+        return highway();
+      case 'chordtrack':
+        return chords();
+      case 'beatsaber':
+        return lazy(
+          <BeatSaberPackView
+            artifact={selectedArtifact}
+            artifacts={artifacts}
+            onOpenHighway={(source) => setSelectedArtifactId(source.id)}
+          />,
+        );
+      default:
+        if (effectiveMode === 'chords' && entry) return chords();
+        return (
+          <div className="h-full grid place-items-center text-xs font-bold text-zinc-400">
+            {selectedArtifact.kind.toUpperCase()} artifact selected. Download or send it to MIDI/Score tools.
+          </div>
+        );
+    }
+  };
+
+  // `root` rather than a direct return: focus mode portals this same element
+  // into the body-level host (see the wrapper return at the end).
+  const root = (
+    <div className="h-full w-full min-h-0 flex bg-[#07050a] text-zinc-200">
+      {/* The left rail (maker + made list) folds to a thin strip so the score
+          can take the whole width. Focus hides it outright — `hidden` rather
+          than unmounting, so the rail (and the maker's in-progress state)
+          survives the toggle; `contents` leaves the rail and its folded strip
+          as direct flex items of the row when it is shown. */}
+      <div className={focused ? 'hidden' : 'contents'}>
+        <CollapsibleRail
+          id="score-notation-rail"
+          side="left"
+          name="Notation"
+          label="the notation rail"
+          storageKey="score.railCollapsed.v1"
+          className="w-72 shrink-0 border-r border-white/10 flex flex-col min-h-0 bg-black/30"
+        >
+          {(foldKey) => (
+            <>
+              <div className="h-10 shrink-0 border-b border-white/10 flex items-center gap-2 px-3">
+                <span className="font-display text-xs font-bold uppercase text-zinc-300">Notation</span>
+                <span className="min-w-0 flex-1 truncate text-xs font-bold text-zinc-500" title={libraryEntry?.title}>
+                  {libraryEntry?.title ?? 'Select a library track'}
+                </span>
+                <button
+                  type="button"
+                  className="h-7 w-7 shrink-0 rounded border border-white/10 flex items-center justify-center text-zinc-400 transition-colors hover:border-[rgb(var(--et-accent)/0.5)] hover:text-zinc-100 disabled:opacity-40 outline-none focus-visible:ring-1 focus-visible:ring-[rgb(var(--et-accent)/0.6)]"
+                  onClick={() => void loadArtifacts()}
+                  disabled={!selectedEntryId || loading}
+                  aria-label="Refresh notation"
+                  title="Refresh notation"
+                >
+                  {loading ? <Loader2 className="size-3.5 animate-spin" aria-hidden="true" /> : <RefreshCw className="size-3.5" aria-hidden="true" />}
+                </button>
+                {/* At the rail's inner edge, beside the score. */}
+                <span className="-mr-1 flex">{foldKey}</span>
+              </div>
+
+              {/* A score of its own, not made from a track: a file, or a
+                  piece of the music21 corpus. Selecting the new composition
+                  lists and opens its sheet here. */}
+              <ScoreImport caps={caps} onImported={announceImportedScore} />
+
+              <NotationMaker
+                entryId={selectedEntryId}
+                midis={midiArtifacts}
+                caps={caps}
+                onMade={(artifact, way) => void onMade(artifact, way)}
+              />
+
+              <div className="flex-1 min-h-0 overflow-y-auto p-3 flex flex-col gap-1 text-xs font-bold">
+                {artifacts.length > 0 && <span className="pb-1 font-display uppercase text-zinc-500">Made</span>}
+                {artifacts.map((artifact) => {
+                  const active = artifact.id === selectedArtifactId;
+                  return (
+                    <button
+                      key={artifact.id}
+                      type="button"
+                      onClick={() => setSelectedArtifactId(artifact.id)}
+                      aria-current={active ? 'true' : undefined}
+                      className={`w-full text-left rounded border px-2.5 py-1.5 transition-colors ${
+                        active
+                          ? 'border-[rgb(var(--et-accent)/0.55)] bg-[rgb(var(--et-accent)/0.15)] et-accent-legend'
+                          : 'border-white/10 text-zinc-300 hover:border-white/25 hover:text-zinc-100'
+                      }`}
+                    >
+                      <div className="truncate">
+                        {describeArtifact(artifact)}
+                        {artifact.kind === 'midi' ? ` · ${stemOf(artifact)}` : ''}
+                      </div>
+                      <div className="truncate font-semibold text-zinc-500">
+                        {artifact.kind}
+                        {artifact.engine ? ` · ${artifact.engine}` : ''}
+                      </div>
+                      {/* A sheet an older build wrote at sounding pitch; the bar over its preview rewrites it. */}
+                      {artifact.legacy_sounding_pitch && (
+                        <div className="truncate text-amber-300">Older sheet: sounding pitch</div>
+                      )}
+                    </button>
+                  );
+                })}
+                {!loading && selectedEntryId && artifacts.length === 0 && (
+                  <p className="rounded border border-dashed border-white/10 p-3 leading-5 text-zinc-500">
+                    Nothing made yet. Chords work from the audio alone; everything else needs the track converted to MIDI first (right-click it in the library).
+                  </p>
+                )}
+              </div>
+            </>
+          )}
+        </CollapsibleRail>
+      </div>
+
+      <div className="flex-1 min-w-0 min-h-0 flex flex-col">
+        <div className="h-8 shrink-0 border-b border-white/5 bg-black/30 flex items-center gap-2 px-2">
+          {/* The play key leads the header, the spot every surface that plays
+              music puts it. The OTHER TRACK badge keeps its slot whether or not
+              it is showing, so nothing beside it shifts when the engine changes
+              track; `invisible` is visibility:hidden, out of the accessibility
+              tree, and aria-hidden says so too. */}
+          {!compact && (
+            <>
+              <SurfacePlayKey
+                size="bar"
+                playing={playingHere}
+                onToggle={() => void playAlong.onTransport()}
+                disabled={!entry}
+                what={entry?.title ?? 'the selected track'}
+                aria-label={transportLabel}
+                title={transportLabel}
+              />
+              <span
+                className={`shrink-0 whitespace-nowrap font-display text-xs font-bold text-amber-300 ${playAlong.otherTrackLoaded ? '' : 'invisible'}`}
+                aria-hidden={playAlong.otherTrackLoaded ? undefined : true}
+                title={playAlong.otherTrackLoaded
+                  ? 'The player is holding a different track, so the score is parked. Press play here to load this track.'
+                  : undefined}
+              >
+                OTHER TRACK
+              </span>
+            </>
+          )}
+          <span className="text-xs font-bold text-zinc-400 truncate flex-1">
+            {selectedArtifact
+              ? `${describeArtifact(selectedArtifact)} · ${selectedArtifact.kind} · ${selectedArtifact.id}`
+              : 'No artifact selected'}
+          </span>
+          {selectedArtifact && allowed.length > 0 && (
+            <ModeSwitch allowed={allowed} value={effectiveMode} onChange={setMode} hint={modeHint} />
+          )}
+          <button
+            type="button"
+            ref={focusToggleRef}
+            onClick={() => setFocused((v) => !v)}
+            className="shrink-0 rounded border border-white/10 bg-black/30 p-1 text-zinc-400 hover:text-emerald-200 hover:border-emerald-500/40 transition-colors"
+            title={focused ? 'Exit focus (Esc): restore the panel' : 'Focus: enlarge the follow-along to fullscreen and hide the sidebar'}
+            aria-label={focused ? 'Exit score focus' : 'Focus score (fullscreen)'}
+            aria-pressed={focused}
+          >
+            {focused ? <Shrink className="w-3 h-3" /> : <Expand className="w-3 h-3" />}
+          </button>
+          <label htmlFor="score-instrument" className="sr-only">Instrument preset</label>
+          <select
+            id="score-instrument"
+            name="score-instrument"
+            className="form-select text-xs font-bold px-1 py-0.5 shrink-0"
+            value={instrument}
+            disabled={!selectedArtifact}
+            onChange={(e) => onPlayAlongInstrument(e.target.value)}
+            title="Instrument preset: shows the parts and the view your instrument reads (drums: drum highway; guitar/bass: chords; keys/strings/vocals: strip)"
+          >
+            {PLAY_ALONG_INSTRUMENTS.map((inst) => (
+              <option key={inst} value={inst}>{INSTRUMENT_LABELS[inst]}</option>
+            ))}
+          </select>
+          <div ref={meterPanelRef} className="relative shrink-0">
+            <button
+              type="button"
+              ref={meterToggleRef}
+              onClick={() => setMeterOpen((v) => !v)}
+              disabled={!entry}
+              className="shrink-0 rounded border border-white/10 bg-black/30 p-1 flex items-center gap-0.5 text-zinc-400 hover:text-fuchsia-200 hover:border-fuchsia-500/40 transition-colors disabled:opacity-40"
+              title="Meter map: time signature per section, tempo segments, syncopation, swing"
+              aria-label="Meter map"
+              aria-haspopup="dialog"
+              aria-expanded={meterOpen}
+              aria-controls={meterOpen ? meterPanelId : undefined}
+            >
+              <Waves className="w-3 h-3" />
+              <ChevronDown className="w-3 h-3" aria-hidden="true" />
+            </button>
+            {meterOpen && (
+              <div
+                ref={meterDialogRef}
+                id={meterPanelId}
+                role="dialog"
+                aria-label="Meter map"
+                tabIndex={-1}
+                className="et-opaque absolute right-0 top-full z-30 mt-1 w-96 max-h-[70vh] overflow-y-auto rounded-md border border-white/10 bg-[#0a080f] p-1 shadow-[0_8px_24px_rgba(0,0,0,0.6)] outline-none"
+              >
+                <RhythmBlock
+                  entryId={entry?.id ?? null}
+                  title={entry?.title ?? 'track'}
+                  analysis={(entry?.analysis as AnalysisSummary | undefined) ?? null}
+                />
+              </div>
+            )}
+          </div>
+          <ExportMenu
+            artifact={selectedArtifact}
+            caps={caps}
+            musescore={musescoreStatus}
+            parts={selectedParts}
+            partsLoading={partsLoading}
+            exporting={exporting}
+            onOpen={onExportMenuOpen}
+            onExport={(fmt, part) => void exportSelectedAs(fmt, part)}
+            onAction={(id) => void onExportAction(id)}
+            onOpenBeatSaber={openBeatSaber}
+            popoverOpen={bsOpen}
+          >
+            {bsOpen && selectedEntryId && selectedArtifact && (
+              <React.Suspense fallback={null}>
+                <BeatSaberExportPopover
+                  entryId={selectedEntryId}
+                  artifact={selectedArtifact}
+                  parts={bsParts}
+                  initialParts={bsInitialParts}
+                  caps={caps}
+                  analysisBpm={analysisBpm}
+                  onDone={(artifact) => void onBeatSaberDone(artifact)}
+                  // Both paths unmount the popover; ExportMenu then returns
+                  // focus to its EXPORT button.
+                  onClose={() => setBsOpen(false)}
+                />
+              </React.Suspense>
+            )}
+          </ExportMenu>
+        </div>
+        {selectedEntryId && selectedArtifact && (
+          <LegacySheetNotice key={selectedArtifact.id} entryId={selectedEntryId} artifact={selectedArtifact} onRewritten={onSheetRewritten} />
+        )}
+        <div key={previewRevision} className="relative flex-1 min-h-0 bg-[#0b0810]">
+          {renderPreview()}
+        </div>
+      </div>
+    </div>
+  );
+
+  // Focus escapes the dock's stacking context by portalling `root` into a
+  // body-level host; unfocused, the host is reparented into this in-flow
+  // anchor (display:contents adds no box) so default rendering is unchanged.
+  // `root` keeps a stable identity across the toggle, so its subtree
+  // (alphaTab/OSMD) is never remounted.
+  return (
+    <div ref={focusAnchorRef} className="contents">
+      {overlayHost ? createPortal(root, overlayHost) : root}
+    </div>
+  );
+};
+
+/** OSMD only ever builds a part-name label for the very first system of the
+ *  WHOLE piece (`createMusicSystemLabel(..., isFirstSystem)`, called with
+ *  `isFirstSystem = 1 === musicSystems.length`): every later system — the
+ *  second system of page 1 included, not just later pages — gets nothing
+ *  unless the source XML carries a `<part-abbreviation>`, in which case OSMD
+ *  prints THAT, never the full name (EngravingRules.RenderPartAbbreviations).
+ *  `RenderSystemLabelsAfterFirstPage` only controls whether an existing label
+ *  is drawn on page 2+; it cannot make OSMD build one it never created.
+ *
+ *  A multi-part chart is unreadable past the first system without a name to
+ *  tell the parts apart, so before OSMD ever sees the XML we copy each part's
+ *  full name into its own abbreviation slot: the "abbreviation" every later
+ *  system prints is then the full name too.
+ *
+ *  Single-part scores are skipped — not because OSMD is unable to label them:
+ *  its own gate (`1 === this.staffLines.length`) counts STAFF LINES, not
+ *  parts, so a solo grand staff (piano, harp, organ — one part, two staff
+ *  lines) would happily get one. They are skipped because there is only one
+ *  part in the piece to tell apart from another: naming it on every system
+ *  disambiguates nothing a reader needs. */
+/** Guarantees a leading `<?xml ...?>` declaration without doubling one that
+ *  is already there. jsdom's `XMLSerializer` always drops it; OSMD 1.9.9's
+ *  `load()` rejects input that doesn't start with one. */
+export const ensureXmlDeclaration = (s: string): string =>
+  s.startsWith('<?xml') ? s : `<?xml version="1.0" encoding="UTF-8"?>\n${s}`;
+
+export const withPartNamesOnEverySystem = (xml: string): string => {
+  try {
+    const doc = new DOMParser().parseFromString(xml, 'application/xml');
+    if (doc.querySelector('parsererror')) return xml;
+    const scoreParts = Array.from(doc.querySelectorAll('part-list > score-part'));
+    if (scoreParts.length < 2) return xml;
+    for (const scorePart of scoreParts) {
+      const nameEl = scorePart.querySelector('part-name');
+      const name = (nameEl?.textContent || '').trim();
+      if (!name) continue;
+      let abbr = scorePart.querySelector('part-abbreviation');
+      if (!abbr) {
+        abbr = doc.createElement('part-abbreviation');
+        // MusicXML orders part-abbreviation right after part-name-display
+        // when the part has one, else right after part-name itself.
+        const insertAfter = scorePart.querySelector('part-name-display') ?? nameEl;
+        if (insertAfter?.nextSibling) scorePart.insertBefore(abbr, insertAfter.nextSibling);
+        else scorePart.appendChild(abbr);
+      }
+      abbr.textContent = name;
+    }
+    return ensureXmlDeclaration(new XMLSerializer().serializeToString(doc));
+  } catch {
+    return xml;
+  }
+};
+
+/** Sheet-music preview. Renders the score as real A4 pages laid out left-to-
+ *  right (like an open book), engraved by OpenSheetMusicDisplay with proper
+ *  margins so nothing runs off the edge. OSMD reads the host's offsetWidth to
+ *  size a page, so we feed it a fixed one-page width, render, then flip the
+ *  host into a horizontal strip of the resulting page <svg>s. Zooming re-renders
+ *  (measures reflow + renumber); the footer ◀ ▶ and arrow keys turn pages by
+ *  scrolling one page; the page width tracks the pane height (fit one sheet).
+ *
+ *  With FOLLOW on, the sheet also follows the track: a cursor walks the score
+ *  against the global player's clock and the strip scrolls (and turns pages) to
+ *  keep it in view. See scoreTimeMap.ts for the timing model. */
+const MusicXmlPreview: React.FC<{ artifact: NotationArtifact; entry: LibraryEntry | null }> = ({ artifact, entry }) => {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const hostRef = useRef<HTMLDivElement | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const osmdRef = useRef<any>(null);
+  const zoomRef = useRef(ZOOM_DEFAULT);
+  // True once the user zooms by hand (buttons, readout, Ctrl+wheel) on this
+  // score. Until then every render auto-fits: a system taller than the page
+  // lowers the zoom so nothing is drawn off the sheet. Reset per artifact.
+  const userZoomedRef = useRef(false);
+  const pageWRef = useRef(520);
+  const footerTitleRef = useRef('');
+  const footerArtistRef = useRef('');
+  // What arrangement this sheet is ("Band Score", "Piano Reduction"). Printed in
+  // the running footer so a page that leaves the app, on paper or in a PDF, still
+  // says which arrangement it is rather than looking like every other sheet.
+  const footerLabelRef = useRef('');
+  const [zoom, setZoom] = useState(ZOOM_DEFAULT);
+  // Set when the score is big enough to be worth asking about and the user has
+  // not yet said yes for this artifact; the engrave is held until they do.
+  const [heavy, setHeavy] = useState<{ chars: number; parts: number; measures: number } | null>(null);
+  const renderedZoomRef = useRef(0);
+  // Last auto-fit measurement, for the zoom readout's tooltip ("fitted to the
+  // page"); null while the user drives the zoom or nothing was measured.
+  const [fitInfo, setFitInfo] = useState<{ zoom: number; report: FitReport } | null>(null);
+  const [status, setStatus] = useState('Loading MusicXML renderer…');
+  const [pageCount, setPageCount] = useState(1);
+  const [page, setPage] = useState(1); // 1-based page currently in view
+  const [exportingPdf, setExportingPdf] = useState(false);
+  const [follow, setFollow] = useState(true);
+
+  // Follow-along state. All refs: the drive loop runs every frame and must
+  // never re-render the tree.
+  const mapRef = useRef<ScoreTimeMap | null>(null);
+  const driverRef = useRef<CursorDriver | null>(null);
+  const clockRef = useRef<ScoreClock | null>(null);
+  // Bumped per OSMD load. A driver from a discarded StrictMode mount holds an
+  // older generation and is refused the cursor, so it can never reparent its
+  // image into the live mount's pages (updateCurrentPage resolves page divs by
+  // a document-global id).
+  const osmdGenRef = useRef(0);
+  const cursorVisibleRef = useRef(false);
+  const lastPageRef = useRef(1);
+  const lastStepRef = useRef(-1);
+  // Timestamps that keep the auto-scroll and the user out of each other's way.
+  const autoScrollUntilRef = useRef(0);
+  const manualUntilRef = useRef(0);
+  // SVG elements currently painted in the karaoke highlight colour, so the
+  // previous note can be restored when the cursor advances.
+  const highlightedRef = useRef<Array<SVGElement | HTMLElement>>([]);
+
+  const clearNoteHighlight = useCallback(() => {
+    for (const el of highlightedRef.current) {
+      try {
+        el.style.fill = '';
+        el.style.stroke = '';
+      } catch {
+        /* detached during a re-render */
+      }
+    }
+    highlightedRef.current = [];
+  }, []);
+
+  // Karaoke highlight: paint the notehead(s) under the cursor. OSMD hands the
+  // graphical notes straight to us (GNotesUnderCursor), and VexFlow's notes
+  // expose their rendered <g> (getSVGGElement) — an inline style on every
+  // child out-specifies VexFlow's fill attributes, no OSMD fork needed.
+  const applyNoteHighlight = useCallback(() => {
+    // With the 'hold' trail played notes keep the ink (nothing blinks); with
+    // 'flash' the previous note is restored first.
+    if (!inkHolds()) clearNoteHighlight();
+    const cursor = osmdRef.current?.cursor as
+      | { GNotesUnderCursor?: () => Array<{ getSVGGElement?: () => SVGGElement | undefined }> }
+      | undefined;
+    if (!cursor?.GNotesUnderCursor) return;
+    const ink = highlightColor();
+    try {
+      for (const gn of cursor.GNotesUnderCursor()) {
+        const g = gn?.getSVGGElement?.();
+        if (!g) continue;
+        const targets: Array<SVGElement | HTMLElement> = [g, ...Array.from(g.querySelectorAll<SVGElement>('*'))];
+        for (const t of targets) {
+          if (!t.style) continue;
+          t.style.fill = ink;
+          t.style.stroke = ink;
+          highlightedRef.current.push(t);
+        }
+      }
+    } catch {
+      /* renderer swapped mid-frame — the next step repaints */
+    }
+  }, [clearNoteHighlight]);
+
+  const engineEntryId = usePlayerStore((s) => s.currentEntryId);
+  const isPlaying = usePlayerStore((s) => s.isPlaying);
+  // PAGE stays mounted behind the other modes (keepAlive), so its window-level
+  // key handler has to know whether it is the one on screen.
+  const pageMode = usePlayAlongStore((s) => s.mode);
+  const entryId = entry?.id ?? null;
+  // The EDIT timeline loads under the sentinel id 'editor-timeline', which can
+  // never equal a library entry id, so its live transport is excluded here for
+  // free and the score never chases audio it has nothing to do with.
+  const isSameTrack = !!entryId && engineEntryId === entryId;
+
+  // A page is as wide as the pane is tall (A4 portrait), so one sheet fills the
+  // height. A pane with NO BOX must not be measured: `keepAlive` parks the
+  // unshown mode behind `hidden` (display:none) and SingScoreView unmounts a
+  // pane outright, and a parked scroller reports clientHeight 0, which the
+  // floor below turns into a perfectly plausible 360 px. That is a different
+  // width from the visible one, so the resize observer took it for a real
+  // resize and re-engraved the whole score — measured at 7-9 s PER PASS on a
+  // 91-page band score, up to three passes, twice per mode switch. Keeping the
+  // last good width makes a park-and-return cost nothing. SheetStrip's
+  // observer already guards the same case the same way.
+  const computePageW = (): number => {
+    const h = scrollRef.current?.clientHeight ?? 0;
+    if (h <= 0) return pageWRef.current;
+    return Math.round(Math.min(1000, Math.max(360, (h - 32) / A4_RATIO)));
+  };
+
+  // Add a book-style running footer to each rendered page: "Song - Artist" and
+  // the page number, centered in the bottom margin. OSMD has no footer/page-
+  // number support, so we inject it into each page wrapper after every render
+  // (render() recreates the pages, so this must run each time).
+  const decoratePages = useCallback(() => {
+    const host = hostRef.current;
+    if (!host) return;
+    const t = footerTitleRef.current;
+    const a = footerArtistRef.current;
+    const label = footerLabelRef.current;
+    const credited = a ? (t ? `${t} - ${a}` : a) : t;
+    const running = label ? (credited ? `${credited} - ${label}` : label) : credited;
+    const pages = Array.from(host.children).filter(
+      (n): n is HTMLElement => n.nodeType === 1,
+    );
+    pages.forEach((node, idx) => {
+      let pageEl = node;
+      if (pageEl.tagName.toLowerCase() === 'svg') {
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'position:relative;flex:0 0 auto;background:#fff;';
+        pageEl.replaceWith(wrap);
+        wrap.appendChild(pageEl);
+        pageEl = wrap;
+      } else {
+        pageEl.style.position = 'relative';
+      }
+      const w = pageEl.clientWidth || pageWRef.current;
+      const fs = Math.max(8, Math.round(w * 0.019));
+      let f = pageEl.querySelector(':scope > .score-page-footer') as HTMLElement | null;
+      if (!f) {
+        f = document.createElement('div');
+        f.className = 'score-page-footer';
+        pageEl.appendChild(f);
+      }
+      f.style.cssText =
+        `position:absolute;left:0;right:0;bottom:${Math.round(w * 0.022)}px;` +
+        `text-align:center;pointer-events:none;color:#555;line-height:1.35;` +
+        `font-family:Georgia,'Times New Roman',serif;`;
+      f.innerHTML = '';
+      if (running) {
+        const l1 = document.createElement('div');
+        l1.textContent = running;
+        l1.style.cssText = `font-size:${fs}px;font-style:italic;`;
+        f.appendChild(l1);
+      }
+      const l2 = document.createElement('div');
+      l2.textContent = String(idx + 1);
+      l2.style.cssText = `font-size:${fs}px;`;
+      f.appendChild(l2);
+    });
+  }, []);
+
+  // render() does not move the cursor, it REPLACES it: enableOrDisableCursors()
+  // builds a brand-new Cursor on the fresh page divs and, because
+  // RestoreCursorAfterRerender defaults true, copies the old iterator onto it.
+  // So the cursor object is re-read (never cached), re-shown, show() is what
+  // lifts the image above the opaque white page fill, update() alone leaves it
+  // buried, and the driver re-derives its index from whatever iterator the new
+  // cursor actually got rather than trusting the restore ran.
+  const syncCursorToRender = useCallback(() => {
+    const cursor = osmdRef.current?.cursor;
+    if (!cursor) return;
+    try {
+      if (cursorVisibleRef.current) cursor.show();
+      else cursor.hide();
+      lastPageRef.current = cursor.currentPageNumber || 1;
+    } catch {
+      /* the cursor's page div is not in the document yet */
+    }
+    const map = mapRef.current;
+    if (map) driverRef.current?.resync(map);
+    lastStepRef.current = -1; // pages moved; re-check the scroll on the next step
+    // render() rebuilt every SVG — the highlighted elements are gone with it.
+    highlightedRef.current = [];
+  }, []);
+
+  // OSMD reads host.offsetWidth at render() to size one page, then we widen the
+  // host into a horizontal strip so the page svgs sit side by side.
+  //
+  // Measure-and-fit: OSMD never splits a music system across pages, so a
+  // system taller than the printable height (7-staff band scores at the default
+  // zoom) is drawn through the bottom margin and clipped by the page SVG. After
+  // the first render the tallest system is compared with PageHeight -
+  // PageBottomMargin and, when it overflows and the user has not zoomed by
+  // hand, the zoom is lowered by that ratio and the sheet re-rendered (at most
+  // two extra passes, floor 0.3). The fit restarts from ZOOM_DEFAULT on every
+  // automatic render (load, pane resize) so a pane that grows back gets its
+  // zoom back too. renderScorePdf.mjs runs the same loop so the bundle PDF
+  // paginates identically.
+  const doRender = useCallback(() => {
+    const osmd = osmdRef.current;
+    const host = hostRef.current;
+    if (!osmd || !host) return;
+    try {
+      host.style.display = 'block';
+      host.style.width = `${pageWRef.current}px`;
+      host.style.zoom = '';
+      // A score we have fitted before at this page width renders straight
+      // at that zoom: one engraving pass instead of up to three.
+      const fitKey = `${artifact.id}|${pageWRef.current}`;
+      const cachedFit = userZoomedRef.current ? undefined : fitZoomCache.get(fitKey);
+      if (!userZoomedRef.current) zoomRef.current = cachedFit ?? ZOOM_DEFAULT;
+      osmd.Zoom = zoomRef.current;
+      osmd.render();
+      if (!userZoomedRef.current) {
+        const fit = fitZoomToPage(
+          osmd,
+          zoomRef.current,
+          (z) => {
+            osmd.Zoom = z;
+            osmd.render();
+          },
+          cachedFit !== undefined ? { maxExtraPasses: 0 } : {},
+        );
+        zoomRef.current = fit.zoom;
+        rememberFit(fitKey, fit.zoom);
+        setZoom(fit.zoom);
+        const fitted = fit.passes > 0 || (cachedFit !== undefined && Math.abs(cachedFit - ZOOM_DEFAULT) > 1e-6);
+        setFitInfo(fitted ? { zoom: fit.zoom, report: fit.report } : null);
+      }
+      renderedZoomRef.current = zoomRef.current;
+      host.style.display = 'flex';
+      host.style.width = 'max-content';
+      const count =
+        osmd.GraphicSheet?.MusicPages?.length ||
+        host.querySelectorAll('svg').length ||
+        1;
+      setPageCount(count);
+      decoratePages();
+      syncCursorToRender();
+    } catch {
+      /* render races with reload — ignore */
+    }
+  }, [artifact.id, decoratePages, syncCursorToRender]);
+
+  // Zoom: instant CSS preview, one real layout once the wheel settles.
+  const settlerRef = useRef<ReturnType<typeof createZoomSettler> | null>(null);
+  useEffect(() => {
+    settlerRef.current = createZoomSettler(hostRef, renderedZoomRef, doRender);
+    return () => settlerRef.current?.cancel();
+  }, [doRender]);
+  const applyZoom = useCallback((next: number) => {
+    userZoomedRef.current = true;
+    setFitInfo(null);
+    zoomRef.current = clampZoom(next);
+    setZoom(zoomRef.current);
+    settlerRef.current?.preview(zoomRef.current);
+  }, []);
+
+  const goToPage = useCallback((target: number) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const stride = pageWRef.current + PAGE_GAP;
+    const total = Math.max(1, Math.round(el.scrollWidth / stride));
+    const clamped = Math.min(total, Math.max(1, target));
+    el.scrollTo({ left: (clamped - 1) * stride, behavior: 'smooth' });
+    setPage(clamped);
+  }, []);
+
+  // Keep the cursor on screen KARAOKE-style: the strip glides continuously with
+  // the note cursor instead of snapping page by page. The page number is now
+  // only a readout + a keyboard/footer navigation unit. Measurements go through
+  // getBoundingClientRect (viewport px) and are converted to LOCAL px with
+  // effectiveZoom before touching scrollLeft — the shell's CSS zoom makes the
+  // two spaces differ and mixing them drifts the glide.
+  const keepCursorVisible = useCallback(() => {
+    const scroller = scrollRef.current;
+    const cursor = osmdRef.current?.cursor;
+    const el = cursor?.cursorElement as HTMLElement | undefined;
+    if (!scroller || !cursor || !el) return;
+    const now = performance.now();
+    if (now < manualUntilRef.current) return;
+
+    // Track the page readout without snapping the view.
+    const pageNumber = cursor.currentPageNumber || 1;
+    if (pageNumber !== lastPageRef.current) {
+      lastPageRef.current = pageNumber;
+      setPage(pageNumber);
+    }
+
+    const c = el.getBoundingClientRect();
+    if (c.width === 0 && c.height === 0) return; // hidden
+    const v = scroller.getBoundingClientRect();
+    // While the cursor sits inside the middle band, do nothing; once it leaves,
+    // glide so it lands at the reading position (the NOW pref across, vertically centred).
+    const padX = v.width * 0.28;
+    const padY = v.height * 0.2;
+    const inBandX = c.left >= v.left + padX && c.right <= v.right - padX;
+    const inBandY = c.top >= v.top + padY && c.bottom <= v.bottom - padY;
+    if (inBandX && inBandY) return;
+    const ez = effectiveZoom(scroller);
+    const targetLeft = scroller.scrollLeft + (c.left + c.width / 2 - v.left - v.width * readingPos()) / ez;
+    const targetTop = scroller.scrollTop + (c.top + c.height / 2 - v.top - v.height / 2) / ez;
+    autoScrollUntilRef.current = now + 600;
+    scroller.scrollTo({ left: Math.max(0, targetLeft), top: Math.max(0, targetTop), behavior: 'smooth' });
+  }, []);
+
+  // One frame of follow-along: read the audible position, find the step it
+  // falls in, ask the driver for it. The common case is a binary search over a
+  // few thousand entries and no DOM work at all, because the step index only
+  // changes on note boundaries.
+  const syncNow = useCallback(() => {
+    const map = mapRef.current;
+    const driver = driverRef.current;
+    const clock = clockRef.current;
+    if (!map || !driver || !clock || map.steps.length === 0) return;
+    // Re-checked every frame, not just per render: the engine can change track
+    // underneath a mounted score.
+    if (!entryId || usePlayerStore.getState().currentEntryId !== entryId) return;
+    const target = findStepIndexBySeconds(map.steps, clock.read());
+    if (target < 0) return;
+    driver.goTo(target);
+    // The cursor only moves when the step changes, so the scroll check (two
+    // forced layouts) is paid then rather than on every frame.
+    const at = driver.index();
+    if (at !== lastStepRef.current) {
+      // Backwards (seek, loop): the held trail must not show notes that have
+      // not sounded yet from here.
+      if (at < lastStepRef.current) clearNoteHighlight();
+      lastStepRef.current = at;
+      applyNoteHighlight();
+      keepCursorVisible();
+    }
+  }, [entryId, keepCursorVisible, applyNoteHighlight]);
+
+  // Held in a ref so the artifact load effect can put the fresh cursor under
+  // the playhead without taking a dependency that would re-fetch the score.
+  const syncNowRef = useRef(syncNow);
+  syncNowRef.current = syncNow;
+
+  useWheelZoom(scrollRef, (factor) => applyZoom(zoomRef.current * factor));
+
+  useEffect(() => {
+    let cancelled = false;
+    const generation = osmdGenRef.current + 1;
+    osmdGenRef.current = generation;
+    const run = async () => {
+      const host = hostRef.current;
+      if (!host) return;
+      host.innerHTML = '';
+      try {
+        const [{ OpenSheetMusicDisplay, CursorType }, xml, settingsRes] = await Promise.all([
+          import('opensheetmusicdisplay'),
+          fetchArtifactText(artifact.id),
+          fetch('/api/settings').catch(() => null),
+        ]);
+        let artist = 'GANTASMO';
+        try {
+          if (settingsRes && settingsRes.ok) {
+            const s = await settingsRes.json();
+            artist = String(s?.notation?.artist ?? '').trim() || 'GANTASMO';
+          }
+        } catch {
+          /* settings unavailable — fall back to the GANTASMO floor */
+        }
+        if (cancelled) return;
+        const osmd = new OpenSheetMusicDisplay(host, {
+          backend: 'svg',
+          autoResize: false, // we drive width + re-render ourselves
+          drawTitle: true,
+          drawSubtitle: true, // the artist, centered under the title
+          drawComposer: false, // artist is the subtitle; no top-right credit
+          pageFormat: 'A4_P',
+          pageBackgroundColor: '#FFFFFF',
+        });
+        // ThinLeft is a hairline at the note head, which is what a follow-along
+        // cursor should look like; the default type is a wide translucent band.
+        // follow:false plus FollowCursor=false takes OSMD out of the scrolling
+        // business, its own handling calls scrollIntoView({block:'center'}) on
+        // the nearest scrollable ancestor, which fights the page strip.
+        // cursorsOptions is consumed inside render(), so it must be set now.
+        osmd.cursorsOptions = [{ type: CursorType.ThinLeft, color: highlightColor(), alpha: 0.95, follow: false }];
+        osmd.FollowCursor = false;
+        applySheetEngraving(osmd.EngravingRules);
+        // Part names on every system, not just the first: see
+        // withPartNamesOnEverySystem for why the rules alone cannot do
+        // this. The three below already default true in the installed OSMD
+        // (confirmed by reading opensheetmusicdisplay's own source), so this
+        // makes that explicit rather than changing it; the try/catch is only
+        // for a future OSMD upgrade that might rename or drop one of them.
+        try {
+          osmd.EngravingRules.RenderPartNames = true;
+          osmd.EngravingRules.RenderPartAbbreviations = true;
+          osmd.EngravingRules.RenderSystemLabelsAfterFirstPage = true;
+        } catch {
+          /* a future OSMD upgrade renamed or dropped one of these */
+        }
+        // Song as the centered title (wrapped if long), artist as the subtitle
+        // under it; capture the song name for the running page footer.
+        const prepared = prepareMusicXml(xml, computePageW(), artist);
+        footerTitleRef.current = prepared.title;
+        footerArtistRef.current = artist;
+        // A plain sheet describes as "Sheet", which adds nothing next to the
+        // title; only a real arrangement or tab label is worth printing.
+        const label = describeArtifact(artifact);
+        footerLabelRef.current = label === 'Sheet' ? '' : label;
+        await osmd.load(withPartNamesOnEverySystem(prepared.xml));
+        if (cancelled) return;
+        osmdRef.current = osmd;
+        // The map needs only Sheet.MusicPartManager, which exists as soon as
+        // load() resolves, whereas osmd.cursor does not exist until the first
+        // render(). Build it here and never again: it describes notated time,
+        // which zoom and page width cannot change.
+        mapRef.current = buildTimeMap(osmd, { soundingTempi: readSoundingTempi(xml) });
+        driverRef.current?.cancel();
+        driverRef.current = createCursorDriver(() =>
+          (osmdGenRef.current === generation ? osmdRef.current?.cursor ?? null : null),
+        );
+        pageWRef.current = computePageW();
+        // A new score starts at the default zoom and may auto-fit; a manual
+        // zoom on the previous score does not carry over.
+        userZoomedRef.current = false;
+        // Big scores ask first (see HEAVY_SCORE_CHARS). Everything above this
+        // point is cheap and already done, so saying yes is just doRender().
+        if (xml.length > HEAVY_SCORE_CHARS && !confirmedHeavy.has(artifact.id)) {
+          setHeavy({
+            chars: xml.length,
+            parts: (xml.match(/<score-part\b/g) ?? []).length,
+            measures: (xml.match(/<measure\b/g) ?? []).length,
+          });
+        } else {
+          setHeavy(null);
+          doRender();
+        }
+        setStatus('');
+        setPage(1);
+        // Ours, not the user's: do not let it read as a manual scroll and
+        // suppress the follow-along for the first seconds of the score.
+        autoScrollUntilRef.current = performance.now() + 250;
+        if (scrollRef.current) scrollRef.current.scrollLeft = 0;
+        // After the reset, so a score opened mid-playback lands on the cursor
+        // rather than on page 1.
+        syncNowRef.current();
+      } catch (e) {
+        if (cancelled) return;
+        setStatus(`Preview unavailable: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    };
+    void run();
+    return () => {
+      cancelled = true;
+      driverRef.current?.cancel();
+      driverRef.current = null;
+      mapRef.current = null;
+      // The clock deliberately survives: it holds no per-score state, and the
+      // drive loop is not re-created when only the artifact changes, so tearing
+      // it down here would leave a playing score with no clock to follow.
+      clockRef.current?.reset();
+      const osmd = osmdRef.current;
+      osmdRef.current = null;
+      try {
+        // Dispose() removes the cursor img from its page div, which throws when
+        // a render already emptied that container.
+        osmd?.cursor?.Dispose();
+      } catch {
+        /* page div already gone */
+      }
+    };
+  }, [artifact.id, doRender]);
+
+  // Track the page in view on horizontal scroll; re-fit page width to the pane
+  // when it resizes (so one sheet keeps filling the height).
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      const stride = pageWRef.current + PAGE_GAP;
+      setPage(Math.max(1, Math.round(el.scrollLeft / stride) + 1));
+      // A scroll outside the window the follow-along just claimed is the user
+      // taking over; hold the auto-scroll off so it does not yank the sheet
+      // back while they are reading somewhere else.
+      const now = performance.now();
+      if (now > autoScrollUntilRef.current) manualUntilRef.current = now + 2500;
+    };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    let raf = 0;
+    const ro = new ResizeObserver((entries) => {
+      // Chromium delivers a 0x0 observation when the observed element loses its
+      // box (verified), which is exactly what `hidden` on the keepAlive wrapper
+      // does. Parking a pane is not a resize: drop it before it can schedule
+      // anything. computePageW() guards the measurement too; this only saves
+      // the frame.
+      const box = entries[entries.length - 1]?.contentRect;
+      if (box && box.width === 0 && box.height === 0) return;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const w = computePageW();
+        if (Math.abs(w - pageWRef.current) > 4) {
+          pageWRef.current = w;
+          doRender();
+        }
+      });
+    });
+    ro.observe(el);
+    return () => {
+      el.removeEventListener('scroll', onScroll);
+      ro.disconnect();
+      cancelAnimationFrame(raf);
+    };
+  }, [doRender]);
+
+  // Keyboard paging (ignored while typing in a field). The listener is on the
+  // window, but PAGE is kept alive behind the other play-along modes and now
+  // also mounts inside the SING split, so it is bound only while PAGE is the
+  // visible mode and only honours keys aimed at the page itself or at nothing
+  // in particular — otherwise an arrow key in the lyrics pane flips the score.
+  useEffect(() => {
+    if (pageMode !== 'page') return;
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+      const root = scrollRef.current?.parentElement ?? null;
+      if (t && t !== document.body && t !== document.documentElement && root && !root.contains(t)) return;
+      if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+        e.preventDefault();
+        goToPage(page + 1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        goToPage(page - 1);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [page, goToPage, pageMode]);
+
+  // The cursor is shown only while it means something: following, and following
+  // THIS score's track. A stale highlight against unrelated audio would claim a
+  // sync that does not exist.
+  useEffect(() => {
+    cursorVisibleRef.current = follow && isSameTrack;
+    syncCursorToRender();
+  }, [follow, isSameTrack, syncCursorToRender]);
+
+  // While playing, one rAF per frame. playerStore only refreshes currentTime on
+  // the element's 'timeupdate', which fires about every 250 ms, two sixteenth
+  // notes at 120 BPM, so the cursor would arrive late and in visible jerks.
+  useEffect(() => {
+    if (!follow || !isSameTrack || !isPlaying) return;
+    if (!clockRef.current) clockRef.current = createScoreClock();
+    let raf = 0;
+    const tick = () => {
+      syncNow();
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [follow, isSameTrack, isPlaying, syncNow]);
+
+  // While paused, seek() and seekByFraction() set currentTime synchronously, so
+  // a store subscription puts the cursor under the scrub head without burning a
+  // frame loop on an idle tab.
+  useEffect(() => {
+    if (!follow || !isSameTrack) return;
+    if (!clockRef.current) clockRef.current = createScoreClock();
+    clockRef.current.reset();
+    syncNow();
+    return usePlayerStore.subscribe((s, prev) => {
+      if (s.isPlaying) return;
+      if (s.currentTime === prev.currentTime && s.currentEntryId === prev.currentEntryId) return;
+      clockRef.current?.reset();
+      syncNow();
+    });
+  }, [follow, isSameTrack, syncNow]);
+
+  /** Export every rendered page as one multi-page A4 PDF, client-side.
+   *
+   *  OSMD already lays the score out as real A4 portrait page <svg>s, so the
+   *  pages are drawn straight into the PDF as VECTORS via svg2pdf.js: staff
+   *  lines stay lines and text stays selectable text, rather than a screenshot.
+   *  This deliberately does not go through the backend /export route: that
+   *  path engraves with the headless OSMD renderer, which needs node and the
+   *  frontend's node_modules on the backend machine and returns ok=false when
+   *  they are missing. The pages are already drawn on screen here, so
+   *  rendering them needs nothing from the backend and PDF works on every
+   *  machine.
+   *
+   *  Both libraries are imported dynamically to keep them out of the initial
+   *  bundle, matching how OSMD and alphaTab are already loaded in this file. */
+  const exportPdf = useCallback(async () => {
+    const host = hostRef.current;
+    if (!host || exportingPdf) return;
+    const pages = Array.from(host.querySelectorAll('svg'));
+    if (pages.length === 0) {
+      logError('score', 'Nothing to export: the sheet has not rendered yet.');
+      return;
+    }
+    setExportingPdf(true);
+    try {
+      const [{ jsPDF }, { svg2pdf }] = await Promise.all([
+        import('jspdf'),
+        import('svg2pdf.js'),
+      ]);
+      // A4 portrait in millimetres, matching OSMD's pageFormat: 'A4_P'.
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      for (let i = 0; i < pages.length; i += 1) {
+        if (i > 0) doc.addPage('a4', 'portrait');
+        await svg2pdf(pages[i], doc, { x: 0, y: 0, width: 210, height: 297 });
+      }
+      const base = (footerTitleRef.current || 'score').replace(/[\\/:*?"<>|]/g, '_');
+      doc.save(`${base}.pdf`);
+      logInfo('score', `Exported ${pages.length}-page PDF from the rendered sheet`);
+    } catch (e) {
+      logError('score', `PDF export failed: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setExportingPdf(false);
+    }
+  }, [exportingPdf]);
+
+  const pageLabel = pageCount <= 1 ? '1 page' : `Page ${page} / ${pageCount}`;
+  // The readout doubles as the reset button; when auto-fit lowered the zoom the
+  // tooltip says so, since 36% next to a 64% default otherwise looks like a
+  // stray setting.
+  const fitTitle = fitInfo
+    ? `Fitted to the page: a system was taller than the sheet at ${Math.round(ZOOM_DEFAULT * 100)}%, ` +
+      `so zoom was lowered to ${Math.round(fitInfo.zoom * 100)}% (tallest system now ` +
+      `${Math.round(fitInfo.report.tallestBottom)} of ${Math.round(fitInfo.report.usable)} units). ` +
+      'Click to reset zoom.'
+    : 'Reset zoom';
+
+  return (
+    <div className="relative h-full flex flex-col bg-[#23222a]">
+      <div ref={scrollRef} className="flex-1 min-h-0 overflow-auto p-4">
+        {status && <div className="p-4 text-xs font-bold text-zinc-300">{status}</div>}
+        {heavy && (
+          <div className="p-4 grid place-items-center">
+            <div className="max-w-md rounded border border-amber-400/30 bg-amber-400/5 p-4 text-xs font-bold text-zinc-300">
+              <p className="mb-2 font-black uppercase tracking-[0.18em] text-amber-300">Large score</p>
+              <p className="mb-3 leading-relaxed">
+                {`${heavy.measures} measures across ${heavy.parts} ${heavy.parts === 1 ? 'part' : 'parts'} `}
+                {`(${(heavy.chars / 1e6).toFixed(1)} MB). `}
+                Engraving it blocks the whole app for about{' '}
+                {Math.round((heavy.chars / 1e6) * HEAVY_SECONDS_PER_MB)} seconds, and again after
+                a resize.
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  className="px-2 py-1 rounded border border-amber-400/40 text-amber-200 hover:bg-amber-400/10"
+                  onClick={() => {
+                    confirmedHeavy.add(artifact.id);
+                    setHeavy(null);
+                    doRender();
+                  }}
+                >
+                  ENGRAVE IT ANYWAY
+                </button>
+                <button
+                  type="button"
+                  className="px-2 py-1 rounded border border-white/15 text-zinc-300 hover:bg-white/10"
+                  onClick={() => usePlayAlongStore.getState().setMode('strip')}
+                >
+                  OPEN THE STRIP INSTEAD
+                </button>
+              </div>
+              <p className="mt-2 text-zinc-500">
+                The strip follows the music without engraving pages, and stays smooth on scores
+                this size.
+              </p>
+            </div>
+          </div>
+        )}
+        {/* display/width are driven imperatively in doRender (block+fixed during
+            OSMD's offsetWidth read, then flex+max-content for the page strip). */}
+        <div
+          ref={hostRef}
+          className="gap-6 items-start [&>div]:shrink-0 [&>div]:bg-white [&>div]:shadow-2xl [&>div]:rounded-sm [&>svg]:shrink-0 [&>svg]:bg-white [&>svg]:shadow-2xl [&>svg]:rounded-sm"
+        />
+      </div>
+      {/* Footer: follow toggle + page navigation + zoom. Play is the Score
+          header's first control, where every surface keeps it.
+          `justify-center-safe` (justify-content: safe center), not plain
+          `justify-center`: this row's content is wider than the score pane
+          whenever the panel is split — plain centring then overflows BOTH
+          edges and pushes FOLLOW off the left, out of reach. Safe centring
+          falls back to flex-start the moment the content stops fitting, so
+          the row only ever overflows to the right. Identical to
+          justify-center while it fits. */}
+      <div className="shrink-0 h-8 border-t border-white/10 bg-[#0a080f] flex items-center justify-center-safe gap-1.5 px-2 text-xs font-bold text-zinc-300">
+        <input
+          id="score-follow"
+          name="score-follow"
+          type="checkbox"
+          className="accent-emerald-400"
+          checked={follow}
+          onChange={(e) => setFollow(e.target.checked)}
+        />
+        <label htmlFor="score-follow" className="cursor-pointer select-none">FOLLOW</label>
+        <LookControls />
+        <span className="mx-1 w-px h-4 bg-white/10" />
+        <button
+          onClick={() => goToPage(page - 1)}
+          disabled={page <= 1}
+          className="p-1 rounded hover:bg-white/10 disabled:opacity-30"
+          title="Previous page (←)"
+          aria-label="Previous page"
+        >
+          <ChevronLeft className="w-3.5 h-3.5" />
+        </button>
+        <span className="min-w-24 text-center tabular-nums">{pageLabel}</span>
+        <button
+          onClick={() => goToPage(page + 1)}
+          disabled={page >= pageCount}
+          className="p-1 rounded hover:bg-white/10 disabled:opacity-30"
+          title="Next page (→)"
+          aria-label="Next page"
+        >
+          <ChevronRight className="w-3.5 h-3.5" />
+        </button>
+        <span className="mx-1 w-px h-4 bg-white/10" />
+        <button
+          onClick={() => applyZoom(zoomRef.current / ZOOM_STEP)}
+          disabled={zoom <= ZOOM_MIN + 0.001}
+          className="p-1 rounded hover:bg-white/10 disabled:opacity-30"
+          title="Zoom out (Ctrl + scroll)"
+          aria-label="Zoom out"
+        >
+          <Minus className="w-3.5 h-3.5" />
+        </button>
+        <button
+          onClick={() => applyZoom(ZOOM_DEFAULT)}
+          className="min-w-10 text-center tabular-nums hover:text-white"
+          title={fitTitle}
+          aria-label={fitTitle}
+        >
+          {Math.round(zoom * 100)}%
+        </button>
+        <button
+          onClick={() => applyZoom(zoomRef.current * ZOOM_STEP)}
+          disabled={zoom >= ZOOM_MAX - 0.001}
+          className="p-1 rounded hover:bg-white/10 disabled:opacity-30"
+          title="Zoom in (Ctrl + scroll)"
+          aria-label="Zoom in"
+        >
+          <Plus className="w-3.5 h-3.5" />
+        </button>
+        <span className="mx-1 w-px h-4 bg-white/10" />
+        <button
+          onClick={() => void exportPdf()}
+          disabled={exportingPdf}
+          className="flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-white/10 disabled:opacity-40"
+          title="Export every page as one A4 PDF"
+          aria-label="Export the sheet as PDF"
+        >
+          {exportingPdf
+            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            : <Download className="w-3.5 h-3.5" />}
+          PDF
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const TabPreview: React.FC<{ artifact: NotationArtifact; entry: LibraryEntry | null }> = ({ artifact, entry }) => {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const apiRef = useRef<AlphaTabApi | null>(null);
+  const zoomRef = useRef(ZOOM_DEFAULT);
+  const [zoom, setZoom] = useState(ZOOM_DEFAULT);
+  const [status, setStatus] = useState('Loading tab renderer…');
+  const [follow, setFollow] = useState(true);
+  const followRef = useRef(follow);
+  followRef.current = follow;
+
+  const engineEntryId = usePlayerStore((s) => s.currentEntryId);
+  const isPlaying = usePlayerStore((s) => s.isPlaying);
+  const entryId = entry?.id ?? null;
+  const isSameTrack = !!entryId && engineEntryId === entryId;
+
+  const applyZoom = useCallback((next: number) => {
+    const z = clampZoom(next);
+    zoomRef.current = z;
+    setZoom(z);
+    const api = apiRef.current;
+    if (api) {
+      try {
+        api.settings.display.scale = z;
+        api.updateSettings();
+        api.render();
+      } catch {
+        /* render races with reload — ignore */
+      }
+    }
+  }, []);
+
+  useWheelZoom(scrollRef, (factor) => applyZoom(zoomRef.current * factor));
+
+  useEffect(() => {
+    let cancelled = false;
+    let api: AlphaTabApi | null = null;
+    const run = async () => {
+      const container = containerRef.current;
+      if (!container) return;
+      try {
+        const [alphaTab, tex] = await Promise.all([
+          import('@coderline/alphatab'),
+          fetchArtifactText(artifact.id),
+        ]);
+        if (cancelled) return;
+        // Karaoke follow: alphaTab's own beat cursor + element highlighting,
+        // driven by theDAW's audio engine as the time axis (external media
+        // mode). No soundfont, no alphaTab-side audio — position is pushed in
+        // from the same latency-compensated clock the sheet cursor uses.
+        const at = alphaTab as unknown as {
+          PlayerMode?: { EnabledExternalMedia?: number };
+          ScrollMode?: { Continuous?: number };
+        };
+        const externalMode = at.PlayerMode?.EnabledExternalMedia;
+        api = new alphaTab.AlphaTabApi(container, {
+          player: {
+            ...(externalMode !== undefined
+              ? {
+                  playerMode: externalMode,
+                  enableCursor: true,
+                  enableAnimatedBeatCursor: true,
+                  enableElementHighlighting: true,
+                  ...(at.ScrollMode?.Continuous !== undefined ? { scrollMode: at.ScrollMode.Continuous } : {}),
+                  scrollElement: scrollRef.current ?? undefined,
+                }
+              : { enablePlayer: false }),
+          } as never,
+          display: { scale: zoomRef.current },
+        });
+        apiRef.current = api;
+        api.error.on((err) => {
+          if (!cancelled) setStatus(`Tab render error: ${err instanceof Error ? err.message : String(err)}`);
+        });
+        api.renderFinished.on(() => {
+          if (!cancelled) setStatus('');
+        });
+        api.tex(tex);
+      } catch (e) {
+        if (cancelled) return;
+        setStatus(`Tab preview unavailable: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    };
+    void run();
+    return () => {
+      cancelled = true;
+      apiRef.current = null;
+      try {
+        api?.destroy();
+      } catch {
+        // ignore teardown errors
+      }
+    };
+  }, [artifact.id]);
+
+  // Follow-along: while OUR engine plays THIS entry, push its clock into
+  // alphaTab every frame so the beat cursor + highlighted notes track the
+  // audio like the sheet cursor does. Feature-detected — a build without the
+  // external-media output just renders a static tab.
+  useEffect(() => {
+    if (!follow || !isSameTrack || !isPlaying) {
+      try {
+        apiRef.current?.pause?.();
+      } catch {
+        /* player not initialised */
+      }
+      return;
+    }
+    const clock = createScoreClock();
+    let raf = 0;
+    let alive = true;
+    const out = (): ExternalMediaOutput | null => {
+      const p = (apiRef.current as unknown as { player?: { output?: ExternalMediaOutput } } | null)?.player;
+      return p?.output ?? null;
+    };
+    try {
+      apiRef.current?.play?.();
+    } catch {
+      /* cursor still follows via position pushes */
+    }
+    const tick = () => {
+      if (!alive) return;
+      const ms = clock.read() * 1000;
+      const o = out();
+      try {
+        if (o?.updatePosition) o.updatePosition(ms);
+        else if (apiRef.current) (apiRef.current as unknown as { timePosition?: number }).timePosition = ms;
+      } catch {
+        /* mid-reload */
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => {
+      alive = false;
+      cancelAnimationFrame(raf);
+      clock.reset();
+    };
+  }, [follow, isSameTrack, isPlaying]);
+
+  return (
+    <div className="relative h-full">
+      <div ref={scrollRef} className="h-full overflow-auto bg-white text-black">
+        {status && <div className="p-4 text-xs font-bold text-zinc-600">{status}</div>}
+        <div ref={containerRef} className="min-h-full" />
+      </div>
+      {/* Follow toggle — mirrors the sheet's checkbox. */}
+      <div className="absolute left-2 top-2 flex items-center gap-2 rounded border border-black/10 bg-white/90 px-2 py-1 shadow">
+        <input
+          id="tab-follow"
+          name="tab-follow"
+          type="checkbox"
+          checked={follow}
+          onChange={(e) => setFollow(e.target.checked)}
+          className="h-3 w-3 accent-emerald-500"
+        />
+        <label htmlFor="tab-follow" className="font-display text-xs font-bold uppercase tracking-wider text-zinc-700">
+          Follow
+        </label>
+        {follow && entryId && !isSameTrack && (
+          <span className="font-display text-xs font-bold uppercase tracking-wider text-amber-700">other track</span>
+        )}
+      </div>
+      <ZoomControls
+        zoom={zoom}
+        onIn={() => applyZoom(zoomRef.current * ZOOM_STEP)}
+        onOut={() => applyZoom(zoomRef.current / ZOOM_STEP)}
+        onReset={() => applyZoom(ZOOM_DEFAULT)}
+      />
+    </div>
+  );
+};

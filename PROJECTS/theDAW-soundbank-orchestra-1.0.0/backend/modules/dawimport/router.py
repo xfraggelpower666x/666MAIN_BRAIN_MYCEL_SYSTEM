@@ -1,0 +1,285 @@
+"""FastAPI router for DAW project import (/api/dawimport/*).
+
+All import endpoints take a server-side file path (theDAW operates on a local
+file library) via a small JSON body, e.g. ``POST /api/dawimport/ableton`` with
+``{"path": "/abs/path/Project.als"}``.
+"""
+
+from __future__ import annotations
+
+import logging
+from pathlib import Path
+
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+
+from backend.lib import known_paths
+from backend.modules.project import media_access
+
+log = logging.getLogger(__name__)
+router = APIRouter()
+
+# Note: source-clip audio for the Perform/Session grid is served by the project
+# module's /api/project/clip-audio endpoint (it transcodes AIFF/CAF -> WAV), so
+# this module does not need its own audio route.
+
+
+class PathRequest(BaseModel):
+    path: str
+
+
+class DetectResponse(BaseModel):
+    daw: str  # "ableton" | "reaper" | "logic" | "unknown"
+    name: str
+    format: str  # "als" | "rpp" | "logicx"
+
+
+def _finish_import(project, source_path: str) -> dict:
+    """Collapse silent gaps, allowlist the project's media, and serialise.
+
+    Importing a project is the user's consent for the files it names, exactly as
+    opening a .tasmo is (see project/router.py::_register_project_media). Without
+    this every clip the Perform grid tried to play came back 403 from
+    /api/project/clip-audio, because an imported set's Samples/ folder is not one
+    of media_access's static roots.
+
+    That produced the single most confusing symptom in the DAW-import feature:
+    session roots are PERSISTED (data/clip_audio_roots.json), so the same .als was
+    silent on a clean install and worked afterwards if any earlier project save
+    or load had happened to name a file in that folder. Registering the source
+    file's own folder covers Samples/Imported and Samples/Recorded in one grant.
+    """
+    project.collapse_silent_gaps()
+    media_access.register_paths(
+        [
+            source_path,
+            *(
+                clip.file_path
+                for track in project.tracks
+                for clip in track.clips
+                if clip.file_path
+            ),
+        ]
+    )
+    result = project.to_dict()
+    _remember_source(source_path)
+    return result
+
+
+def _remember_source(source_path: str) -> None:
+    """Remember the project file an import read, so a Recent menu can offer it
+    again.
+
+    Only a path with a DAW project extension is remembered, so a lenient parser
+    (an XML format, say) accepting some other file keeps it out of the DAW
+    project menus. The path comes from the request body, so it is stored as
+    'client', never served, and leaves the 'daw-project' picker folder where it
+    is. The import picker's own record is what makes a picked project servable
+    and moves that folder.
+    """
+    if known_paths.kind_for_path(source_path) == "daw-project":
+        known_paths.record(
+            source_path, kind="daw-project", source="client", update_folder=False
+        )
+
+
+@router.post("/detect", response_model=DetectResponse)
+def detect_daw(req: PathRequest):
+    """Detect DAW format from file extension / content."""
+    p = Path(req.path)
+    suffix = p.suffix.lower()
+    if suffix == ".als":
+        return DetectResponse(daw="ableton", name=p.stem, format="als")
+    elif suffix in (".rpp", ".rpp-bak"):
+        return DetectResponse(daw="reaper", name=p.stem, format="rpp")
+    elif suffix == ".logicx":
+        return DetectResponse(daw="logic", name=p.stem, format="logicx")
+    elif suffix == ".flp":
+        return DetectResponse(daw="fl_studio", name=p.stem, format="flp")
+    elif suffix == ".aup3":
+        return DetectResponse(daw="audacity", name=p.stem, format="aup3")
+    elif suffix == ".sesx":
+        return DetectResponse(daw="audition", name=p.stem, format="sesx")
+    elif suffix in (".bwproject", ".dawproject"):
+        # bitwig.py parses both (a .dawproject is the same ZIP + XML schema), but
+        # only .bwproject was listed here, so a bare .dawproject detected as
+        # "unknown" and the importer refused a file it can actually read.
+        return DetectResponse(daw="bitwig", name=p.stem, format="bwproject")
+    elif suffix == ".avc":
+        return DetectResponse(daw="resolume", name=p.stem, format="avc")
+    elif suffix == ".cpr":
+        return DetectResponse(daw="cubase", name=p.stem, format="cpr")
+    elif suffix in (".ptx", ".pts"):
+        return DetectResponse(daw="pro_tools", name=p.stem, format="ptx")
+    elif suffix == ".swayproj":
+        return DetectResponse(daw="sway", name=p.stem, format="swayproj")
+    else:
+        return DetectResponse(daw="unknown", name=p.stem, format=suffix.lstrip("."))
+
+
+@router.post("/ableton")
+def import_ableton(req: PathRequest):
+    """Parse an Ableton Live .als file and return a DawProject dict."""
+    from backend.modules.dawimport.ableton import parse_als
+
+    try:
+        project = parse_als(req.path)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse .als: {e}")
+    return _finish_import(project, req.path)
+
+
+@router.post("/sway")
+def import_swayproj(req: PathRequest):
+    """Parse an Audima Sway .swayproj controller layout and return a DawProject
+    dict (controller_mappings only — the format carries no tracks or clips)."""
+    from backend.modules.dawimport.swayproj import parse_swayproj
+
+    try:
+        project = parse_swayproj(req.path)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse .swayproj: {e}")
+    return _finish_import(project, req.path)
+
+
+@router.post("/reaper")
+def import_reaper(req: PathRequest):
+    """Parse a Reaper .RPP file and return a DawProject dict."""
+    from backend.modules.dawimport.reaper import parse_rpp
+
+    try:
+        project = parse_rpp(req.path)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse .RPP: {e}")
+    return _finish_import(project, req.path)
+
+
+@router.post("/logic")
+def import_logic(req: PathRequest):
+    """Read a Logic Pro X .logicx package and return metadata + audio refs."""
+    from backend.modules.dawimport.logic import parse_logicx
+
+    try:
+        project = parse_logicx(req.path)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse .logicx: {e}")
+    return _finish_import(project, req.path)
+
+
+@router.get("/logic/export-hint")
+def logic_export_hint():
+    """Return instructions for Logic Pro users (export-all-tracks workflow)."""
+    from backend.modules.dawimport.logic import export_hint
+
+    return export_hint()
+
+
+# --- Extended DAW imports (P0 + P1) ---
+
+
+@router.post("/fl-studio")
+def import_fl_studio(req: PathRequest):
+    """Parse an FL Studio .flp file and return a DawProject dict."""
+    from backend.modules.dawimport.fl_studio import parse_flp
+
+    try:
+        project = parse_flp(req.path)
+    except (FileNotFoundError, ImportError) as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse .flp: {e}")
+    return _finish_import(project, req.path)
+
+
+@router.post("/audacity")
+def import_audacity(req: PathRequest):
+    """Parse an Audacity .aup3 file and return a DawProject dict."""
+    from backend.modules.dawimport.audacity import parse_aup3
+
+    try:
+        project = parse_aup3(req.path)
+    except (FileNotFoundError, ImportError) as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse .aup3: {e}")
+    return _finish_import(project, req.path)
+
+
+@router.post("/audition")
+def import_audition(req: PathRequest):
+    """Parse an Adobe Audition .sesx file and return a DawProject dict."""
+    from backend.modules.dawimport.audition import parse_sesx
+
+    try:
+        project = parse_sesx(req.path)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse .sesx: {e}")
+    return _finish_import(project, req.path)
+
+
+@router.post("/bitwig")
+def import_bitwig(req: PathRequest):
+    """Parse a Bitwig Studio .bwproject file and return a DawProject dict."""
+    from backend.modules.dawimport.bitwig import parse_bwproject
+
+    try:
+        project = parse_bwproject(req.path)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse .bwproject: {e}")
+    return _finish_import(project, req.path)
+
+
+@router.post("/resolume")
+def import_resolume(req: PathRequest):
+    """Parse a Resolume Arena .avc composition and return a DawProject dict."""
+    from backend.modules.dawimport.resolume import parse_avc
+
+    try:
+        project = parse_avc(req.path)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse .avc: {e}")
+    return _finish_import(project, req.path)
+
+
+@router.get("/cubase/export-hint")
+def cubase_export_hint():
+    """Instructions for Cubase users (no direct .cpr parse possible)."""
+    return {
+        "format": "cpr",
+        "limitation": "Cubase .cpr is proprietary binary — no parser exists",
+        "recommended_workflow": [
+            "1. In Cubase, go to File -> Export -> Audio Mixdown (per track)",
+            "2. Or: Select All Tracks -> Export Selected Tracks as Audio Files",
+            "3. Import the resulting folder into theDAW via /api/dawimport/detect",
+        ],
+    }
+
+
+@router.get("/pro-tools/export-hint")
+def pro_tools_export_hint():
+    """Instructions for Pro Tools users (no direct .ptx parse possible)."""
+    return {
+        "format": "ptx",
+        "limitation": "Pro Tools .ptx is proprietary binary — no parser exists",
+        "recommended_workflow": [
+            "1. In Pro Tools, go to File -> Export -> All Tracks as Audio Files",
+            "2. Choose WAV format and desired sample rate",
+            "3. Import the resulting folder into theDAW via /api/dawimport/detect",
+        ],
+    }

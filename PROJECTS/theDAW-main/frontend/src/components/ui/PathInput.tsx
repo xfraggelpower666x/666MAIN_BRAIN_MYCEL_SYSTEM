@@ -1,0 +1,186 @@
+import React, { useState } from 'react';
+import { FolderOpen, FileSearch, Save, Loader2 } from 'lucide-react';
+import { pickFile, pickFolder, pickSave } from '../../lib/storageClient';
+import { dirnameOf } from '../../lib/placesClient';
+
+interface PathInputProps {
+  id: string;
+  name: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  /** 'save' opens a native Save As dialog (for choosing a destination path). */
+  kind: 'folder' | 'file' | 'save';
+  placeholder?: string;
+  description?: string;
+  disabled?: boolean;
+  onBlur?: () => void;
+  onEnter?: () => void;
+  /** Fires after a successful native-picker choice (browse), AFTER onChange has
+   *  committed the path — so a call site can act on the pick immediately
+   *  (e.g. Perform's one-click Open imports the file on selection). */
+  onPicked?: (path: string) => void;
+  onFocus?: () => void;
+  onClick?: () => void;
+  /** Runs before the built-in Enter handling; call e.preventDefault() to
+   *  suppress the built-in Enter behavior (onEnter / blur). */
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  /** ARIA passthroughs for call sites that attach a popup (e.g. a combobox
+   *  with a recent-items listbox). Undefined values render no attribute, so
+   *  existing call sites are unaffected. */
+  role?: React.AriaRole;
+  ariaExpanded?: boolean;
+  ariaControls?: string;
+  ariaActiveDescendant?: string;
+  ariaAutocomplete?: React.AriaAttributes['aria-autocomplete'];
+  className?: string;
+  /** Render label + input on one row (compact). Implies descriptionHover. */
+  inline?: boolean;
+  /** Move the description into a hover tooltip instead of a visible paragraph. */
+  descriptionHover?: boolean;
+  /** OpenFileDialog filter for kind='file'/'save' (e.g. project/audio types).
+   *  Defaults to all files on the backend when omitted. */
+  fileFilter?: string;
+  /** kind='save' only: suggested file name, default extension, and start folder. */
+  saveName?: string;
+  saveExt?: string;
+  saveDir?: string;
+  /** known_paths kind (e.g. 'tasmo', 'daw-project') sent to the native picker.
+   *  The picker opens in the folder last used for that kind when the field
+   *  names none, and remembers what the user picks. */
+  pickKind?: string;
+}
+
+export const PathInput: React.FC<PathInputProps> = ({
+  id,
+  name,
+  label,
+  value,
+  onChange,
+  kind,
+  placeholder,
+  description,
+  disabled = false,
+  onBlur,
+  onEnter,
+  onPicked,
+  onFocus,
+  onClick,
+  onKeyDown,
+  role,
+  ariaExpanded,
+  ariaControls,
+  ariaActiveDescendant,
+  ariaAutocomplete,
+  className = '',
+  inline = false,
+  descriptionHover = false,
+  fileFilter,
+  saveName,
+  saveExt,
+  saveDir,
+  pickKind,
+}) => {
+  const [picking, setPicking] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const browse = async () => {
+    if (disabled || picking) return;
+    setPicking(true);
+    setError(null);
+    // The field's own value is the best start folder: the picker opens where
+    // the current path already points.
+    const current = value.trim();
+    try {
+      const result =
+        kind === 'folder'
+          ? await pickFolder({ initialDir: current || undefined, kind: pickKind })
+          : kind === 'save'
+            ? await pickSave({
+                filter: fileFilter,
+                initialName: saveName,
+                defaultExt: saveExt,
+                initialDir: saveDir,
+                kind: pickKind,
+              })
+            : await pickFile({
+                filter: fileFilter,
+                initialDir: dirnameOf(current) || undefined,
+                kind: pickKind,
+              });
+      if (!result.cancelled && result.path) {
+        onChange(result.path);
+        onPicked?.(result.path);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setPicking(false);
+    }
+  };
+
+  const buttonLabel =
+    kind === 'folder'
+      ? `Browse for ${label} folder`
+      : kind === 'save'
+        ? `Choose where to save ${label}`
+        : `Browse for ${label} file`;
+  // Inline implies the description lives in a hover tooltip rather than a
+  // visible paragraph, so the field reclaims its horizontal/vertical space.
+  const descAsHover = inline || descriptionHover;
+  const hoverTitle = descAsHover ? description : undefined;
+
+  return (
+    <div className={`${inline ? 'flex flex-wrap items-center gap-x-2 gap-y-1' : 'flex flex-col gap-1'} ${className}`}>
+      <label
+        htmlFor={id}
+        title={hoverTitle}
+        className={`text-[9px] font-mono uppercase tracking-wider text-zinc-400 ${inline ? 'shrink-0' : ''} ${descAsHover && description ? 'cursor-help' : ''}`}
+      >
+        {label}
+      </label>
+      <div className={`flex gap-1.5 ${inline ? 'flex-1 min-w-0' : ''}`}>
+        <input
+          id={id}
+          name={name}
+          type="text"
+          value={value}
+          title={hoverTitle}
+          onChange={(e) => onChange(e.target.value)}
+          onBlur={onBlur}
+          onFocus={onFocus}
+          onClick={onClick}
+          onKeyDown={(e) => {
+            onKeyDown?.(e);
+            if (e.key === 'Enter' && !e.defaultPrevented) {
+              if (onEnter) onEnter();
+              else (e.target as HTMLInputElement).blur();
+            }
+          }}
+          role={role}
+          aria-expanded={ariaExpanded}
+          aria-controls={ariaControls}
+          aria-activedescendant={ariaActiveDescendant}
+          aria-autocomplete={ariaAutocomplete}
+          disabled={disabled}
+          spellCheck={false}
+          placeholder={placeholder}
+          className="min-w-0 flex-1 bg-black/40 border border-white/10 rounded px-2 py-1.5 text-[10px] font-mono text-zinc-200 focus:border-purple-500/50 focus:outline-none disabled:opacity-50"
+        />
+        <button
+          type="button"
+          onClick={() => void browse()}
+          disabled={disabled || picking}
+          aria-label={buttonLabel}
+          title={buttonLabel}
+          className="shrink-0 inline-flex items-center justify-center gap-1.5 rounded border border-white/10 bg-white/5 px-2.5 py-1.5 text-[9px] font-black uppercase tracking-widest text-zinc-300 hover:border-purple-400/40 hover:bg-purple-500/15 hover:text-purple-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        >
+          {picking ? <Loader2 className="w-3 h-3 animate-spin" /> : kind === 'folder' ? <FolderOpen className="w-3 h-3" /> : kind === 'save' ? <Save className="w-3 h-3" /> : <FileSearch className="w-3 h-3" />}
+          {kind === 'save' ? 'Choose…' : 'Browse'}
+        </button>
+      </div>
+      {description && !descAsHover && <p className="text-[8px] text-zinc-600 leading-relaxed">{description}</p>}
+      {error && <p className="w-full text-[8px] text-red-300 leading-relaxed">{error}</p>}
+    </div>
+  );
+};

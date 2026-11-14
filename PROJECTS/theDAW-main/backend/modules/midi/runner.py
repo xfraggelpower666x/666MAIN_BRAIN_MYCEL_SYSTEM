@@ -1,0 +1,227 @@
+"""End-to-end MIDI conversion for a library entry.
+
+For each requested target (the full track, and/or each stem if
+``from_stems=True``), call the engine, write the .mid into
+``data/generations/<entry_id>/midi/<name>.mid``, then insert a row into
+the ``midis`` table + a ``midi_of`` relation edge. Update the entry's
+``midi_status`` (pending → running → complete | failed | partial).
+
+A 'partial' status means at least one but not all targets succeeded —
+common when basic-pitch is installed but piano-transcription isn't.
+"""
+
+from __future__ import annotations
+
+import logging
+import time
+import uuid
+from pathlib import Path
+from typing import Optional
+
+from backend.modules.analysis.tempo import SANE_BPM_MAX, SANE_BPM_MIN, analysis_tempo
+from backend.modules.library.db import LibraryDB
+
+from .engine import MidiHint, convert_to_midi, hint_for_stem, role_for_stem
+
+log = logging.getLogger(__name__)
+
+
+def _mirror_as_notation_artifact(db: LibraryDB, entry_id: str) -> None:
+    """Mirror this entry's ``midis`` rows into ``notation_artifacts`` right
+    away, so a freshly-converted MIDI is a first-class notation artifact
+    without waiting on a GET's old self-heal (removed, SCORE-009) or a
+    later backfill launch. Local import: ``.notation.engine`` is a separate,
+    heavier module (music21 et al.) that this module otherwise has no reason
+    to load, and importing it at module scope here risks becoming a cycle if
+    notation code ever needs something from ``midi`` in the future -- there
+    is no cycle today, but every other caller of ``register_existing_midis``
+    (``library.store``, ``notation.backfill``) already imports it locally for
+    the same reason. Best-effort: a mirroring failure must not fail the MIDI
+    conversion that already succeeded and is already recorded.
+    """
+    try:
+        from backend.modules.notation.engine import register_existing_midis
+
+        register_existing_midis(db, entry_id)
+    except Exception as exc:  # noqa: BLE001 - best-effort, never fail the conversion
+        log.debug(
+            "midi.runner: notation-artifact mirror failed for %s: %s", entry_id, exc
+        )
+
+
+def convert_entry(
+    db: LibraryDB,
+    entry_id: str,
+    audio_path: Path,
+    entry_dir: Path,
+    *,
+    from_stems: bool = True,
+    auto_install: bool = True,
+) -> dict:
+    """Convert the full track (and stems if available + requested) to
+    MIDI. Returns a summary dict.
+
+    ``auto_install`` (default True) lets convert_to_midi pip-install
+    basic-pitch on first call if no engine is present. Tests pass False."""
+    _set_status(db, entry_id, "running")
+    midi_dir = entry_dir / "midi"
+    midi_dir.mkdir(parents=True, exist_ok=True)
+
+    results: list[dict] = []
+
+    # Every target gets the entry's real tempo: the drum engine quantises to
+    # it, the pitched engines have it stamped over their 120 BPM placeholder.
+    # Read once, up front, so all of them agree.
+    tempo_bpm, tempo_beats = _analysis_tempo_map(db, entry_id)
+
+    # Full-track conversion.
+    full_out = midi_dir / "full.mid"
+    full_res = convert_to_midi(
+        audio_path,
+        full_out,
+        hint="generic",
+        auto_install=auto_install,
+        bpm=tempo_bpm,
+    )
+    results.append({"target": "full", **full_res})
+    if full_res.get("ok"):
+        db.add_midi(
+            midi_id=f"{entry_id}__full",
+            entry_id=entry_id,
+            source="full",
+            midi_path=str(full_out),
+            engine=str(full_res.get("engine") or ""),
+            engine_version=str(full_res.get("engine_version") or ""),
+            notes_count=int(full_res.get("notes_count") or 0),
+        )
+        db.add_relation(
+            from_id=entry_id,
+            to_id=f"{entry_id}__full_midi",
+            kind="midi_of",
+            metadata={"target": "full"},
+        )
+
+    # Per-stem conversions (if requested + stems exist).
+    if from_stems:
+        stems = db.list_stems(entry_id)
+        for stem_row in stems:
+            stem_name = stem_row.get("stem_name") or ""
+            stem_audio = Path(stem_row.get("audio_path") or "")
+            if not stem_audio.is_file():
+                continue
+            hint: MidiHint = hint_for_stem(stem_name)
+            stem_out = midi_dir / f"{stem_name}.mid"
+            extra: dict = {"bpm": tempo_bpm, "role": role_for_stem(stem_name)}
+            if hint == "drums":
+                # Only the drum engine consumes the beat list — it snaps
+                # on-grid hits to it. The pitched engines just need the tempo.
+                extra["beats"] = tempo_beats or None
+            stem_res = convert_to_midi(
+                stem_audio, stem_out, hint=hint, auto_install=auto_install, **extra
+            )
+            results.append({"target": stem_name, **stem_res})
+            if stem_res.get("ok"):
+                stem_id = stem_row.get("id") or f"{entry_id}__{stem_name}"
+                db.add_midi(
+                    midi_id=f"{entry_id}__{stem_name}_midi",
+                    entry_id=entry_id,
+                    source="stem",
+                    source_ref=str(stem_id),
+                    midi_path=str(stem_out),
+                    engine=str(stem_res.get("engine") or ""),
+                    engine_version=str(stem_res.get("engine_version") or ""),
+                    notes_count=int(stem_res.get("notes_count") or 0),
+                )
+                db.add_relation(
+                    from_id=str(stem_id),
+                    to_id=f"{entry_id}__{stem_name}_midi",
+                    kind="midi_of",
+                )
+
+    successes = sum(1 for r in results if r.get("ok"))
+    failures = len(results) - successes
+
+    if successes:
+        # Once, after every target has been attempted, not once per target:
+        # register_existing_midis mirrors the ENTIRE entry (every midis row,
+        # not just the one just added), so calling it inside the per-target
+        # loop mirrored the whole table again per success -- a 6-stem entry
+        # mirrored (and bumped library_revision) 7 times for one conversion
+        # pass. Guarded on at least one success: a run where everything
+        # failed added no new midis row, so there is nothing new to mirror.
+        _mirror_as_notation_artifact(db, entry_id)
+
+    if successes == 0 and failures > 0:
+        _set_status(db, entry_id, "failed")
+        status = "failed"
+    elif failures > 0:
+        _set_status(db, entry_id, "partial")
+        status = "partial"
+    else:
+        _set_status(db, entry_id, "complete")
+        status = "complete"
+
+    return {
+        "entry_id": entry_id,
+        "status": status,
+        "successes": successes,
+        "failures": failures,
+        "results": results,
+    }
+
+
+def _analysis_tempo_map(
+    db: LibraryDB, entry_id: str
+) -> tuple[Optional[float], list[float]]:
+    """``(bpm, beats)`` from the entry's analysis row
+    (:func:`backend.modules.analysis.tempo.analysis_tempo`); ``(None, [])``
+    when the entry has not been analysed or the row is malformed.
+
+    The row's BPM is used when it lies in ``SANE_BPM_MIN``-``SANE_BPM_MAX``.
+    Otherwise (or when the row has none) the tempo comes from the beat list,
+    when that lies in the range; when neither does, no tempo is stamped and
+    the beats are not used for the drum grid either."""
+    try:
+        row = db.get_analysis(entry_id)
+    except Exception as e:
+        log.debug("midi.runner: analysis lookup failed for %s: %s", entry_id, e)
+        return None, []
+    tempo = analysis_tempo(row)
+    if tempo.rejected_bpm is not None and tempo.bpm is not None:
+        log.info(
+            "midi.runner: %s analysis tempo %.2f BPM is outside %.0f-%.0f; "
+            "stamping %.2f BPM from its beat list",
+            entry_id,
+            tempo.rejected_bpm,
+            SANE_BPM_MIN,
+            SANE_BPM_MAX,
+            tempo.bpm,
+        )
+    elif tempo.rejected_bpm is not None:
+        log.warning(
+            "midi.runner: %s analysis tempo %.2f BPM is outside %.0f-%.0f and "
+            "its beat list gives no tempo inside it; its MIDI keeps no tempo "
+            "from the analysis",
+            entry_id,
+            tempo.rejected_bpm,
+            SANE_BPM_MIN,
+            SANE_BPM_MAX,
+        )
+    return tempo.bpm, tempo.beats
+
+
+def _set_status(db: LibraryDB, entry_id: str, status: str) -> None:
+    try:
+        with db._txn() as cur:  # noqa: SLF001
+            cur.execute(
+                "UPDATE entries SET midi_status = ?, updated_at = ? WHERE id = ?",
+                (status, time.time(), entry_id),
+            )
+    except Exception as e:
+        log.debug(
+            "midi.runner: status update failed for %s -> %s: %s", entry_id, status, e
+        )
+
+
+def _gen_id() -> str:
+    return uuid.uuid4().hex[:12]

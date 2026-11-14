@@ -1,0 +1,2848 @@
+/**
+ * rackEffects — a real-time Web Audio insert-effect engine for the EDIT timeline.
+ *
+ * Each effect is a context-agnostic factory: given a BaseAudioContext (the live
+ * engine ctx OR an OfflineAudioContext at export time) and a params object, it
+ * builds a single-input / single-output node subgraph plus a live `setParams`.
+ * Because the factory takes any BaseAudioContext, the SAME graph powers live
+ * preview (liveMixer) and the offline bounce (commitEdit) with no duplication.
+ *
+ * `buildEffectChain` wires a list of ChainEntry's in series between a caller-owned
+ * `input` and `output` node, rebuilds on add/remove/reorder/toggle, and pushes
+ * live param moves into the running nodes without a rebuild.
+ *
+ * The processors are genuinely psychoacoustic (crossfeed, missing-fundamental
+ * bass, true M/S widening, aural excitation, HRTF spatialization, equal-loudness
+ * contour) rather than thin wrappers over a single filter.
+ */
+
+import { distCurve } from './synthVoiceKit';
+import { addWorkletModule } from './audioWorkletSupport';
+import { createVstLiveNode } from './vstLive/vstLiveNode';
+import { vstLiveLatencySec } from '../state/vstLiveStore';
+import type { ChainEntry } from '../state/effectChainStore';
+import { TEMPO_BPM_MAX, TEMPO_BPM_MIN } from './tempoMap';
+import { HALL_OPTION_LABELS, POSITION_OPTION_LABELS, cachedHallIr, hallIrUrl, loadHallIr } from './hallIrs';
+
+/** The effect id a hosted VST3 plugin carries. It is deliberately NOT a
+ *  `RACK_EFFECTS` entry — `getRackEffect('vst3')` stays undefined — because a
+ *  VST entry is not built from numeric params but from its `vst` block
+ *  (plugin path, stored state), which no `RackEffectFactory` signature can
+ *  carry. `buildEffectChain` and `chainLatencyReport` special-case it instead. */
+const VST3_EFFECT_ID = 'vst3';
+
+/** One scheduled spatial jump: position (x,y,z) to hold from absolute ctx time `when`. */
+export interface TeleportEvent {
+  when: number;
+  x: number;
+  y: number;
+  z: number;
+}
+
+export interface RackEffectInstance {
+  /** Feed signal in here. */
+  input: AudioNode;
+  /** Processed signal leaves here. */
+  output: AudioNode;
+  /**
+   * KEY (sidechain) input — present only on instances of a definition that
+   * declares `keyInput: true`. Connect another strip's post-pan tap here and the
+   * effect's detector reads THAT signal instead of only its own input; leave it
+   * unconnected and the instance behaves exactly as it did before there was one
+   * (see `makeKeyFollower` for why that is exact rather than approximate).
+   *
+   * A `GainNode` rather than the detector itself, so the caller has one stable
+   * node to connect into for the life of the instance, and so several sources
+   * keying one entry simply SUM — which is what a mixer does with several
+   * inputs, and what `wireRoutingGraph` relies on when a graph holds more than
+   * one `CONN_SIDECHAIN` edge aimed at the same `targetEntryId`.
+   */
+  keyIn?: AudioNode;
+  /** Push new parameter values onto the live nodes (click-free where possible). */
+  setParams: (p: Record<string, number>) => void;
+  /** Spatializer only: drive panner position from a transport-synced schedule
+   *  (Teleport motion). `when` values are absolute AudioContext times. */
+  scheduleTeleport?: (events: TeleportEvent[]) => void;
+  /** Stop oscillators / release nodes. */
+  dispose: () => void;
+}
+
+export type RackEffectFactory = (
+  ctx: BaseAudioContext,
+  params: Record<string, number>,
+) => RackEffectInstance;
+
+/** Control the generic panel (EffectControls) renders for a param. Inferred
+ *  when absent: `options` → select, a 0/1 step-1 range → toggle, else knob. */
+export type RackParamKind = 'knob' | 'slider' | 'toggle' | 'select';
+/** Travel law for a knob/slider: log for frequencies and times so the useful
+ *  range is not crammed into the first few degrees. */
+export type RackParamCurve = 'lin' | 'log';
+
+/**
+ * One parameter of a rack effect. The first seven fields drive the audio
+ * factory and every existing consumer (automation lanes, MIX cards, import);
+ * the optional presentation fields below them are the schema the generic
+ * control panel (components/audio/effects/EffectControls) renders from, so
+ * an effect with no bespoke window still gets a correct, grouped UI.
+ */
+export interface RackParamDescriptor {
+  key: string;
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+  default: number;
+  unit?: string;
+  /** Section the control sits in (defaults to a single unnamed section). */
+  group?: string;
+  /** Control type override (see RackParamKind for the inference rules). */
+  kind?: RackParamKind;
+  /** Option labels for enumerated params. The value of option i is
+   *  `optionValues[i]` when given, else `min + i * step`. */
+  options?: readonly string[];
+  optionValues?: readonly number[];
+  /** Travel law (default 'lin'). Log requires min > 0. */
+  curve?: RackParamCurve;
+  /** Bipolar param (gain, pan, pitch): the dial fills out from its centre. */
+  bipolar?: boolean;
+  /** Show a 0..1 value as 0..100 %. */
+  display?: 'percent';
+  /** One-line hint shown as the control's title. */
+  tip?: string;
+}
+
+/** A named set of param values merged onto the effect's current params. */
+export interface RackEffectPreset {
+  label: string;
+  values: Record<string, number>;
+}
+
+/** Two params driven together from one XY surface (x across, y up). */
+export interface RackXYPad {
+  label: string;
+  x: string;
+  y: string;
+}
+
+/**
+ * How much latency an effect adds, in SECONDS. A constant for most effects that
+ * have any; a function when it depends on the effect's own params or on the
+ * context sample rate (a look-ahead expressed in samples, say). `sampleRate` is
+ * whatever the caller supplied — it is not invented, so a declaration that
+ * needs one must handle `undefined`.
+ */
+export type RackLatencySpec =
+  | number
+  | ((params: Record<string, number>, sampleRate?: number) => number);
+
+export interface RackEffectDef {
+  id: string;
+  label: string;
+  group: string;
+  description: string;
+  params: RackParamDescriptor[];
+  make: RackEffectFactory;
+  /** The param that acts as wet/dry; the panel gives it a fixed header slot. */
+  mixKey?: string;
+  /**
+   * This effect can be KEYED from another strip: its instance exposes
+   * `RackEffectInstance.keyIn`, and the UI offers a "Key from" picker for it.
+   *
+   * Declared on the DEFINITION rather than inferred from the instance because
+   * the picker has to exist before anything is built — `EffectWindows` asks the
+   * registry, not the live graph, and an offline bounce has no live graph to
+   * ask at all. A definition that sets this MUST return a `keyIn` from `make`.
+   */
+  keyInput?: boolean;
+  /** Sensible starting points for this effect (plus the implicit Default). */
+  presets?: readonly RackEffectPreset[];
+  /** Declared XY pads; each pair also stays reachable as individual controls. */
+  xy?: readonly RackXYPad[];
+  /** Latency this effect adds to the signal, in seconds. ABSENT MEANS 0 — an
+   *  effect only declares a value when its OUTPUT ONSET actually lags its
+   *  input, i.e. it looks ahead or buffers. An internal delay line that only
+   *  feeds a wet path alongside an undelayed dry path is not latency: the dry
+   *  signal still leaves at t=0, so the effect is time-aligned and declaring a
+   *  number would push the whole chain late. The one effect with no dry path,
+   *  `spatializer` (100 % wet through an HRTF `PannerNode`), still declares
+   *  nothing: HRTF convolution latency is implementation-defined rather than
+   *  fixed by the spec, so there is no honest constant to put here.
+   *  See `chainLatencySec`. */
+  latencySec?: RackLatencySpec;
+  /**
+   * True when rendering this effect in separate `OfflineAudioContext` chunks
+   * would change the audio AUDIBLY at the seam. Each chunk is a fresh context:
+   * every node starts from silence and every clock restarts at t = 0. Three
+   * families qualify, and each declaration below names which one it is:
+   *
+   *  a. AUDIO MEMORY longer than a render quantum — a reverb tail, a feedback
+   *     delay line, a history ring the effect replays from.
+   *  b. ADAPTIVE STATE that takes time to settle — an envelope follower, a
+   *     zero-crossing/pitch tracker. It would re-converge at every seam.
+   *  c. A FREE-RUNNING GENERATOR whose phase IS the effect — a gate LFO's
+   *     rhythm, a ring modulator's carrier. Started at context time 0, it
+   *     re-phases at every seam: the pattern jumps, or the product steps.
+   *
+   * ABSENT MEANS FALSE, and two things are deliberately absent: biquad filters
+   * (two samples of memory) and `crossfeed`'s 300 us inter-aural delay (13
+   * samples at 44.1 kHz). Both carry state, but less than one 128-sample render
+   * quantum of it, so no seam can produce an artefact a listener could hear.
+   *
+   * Read by `state/renderJobs.chainIsChunkSafe`, which gates chunked rendering;
+   * a bypassed entry is routed around, so its declaration never counts.
+   * `renderJobs.test.ts` asserts the EXACT set of ids that declare this, so a
+   * new factory carrying state across a seam cannot be added without deciding.
+   */
+  chunkUnsafe?: boolean;
+}
+
+/* ── small helpers ─────────────────────────────────────────────────────────── */
+
+const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
+
+/** Smoothly set an AudioParam toward a target (click-free for live moves). */
+const ramp = (p: AudioParam, v: number, ctx: BaseAudioContext) => {
+  // OfflineAudioContext also exposes currentTime (0 at build); setTargetAtTime is fine.
+  p.setTargetAtTime(v, ctx.currentTime, 0.02);
+};
+
+/** dB to linear gain. */
+const dbToGain = (db: number) => Math.pow(10, db / 20);
+
+/* ── 1. Headphone Crossfeed (Bauer / BS2B) ─────────────────────────────────────
+   Each channel sends a short-delayed, low-passed copy to the opposite channel.
+   On headphones this relieves the unnatural hard-panned "in-head" image by
+   approximating the inter-aural crosstalk you'd get from speakers. */
+const makeCrossfeed: RackEffectFactory = (ctx, params) => {
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const splitter = ctx.createChannelSplitter(2);
+  const merger = ctx.createChannelMerger(2);
+  input.connect(splitter);
+
+  // Direct (same-channel) path stays full level.
+  const directL = ctx.createGain();
+  const directR = ctx.createGain();
+  splitter.connect(directL, 0);
+  splitter.connect(directR, 1);
+  directL.connect(merger, 0, 0);
+  directR.connect(merger, 0, 1);
+
+  // Cross path: delayed + low-passed copy into the opposite channel.
+  // Initial values mirror setParams exactly so the make-time state (used as-is
+  // in the offline bounce) matches the live state after any param move.
+  const amt0 = clamp(params.amount ?? 0.5, 0, 1) * 0.6;
+  const cut0 = clamp(params.cutFreq ?? 700, 200, 2000);
+  const mkCross = (fromCh: number, toCh: number) => {
+    const delay = ctx.createDelay(0.01);
+    delay.delayTime.value = 0.0003; // ~300 us inter-aural delay
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = cut0;
+    const g = ctx.createGain();
+    g.gain.value = amt0;
+    splitter.connect(delay, fromCh);
+    delay.connect(lp);
+    lp.connect(g);
+    g.connect(merger, 0, toCh);
+    return { lp, g };
+  };
+  const lr = mkCross(0, 1);
+  const rl = mkCross(1, 0);
+  merger.connect(output);
+
+  return {
+    input,
+    output,
+    setParams: (p) => {
+      const amt = clamp(p.amount ?? 0.5, 0, 1) * 0.6; // cap so it never overwhelms the direct path
+      const cut = clamp(p.cutFreq ?? 700, 200, 2000);
+      ramp(lr.g.gain, amt, ctx);
+      ramp(rl.g.gain, amt, ctx);
+      lr.lp.frequency.setValueAtTime(cut, ctx.currentTime);
+      rl.lp.frequency.setValueAtTime(cut, ctx.currentTime);
+    },
+    dispose: () => {
+      try { input.disconnect(); output.disconnect(); } catch { /* gone */ }
+    },
+  };
+};
+
+/* ── 2. Phantom Bass (missing-fundamental / residue pitch) ──────────────────────
+   Isolate the sub band, synthesize its integer harmonics with a waveshaper, then
+   high-pass those harmonics back above the crossover. The ear's residue-pitch
+   mechanism reconstructs the (possibly unreproducible) fundamental, so the low
+   end reads as deeper on small drivers without adding real sub energy. */
+const makePhantomBass: RackEffectFactory = (ctx, params) => {
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+
+  const dry = ctx.createGain();
+  dry.gain.value = 1;
+  input.connect(dry).connect(output);
+
+  const subLP = ctx.createBiquadFilter();
+  subLP.type = 'lowpass';
+  subLP.frequency.value = params.crossover ?? 90;
+  subLP.Q.value = 0.7;
+  const shaper = ctx.createWaveShaper();
+  shaper.curve = distCurve(Math.round(params.drive ?? 6));
+  shaper.oversample = '2x';
+  const postHP = ctx.createBiquadFilter();
+  postHP.type = 'highpass';
+  postHP.frequency.value = params.crossover ?? 90;
+  const wet = ctx.createGain();
+  wet.gain.value = params.blend ?? 0.6;
+
+  input.connect(subLP);
+  subLP.connect(shaper);
+  shaper.connect(postHP);
+  postHP.connect(wet);
+  wet.connect(output);
+
+  return {
+    input,
+    output,
+    setParams: (p) => {
+      const xover = clamp(p.crossover ?? 90, 50, 160);
+      shaper.curve = distCurve(clamp(Math.round(p.drive ?? 6), 1, 40));
+      subLP.frequency.setValueAtTime(xover, ctx.currentTime);
+      postHP.frequency.setValueAtTime(xover, ctx.currentTime);
+      ramp(wet.gain, clamp(p.blend ?? 0.6, 0, 1.5), ctx);
+    },
+    dispose: () => {
+      try { input.disconnect(); output.disconnect(); } catch { /* gone */ }
+    },
+  };
+};
+
+/* ── 3. Stereo Widener (true mid/side) ─────────────────────────────────────────
+   Decode M = (L+R)/2 and S = (L-R)/2, scale the side, recombine. Unlike a Haas
+   delay this stays mono-compatible. An optional high-pass on the side keeps the
+   low end mono (bass stays centered and powerful while the top widens). */
+const makeStereoWidener: RackEffectFactory = (ctx, params) => {
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const splitter = ctx.createChannelSplitter(2);
+  input.connect(splitter);
+
+  // Mid = 0.5L + 0.5R
+  const mid = ctx.createGain();
+  const lMid = ctx.createGain(); lMid.gain.value = 0.5;
+  const rMid = ctx.createGain(); rMid.gain.value = 0.5;
+  splitter.connect(lMid, 0); lMid.connect(mid);
+  splitter.connect(rMid, 1); rMid.connect(mid);
+
+  // Side = 0.5L - 0.5R
+  const side = ctx.createGain();
+  const lSide = ctx.createGain(); lSide.gain.value = 0.5;
+  const rSide = ctx.createGain(); rSide.gain.value = -0.5;
+  splitter.connect(lSide, 0); lSide.connect(side);
+  splitter.connect(rSide, 1); rSide.connect(side);
+
+  // Bass-mono: high-pass the side so lows fold to center.
+  const sideHP = ctx.createBiquadFilter();
+  sideHP.type = 'highpass';
+  sideHP.frequency.value = params.bassMonoFreq ?? 120;
+  side.connect(sideHP);
+
+  // Width scaling.
+  const sideW = ctx.createGain();
+  sideW.gain.value = params.width ?? 1.4;
+  sideHP.connect(sideW);
+  const sideWneg = ctx.createGain();
+  sideWneg.gain.value = -1;
+  sideW.connect(sideWneg);
+
+  // outL = mid + sideW ; outR = mid - sideW
+  const outL = ctx.createGain();
+  const outR = ctx.createGain();
+  mid.connect(outL); sideW.connect(outL);
+  mid.connect(outR); sideWneg.connect(outR);
+  const merger = ctx.createChannelMerger(2);
+  outL.connect(merger, 0, 0);
+  outR.connect(merger, 0, 1);
+  merger.connect(output);
+
+  return {
+    input,
+    output,
+    setParams: (p) => {
+      ramp(sideW.gain, clamp(p.width ?? 1.4, 0, 2.5), ctx);
+      sideHP.frequency.setValueAtTime(clamp(p.bassMonoFreq ?? 120, 20, 400), ctx.currentTime);
+    },
+    dispose: () => {
+      try { input.disconnect(); output.disconnect(); } catch { /* gone */ }
+    },
+  };
+};
+
+/* ── 4. Aural Exciter ──────────────────────────────────────────────────────────
+   High-pass a branch, generate harmonics with a waveshaper, blend that "air"
+   back in. Restores perceived brightness/presence the ear reads as detail. */
+const makeExciter: RackEffectFactory = (ctx, params) => {
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  input.connect(output); // dry through
+
+  const hp = ctx.createBiquadFilter();
+  hp.type = 'highpass';
+  hp.frequency.value = params.frequency ?? 3500;
+  const shaper = ctx.createWaveShaper();
+  shaper.curve = distCurve(Math.round(params.amount ?? 8));
+  shaper.oversample = '4x';
+  const wet = ctx.createGain();
+  wet.gain.value = params.mix ?? 0.4;
+
+  input.connect(hp);
+  hp.connect(shaper);
+  shaper.connect(wet);
+  wet.connect(output);
+
+  return {
+    input,
+    output,
+    setParams: (p) => {
+      hp.frequency.setValueAtTime(clamp(p.frequency ?? 3500, 1000, 9000), ctx.currentTime);
+      shaper.curve = distCurve(clamp(Math.round(p.amount ?? 8), 1, 40));
+      ramp(wet.gain, clamp(p.mix ?? 0.4, 0, 1), ctx);
+    },
+    dispose: () => {
+      try { input.disconnect(); output.disconnect(); } catch { /* gone */ }
+    },
+  };
+};
+
+/* ── 5. HRTF Spatializer ───────────────────────────────────────────────────────
+   A PannerNode in HRTF mode positions the track in 3D around the listener
+   (azimuth / elevation / distance). A motion mode adds an audio-rate orbit /
+   ping-pong / up-down / figure-8 on top of the base position; because the motion
+   comes from oscillators it renders identically in the live preview and the
+   offline bounce. The visual guide + presets live in SpatializerPad.tsx. */
+
+/** Motion-mode labels, indexed by the numeric `motion` param. */
+export const SPATIAL_MOTIONS = [
+  'Static',
+  'Orbit H CW',
+  'Orbit H CCW',
+  'Orbit Frontal',
+  'Orbit Sagittal',
+  'Spherical',
+  'Ping-Pong',
+  'Up / Down',
+  'Figure-8',
+  'Expand / Collapse',
+  'Teleport',
+  'Autopilot',
+] as const;
+
+/** Index of the data-driven Teleport mode: position is driven by a transport-
+ *  synced schedule from onset analysis (see liveMixer), not by the LFOs. */
+export const SPATIAL_TELEPORT = 10;
+
+/** Index of Autopilot: an analyser taps the signal and a live rAF loop drives the
+ *  motion, auto-cycling through the behaviours so the source is "played" by the
+ *  music. Live only — the offline bounce falls back to a bake-correct Spherical. */
+export const SPATIAL_AUTOPILOT = 11;
+
+/** One-click spatial-motion presets (merged onto the effect's current params). */
+export const SPATIAL_PRESETS: ReadonlyArray<RackEffectPreset> = [
+  { label: 'Static Front', values: { motion: 0, azimuth: 0, elevation: 0, distance: 1.5 } },
+  { label: 'Orbit CW', values: { motion: 1, motionRate: 0.3, motionDepth: 2 } },
+  { label: 'Orbit CCW', values: { motion: 2, motionRate: 0.3, motionDepth: 2 } },
+  { label: 'Frontal', values: { motion: 3, motionRate: 0.35, motionDepth: 2 } },
+  { label: 'Sagittal', values: { motion: 4, motionRate: 0.35, motionDepth: 2 } },
+  { label: 'Spherical', values: { motion: 5, motionRate: 0.3, motionDepth: 2.5 } },
+  { label: 'Ping-Pong', values: { motion: 6, motionRate: 1, motionDepth: 2.5 } },
+  { label: 'Up / Down', values: { motion: 7, motionRate: 0.5, motionDepth: 2 } },
+  { label: 'Figure-8', values: { motion: 8, motionRate: 0.4, motionDepth: 2 } },
+  { label: 'Expand/Collapse', values: { motion: 9, motionRate: 0.25, motionDepth: 3, distance: 2.5 } },
+  { label: 'Teleport', values: { motion: 10, motionDepth: 5 } },
+  { label: 'Autopilot', values: { motion: 11 } },
+];
+
+export const azElToXYZ = (azDeg: number, elDeg: number, dist: number) => {
+  const az = (azDeg * Math.PI) / 180;
+  const el = (elDeg * Math.PI) / 180;
+  return {
+    x: dist * Math.cos(el) * Math.sin(az),
+    y: dist * Math.sin(el),
+    z: -dist * Math.cos(el) * Math.cos(az), // front of the listener is -z
+  };
+};
+
+/** Map a sliced chunk to a teleport position. Azimuth is a golden-angle scatter
+ *  (low-discrepancy, so successive chunks spread evenly around the head), scaled
+ *  by `spread`; brightness lifts elevation (brighter = higher); loudness pulls the
+ *  source in (louder = closer). Deterministic, so live + bounce land identically. */
+export function teleportXYZ(
+  index: number,
+  loudness: number,
+  brightness: number,
+  spread: number,
+): { x: number; y: number; z: number } {
+  const reach = clamp(spread, 0, 8) / 8; // 0..1
+  const az = (((index * 137.508) % 360) - 180) * reach; // golden-angle, scaled toward center at low spread
+  const el = (-25 + clamp(brightness, 0, 1) * 70) * reach; // -25..+45 deg
+  const dist = clamp(3.0 - clamp(loudness, 0, 1) * 1.6, 1.2, 6); // loud ~1.4 (present), quiet ~3.0 (back)
+  return azElToXYZ(az, el, dist);
+}
+
+/** Per-axis LFO frequency + depth + cosine flag, for a motion mode. Pairing a
+ *  sine axis with a cosine axis at the same rate traces a circle, so any plane
+ *  (horizontal XZ, frontal XY, sagittal YZ) can be orbited; the radial
+ *  Expand/Collapse mode drives all three axes in phase along the source direction
+ *  so the image breathes toward and away from the listener (binaural in/out). */
+const motionConfig = (p: Record<string, number>) => {
+  const motion = Math.round(p.motion ?? 0);
+  const rate = clamp(p.motionRate ?? 0.3, 0, 4);
+  const depth = clamp(p.motionDepth ?? 1.5, 0, 8);
+  let fx = rate, fy = rate, fz = rate;
+  let dx = 0, dy = 0, dz = 0;
+  let xCos = false, yCos = false, zCos = false;
+  switch (motion) {
+    case 1: dx = depth; dz = depth; zCos = true; break;              // orbit horizontal CW (XZ)
+    case 2: dx = depth; dz = -depth; zCos = true; break;            // orbit horizontal CCW
+    case 3: dx = depth; dy = depth; yCos = true; break;              // orbit frontal (XY wheel)
+    case 4: dz = depth; dy = depth; yCos = true; break;              // orbit sagittal (YZ, over the top)
+    case 5:                                                          // spherical (orbit + slow vertical precession)
+      dx = depth; dz = depth; zCos = true;
+      dy = depth * 0.7; fy = rate * 0.6; break;
+    case 6: dx = depth; break;                                       // ping-pong (X only)
+    case 7: dy = depth; break;                                       // up / down (Y only)
+    case 8: dx = depth; dz = depth; fz = rate * 2; break;            // figure-8 (Z sine at 2x)
+    case 9: {                                                        // expand / collapse (radial breathing)
+      const u = azElToXYZ(p.azimuth ?? 0, p.elevation ?? 0, 1);    // unit vector toward the source
+      dx = depth * u.x; dy = depth * u.y; dz = depth * u.z; break;
+    }
+    default: break;                                                  // static
+  }
+  return { fx, fy, fz, dx, dy, dz, xCos, yCos, zCos };
+};
+
+const makeSpatializer: RackEffectFactory = (ctx, params) => {
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const panner = ctx.createPanner();
+  panner.panningModel = 'HRTF';
+  panner.distanceModel = 'inverse';
+  panner.refDistance = 1.2;    // hold full level a touch farther out before the rolloff bites
+  panner.rolloffFactor = 0.5;  // gentler than the default 1 so distance/depth don't dive in level so fast
+  input.connect(panner).connect(output);
+
+  // Offline contexts expose startRendering and can't run the live Autopilot rAF
+  // loop, so Autopilot falls back to a bake-correct Spherical motion there.
+  const isOffline = 'startRendering' in ctx;
+
+  const pos = azElToXYZ(params.azimuth ?? 0, params.elevation ?? 0, params.distance ?? 1.5);
+  panner.positionX.value = pos.x;
+  panner.positionY.value = pos.y;
+  panner.positionZ.value = pos.z;
+
+  // One LFO per axis adds motion on top of the static position. Each axis can run
+  // as a sine or a 90-degrees-shifted cosine: pairing a sine axis with a cosine
+  // axis at the same rate traces a circle, so any plane (horizontal, frontal,
+  // sagittal) can be orbited, while an in-phase radial triple breathes in and out.
+  const cosWave = ctx.createPeriodicWave(new Float32Array([0, 1]), new Float32Array([0, 0]));
+  const lfoX = ctx.createOscillator(); lfoX.type = 'sine';
+  const lfoY = ctx.createOscillator(); lfoY.type = 'sine';
+  const lfoZ = ctx.createOscillator(); lfoZ.type = 'sine';
+  const setWave = (osc: OscillatorNode, cos: boolean) => {
+    if (cos) osc.setPeriodicWave(cosWave); else osc.type = 'sine';
+  };
+  const depthX = ctx.createGain();
+  const depthY = ctx.createGain();
+  const depthZ = ctx.createGain();
+  lfoX.connect(depthX).connect(panner.positionX);
+  lfoY.connect(depthY).connect(panner.positionY);
+  lfoZ.connect(depthZ).connect(panner.positionZ);
+
+  // Push a motion config onto the LFOs (waveform + frequency + depth).
+  const applyMotion = (cfg: ReturnType<typeof motionConfig>) => {
+    setWave(lfoX, cfg.xCos);
+    setWave(lfoY, cfg.yCos);
+    setWave(lfoZ, cfg.zCos);
+    lfoX.frequency.setValueAtTime(cfg.fx, ctx.currentTime);
+    lfoY.frequency.setValueAtTime(cfg.fy, ctx.currentTime);
+    lfoZ.frequency.setValueAtTime(cfg.fz, ctx.currentTime);
+    ramp(depthX.gain, cfg.dx, ctx);
+    ramp(depthY.gain, cfg.dy, ctx);
+    ramp(depthZ.gain, cfg.dz, ctx);
+  };
+  const applyPosition = (azimuth: number, elevation: number, distance: number) => {
+    const np = azElToXYZ(azimuth, elevation, distance);
+    ramp(panner.positionX, np.x, ctx);
+    ramp(panner.positionY, np.y, ctx);
+    ramp(panner.positionZ, np.z, ctx);
+  };
+
+  // Autopilot — a continuous "spatial choreographer". One AnalyserNode (lazy, live
+  // only) feeds a per-frame MIR feature bus with per-feature AGC (so it reacts to
+  // RELATIVE dynamics on any material), a flux-onset + inter-onset beat clock, a
+  // soft hysteretic mood scorer, and drop/breakdown event detection. Those drive a
+  // beat-aware azimuth orbit with slow elevation (brightness) + distance (bass)
+  // followers, a mood-weighted LFO texture layer, and onset-fired accents that
+  // decay back to the bed. dt-aware + allocation-free per frame; offline = Spherical.
+  let analyser: AnalyserNode | null = null;
+  let rafId = 0;
+  let lastNow = 0;
+  let binHz = 0;
+  const baseAz = () => params.azimuth ?? 0;
+
+  // One place to tune the whole brain.
+  const AP = {
+    onsetK: 1.8, refractoryMs: 120,
+    agcFast: 0.2, agcSlow: 0.0006,
+    elTau: 0.4, distTau: 0.25, distSlew: 0.15, angVelCap: 140,
+    orbitMinHz: 0.05, orbitMaxHz: 1.8, maxRadiusDeg: 70,
+    elMin: -8, elMax: 30, distMin: 1.3, distMax: 3.2, depthMin: 0.4, depthMax: 3.2,
+  };
+
+  // Live-only buffers (allocated in ensureAutopilot so offline never allocates them).
+  let freqBuf: Uint8Array<ArrayBuffer> | null = null;
+  let timeBuf: Uint8Array<ArrayBuffer> | null = null;
+  let prevFreq: Uint8Array | null = null;
+  let bands: Array<{ lo: number; hi: number }> = [];
+  const agcState: Record<string, { min: number; max: number }> = {};
+  let fastEnergy = 0, slowEnergy = 0, fluxMean = 0, fluxMad = 0;
+  let beatPeriod = 0.5, beatPhase = 0, lastOnset = 0, beatConf = 0;
+  const iois = new Float32Array(8); let ioiIdx = 0, ioiCount = 0;
+  let wCalm = 0.25, wGroove = 0.4, wIntense = 0.2, wEthereal = 0.15;
+  let orbitPhase = 0, azS = 0, elS = 0, distS = 2.2;
+  let accX = 0, accY = 0, accZ = 0, accEnv = 0, accTau = 0.2, accLR = 1;
+  let dropLatch = 0;
+
+  const clamp01 = (x: number) => (x < 0 ? 0 : x > 1 ? 1 : x);
+  const onePole = (cur: number, target: number, tau: number, dt: number) =>
+    cur + (target - cur) * (1 - Math.exp(-dt / Math.max(1e-3, tau)));
+  const agc = (x: number, key: string) => {
+    let s = agcState[key];
+    if (!s) { s = agcState[key] = { min: x, max: x + 1e-3 }; }
+    s.max += (x - s.max) * (x > s.max ? AP.agcFast : AP.agcSlow);
+    s.min += (x - s.min) * (x < s.min ? AP.agcFast : AP.agcSlow);
+    return clamp01((x - s.min) / (s.max - s.min + 1e-6));
+  };
+  const fireAccent = (ax: number, ay: number, az: number, gain: number, tau: number) => {
+    const mag = Math.hypot(ax, ay, az) || 1;
+    accX = (ax / mag) * gain; accY = (ay / mag) * gain; accZ = (az / mag) * gain;
+    accEnv = 1; accTau = tau;
+  };
+
+  const ensureAutopilot = () => {
+    if (analyser) return;
+    const a = ctx.createAnalyser();
+    a.fftSize = 2048;
+    a.smoothingTimeConstant = 0.5; // 0.8 blurs onsets; 0.5 keeps spectral flux alive
+    input.connect(a);
+    analyser = a;
+    freqBuf = new Uint8Array(a.frequencyBinCount); // 1024
+    timeBuf = new Uint8Array(a.fftSize);           // 2048
+    prevFreq = new Uint8Array(a.frequencyBinCount);
+    binHz = ctx.sampleRate / a.fftSize;
+    const edges = [20, 60, 150, 400, 1500, 5000, 16000];
+    bands = [];
+    for (let i = 0; i < edges.length - 1; i += 1) {
+      bands.push({
+        lo: Math.max(1, Math.floor(edges[i] / binHz)),
+        hi: Math.min(freqBuf.length - 1, Math.ceil(edges[i + 1] / binHz)),
+      });
+    }
+    setWave(lfoX, false); setWave(lfoY, false); setWave(lfoZ, false); // plain sines in autopilot
+    azS = baseAz(); elS = 0; distS = 2.2; orbitPhase = 0;
+  };
+
+  const autopilotTick = (now: number) => {
+    if (!rafId || !analyser || !freqBuf || !timeBuf || !prevFreq) return;
+    const dt = lastNow ? Math.min(0.05, Math.max(0.005, (now - lastNow) / 1000)) : 0.016;
+    lastNow = now;
+
+    // time domain -> rms + crest (percussive vs sustained)
+    analyser.getByteTimeDomainData(timeBuf);
+    let sq = 0, peak = 0;
+    for (let i = 0; i < timeBuf.length; i += 1) {
+      const v = (timeBuf[i] - 128) / 128; sq += v * v;
+      const av = v < 0 ? -v : v; if (av > peak) peak = av;
+    }
+    const rms = Math.sqrt(sq / timeBuf.length);
+    const crest = peak / (rms + 1e-6);
+
+    // freq domain -> centroid + spread + flux + per-band flux (one pass)
+    analyser.getByteFrequencyData(freqBuf);
+    const nb = freqBuf.length;
+    let cNum = 0, cNum2 = 0, cDen = 0, flux = 0, bassFlux = 0, highFlux = 0;
+    for (let i = 1; i < nb; i += 1) {
+      const m = freqBuf[i];
+      cNum += i * m; cNum2 += i * i * m; cDen += m;
+      const d = m - prevFreq[i];
+      if (d > 0) { flux += d; if (i < nb * 0.07) bassFlux += d; else if (i > nb * 0.45) highFlux += d; }
+      prevFreq[i] = m;
+    }
+    flux = flux / 255 / nb;
+    // band means (sub+bass, mid) — inline to avoid per-frame closures
+    const b0 = bands[0], b1 = bands[1], bm = bands[3];
+    let s0 = 0; for (let i = b0.lo; i <= b0.hi; i += 1) s0 += freqBuf[i];
+    let s1 = 0; for (let i = b1.lo; i <= b1.hi; i += 1) s1 += freqBuf[i];
+    let sm = 0; for (let i = bm.lo; i <= bm.hi; i += 1) sm += freqBuf[i];
+    const bassRaw = (s0 / Math.max(1, b0.hi - b0.lo + 1) + s1 / Math.max(1, b1.hi - b1.lo + 1)) * 0.5 / 255;
+    const midRaw = sm / Math.max(1, bm.hi - bm.lo + 1) / 255;
+    const cHz = cDen > 0 ? (cNum / cDen) * binHz : 200;
+    const brightness = clamp01(Math.log2(Math.max(200, cHz) / 200) / Math.log2(16000 / 200));
+    const variance = cDen > 0 ? Math.max(0, cNum2 / cDen - (cNum / cDen) ** 2) : 0;
+    const spread01 = clamp01(Math.sqrt(variance) / (nb * 0.3));
+
+    const energyN = agc(rms, 'rms');
+    const bassN = agc(bassRaw, 'bass');
+    const fluxN = agc(flux, 'flux');
+    const arousal = energyN * 0.6 + fluxN * 0.4;
+    fastEnergy = onePole(fastEnergy, energyN, 0.15, dt);
+    slowEnergy = onePole(slowEnergy, energyN, 2.0, dt);
+
+    // onset detection (adaptive flux threshold + refractory) + IOI beat clock
+    fluxMean = onePole(fluxMean, flux, 0.4, dt);
+    fluxMad = onePole(fluxMad, Math.abs(flux - fluxMean), 0.4, dt);
+    const sinceOnset = now - lastOnset;
+    let onset = false;
+    if (flux > fluxMean + AP.onsetK * fluxMad && sinceOnset > AP.refractoryMs) {
+      onset = true;
+      const dtOn = sinceOnset / 1000;
+      if (dtOn >= 0.25 && dtOn <= 1.5) { // 40..240 BPM
+        beatPeriod += (dtOn - beatPeriod) * 0.12;
+        iois[ioiIdx] = dtOn; ioiIdx = (ioiIdx + 1) % iois.length; if (ioiCount < iois.length) ioiCount += 1;
+      }
+      lastOnset = now;
+      beatPhase -= 0.15 * Math.sin(2 * Math.PI * beatPhase); // soft phase pull, no hard reset
+    }
+    beatPhase += dt / Math.max(0.2, beatPeriod);
+    if (beatPhase >= 1) beatPhase -= 1;
+    if (ioiCount >= 3) {
+      let mean = 0; for (let i = 0; i < ioiCount; i += 1) mean += iois[i]; mean /= ioiCount;
+      let mad = 0; for (let i = 0; i < ioiCount; i += 1) mad += Math.abs(iois[i] - mean); mad /= ioiCount;
+      beatConf = clamp01(1 - mad / Math.max(0.1, beatPeriod));
+    } else beatConf = 0;
+
+    // soft mood weights (asymmetric slew: commit fast, linger slow)
+    const sustainN = 1 - clamp01((crest - 1.4) / 3);
+    const sGroove = beatConf * midRaw * (1 - spread01) + 0.3;
+    const sIntense = energyN * fluxN * (0.3 + spread01);
+    const sCalm = (1 - energyN) * (1 - fluxN) * (1 - spread01);
+    const sEthereal = brightness * (1 - arousal) * sustainN;
+    const sTot = sGroove + sIntense + sCalm + sEthereal + 1e-6;
+    const slewW = (w: number, t: number) => onePole(w, t, t > w ? 0.45 : 2.2, dt);
+    wGroove = slewW(wGroove, sGroove / sTot);
+    wIntense = slewW(wIntense, sIntense / sTot);
+    wCalm = slewW(wCalm, sCalm / sTot);
+    wEthereal = slewW(wEthereal, sEthereal / sTot);
+
+    // events: DROP = bass-flux + crest spike + energy jump (collapse-then-bloom)
+    if (dropLatch > 0) dropLatch -= dt * 1000;
+    if (bassFlux > 8 && crest > 3.4 && fastEnergy - slowEnergy > 0.3 && dropLatch <= 0) {
+      dropLatch = 2000;
+      distS = AP.distMin;             // snap in, then ease back out
+      fireAccent(0, -0.3, -1, 1.0, 0.18);
+    }
+    const intenseBias = dropLatch > 0 ? 0.5 : 0;
+
+    // orbit rate: arousal-driven, beat-quantized when confident
+    let orbitHz = AP.orbitMinHz + arousal * (AP.orbitMaxHz - AP.orbitMinHz);
+    if (beatConf > 0.5) {
+      const beatHz = 1 / Math.max(0.2, beatPeriod);
+      orbitHz = beatHz * (energyN > 0.6 ? 0.5 : energyN > 0.3 ? 0.25 : 0.125);
+    }
+    orbitPhase += 2 * Math.PI * orbitHz * dt;
+    if (orbitPhase > Math.PI * 2) orbitPhase -= Math.PI * 2;
+    const widthGate = clamp01(1.2 - spread01 * 0.5 - clamp01(highFlux / 6000) * 0.6);
+    const orbitRadius = Math.min(AP.maxRadiusDeg, (8 + energyN * 62) * Math.max(0.3, widthGate));
+    const breath = 1 + 0.15 * Math.cos(2 * Math.PI * beatPhase) * wGroove;
+
+    accEnv = onePole(accEnv, 0, accTau, dt);
+
+    // targets (azimuth = orbit + lateral accent; el/dist slow followers)
+    const azTarget = baseAz() + orbitRadius * Math.sin(orbitPhase) + accX * accEnv * 40;
+    const elTarget = clamp(AP.elMin + brightness * 38 + wEthereal * 20 - (wIntense + intenseBias) * 8 + accY * accEnv * 15, AP.elMin, AP.elMax);
+    const distTarget = clamp(3.0 - bassN * 1.7 + accZ * accEnv * 0.6, AP.distMin, AP.distMax);
+    elS = onePole(elS, elTarget, AP.elTau, dt);
+    const distNext = onePole(distS, distTarget, AP.distTau, dt);
+    distS += clamp(distNext - distS, -AP.distSlew, AP.distSlew);
+    const maxStep = AP.angVelCap * dt;
+    azS += clamp(azTarget - azS, -maxStep, maxStep); // angular-velocity cap (no seasickness)
+    applyPosition(azS, elS, distS);
+
+    // mood-weighted LFO texture layer (granular shimmer over the orbit bed)
+    const depthCommon = clamp(0.8 + energyN * 1.6 + bassN * 1.0, AP.depthMin, AP.depthMax)
+      * breath * (crest > 3.5 ? 0.7 : crest < 2 ? 1.15 : 1);
+    ramp(depthX.gain, depthCommon * (wIntense * 0.8 + 0.1), ctx);
+    ramp(depthY.gain, depthCommon * (wEthereal * 1.1 + wCalm * 0.5), ctx);
+    ramp(depthZ.gain, depthCommon * (wGroove * 0.6 + wEthereal * 0.5 + (dropLatch > 0 ? 1.2 : 0)), ctx);
+    const lfoHz = Math.max(0.05, orbitHz);
+    lfoX.frequency.setTargetAtTime(lfoHz, ctx.currentTime, 0.3);
+    lfoY.frequency.setTargetAtTime(lfoHz * 0.5, ctx.currentTime, 0.3);
+    lfoZ.frequency.setTargetAtTime(lfoHz * 2, ctx.currentTime, 0.3);
+
+    // onset accents (by band: kick -> in+down, hat -> up, snare -> alternating sides)
+    if (onset && dropLatch <= 0) {
+      if (bassFlux > highFlux) fireAccent(0, -0.3, -1, 0.7 + energyN * 0.4, 0.12 + wEthereal * 0.4);
+      else if (highFlux > bassFlux * 1.5) fireAccent(0, 1, 0, 0.5, 0.15);
+      else { fireAccent(accLR, 0, -0.3, 0.6, 0.15); accLR = -accLR; }
+    }
+
+    rafId = requestAnimationFrame(autopilotTick);
+  };
+  const startAutopilot = () => {
+    if (rafId || isOffline) return;
+    ensureAutopilot();
+    lastNow = 0;
+    rafId = requestAnimationFrame(autopilotTick);
+  };
+  const stopAutopilot = () => {
+    if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+  };
+
+  // Build-time motion. Autopilot: live -> start the driver; offline -> Spherical so
+  // the bounce still has motion. Everything else uses its static config.
+  const motion0 = Math.round(params.motion ?? 0);
+  if (motion0 === SPATIAL_AUTOPILOT) {
+    if (isOffline) applyMotion(motionConfig({ ...params, motion: 5, motionRate: 0.3, motionDepth: 2.5 }));
+    else { applyMotion(motionConfig({ motion: 0 })); startAutopilot(); }
+  } else {
+    applyMotion(motionConfig(params));
+  }
+  lfoX.start();
+  lfoY.start();
+  lfoZ.start();
+
+  return {
+    input,
+    output,
+    setParams: (p) => {
+      const motion = Math.round(p.motion ?? 0);
+      if (motion === SPATIAL_AUTOPILOT) {
+        // The driver owns position + motion; nothing static to apply live.
+        if (isOffline) applyMotion(motionConfig({ ...p, motion: 5, motionRate: 0.3, motionDepth: 2.5 }));
+        else startAutopilot();
+        return;
+      }
+      stopAutopilot();
+      // Teleport owns position via its schedule; don't ramp it back to the base.
+      if (motion !== SPATIAL_TELEPORT) applyPosition(p.azimuth ?? 0, p.elevation ?? 0, p.distance ?? 1.5);
+      applyMotion(motionConfig(p));
+    },
+    scheduleTeleport: (events) => {
+      // Jump (hold then step, no ramp) to each scheduled position. The LFO depths
+      // are 0 in Teleport mode, so these setValueAtTime values fully own position.
+      const t0 = ctx.currentTime;
+      try {
+        panner.positionX.cancelScheduledValues(t0);
+        panner.positionY.cancelScheduledValues(t0);
+        panner.positionZ.cancelScheduledValues(t0);
+      } catch { /* no automation scheduled yet */ }
+      for (const ev of events) {
+        const when = Math.max(ev.when, t0);
+        panner.positionX.setValueAtTime(ev.x, when);
+        panner.positionY.setValueAtTime(ev.y, when);
+        panner.positionZ.setValueAtTime(ev.z, when);
+      }
+    },
+    dispose: () => {
+      stopAutopilot();
+      try { lfoX.stop(); lfoY.stop(); lfoZ.stop(); } catch { /* not started */ }
+      try { input.disconnect(); output.disconnect(); analyser?.disconnect(); } catch { /* gone */ }
+    },
+  };
+};
+
+/* ── 6. Loudness Contour (ISO 226 equal-loudness) ──────────────────────────────
+   As monitoring level drops, the ear loses lows and highs relative to mids
+   (Fletcher-Munson). This applies the inverse: low + high shelves whose boost
+   grows as the assumed listening level falls, so the perceived tonal balance
+   holds when you turn it down. A real "night mode" for mixing quietly. */
+const contourGains = (levelPhon: number, amount: number) => {
+  // 80 phon ~ a loud reference where no compensation is needed.
+  const deficit = clamp((80 - levelPhon) / 80, 0, 1) * clamp(amount, 0, 1);
+  return { lowDb: deficit * 12, highDb: deficit * 6 };
+};
+
+const makeLoudnessContour: RackEffectFactory = (ctx, params) => {
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const low = ctx.createBiquadFilter();
+  low.type = 'lowshelf';
+  low.frequency.value = 120;
+  const high = ctx.createBiquadFilter();
+  high.type = 'highshelf';
+  high.frequency.value = 8000;
+  const g0 = contourGains(params.level ?? 70, params.amount ?? 0.5);
+  low.gain.value = g0.lowDb;
+  high.gain.value = g0.highDb;
+  input.connect(low).connect(high).connect(output);
+
+  return {
+    input,
+    output,
+    setParams: (p) => {
+      const g = contourGains(p.level ?? 70, p.amount ?? 0.5);
+      low.gain.setTargetAtTime(g.lowDb, ctx.currentTime, 0.03);
+      high.gain.setTargetAtTime(g.highDb, ctx.currentTime, 0.03);
+    },
+    dispose: () => {
+      try { input.disconnect(); output.disconnect(); } catch { /* gone */ }
+    },
+  };
+};
+
+/* ── 7. OWL-Pad (XY performance effect) ────────────────────────────────────────
+   An assignable XY surface. The program picks a filter type and whether a
+   feedback delay is engaged; X and Y then sweep two parameters live as the user
+   drags. Built as a superset graph (filter + feedback delay always wired, then
+   neutralized per program), so switching programs never rebuilds the chain. The
+   pad UI lives in OwlPad and writes x/y/active straight into these params. */
+export const OWLPAD_PROGRAMS = [
+  'LPF Sweep',
+  'HPF Sweep',
+  'BPF Sweep',
+  'Delay',
+  'Filter + Delay',
+] as const;
+
+interface OwlPadTargets {
+  filterType: BiquadFilterType;
+  freq: number;
+  q: number;
+  delayTime: number;
+  feedback: number;
+  fwet: number; // level of the filtered-direct path
+  dwet: number; // level of the delayed path
+}
+
+/** Map (program, x, y) onto concrete node targets. X sweeps a log frequency or a
+ *  delay time; Y sweeps resonance or feedback, depending on the program. */
+const owlPadTargets = (program: number, x: number, y: number): OwlPadTargets => {
+  const xx = clamp(x, 0, 1);
+  const yy = clamp(y, 0, 1);
+  const freq = 200 * Math.pow(18000 / 200, xx); // log sweep 200..18000 Hz
+  const q = 0.5 + yy * 17.5;
+  switch (Math.round(program)) {
+    case 1:
+      return { filterType: 'highpass', freq, q, delayTime: 0, feedback: 0, fwet: 1, dwet: 0 };
+    case 2:
+      return { filterType: 'bandpass', freq, q, delayTime: 0, feedback: 0, fwet: 1, dwet: 0 };
+    case 3:
+      return { filterType: 'lowpass', freq: 18000, q: 0.7, delayTime: 0.02 + xx * 0.58, feedback: yy * 0.85, fwet: 0.4, dwet: 0.9 };
+    case 4:
+      return { filterType: 'lowpass', freq, q: 0.9, delayTime: 0.18, feedback: yy * 0.85, fwet: 0.8, dwet: 0.7 };
+    default:
+      return { filterType: 'lowpass', freq, q, delayTime: 0, feedback: 0, fwet: 1, dwet: 0 };
+  }
+};
+
+const makeOwlPad: RackEffectFactory = (ctx, params) => {
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+
+  const dry = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+  const delayIn = ctx.createGain();
+  const delay = ctx.createDelay(1.0);
+  const feedback = ctx.createGain();
+  const fwet = ctx.createGain(); // filtered direct
+  const dwet = ctx.createGain(); // delayed repeats
+
+  input.connect(dry).connect(output);
+  input.connect(filter);
+  filter.connect(fwet).connect(output);
+  filter.connect(delayIn);
+  delayIn.connect(delay);
+  delay.connect(feedback).connect(delayIn); // feedback loop (delay node breaks the cycle)
+  delay.connect(dwet).connect(output);
+
+  // Mirror setParams at make time so the offline bounce starts in the live state.
+  const apply = (p: Record<string, number>) => {
+    const t = owlPadTargets(p.program ?? 0, p.x ?? 0.5, p.y ?? 0.3);
+    const mix = clamp(p.mix ?? 1, 0, 1);
+    const engaged = (p.active ?? 1) >= 0.5;
+    const w = engaged ? mix : 0;
+    filter.type = t.filterType;
+    ramp(filter.frequency, t.freq, ctx);
+    ramp(filter.Q, t.q, ctx);
+    delay.delayTime.setTargetAtTime(Math.max(0, t.delayTime), ctx.currentTime, 0.05);
+    ramp(feedback.gain, engaged ? t.feedback : 0, ctx);
+    ramp(fwet.gain, w * t.fwet, ctx);
+    ramp(dwet.gain, w * t.dwet, ctx);
+    ramp(dry.gain, engaged ? 1 - mix : 1, ctx);
+  };
+  apply(params);
+
+  return {
+    input,
+    output,
+    setParams: (p) => apply(p),
+    dispose: () => {
+      try {
+        input.disconnect();
+        output.disconnect();
+        filter.disconnect();
+        delay.disconnect();
+        feedback.disconnect();
+      } catch { /* gone */ }
+    },
+  };
+};
+
+/* ── 8. Gater (rhythmic tremolo gate) ──────────────────────────────────────────
+   An LFO chops the level between full and (1 - depth) at the set rate. The shape
+   selects the LFO wave: sine = smooth tremolo, square = hard gate, saw = ramp.
+   The gate gain is driven by a constant-source bias plus the scaled LFO, so it
+   oscillates between `low` and `high` with no per-sample callback.
+
+   Tempo-sync (sync = 1): the rate is derived from `bpm` + `div` instead of the
+   free Hz knob. `div` indexes GATER_DIVISIONS; the value is cycles-per-beat, so
+   1/4 = 1 cycle/beat (one gate per quarter note), 1/8 = 2, 1/8T = 3, etc. The
+   bpm rides in as a param so the factory stays pure and bakes identically. */
+export const GATER_DIVISIONS = ['1/1', '1/2', '1/4', '1/8', '1/16', '1/4T', '1/8T', '1/16T'] as const;
+const GATER_DIV_CYCLES = [0.25, 0.5, 1, 2, 4, 1.5, 3, 6]; // cycles per beat, parallel to GATER_DIVISIONS
+const makeGater: RackEffectFactory = (ctx, params) => {
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const gate = ctx.createGain();
+  gate.gain.value = 0; // intrinsic 0; bias + lfo drive the computed value
+  input.connect(gate).connect(output);
+
+  const lfo = ctx.createOscillator();
+  const amp = ctx.createGain();
+  const bias = ctx.createConstantSource();
+  bias.connect(gate.gain);
+  lfo.connect(amp).connect(gate.gain);
+
+  const apply = (p: Record<string, number>) => {
+    const synced = (p.sync ?? 0) >= 0.5;
+    const bpm = clamp(p.bpm ?? 120, TEMPO_BPM_MIN, TEMPO_BPM_MAX);
+    const div = Math.round(clamp(p.div ?? 3, 0, GATER_DIV_CYCLES.length - 1));
+    const rate = synced ? (bpm / 60) * GATER_DIV_CYCLES[div] : clamp(p.rate ?? 6, 0.1, 30);
+    const depth = clamp(p.depth ?? 0.8, 0, 1);
+    const low = 1 - depth;
+    const center = (1 + low) / 2;
+    const a = (1 - low) / 2;
+    const shape = Math.round(p.shape ?? 1);
+    lfo.type = shape >= 2 ? 'sawtooth' : shape >= 1 ? 'square' : 'sine';
+    lfo.frequency.setTargetAtTime(rate, ctx.currentTime, 0.02);
+    bias.offset.setTargetAtTime(center, ctx.currentTime, 0.02);
+    amp.gain.setTargetAtTime(a, ctx.currentTime, 0.02);
+  };
+  apply(params);
+  lfo.start();
+  bias.start();
+
+  return {
+    input,
+    output,
+    setParams: (p) => apply(p),
+    dispose: () => {
+      try { lfo.stop(); bias.stop(); input.disconnect(); output.disconnect(); gate.disconnect(); } catch { /* gone */ }
+    },
+  };
+};
+
+/* ── 9. Bitcrush (bit-depth reduction) ──────────────────────────────────────────
+   A stepped waveshaper quantizes the signal to 2^bits levels for lo-fi crunch,
+   blended against the dry signal. (Sample-rate reduction, the other half of a
+   classic crusher, needs a per-sample worklet and lands with the chop suite.) */
+const bitcrushCurve = (bits: number): Float32Array<ArrayBuffer> => {
+  const n = 2048;
+  const curve = new Float32Array(n);
+  const levels = Math.pow(2, clamp(bits, 1, 16));
+  const half = levels / 2;
+  for (let i = 0; i < n; i += 1) {
+    const x = (i / (n - 1)) * 2 - 1;
+    curve[i] = Math.round(x * half) / half;
+  }
+  return curve;
+};
+const makeBitcrush: RackEffectFactory = (ctx, params) => {
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dry = ctx.createGain();
+  const wet = ctx.createGain();
+  const shaper = ctx.createWaveShaper();
+  shaper.curve = bitcrushCurve(Math.round(params.bits ?? 8));
+  input.connect(dry).connect(output);
+  input.connect(shaper).connect(wet).connect(output);
+
+  const apply = (p: Record<string, number>) => {
+    shaper.curve = bitcrushCurve(Math.round(clamp(p.bits ?? 8, 1, 16)));
+    const mix = clamp(p.mix ?? 1, 0, 1);
+    ramp(wet.gain, mix, ctx);
+    ramp(dry.gain, 1 - mix, ctx);
+  };
+  apply(params);
+
+  return {
+    input,
+    output,
+    setParams: (p) => apply(p),
+    dispose: () => {
+      try { input.disconnect(); output.disconnect(); } catch { /* gone */ }
+    },
+  };
+};
+
+/* ── 10. Ring Modulator ─────────────────────────────────────────────────────────
+   Multiply the signal by a sine carrier for metallic / robotic sidebands. The
+   carrier drives a gain node's value, so the node output is signal x carrier. */
+const makeRingMod: RackEffectFactory = (ctx, params) => {
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dry = ctx.createGain();
+  const wet = ctx.createGain();
+  const ring = ctx.createGain();
+  ring.gain.value = 0; // intrinsic 0; the carrier drives the computed value
+  const carrier = ctx.createOscillator();
+  carrier.connect(ring.gain);
+
+  input.connect(dry).connect(output);
+  input.connect(ring).connect(wet).connect(output);
+
+  const apply = (p: Record<string, number>) => {
+    carrier.frequency.setTargetAtTime(clamp(p.frequency ?? 200, 1, 4000), ctx.currentTime, 0.02);
+    const mix = clamp(p.mix ?? 1, 0, 1);
+    ramp(wet.gain, mix, ctx);
+    ramp(dry.gain, 1 - mix, ctx);
+  };
+  apply(params);
+  carrier.start();
+
+  return {
+    input,
+    output,
+    setParams: (p) => apply(p),
+    dispose: () => {
+      try { carrier.stop(); input.disconnect(); output.disconnect(); ring.disconnect(); } catch { /* gone */ }
+    },
+  };
+};
+
+/* ── 11. Chop (MPC-style buffer chop, worklet) ─────────────────────────────────
+   Stutter / beat-repeat / shuffle by re-looping a rolling buffer. The DSP lives
+   in a worklet (public/chop.worklet.js), so the module must be registered on the
+   context before the node is built; ensureChopModule caches that per context
+   (the editor preloads it on the live context, and commitEdit awaits it on the
+   offline context). If the module is not ready yet, the factory degrades to a
+   clean passthrough and kicks off the load so the next build gets the real node. */
+const chopModuleByCtx = new WeakMap<BaseAudioContext, Promise<void>>();
+export const ensureChopModule = (ctx: BaseAudioContext): Promise<void> => {
+  let p = chopModuleByCtx.get(ctx);
+  if (!p) {
+    p = addWorkletModule(ctx, '/chop.worklet.js').catch((e) => {
+      chopModuleByCtx.delete(ctx);
+      throw e;
+    });
+    chopModuleByCtx.set(ctx, p);
+  }
+  return p;
+};
+
+/* The live granular worklet (Ares "grains" stage). Same per-context caching as
+ * ensureChopModule: the editor/live rack preloads it on the live context and the
+ * offline bounce awaits it on the offline context. */
+const granularModuleByCtx = new WeakMap<BaseAudioContext, Promise<void>>();
+export const ensureGranularModule = (ctx: BaseAudioContext): Promise<void> => {
+  let p = granularModuleByCtx.get(ctx);
+  if (!p) {
+    p = addWorkletModule(ctx, '/granular.worklet.js').catch((e) => {
+      granularModuleByCtx.delete(ctx);
+      throw e;
+    });
+    granularModuleByCtx.set(ctx, p);
+  }
+  return p;
+};
+
+/* A single-source granular node (used inside the Ares composite). Degrades to a
+ * clean passthrough if the worklet module is not registered on this context yet,
+ * and kicks off the load so the next build gets the real node. */
+const makeGranular: RackEffectFactory = (ctx, params) => {
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  let node: AudioWorkletNode | null = null;
+  try {
+    node = new AudioWorkletNode(ctx, 'granular-processor', {
+      numberOfInputs: 1,
+      numberOfOutputs: 1,
+      outputChannelCount: [2],
+    });
+  } catch {
+    node = null;
+  }
+  if (!node) {
+    input.connect(output);
+    void ensureGranularModule(ctx).catch(() => {});
+    return {
+      input,
+      output,
+      setParams: () => {},
+      dispose: () => { try { input.disconnect(); output.disconnect(); } catch { /* gone */ } },
+    };
+  }
+  const gran = node;
+  input.connect(gran).connect(output);
+  const apply = (p: Record<string, number>) => {
+    const set = (key: string, v: number) => {
+      const ap = gran.parameters.get(key);
+      if (ap) ap.setTargetAtTime(v, ctx.currentTime, 0.02);
+    };
+    set('density', clamp(p.density ?? 25, 1, 200));
+    set('size', clamp(p.size ?? 120, 5, 500));
+    set('pitch', clamp(p.pitch ?? 0, -24, 24));
+    set('spread', clamp(p.spread ?? 0.5, 0, 1));
+    set('mix', clamp(p.mix ?? 1, 0, 1));
+    const fp = gran.parameters.get('freeze');
+    if (fp) fp.setValueAtTime((p.freeze ?? 0) >= 0.5 ? 1 : 0, ctx.currentTime);
+  };
+  apply(params);
+  return {
+    input,
+    output,
+    setParams: (p) => apply(p),
+    dispose: () => { try { input.disconnect(); output.disconnect(); gran.disconnect(); } catch { /* gone */ } },
+  };
+};
+
+const makeChop: RackEffectFactory = (ctx, params) => {
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  let node: AudioWorkletNode | null = null;
+  try {
+    node = new AudioWorkletNode(ctx, 'chop-processor', {
+      numberOfInputs: 1,
+      numberOfOutputs: 1,
+      outputChannelCount: [2],
+    });
+  } catch {
+    node = null; // module not registered on this context yet
+  }
+
+  if (!node) {
+    input.connect(output); // passthrough; load the module for the next build
+    void ensureChopModule(ctx).catch(() => {});
+    return {
+      input,
+      output,
+      setParams: () => {},
+      dispose: () => { try { input.disconnect(); output.disconnect(); } catch { /* gone */ } },
+    };
+  }
+
+  const chop = node;
+  input.connect(chop).connect(output);
+  const apply = (p: Record<string, number>) => {
+    const prog = chop.parameters.get('program');
+    if (prog) prog.setValueAtTime(Math.round(clamp(p.program ?? 0, 0, 2)), ctx.currentTime);
+    const set = (key: string, v: number) => {
+      const ap = chop.parameters.get(key);
+      if (ap) ap.setTargetAtTime(v, ctx.currentTime, 0.01);
+    };
+    set('rate', clamp(p.rate ?? 8, 0.5, 32));
+    set('slice', clamp(p.slice ?? 0.5, 0.05, 1));
+    // Engagement gate: latched on by default (continuous chop), or driven
+    // momentarily by `gate` (the hold-to-chop trigger). Dry when neither is set.
+    const engaged = (p.latch ?? 1) >= 0.5 || (p.gate ?? 0) >= 0.5;
+    set('mix', engaged ? clamp(p.mix ?? 1, 0, 1) : 0);
+  };
+  apply(params);
+
+  return {
+    input,
+    output,
+    setParams: (p) => apply(p),
+    dispose: () => {
+      try { input.disconnect(); output.disconnect(); chop.disconnect(); } catch { /* gone */ }
+    },
+  };
+};
+
+/* ── 12. Kargyraa Sub (subharmonic throat-growl bass, worklet + graph) ─────────
+   Models the two mechanisms of Tuvan undertone singing and welds them to a
+   formant ("talking") dubstep bass:
+
+   1. Period doubling — in kargyraa the ventricular folds cover every second
+      vocal-fold closure. Electronically that is (a) a true octave divider
+      (public/subharmonic.worklet.js: Schmitt flip-flop -> f/2 + f/4 squares,
+      envelope-followed so the sub tracks the source) and (b) an AM "growl
+      gate" at a sub-audio rate — set growlRate near HALF the bass fundamental
+      and the sidebands land exactly on the subharmonic series.
+   2. Overtone focusing — the vocal tract merges formants into narrow
+      high-amplitude peaks. Here a morphing three-band vowel bank (a-o-u-e-i)
+      makes the bass talk, and one extra high-Q "whistle" band (0.8..2.4 kHz)
+      is the sygyt-style focused overtone, sweepable for the melody-on-top
+      scream.
+
+   Signal path: input -> growl AM gate -> drive -> [vowel bank ∥ whistle ∥
+   body tap] -> wet; input -> subLP -> octave-divider worklet -> sub tone ->
+   wet (parallel, so the divider locks to the fundamental, not the mix).
+   The worklet degrades to silence (not passthrough — the dry path already
+   carries the signal) and kicks off the module load for the next build. */
+const subharmonicModuleByCtx = new WeakMap<BaseAudioContext, Promise<void>>();
+export const ensureSubharmonicModule = (ctx: BaseAudioContext): Promise<void> => {
+  let p = subharmonicModuleByCtx.get(ctx);
+  if (!p) {
+    p = addWorkletModule(ctx, '/subharmonic.worklet.js').catch((e) => {
+      subharmonicModuleByCtx.delete(ctx);
+      throw e;
+    });
+    subharmonicModuleByCtx.set(ctx, p);
+  }
+  return p;
+};
+
+/** Vowel formant centers (F1, F2, F3 Hz), dark-to-bright morph order. */
+const KARGYRAA_VOWELS: readonly [number, number, number][] = [
+  [700, 1080, 2650], // a
+  [450, 800, 2830], // o
+  [325, 700, 2530], // u
+  [500, 1750, 2450], // e
+  [300, 2150, 2900], // i
+];
+const KARGYRAA_FORMANT_Q = [9, 11, 12];
+const KARGYRAA_FORMANT_GAIN = [1.0, 0.63, 0.32];
+
+const makeKargyraa: RackEffectFactory = (ctx, params) => {
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dry = ctx.createGain();
+  const wetSum = ctx.createGain();
+  const wet = ctx.createGain();
+  input.connect(dry).connect(output);
+  wetSum.connect(wet).connect(output);
+
+  // Growl gate: bias + oscillator drive a gain's value (same trick as the
+  // gater/ringmod) — AM at growlRate produces the period-doubled sidebands.
+  const growl = ctx.createGain();
+  growl.gain.value = 0; // intrinsic 0; bias + osc drive the computed value
+  const growlBias = ctx.createConstantSource();
+  const growlOsc = ctx.createOscillator();
+  const growlAmp = ctx.createGain();
+  growlBias.connect(growl.gain);
+  growlOsc.connect(growlAmp).connect(growl.gain);
+  input.connect(growl);
+
+  // Drive: harmonic enrichment before the formant bank (a formant filter only
+  // "talks" when there are harmonics to select).
+  const drive = ctx.createWaveShaper();
+  drive.oversample = '2x';
+  growl.connect(drive);
+
+  // Vowel bank: three parallel band-passes + a low "body" tap so the sound
+  // keeps weight between formant peaks.
+  const formants: BiquadFilterNode[] = [];
+  const formantGains: GainNode[] = [];
+  for (let i = 0; i < 3; i += 1) {
+    const f = ctx.createBiquadFilter();
+    f.type = 'bandpass';
+    const g = ctx.createGain();
+    g.gain.value = KARGYRAA_FORMANT_GAIN[i];
+    drive.connect(f).connect(g).connect(wetSum);
+    formants.push(f);
+    formantGains.push(g);
+  }
+  const body = ctx.createBiquadFilter();
+  body.type = 'lowpass';
+  body.frequency.value = 240;
+  body.Q.value = 0.7;
+  const bodyGain = ctx.createGain();
+  bodyGain.gain.value = 0.5;
+  drive.connect(body).connect(bodyGain).connect(wetSum);
+
+  // Sygyt whistle: one narrow high-Q band — the merged-formant focused overtone.
+  const whistle = ctx.createBiquadFilter();
+  whistle.type = 'bandpass';
+  whistle.Q.value = 28;
+  const whistleGain = ctx.createGain();
+  drive.connect(whistle).connect(whistleGain).connect(wetSum);
+
+  // Vowel motion: one LFO wobbles all three formant centers (±18% at depth 1),
+  // audio-rate modulation of the filter frequency AudioParams.
+  const motion = ctx.createOscillator();
+  const motionAmps: GainNode[] = formants.map((f) => {
+    const g = ctx.createGain();
+    g.gain.value = 0;
+    motion.connect(g).connect(f.frequency);
+    return g;
+  });
+
+  // Sub path: band-limit hard so the divider locks to the bass fundamental,
+  // then the worklet, then tone-shape the square into a round sub.
+  const subLP = ctx.createBiquadFilter();
+  subLP.type = 'lowpass';
+  subLP.frequency.value = 320;
+  subLP.Q.value = 0.5;
+  input.connect(subLP);
+  const subTone = ctx.createBiquadFilter();
+  subTone.type = 'lowpass';
+  subTone.frequency.value = 300;
+  subTone.Q.value = 0.6;
+  const subGain = ctx.createGain();
+  subTone.connect(subGain).connect(wetSum);
+  let subNode: AudioWorkletNode | null = null;
+  try {
+    subNode = new AudioWorkletNode(ctx, 'subharmonic-processor', {
+      numberOfInputs: 1,
+      numberOfOutputs: 1,
+      outputChannelCount: [2],
+    });
+  } catch {
+    subNode = null; // module not registered on this context yet
+  }
+  if (subNode) {
+    subLP.connect(subNode).connect(subTone);
+  } else {
+    void ensureSubharmonicModule(ctx).catch(() => {});
+  }
+
+  const apply = (p: Record<string, number>) => {
+    // Vowel morph across the table (0..4, fractional interpolates).
+    const v = clamp(p.vowel ?? 0.6, 0, KARGYRAA_VOWELS.length - 1);
+    const lo = Math.floor(v);
+    const hi = Math.min(lo + 1, KARGYRAA_VOWELS.length - 1);
+    const frac = v - lo;
+    const depth = clamp(p.motionDepth ?? 0.35, 0, 1);
+    for (let i = 0; i < 3; i += 1) {
+      const centre = KARGYRAA_VOWELS[lo][i] + (KARGYRAA_VOWELS[hi][i] - KARGYRAA_VOWELS[lo][i]) * frac;
+      ramp(formants[i].frequency, centre, ctx);
+      formants[i].Q.value = KARGYRAA_FORMANT_Q[i];
+      ramp(motionAmps[i].gain, centre * 0.18 * depth, ctx);
+    }
+    motion.frequency.setTargetAtTime(clamp(p.motionRate ?? 0.8, 0, 8), ctx.currentTime, 0.02);
+
+    // Growl gate: rate near half the bass fundamental = kargyraa sidebands.
+    const gDepth = clamp(p.growlDepth ?? 0.65, 0, 1);
+    growlOsc.frequency.setTargetAtTime(clamp(p.growlRate ?? 45, 20, 90), ctx.currentTime, 0.02);
+    growlBias.offset.setTargetAtTime(1 - gDepth / 2, ctx.currentTime, 0.02);
+    growlAmp.gain.setTargetAtTime(gDepth / 2, ctx.currentTime, 0.02);
+
+    drive.curve = distCurve(clamp(Math.round(p.drive ?? 14), 1, 40));
+
+    ramp(whistle.frequency, clamp(p.whistleHz ?? 1500, 800, 2400), ctx);
+    ramp(whistleGain.gain, clamp(p.whistleAmt ?? 0.45, 0, 1) * 1.6, ctx);
+
+    ramp(subGain.gain, clamp(p.subLevel ?? 0.9, 0, 1.5), ctx);
+    if (subNode) {
+      const subP = subNode.parameters.get('sub');
+      if (subP) subP.setTargetAtTime(1, ctx.currentTime, 0.02);
+      const deepP = subNode.parameters.get('deep');
+      if (deepP) deepP.setTargetAtTime(clamp(p.deepLevel ?? 0.3, 0, 1), ctx.currentTime, 0.02);
+    }
+
+    const mix = clamp(p.mix ?? 1, 0, 1);
+    ramp(wet.gain, mix, ctx);
+    ramp(dry.gain, 1 - mix, ctx);
+  };
+  apply(params);
+  growlOsc.start();
+  growlBias.start();
+  motion.start();
+
+  return {
+    input,
+    output,
+    setParams: (p) => apply(p),
+    dispose: () => {
+      try {
+        growlOsc.stop();
+        growlBias.stop();
+        motion.stop();
+        input.disconnect();
+        output.disconnect();
+        growl.disconnect();
+        drive.disconnect();
+        subLP.disconnect();
+        subTone.disconnect();
+        if (subNode) subNode.disconnect();
+      } catch { /* gone */ }
+    },
+  };
+};
+
+/* ── Standard mixing effects (real-time native Web Audio) ──────────────────────
+   These give the EDIT timeline (and master bus) genuinely-live EQ, dynamics,
+   reverb and delay. They are also the landing targets for imported DAW stock
+   effects (Ableton EQ Eight, FL Fruity Reverb, REAPER ReaComp, …): the importer
+   maps a recognized stock effect onto one of these so it plays live and stays
+   tweakable, instead of being preserved-but-silent. */
+
+/* Parametric EQ: low shelf + sweepable mid peak + high shelf in series. */
+const makeParametricEq: RackEffectFactory = (ctx, params) => {
+  const input = ctx.createGain();
+  const low = ctx.createBiquadFilter();
+  low.type = 'lowshelf';
+  low.frequency.value = 120;
+  const mid = ctx.createBiquadFilter();
+  mid.type = 'peaking';
+  mid.Q.value = 1;
+  const high = ctx.createBiquadFilter();
+  high.type = 'highshelf';
+  high.frequency.value = 6000;
+  input.connect(low);
+  low.connect(mid);
+  mid.connect(high);
+  const setParams = (p: Record<string, number>) => {
+    ramp(low.gain, clamp(p.low ?? 0, -24, 24), ctx);
+    mid.frequency.value = clamp(p.midFreq ?? 1000, 100, 12000);
+    ramp(mid.gain, clamp(p.mid ?? 0, -24, 24), ctx);
+    ramp(high.gain, clamp(p.high ?? 0, -24, 24), ctx);
+  };
+  setParams(params);
+  return {
+    input,
+    output: high,
+    setParams,
+    dispose: () => {
+      try {
+        input.disconnect();
+        low.disconnect();
+        mid.disconnect();
+        high.disconnect();
+      } catch {
+        /* already gone */
+      }
+    },
+  };
+};
+
+/* ── the key (sidechain) follower ───────────────────────────────────────────────
+   A `DynamicsCompressorNode` has ONE input and no key, so "duck the bass from
+   the kick" cannot be expressed by handing the native node a second signal. It
+   has to be built: the key drives a gain node ON the audio path, and the whole
+   detector is made of audio nodes.
+
+   THE DESIGN CHOICE, and it is the one the bounce depends on. The obvious
+   alternative — a second `DynamicsCompressorNode` fed the key, whose `reduction`
+   is polled and written onto the audio path — CANNOT be used here, because
+   `reduction` is a float a JS timer reads. Live that timer runs at whatever rate
+   the tab gets; in an `OfflineAudioContext` a 300 s bounce renders in a fraction
+   of a second and the timer fires a handful of times or not at all. The two
+   renders would not merely round differently, they would duck at different
+   moments. `export == preview` is a hard rule in this app, so the follower is
+   built entirely out of nodes and NO JAVASCRIPT IS IN THE LOOP: given the same
+   key samples, live and offline compute the same gain sample for sample.
+
+     keyIn (sens) -> shaper (full-wave rectify) -> lowpass (smooth) -> depth
+                                                                       |
+                            input -> comp -> makeup -> [ gain ] -> output
+                                                          ^ intrinsic 1, plus
+                                                            the negative depth
+
+   An `AudioParam` sums its connected inputs with its INTRINSIC value — the same
+   arithmetic `makeGater` already leans on (`gate.gain.value = 0`, bias + LFO
+   connected to it) — so a gain whose intrinsic value is 1, fed a negative
+   envelope, is `1 - reduction`.
+
+   WHY IT IS EXACTLY TRANSPARENT UNKEYED. With nothing connected to `keyIn` the
+   shaper sees silence, and the rectifier curve is sampled at an ODD length so
+   its centre sample is |0| = 0 exactly; a biquad with a zero input and zero
+   state stays at zero; the depth gain scales zero. The param computes
+   `1 + 0 = 1` and a multiply by 1 is exact in float32, so every existing render
+   of a compressor is sample-for-sample what it was before this node existed.
+
+   WHY THE GAIN CAN NEVER GO NEGATIVE (which would invert the signal rather than
+   duck it): the rectifier's output is bounded by 1 because the shaper clamps
+   inputs outside [-1, 1] to its end samples, and the smoothing filter is a
+   biquad lowpass at `Q = 0.5` — critically damped, a double real pole, whose
+   impulse response is non-negative with unit area. A non-negative unit-area
+   kernel cannot lift a signal above its own maximum, so the envelope stays in
+   [0, 1] and the reduction stays in [0, `depth`] with `depth < 1`.
+
+   LATENCY: none. `KEY_FOLLOWER_LATENCY_SEC` is the term this adds to a keyed
+   effect's declaration, and it is 0 by construction — every node of the
+   follower is on the CONTROL path, and the only node it adds to the AUDIO path
+   is a `GainNode`, which the spec gives no latency. The smoothing filter's group
+   delay is real, but it delays the ENVELOPE, not the signal, so an effect that
+   declares anything for it would push its whole chain late for a lag nothing
+   downstream experiences. (See `RackEffectDef.latencySec`: a value belongs there
+   only when the OUTPUT ONSET lags the input.) */
+
+/** Samples in the rectifier curve. ODD, so index `(N-1)/2` is exactly x = 0 and
+ *  a silent key maps to exactly zero reduction. */
+const KEY_SHAPER_SAMPLES = 1025;
+
+/** Smoothing filter Q. 0.5 is the critically damped double pole: no overshoot,
+ *  which is what bounds the envelope by the rectifier's own maximum. */
+const KEY_SMOOTH_Q = 0.5;
+
+/**
+ * Seconds a key follower adds to the AUDIO path: zero, by construction. Exported
+ * so a keyed effect's latency declaration can state the term explicitly instead
+ * of silently omitting it, and so a test can pin that the number is zero rather
+ * than merely absent.
+ */
+export const KEY_FOLLOWER_LATENCY_SEC = 0;
+
+/** The follower, as its owner holds it. */
+interface KeyFollower {
+  /** The node a key source connects into. */
+  keyIn: GainNode;
+  /** Re-read `keySens` / `keySmooth` / `keyDuck` off a param set. */
+  setParams: (p: Record<string, number>) => void;
+  dispose: () => void;
+}
+
+/**
+ * Build the detector and splice a key-driven gain onto `path`, returning the
+ * follower plus the node the audio now leaves from.
+ *
+ * `path` keeps feeding the new gain, so the caller's existing wiring upstream of
+ * it is untouched; the caller must publish `audioOut` as the instance's output.
+ */
+function makeKeyFollower(
+  ctx: BaseAudioContext,
+  path: AudioNode,
+  params: Record<string, number>,
+): { follower: KeyFollower; audioOut: GainNode } {
+  const keyIn = ctx.createGain();
+  const shaper = ctx.createWaveShaper();
+  const curve = new Float32Array(KEY_SHAPER_SAMPLES);
+  for (let i = 0; i < KEY_SHAPER_SAMPLES; i += 1) {
+    curve[i] = Math.abs(-1 + (2 * i) / (KEY_SHAPER_SAMPLES - 1));
+  }
+  shaper.curve = curve;
+  // No oversampling: the curve is |x|, whose only harmonic content is the
+  // rectification itself, and the smoothing filter below removes it. Oversampling
+  // would add its own resampling latency to a path that has none.
+  shaper.oversample = 'none';
+  const smooth = ctx.createBiquadFilter();
+  smooth.type = 'lowpass';
+  smooth.Q.value = KEY_SMOOTH_Q;
+  const depth = ctx.createGain();
+  const audioOut = ctx.createGain();
+  // The intrinsic value the reduction is subtracted FROM. Set explicitly rather
+  // than left at its default so the arithmetic is stated where it is relied on.
+  audioOut.gain.value = 1;
+
+  keyIn.connect(shaper).connect(smooth).connect(depth);
+  depth.connect(audioOut.gain);
+  path.connect(audioOut);
+
+  const setParams = (p: Record<string, number>) => {
+    const t = ctx.currentTime;
+    // Sensitivity is gain INTO the rectifier, so the shaper's own [-1, 1] clamp
+    // is the detector's ceiling: at +12 dB a key peaking at -12 dBFS already
+    // reaches full reduction.
+    keyIn.gain.setValueAtTime(dbToGain(clamp(p.keySens ?? 12, 0, 48)), t);
+    // A one-pole time constant expressed as a corner frequency: tau = 1/(2*pi*f).
+    // Clamped above 0.05 Hz so a 20 s smoothing cannot be asked for by a damaged
+    // param set, and below a fifth of Nyquist so it stays a smoother rather than
+    // an audio-band filter of the envelope.
+    const tau = clamp(p.keySmooth ?? 80, 1, 500) / 1000;
+    const hz = clamp(1 / (2 * Math.PI * tau), 0.05, ctx.sampleRate / 10);
+    smooth.frequency.setValueAtTime(hz, t);
+    // Depth as the FRACTION of the signal the key removes at full envelope:
+    // `1 - 10^(-duck/20)`, negated because it is subtracted from unity. A duck
+    // of 0 dB is 0 — the picker can be set while the effect stays transparent.
+    const duckDb = clamp(p.keyDuck ?? 12, 0, 48);
+    depth.gain.setValueAtTime(-(1 - dbToGain(-duckDb)), t);
+  };
+  setParams(params);
+
+  return {
+    follower: {
+      keyIn,
+      setParams,
+      dispose: () => {
+        try {
+          keyIn.disconnect();
+          shaper.disconnect();
+          smooth.disconnect();
+          depth.disconnect();
+          audioOut.disconnect();
+        } catch {
+          /* already gone */
+        }
+      },
+    },
+    audioOut,
+  };
+}
+
+/* Compressor: native DynamicsCompressor + makeup gain, plus a key follower whose
+   reduction is zero until something is connected to `keyIn`. */
+const makeCompressor: RackEffectFactory = (ctx, params) => {
+  const input = ctx.createGain();
+  const comp = ctx.createDynamicsCompressor();
+  const makeup = ctx.createGain();
+  input.connect(comp);
+  comp.connect(makeup);
+  // Post-makeup: the key ducks what the compressor produced, which is where a
+  // sidechain sits on a console and what keeps the internal detector's own
+  // behaviour identical to the unkeyed version.
+  const { follower, audioOut } = makeKeyFollower(ctx, makeup, params);
+  const setParams = (p: Record<string, number>) => {
+    const t = ctx.currentTime;
+    comp.threshold.setValueAtTime(clamp(p.threshold ?? -24, -60, 0), t);
+    comp.ratio.setValueAtTime(clamp(p.ratio ?? 3, 1, 20), t);
+    comp.knee.setValueAtTime(clamp(p.knee ?? 6, 0, 40), t);
+    comp.attack.setValueAtTime(clamp((p.attack ?? 10) / 1000, 0, 1), t);
+    comp.release.setValueAtTime(clamp((p.release ?? 150) / 1000, 0, 1), t);
+    ramp(makeup.gain, dbToGain(clamp(p.makeup ?? 0, 0, 24)), ctx);
+    follower.setParams(p);
+  };
+  setParams(params);
+  return {
+    input,
+    output: audioOut,
+    keyIn: follower.keyIn,
+    setParams,
+    dispose: () => {
+      try {
+        input.disconnect();
+        comp.disconnect();
+        makeup.disconnect();
+      } catch {
+        /* already gone */
+      }
+      follower.dispose();
+    },
+  };
+};
+
+/* Build a synthetic stereo impulse response (exponentially decaying noise). */
+const makeReverbIR = (ctx: BaseAudioContext, seconds: number): AudioBuffer => {
+  const rate = ctx.sampleRate;
+  const len = Math.max(1, Math.floor(clamp(seconds, 0.1, 8) * rate));
+  const ir = ctx.createBuffer(2, len, rate);
+  for (let ch = 0; ch < 2; ch += 1) {
+    const data = ir.getChannelData(ch);
+    for (let i = 0; i < len; i += 1) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.5);
+    }
+  }
+  return ir;
+};
+
+/**
+ * Reverb: convolution with predelay, tone and wet/dry.
+ *
+ * The impulse response is the synthesized room (decaying noise `decay`
+ * seconds long) unless `hall` names a measured one (lib/hallIrs): a concert
+ * hall heard from an audience seat, from the stage `position` the source
+ * sits at. A measured response is an asset loaded with `decodeAudioData`
+ * (hallIrs loadHallIr). When it is already decoded for this context's rate
+ * the convolver gets it at once, which is how an offline bounce plays it
+ * (renderCore awaits hallIrs ensureHallIrsForChains before building); live,
+ * the synthesized room plays until the file arrives and the response is
+ * swapped in then. A file that cannot load leaves the synthesized room.
+ * `decay` shapes only the synthesized room: a measured hall rings as long as
+ * the hall does.
+ *
+ * A measured response is one source heard by two ears, so on a hall the
+ * convolver takes its input as mono (the sum of a stereo input): a panned
+ * part excites the hall from its seat and both ears hear the room, as in the
+ * measurement. The synthesized room keeps the convolver's stereo input, left
+ * into the left response and right into the right.
+ */
+const makeReverb: RackEffectFactory = (ctx, params) => {
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dry = ctx.createGain();
+  const wet = ctx.createGain();
+  const pre = ctx.createDelay(1.0);
+  const conv = ctx.createConvolver();
+  const tone = ctx.createBiquadFilter();
+  tone.type = 'lowpass';
+  input.connect(dry);
+  dry.connect(output);
+  input.connect(pre);
+  pre.connect(conv);
+  conv.connect(tone);
+  tone.connect(wet);
+  wet.connect(output);
+  /** What the convolver holds: a hall file's URL, or `synth:<seconds>`. */
+  let current = '';
+  /** The response the params ask for, which a load in flight checks before it lands. */
+  let wanted = '';
+  let disposed = false;
+  /** Mono input for a measured hall, the convolver's own stereo input for the room. */
+  const setInputMono = (mono: boolean) => {
+    conv.channelCount = mono ? 1 : 2;
+    conv.channelCountMode = mono ? 'explicit' : 'clamped-max';
+  };
+  const setSynthetic = (seconds: number) => {
+    const key = `synth:${seconds}`;
+    if (current === key) return;
+    conv.buffer = makeReverbIR(ctx, seconds);
+    setInputMono(false);
+    current = key;
+  };
+  const setHall = (url: string, buf: AudioBuffer) => {
+    conv.buffer = buf;
+    setInputMono(true);
+    current = url;
+  };
+  const setParams = (p: Record<string, number>) => {
+    const seconds = clamp(p.decay ?? 2.0, 0.1, 8);
+    const url = hallIrUrl(p.hall, p.position);
+    if (!url) {
+      wanted = `synth:${seconds}`;
+      setSynthetic(seconds);
+    } else if (wanted !== url || current !== url) {
+      wanted = url;
+      const ready = cachedHallIr(url, ctx.sampleRate);
+      if (ready) {
+        if (current !== url) setHall(url, ready);
+      } else {
+        // Until the file arrives the room is heard, never silence.
+        if (!current) setSynthetic(seconds);
+        void loadHallIr(ctx, url).then((buf) => {
+          if (!buf || disposed || wanted !== url || current === url) return;
+          setHall(url, buf);
+        });
+      }
+    }
+    pre.delayTime.setValueAtTime(clamp((p.predelay ?? 20) / 1000, 0, 0.5), ctx.currentTime);
+    tone.frequency.value = clamp(p.tone ?? 8000, 500, 18000);
+    const mix = clamp(p.wet ?? 0.3, 0, 1);
+    ramp(wet.gain, mix, ctx);
+    ramp(dry.gain, 1 - mix, ctx);
+  };
+  setParams(params);
+  return {
+    input,
+    output,
+    setParams,
+    dispose: () => {
+      disposed = true;
+      try {
+        input.disconnect();
+        dry.disconnect();
+        pre.disconnect();
+        conv.disconnect();
+        tone.disconnect();
+        wet.disconnect();
+      } catch {
+        /* already gone */
+      }
+    },
+  };
+};
+
+/* Delay/echo: feedback delay line with a tone-shaped feedback path + wet mix. */
+const makeDelay: RackEffectFactory = (ctx, params) => {
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dry = ctx.createGain();
+  const wet = ctx.createGain();
+  const delay = ctx.createDelay(5.0);
+  const fb = ctx.createGain();
+  const tone = ctx.createBiquadFilter();
+  tone.type = 'lowpass';
+  input.connect(dry);
+  dry.connect(output);
+  input.connect(delay);
+  delay.connect(tone);
+  tone.connect(fb);
+  fb.connect(delay); // feedback loop
+  delay.connect(wet);
+  wet.connect(output);
+  dry.gain.value = 1;
+  const setParams = (p: Record<string, number>) => {
+    ramp(delay.delayTime, clamp((p.time ?? 350) / 1000, 0, 5), ctx);
+    ramp(fb.gain, clamp(p.feedback ?? 0.35, 0, 0.95), ctx);
+    tone.frequency.value = clamp(p.tone ?? 6000, 200, 18000);
+    // Crossfade dry against wet, the way makeReverb does. Dry was pinned at 1.0
+    // and only wet moved, so the shared "Mix" control behaved as a send/volume
+    // knob here and as a true mix one tile down — same label, different law.
+    const mix = clamp(p.wet ?? 0.3, 0, 1);
+    ramp(wet.gain, mix, ctx);
+    ramp(dry.gain, 1 - mix, ctx);
+  };
+  setParams(params);
+  return {
+    input,
+    output,
+    setParams,
+    dispose: () => {
+      try {
+        input.disconnect();
+        dry.disconnect();
+        delay.disconnect();
+        tone.disconnect();
+        fb.disconnect();
+        wet.disconnect();
+      } catch {
+        /* already gone */
+      }
+    },
+  };
+};
+
+/* Simple resonant filters (high-pass / low-pass) for imported filter devices. */
+const makeFilter = (type: BiquadFilterType): RackEffectFactory => (ctx, params) => {
+  const input = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+  filter.type = type;
+  input.connect(filter);
+  const setParams = (p: Record<string, number>) => {
+    filter.frequency.value = clamp(
+      p.frequency ?? (type === 'highpass' ? 120 : 8000),
+      20,
+      20000,
+    );
+    filter.Q.value = clamp(p.resonance ?? 0.7, 0.1, 18);
+  };
+  setParams(params);
+  return {
+    input,
+    output: filter,
+    setParams,
+    dispose: () => {
+      try {
+        input.disconnect();
+        filter.disconnect();
+      } catch {
+        /* already gone */
+      }
+    },
+  };
+};
+const makeHighpass = makeFilter('highpass');
+const makeLowpass = makeFilter('lowpass');
+
+/* ── Ares (composite multi-FX driven by the Ares control surface) ──────────────
+   ONE chain effect whose signal path is filter -> delay -> reverb -> grains ->
+   gate, each a real DSP stage reusing the factories above, plus a global wet/dry.
+   Every param is normalized 0..1 (or 0/1 for the on/off + freeze switches) so the
+   Ares .gan controls (knobs, XY pad, selectors, sliders — all 0..1) map straight
+   onto it; this factory owns the real-unit scaling (log frequency, ms, seconds).
+   Each stage bypasses transparently when its module is off (filter -> open LPF,
+   delay/reverb -> wet 0, grains -> mix 0, gate -> depth 0). */
+const ARES_FILTER_TYPES: BiquadFilterType[] = [
+  'lowpass', 'lowpass', 'highpass', 'bandpass', 'notch', 'allpass',
+];
+const makeAres: RackEffectFactory = (ctx, params) => {
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dry = ctx.createGain();
+  const wet = ctx.createGain();
+
+  const filter = ctx.createBiquadFilter();
+  const delay = makeDelay(ctx, {});
+  const reverb = makeReverb(ctx, {});
+  const grains = makeGranular(ctx, {});
+  const gate = makeGater(ctx, {});
+
+  // wet path: filter -> delay -> reverb -> grains -> gate -> wet
+  input.connect(filter);
+  filter.connect(delay.input);
+  delay.output.connect(reverb.input);
+  reverb.output.connect(grains.input);
+  grains.output.connect(gate.input);
+  gate.output.connect(wet).connect(output);
+  // dry path
+  input.connect(dry).connect(output);
+
+  const on = (p: Record<string, number>, key: string) => (p[key] ?? 1) >= 0.5;
+  const apply = (p: Record<string, number>) => {
+    const filterOn = on(p, 'filterOn');
+    const ft = Math.round(clamp(p.filterType ?? 0, 0, 1) * (ARES_FILTER_TYPES.length - 1));
+    filter.type = filterOn ? ARES_FILTER_TYPES[ft] : 'lowpass';
+    const cutoff = filterOn ? 20 * Math.pow(1000, clamp(p.filterCutoff ?? 0.74, 0, 1)) : 20000;
+    ramp(filter.frequency, clamp(cutoff, 20, 20000), ctx);
+    filter.Q.value = 0.5 + clamp(p.filterReso ?? 0.2, 0, 1) * 12;
+
+    delay.setParams({
+      time: clamp(p.delayTime ?? 0.6, 0, 1) * 1000,
+      feedback: clamp(p.delayFeedback ?? 0.4, 0, 1) * 0.9,
+      tone: 6000,
+      wet: on(p, 'delayOn') ? clamp(p.delayMix ?? 0.3, 0, 1) : 0,
+    });
+    reverb.setParams({
+      decay: 0.1 + clamp(p.reverbSize ?? 0.48, 0, 1) * 7.9,
+      predelay: 20,
+      tone: 8000,
+      wet: on(p, 'reverbOn') ? clamp(p.reverbMix ?? 0.35, 0, 1) : 0,
+    });
+    grains.setParams({
+      density: 5 + clamp(p.grainsDensity ?? 0.42, 0, 1) * 95,
+      size: 40 + clamp(p.grainsSize ?? 0.4, 0, 1) * 260,
+      pitch: 0,
+      spread: clamp(p.grainsSpread ?? 0.5, 0, 1),
+      mix: on(p, 'grainsOn') ? clamp(p.grainsMix ?? 0.35, 0, 1) : 0,
+      freeze: (p.freeze ?? 0) >= 0.5 ? 1 : 0,
+    });
+    gate.setParams({
+      rate: 0.5 + clamp(p.gateRate ?? 0.33, 0, 1) * 20,
+      depth: on(p, 'gateOn') ? clamp(p.gateDepth ?? 0.5, 0, 1) : 0,
+      shape: 1,
+    });
+
+    const wd = clamp(p.wetDry ?? 0.5, 0, 1);
+    ramp(wet.gain, wd, ctx);
+    ramp(dry.gain, 1 - wd, ctx);
+  };
+  apply(params);
+
+  return {
+    input,
+    output,
+    setParams: (p) => apply(p),
+    dispose: () => {
+      try {
+        delay.dispose();
+        reverb.dispose();
+        grains.dispose();
+        gate.dispose();
+        input.disconnect();
+        output.disconnect();
+        filter.disconnect();
+        dry.disconnect();
+        wet.disconnect();
+      } catch { /* gone */ }
+    },
+  };
+};
+
+/* ── registry ──────────────────────────────────────────────────────────────── */
+
+export const RACK_EFFECTS: readonly RackEffectDef[] = [
+  {
+    id: 'crossfeed',
+    label: 'Headphone Crossfeed',
+    group: 'Spatial',
+    description: 'Relieves hard-panned headphone "in-head" stereo (Bauer/BS2B).',
+    params: [
+      { key: 'amount', label: 'Amount', min: 0, max: 1, step: 0.01, default: 0.5, display: 'percent', group: 'Crossfeed', tip: 'How much of each channel bleeds into the other (capped so the direct path always wins).' },
+      { key: 'cutFreq', label: 'Cut', min: 200, max: 2000, step: 10, default: 700, unit: 'Hz', curve: 'log', group: 'Crossfeed', tip: 'Low-pass on the cross path — the head-shadow roll-off.' },
+    ],
+    presets: [
+      { label: 'Subtle', values: { amount: 0.3, cutFreq: 700 } },
+      { label: 'Natural', values: { amount: 0.5, cutFreq: 700 } },
+      { label: 'Strong', values: { amount: 0.8, cutFreq: 900 } },
+    ],
+    make: makeCrossfeed,
+  },
+  {
+    id: 'phantom_bass',
+    label: 'Phantom Bass',
+    group: 'Low end',
+    description: 'Implies the missing fundamental via synthesized harmonics.',
+    params: [
+      { key: 'crossover', label: 'Crossover', min: 50, max: 160, step: 1, default: 90, unit: 'Hz', curve: 'log', group: 'Sub band', tip: 'Everything below this is the sub band the harmonics are built from.' },
+      { key: 'drive', label: 'Harmonics', min: 1, max: 40, step: 1, default: 6, group: 'Sub band', tip: 'Waveshaper drive — more drive, more (and higher) harmonics.' },
+      { key: 'blend', label: 'Blend', min: 0, max: 1.5, step: 0.01, default: 0.6, group: 'Blend', tip: 'Level of the synthesized harmonics added to the dry signal.' },
+    ],
+    presets: [
+      { label: 'Earbuds', values: { crossover: 90, drive: 6, blend: 0.6 } },
+      { label: 'Laptop speakers', values: { crossover: 110, drive: 12, blend: 0.9 } },
+      { label: 'Club hint', values: { crossover: 70, drive: 4, blend: 0.4 } },
+    ],
+    make: makePhantomBass,
+  },
+  {
+    id: 'kargyraa',
+    label: 'Kargyraa Sub',
+    group: 'Low end',
+    description:
+      'Subharmonic throat-growl bass: octave-divider sub, period-doubling growl gate, morphing vowel formants and a sygyt whistle band.',
+    params: [
+      { key: 'mix', label: 'Mix', min: 0, max: 1, step: 0.01, default: 1, display: 'percent', group: 'Output' },
+      { key: 'subLevel', label: 'Sub', min: 0, max: 1.5, step: 0.01, default: 0.9, group: 'Sub', tip: 'Octave-below sub level.' },
+      { key: 'deepLevel', label: 'Deep', min: 0, max: 1, step: 0.01, default: 0.3, display: 'percent', group: 'Sub', tip: 'Two-octaves-below level.' },
+      { key: 'growlRate', label: 'Growl Rate', min: 20, max: 90, step: 0.5, default: 45, unit: 'Hz', group: 'Growl', tip: 'Period-doubling gate rate — the growl pitch.' },
+      { key: 'growlDepth', label: 'Growl Depth', min: 0, max: 1, step: 0.01, default: 0.65, display: 'percent', group: 'Growl' },
+      { key: 'drive', label: 'Drive', min: 1, max: 40, step: 1, default: 14, group: 'Growl', tip: 'Harmonic enrichment before the formant bank.' },
+      { key: 'vowel', label: 'Vowel', min: 0, max: 4, step: 0.01, default: 0.6, group: 'Formant', tip: 'Morphs the formant bank a → o → u → e → i.' },
+      { key: 'motionRate', label: 'Motion Rate', min: 0, max: 8, step: 0.05, default: 0.8, unit: 'Hz', group: 'Formant', tip: 'LFO wobble of the vowel position.' },
+      { key: 'motionDepth', label: 'Motion Depth', min: 0, max: 1, step: 0.01, default: 0.35, display: 'percent', group: 'Formant' },
+      { key: 'whistleHz', label: 'Whistle', min: 800, max: 2400, step: 10, default: 1500, unit: 'Hz', curve: 'log', group: 'Whistle', tip: 'Centre of the sygyt overtone band.' },
+      { key: 'whistleAmt', label: 'Whistle Amt', min: 0, max: 1, step: 0.01, default: 0.45, display: 'percent', group: 'Whistle' },
+    ],
+    mixKey: 'mix',
+    xy: [{ label: 'Vowel / Growl', x: 'vowel', y: 'growlDepth' }],
+    presets: [
+      { label: 'Throat Growl', values: { subLevel: 0.9, deepLevel: 0.3, growlRate: 45, growlDepth: 0.65, drive: 14, vowel: 0.6, whistleAmt: 0.45 } },
+      { label: 'Deep Sub', values: { subLevel: 1.2, deepLevel: 0.8, growlDepth: 0.3, drive: 8, whistleAmt: 0.1, motionDepth: 0.15 } },
+      { label: 'Sygyt Whistle', values: { subLevel: 0.6, growlDepth: 0.4, whistleAmt: 1, whistleHz: 1900, vowel: 3.5 } },
+      { label: 'Talking Bass', values: { vowel: 2, motionRate: 2.5, motionDepth: 0.9, growlDepth: 0.5, drive: 20 } },
+    ],
+    // (b) ADAPTIVE STATE + (c) FREE-RUNNING GENERATOR: the subharmonic worklet
+    // holds a Schmitt-trigger sign, an envelope follower and DC-blocker memories
+    // (`public/subharmonic.worklet.js`), so the octave divider has to re-lock to
+    // the fundamental at every seam; the growl and vowel-motion oscillators
+    // re-phase on top of that.
+    chunkUnsafe: true,
+    make: makeKargyraa,
+  },
+  {
+    id: 'stereo_widener',
+    label: 'Stereo Widener',
+    group: 'Spatial',
+    description: 'True mid/side widening with a mono-safe low end.',
+    params: [
+      { key: 'width', label: 'Width', min: 0, max: 2.5, step: 0.01, default: 1.4, group: 'Image', tip: '1.0 = unchanged, 0 = mono, above 1 widens the side signal.' },
+      { key: 'bassMonoFreq', label: 'Bass Mono', min: 20, max: 400, step: 5, default: 120, unit: 'Hz', curve: 'log', group: 'Image', tip: 'Side signal is high-passed here so the low end stays centred.' },
+    ],
+    presets: [
+      { label: 'Mono', values: { width: 0 } },
+      { label: 'Narrow', values: { width: 0.7 } },
+      { label: 'Wide', values: { width: 1.6, bassMonoFreq: 120 } },
+      { label: 'Super Wide', values: { width: 2.2, bassMonoFreq: 150 } },
+    ],
+    make: makeStereoWidener,
+  },
+  {
+    id: 'exciter',
+    label: 'Aural Exciter',
+    group: 'Tone',
+    description: 'Adds harmonic air/presence the ear reads as detail.',
+    params: [
+      { key: 'frequency', label: 'Freq', min: 1000, max: 9000, step: 50, default: 3500, unit: 'Hz', curve: 'log', group: 'Excite', tip: 'High-pass corner of the band that gets new harmonics.' },
+      { key: 'amount', label: 'Amount', min: 1, max: 40, step: 1, default: 8, group: 'Excite', tip: 'Harmonic generator drive.' },
+      { key: 'mix', label: 'Mix', min: 0, max: 1, step: 0.01, default: 0.4, display: 'percent', group: 'Output' },
+    ],
+    mixKey: 'mix',
+    xy: [{ label: 'Air', x: 'frequency', y: 'amount' }],
+    presets: [
+      { label: 'Air', values: { frequency: 5000, amount: 6, mix: 0.3 } },
+      { label: 'Presence', values: { frequency: 3000, amount: 10, mix: 0.4 } },
+      { label: 'Crunch', values: { frequency: 2000, amount: 20, mix: 0.6 } },
+    ],
+    make: makeExciter,
+  },
+  {
+    id: 'spatializer',
+    label: 'The Owl',
+    group: 'Spatial',
+    description: 'Positions the track in 3D around the head, with motion presets.',
+    params: [
+      { key: 'azimuth', label: 'Azimuth', min: -180, max: 180, step: 1, default: 0, unit: 'deg', bipolar: true, group: 'Position', tip: '0 = front, +90 = right, ±180 = behind.' },
+      { key: 'elevation', label: 'Elevation', min: -90, max: 90, step: 1, default: 0, unit: 'deg', bipolar: true, group: 'Position' },
+      { key: 'distance', label: 'Distance', min: 0.5, max: 10, step: 0.1, default: 1.5, unit: 'm', curve: 'log', group: 'Position' },
+      { key: 'motion', label: 'Motion', min: 0, max: 11, step: 1, default: 0, options: SPATIAL_MOTIONS, group: 'Motion' },
+      { key: 'motionRate', label: 'Rate', min: 0, max: 4, step: 0.01, default: 0.3, unit: 'Hz', group: 'Motion' },
+      { key: 'motionDepth', label: 'Depth', min: 0, max: 8, step: 0.1, default: 1.5, unit: 'm', group: 'Motion' },
+    ],
+    presets: SPATIAL_PRESETS,
+    // (a) AUDIO MEMORY + (c) FREE-RUNNING GENERATOR: the HRTF `PannerNode`
+    // convolves against an impulse response, so it carries a tail; three motion
+    // LFOs run free from context time 0; and `scheduleTeleport` writes its jumps
+    // at ABSOLUTE context times, which a per-chunk context would not share.
+    chunkUnsafe: true,
+    make: makeSpatializer,
+  },
+  {
+    id: 'loudness_contour',
+    label: 'Loudness Contour',
+    group: 'Tone',
+    description: 'Equal-loudness tilt so the balance holds at low volume.',
+    params: [
+      { key: 'level', label: 'Level', min: 0, max: 90, step: 1, default: 70, unit: 'phon', group: 'Contour', tip: 'Listening level the contour compensates for — lower means more low/high lift.' },
+      { key: 'amount', label: 'Amount', min: 0, max: 1, step: 0.01, default: 0.5, display: 'percent', group: 'Contour' },
+    ],
+    presets: [
+      { label: 'Night', values: { level: 30, amount: 0.8 } },
+      { label: 'Quiet room', values: { level: 50, amount: 0.6 } },
+      { label: 'Reference', values: { level: 80, amount: 0.2 } },
+    ],
+    make: makeLoudnessContour,
+  },
+  {
+    id: 'owlpad',
+    label: 'OWL-Pad',
+    group: 'Performance',
+    description: 'An XY performance pad: pick a program, then sweep two params by dragging.',
+    params: [
+      { key: 'program', label: 'Program', min: 0, max: 4, step: 1, default: 0, options: OWLPAD_PROGRAMS, group: 'Program' },
+      { key: 'x', label: 'X', min: 0, max: 1, step: 0.001, default: 0.5, display: 'percent', group: 'Pad', tip: 'Frequency (or delay time in the Delay program).' },
+      { key: 'y', label: 'Y', min: 0, max: 1, step: 0.001, default: 0.3, display: 'percent', group: 'Pad', tip: 'Resonance (or feedback in the delay programs).' },
+      { key: 'mix', label: 'Mix', min: 0, max: 1, step: 0.01, default: 1, display: 'percent', group: 'Output' },
+      { key: 'hold', label: 'Hold', min: 0, max: 1, step: 1, default: 1, kind: 'toggle', group: 'Program', tip: 'Latch the last pad position instead of gating back to dry on release.' },
+      { key: 'active', label: 'Active', min: 0, max: 1, step: 1, default: 1, kind: 'toggle', group: 'Program' },
+    ],
+    mixKey: 'mix',
+    xy: [{ label: 'Pad', x: 'x', y: 'y' }],
+    presets: [
+      { label: 'LPF Sweep', values: { program: 0, x: 0.5, y: 0.3, active: 1 } },
+      { label: 'HPF Sweep', values: { program: 1, x: 0.3, y: 0.3, active: 1 } },
+      { label: 'Delay Throw', values: { program: 3, x: 0.4, y: 0.55, active: 1 } },
+      { label: 'Filter + Delay', values: { program: 4, x: 0.5, y: 0.5, active: 1 } },
+    ],
+    // FEEDBACK LOOP: two of its five programs (Delay Throw, Filter + Delay) are
+    // feedback delays, and the program is a param the user can move — so the pad
+    // is unsafe whichever one is selected right now, rather than conditionally.
+    chunkUnsafe: true,
+    make: makeOwlPad,
+  },
+  {
+    id: 'gater',
+    label: 'Gater',
+    group: 'Performance',
+    description: 'Rhythmic tremolo gate: chop the level with an LFO (sine/square/saw), free-run or tempo-synced.',
+    params: [
+      { key: 'sync', label: 'Sync', min: 0, max: 1, step: 1, default: 0, kind: 'toggle', group: 'Clock', tip: 'Tempo-sync: the rate follows Division × BPM instead of the Rate knob.' },
+      { key: 'rate', label: 'Rate', min: 0.1, max: 30, step: 0.1, default: 6, unit: 'Hz', curve: 'log', group: 'Clock' },
+      { key: 'div', label: 'Division', min: 0, max: 7, step: 1, default: 3, options: GATER_DIVISIONS, group: 'Clock' },
+      { key: 'bpm', label: 'BPM', min: TEMPO_BPM_MIN, max: TEMPO_BPM_MAX, step: 1, default: 120, group: 'Clock' },
+      { key: 'shape', label: 'Shape', min: 0, max: 2, step: 1, default: 1, options: ['Sine', 'Square', 'Saw'], group: 'Gate' },
+      { key: 'depth', label: 'Depth', min: 0, max: 1, step: 0.01, default: 0.8, display: 'percent', group: 'Gate' },
+    ],
+    presets: [
+      { label: 'Trance 1/16', values: { sync: 1, div: 4, shape: 1, depth: 0.9 } },
+      { label: 'Chop 1/8', values: { sync: 1, div: 3, shape: 1, depth: 1 } },
+      { label: 'Tremolo', values: { sync: 0, rate: 5, shape: 0, depth: 0.5 } },
+      { label: 'Helicopter', values: { sync: 0, rate: 14, shape: 2, depth: 1 } },
+    ],
+    // (c) FREE-RUNNING GENERATOR: the gate is an oscillator + constant-source
+    // started with `lfo.start()`, i.e. at context time 0. Its PHASE is the
+    // effect — a square gate re-phasing at a seam lands its openings somewhere
+    // else, which is the rhythm changing, not a subtlety. It carries no audio
+    // across the seam, but the re-phasing alone is plainly audible.
+    chunkUnsafe: true,
+    make: makeGater,
+  },
+  {
+    id: 'bitcrush',
+    label: 'Bitcrush',
+    group: 'Performance',
+    description: 'Lo-fi bit-depth reduction (stepped quantization), blended with dry.',
+    params: [
+      { key: 'bits', label: 'Bits', min: 1, max: 16, step: 1, default: 8, unit: 'bit', group: 'Crush' },
+      { key: 'mix', label: 'Mix', min: 0, max: 1, step: 0.01, default: 1, display: 'percent', group: 'Output' },
+    ],
+    mixKey: 'mix',
+    presets: [
+      { label: '12-bit warm', values: { bits: 12, mix: 0.6 } },
+      { label: '8-bit', values: { bits: 8, mix: 1 } },
+      { label: '4-bit crunch', values: { bits: 4, mix: 1 } },
+    ],
+    make: makeBitcrush,
+  },
+  {
+    id: 'ringmod',
+    label: 'Ring Mod',
+    group: 'Performance',
+    description: 'Multiply by a sine carrier for metallic / robotic sidebands.',
+    params: [
+      { key: 'frequency', label: 'Freq', min: 1, max: 4000, step: 1, default: 200, unit: 'Hz', curve: 'log', group: 'Carrier' },
+      { key: 'mix', label: 'Mix', min: 0, max: 1, step: 0.01, default: 1, display: 'percent', group: 'Output' },
+    ],
+    mixKey: 'mix',
+    xy: [{ label: 'Carrier / Mix', x: 'frequency', y: 'mix' }],
+    presets: [
+      { label: 'Robot', values: { frequency: 200, mix: 1 } },
+      { label: 'Bell', values: { frequency: 1200, mix: 0.7 } },
+      { label: 'Sub Tremor', values: { frequency: 30, mix: 1 } },
+    ],
+    // (c) FREE-RUNNING GENERATOR: the output is the input multiplied by a
+    // carrier started at context time 0. Restarting that carrier mid-signal
+    // steps the product discontinuously — a click at every seam, and the
+    // sidebands shift phase either side of it.
+    chunkUnsafe: true,
+    make: makeRingMod,
+  },
+  {
+    id: 'chop',
+    label: 'Chop',
+    group: 'Performance',
+    description: 'MPC-style buffer chop: stutter, beat-repeat, or shuffle. Latch for continuous, or hold to chop.',
+    params: [
+      { key: 'program', label: 'Program', min: 0, max: 2, step: 1, default: 0, options: ['Stutter', 'Beat-Repeat', 'Shuffle'], group: 'Program' },
+      { key: 'rate', label: 'Rate', min: 0.5, max: 32, step: 0.5, default: 8, unit: 'Hz', curve: 'log', group: 'Chop' },
+      { key: 'slice', label: 'Slice', min: 0.05, max: 1, step: 0.01, default: 0.5, display: 'percent', group: 'Chop', tip: 'Fraction of each cycle that is replayed.' },
+      { key: 'mix', label: 'Mix', min: 0, max: 1, step: 0.01, default: 1, display: 'percent', group: 'Output' },
+      { key: 'latch', label: 'Latch', min: 0, max: 1, step: 1, default: 1, kind: 'toggle', group: 'Program', tip: 'Chop continuously; off = dry until Gate is held.' },
+      { key: 'gate', label: 'Gate', min: 0, max: 1, step: 1, default: 0, kind: 'toggle', group: 'Program', tip: 'Momentary chop while held (when Latch is off).' },
+    ],
+    mixKey: 'mix',
+    presets: [
+      { label: 'Stutter 1/16', values: { program: 0, rate: 8, slice: 0.5 } },
+      { label: 'Beat Repeat', values: { program: 1, rate: 4, slice: 0.5 } },
+      { label: 'Shuffle', values: { program: 2, rate: 2, slice: 1 } },
+    ],
+    // (a) AUDIO MEMORY: the worklet keeps a 2 s ring of recent input and
+    // replays slices of it on every trigger (`public/chop.worklet.js`), so its
+    // output is literally audio from before the seam. A fresh context starts
+    // with a silent ring — the first triggers of every chunk would play nothing.
+    chunkUnsafe: true,
+    make: makeChop,
+  },
+  {
+    id: 'parametric_eq',
+    label: 'Parametric EQ',
+    group: 'EQ & Dynamics',
+    description: 'Three-band tone shaping: low shelf, sweepable mid bell, high shelf.',
+    params: [
+      { key: 'low', label: 'Low', min: -24, max: 24, step: 0.5, default: 0, unit: 'dB', bipolar: true, group: 'Low shelf', tip: 'Low shelf at 120 Hz.' },
+      { key: 'midFreq', label: 'Mid Freq', min: 100, max: 12000, step: 10, default: 1000, unit: 'Hz', curve: 'log', group: 'Mid bell' },
+      { key: 'mid', label: 'Mid', min: -24, max: 24, step: 0.5, default: 0, unit: 'dB', bipolar: true, group: 'Mid bell' },
+      { key: 'high', label: 'High', min: -24, max: 24, step: 0.5, default: 0, unit: 'dB', bipolar: true, group: 'High shelf', tip: 'High shelf at 6 kHz.' },
+    ],
+    xy: [{ label: 'Mid', x: 'midFreq', y: 'mid' }],
+    presets: [
+      { label: 'Smile', values: { low: 3, midFreq: 800, mid: -2, high: 3 } },
+      { label: 'Presence', values: { low: 0, midFreq: 3000, mid: 3, high: 1 } },
+      { label: 'Mud Cut', values: { low: -2, midFreq: 300, mid: -4, high: 0 } },
+      { label: 'Telephone', values: { low: -12, midFreq: 1500, mid: 6, high: -12 } },
+    ],
+    make: makeParametricEq,
+  },
+  {
+    id: 'compressor',
+    label: 'Compressor',
+    group: 'EQ & Dynamics',
+    description:
+      'Dynamics compressor with makeup gain (threshold/ratio/attack/release), keyable from another strip.',
+    // The one keyable effect in the rack today. The other two candidates a
+    // sidechain UI usually offers do not exist here to key: there is no noise
+    // gate (`gater` is an LFO tremolo, whose opening is a phase and not a
+    // detector) and no separate ducker — a compressor keyed from another strip
+    // IS the ducker, which is why one is not added.
+    keyInput: true,
+    params: [
+      { key: 'threshold', label: 'Threshold', min: -60, max: 0, step: 0.5, default: -24, unit: 'dB', group: 'Detector' },
+      { key: 'ratio', label: 'Ratio', min: 1, max: 20, step: 0.1, default: 3, unit: ':1', group: 'Detector' },
+      { key: 'knee', label: 'Knee', min: 0, max: 40, step: 1, default: 6, unit: 'dB', group: 'Detector' },
+      { key: 'attack', label: 'Attack', min: 0, max: 200, step: 1, default: 10, unit: 'ms', group: 'Envelope' },
+      { key: 'release', label: 'Release', min: 5, max: 1000, step: 5, default: 150, unit: 'ms', curve: 'log', group: 'Envelope' },
+      { key: 'makeup', label: 'Makeup', min: 0, max: 24, step: 0.5, default: 0, unit: 'dB', group: 'Output' },
+      // The key follower. Inert until a `CONN_SIDECHAIN` edge connects something
+      // to `keyIn`, so these three change nothing on an unkeyed compressor
+      // whatever they are set to — see `makeKeyFollower`.
+      { key: 'keyDuck', label: 'Key Duck', min: 0, max: 48, step: 0.5, default: 12, unit: 'dB', group: 'Key', tip: 'How far the key signal pulls this down at full level. 0 = keyed but transparent.' },
+      { key: 'keySens', label: 'Key Sens', min: 0, max: 48, step: 0.5, default: 12, unit: 'dB', group: 'Key', tip: 'Gain into the key detector — at 12 dB a key peaking at -12 dBFS already ducks fully.' },
+      { key: 'keySmooth', label: 'Key Smooth', min: 1, max: 500, step: 1, default: 80, unit: 'ms', curve: 'log', group: 'Key', tip: 'Key envelope time constant. Short = it follows every transient; long = it breathes.' },
+    ],
+    xy: [{ label: 'Threshold / Ratio', x: 'threshold', y: 'ratio' }],
+    presets: [
+      { label: 'Gentle Glue', values: { threshold: -18, ratio: 2, knee: 10, attack: 30, release: 200, makeup: 1 } },
+      { label: 'Vocal', values: { threshold: -24, ratio: 4, knee: 6, attack: 10, release: 120, makeup: 3 } },
+      { label: 'Drum Smash', values: { threshold: -30, ratio: 10, knee: 2, attack: 2, release: 60, makeup: 6 } },
+      { label: 'Peak Stop', values: { threshold: -6, ratio: 20, knee: 0, attack: 1, release: 50, makeup: 0 } },
+    ],
+    // The Web Audio API specifies DynamicsCompressorNode as having a "Fixed
+    // look-ahead (this means that a DynamicsCompressorNode adds a fixed latency
+    // to the signal chain)", and its normative internal graph realises that
+    // pre-delay as `new DelayNode(context, {delayTime: 0.006})` — 6 ms, given in
+    // seconds and independent of sample rate and of every compressor param.
+    // Source: W3C Web Audio API, §1.19.4 DynamicsCompressorNode "Processing"
+    // (https://webaudio.github.io/web-audio-api/), read 2026-09-15.
+    //
+    // THE KEY FOLLOWER ADDS NOTHING TO THIS, and the zero is a statement rather
+    // than an omission: the declaration is `0.006 + KEY_FOLLOWER_LATENCY_SEC`,
+    // and that constant is 0 because every node the follower adds is on the
+    // CONTROL path — the one node it puts on the audio path is a `GainNode`.
+    // The value stays a plain number (not a function of the key params) because
+    // the number does not depend on them, and `rackEffects.latency.test.ts`
+    // reads it as one. `rackEffects.sidechain.test.ts` pins the sum.
+    latencySec: 0.006,
+    // The envelope follower's gain reduction is a function of everything that
+    // came before it, over attack/release times up to a second. A chunk boundary
+    // would restart it un-compressed at full gain, so the first moments of every
+    // chunk would pump. (Its 6 ms look-ahead pre-delay would also re-prime.)
+    chunkUnsafe: true,
+    make: makeCompressor,
+  },
+  {
+    id: 'reverb',
+    label: 'Reverb',
+    group: 'Space',
+    description: 'Convolution reverb with predelay, tone and wet/dry mix: a synthesized room, or a measured concert hall heard from the stage position a part sits at.',
+    params: [
+      { key: 'hall', label: 'Hall', min: 0, max: HALL_OPTION_LABELS.length - 1, step: 1, default: 0, kind: 'select', options: HALL_OPTION_LABELS, group: 'Hall', tip: 'The impulse response: the synthesized room, or the Detmold Konzerthaus measured from an audience seat (CC BY 4.0).' },
+      { key: 'position', label: 'Stage position', min: 0, max: POSITION_OPTION_LABELS.length - 1, step: 1, default: 0, kind: 'select', options: POSITION_OPTION_LABELS, group: 'Hall', tip: 'Where on the stage the source sits, seen from the audience. Measured halls only.' },
+      { key: 'decay', label: 'Decay', min: 0.1, max: 8, step: 0.1, default: 2.0, unit: 's', curve: 'log', group: 'Space', tip: 'Length of the synthesized room. A measured hall rings as long as the hall does.' },
+      { key: 'predelay', label: 'Predelay', min: 0, max: 200, step: 1, default: 20, unit: 'ms', group: 'Space' },
+      { key: 'tone', label: 'Tone', min: 500, max: 18000, step: 50, default: 8000, unit: 'Hz', curve: 'log', group: 'Tone', tip: 'Low-pass on the reverb tail.' },
+      { key: 'wet', label: 'Mix', min: 0, max: 1, step: 0.01, default: 0.3, display: 'percent', group: 'Output' },
+    ],
+    mixKey: 'wet',
+    xy: [{ label: 'Decay / Mix', x: 'decay', y: 'wet' }],
+    presets: [
+      { label: 'Room', values: { hall: 0, decay: 0.8, predelay: 10, tone: 6000, wet: 0.2 } },
+      { label: 'Plate', values: { hall: 0, decay: 1.8, predelay: 0, tone: 12000, wet: 0.3 } },
+      { label: 'Hall', values: { hall: 0, decay: 3, predelay: 30, tone: 8000, wet: 0.35 } },
+      { label: 'Cathedral', values: { hall: 0, decay: 6, predelay: 60, tone: 5000, wet: 0.45 } },
+      { label: 'Konzerthaus, front stalls', values: { hall: 1, position: 0, predelay: 0, tone: 18000, wet: 0.35 } },
+      { label: 'Konzerthaus, rear stalls', values: { hall: 2, position: 0, predelay: 0, tone: 18000, wet: 0.45 } },
+    ],
+    // TAIL: the convolver keeps ringing for `decay` seconds (up to 8) after its
+    // input stops, so audio from one chunk belongs in the next. A boundary would
+    // truncate every tail that crossed it and start the next chunk dry.
+    chunkUnsafe: true,
+    make: makeReverb,
+  },
+  {
+    id: 'delay',
+    label: 'Delay',
+    group: 'Space',
+    description: 'Feedback delay/echo with a tone-shaped feedback path and wet mix.',
+    params: [
+      { key: 'time', label: 'Time', min: 0, max: 2000, step: 1, default: 350, unit: 'ms', group: 'Echo' },
+      { key: 'feedback', label: 'Feedback', min: 0, max: 0.95, step: 0.01, default: 0.35, display: 'percent', group: 'Echo' },
+      { key: 'tone', label: 'Tone', min: 200, max: 18000, step: 50, default: 6000, unit: 'Hz', curve: 'log', group: 'Tone', tip: 'Low-pass in the feedback path — repeats get darker.' },
+      { key: 'wet', label: 'Mix', min: 0, max: 1, step: 0.01, default: 0.3, display: 'percent', group: 'Output' },
+    ],
+    mixKey: 'wet',
+    xy: [{ label: 'Time / Feedback', x: 'time', y: 'feedback' }],
+    presets: [
+      { label: 'Slapback', values: { time: 110, feedback: 0.15, tone: 6000, wet: 0.3 } },
+      { label: '1/8 @ 120', values: { time: 250, feedback: 0.4, tone: 5000, wet: 0.3 } },
+      { label: 'Dotted 1/8 @ 120', values: { time: 375, feedback: 0.45, tone: 5000, wet: 0.3 } },
+      { label: 'Dub', values: { time: 450, feedback: 0.7, tone: 2000, wet: 0.4 } },
+    ],
+    // FEEDBACK STATE: the delay line holds up to 2 s of audio and feeds it back
+    // at up to 0.95, so repeats outlive their source by many seconds. A fresh
+    // context starts with an empty line — every repeat crossing a seam is lost.
+    chunkUnsafe: true,
+    make: makeDelay,
+  },
+  {
+    id: 'highpass',
+    label: 'High-Pass Filter',
+    group: 'EQ & Dynamics',
+    description: 'Resonant high-pass filter (removes lows below the cutoff).',
+    params: [
+      { key: 'frequency', label: 'Freq', min: 20, max: 2000, step: 5, default: 120, unit: 'Hz', curve: 'log', group: 'Filter' },
+      { key: 'resonance', label: 'Q', min: 0.1, max: 18, step: 0.1, default: 0.7, curve: 'log', group: 'Filter' },
+    ],
+    xy: [{ label: 'Cutoff / Q', x: 'frequency', y: 'resonance' }],
+    presets: [
+      { label: 'Rumble Cut', values: { frequency: 40, resonance: 0.7 } },
+      { label: 'Thin', values: { frequency: 300, resonance: 0.7 } },
+      { label: 'Telephone', values: { frequency: 600, resonance: 2 } },
+      { label: 'Resonant Sweep', values: { frequency: 200, resonance: 8 } },
+    ],
+    make: makeHighpass,
+  },
+  {
+    id: 'lowpass',
+    label: 'Low-Pass Filter',
+    group: 'EQ & Dynamics',
+    description: 'Resonant low-pass filter (removes highs above the cutoff).',
+    params: [
+      { key: 'frequency', label: 'Freq', min: 500, max: 20000, step: 10, default: 8000, unit: 'Hz', curve: 'log', group: 'Filter' },
+      { key: 'resonance', label: 'Q', min: 0.1, max: 18, step: 0.1, default: 0.7, curve: 'log', group: 'Filter' },
+    ],
+    xy: [{ label: 'Cutoff / Q', x: 'frequency', y: 'resonance' }],
+    presets: [
+      { label: 'Warm', values: { frequency: 6000, resonance: 0.7 } },
+      { label: 'Muffled', values: { frequency: 1200, resonance: 0.7 } },
+      { label: 'Underwater', values: { frequency: 500, resonance: 4 } },
+      { label: 'Acid', values: { frequency: 1500, resonance: 10 } },
+    ],
+    make: makeLowpass,
+  },
+  {
+    id: 'ares',
+    label: 'Ares',
+    group: 'Performance',
+    description: 'Ares control surface: filter -> delay -> reverb -> grains -> gate, one effect driven by the XY pad, knobs and selectors.',
+    params: [
+      { key: 'filterOn', label: 'Filter On', min: 0, max: 1, step: 1, default: 1, kind: 'toggle', group: 'Filter' },
+      // The engine maps 0..1 onto six slots (two of them low-pass) so the .gan
+      // selector's positions land where its artwork says; the panel exposes the
+      // five distinct types at representative positions.
+      { key: 'filterType', label: 'Filter Type', min: 0, max: 1, step: 0.2, default: 0, options: ['Low-pass', 'High-pass', 'Band-pass', 'Notch', 'All-pass'], optionValues: [0, 0.4, 0.6, 0.8, 1], group: 'Filter' },
+      { key: 'filterCutoff', label: 'Filter Cutoff', min: 0, max: 1, step: 0.01, default: 0.74, display: 'percent', group: 'Filter', tip: 'Log sweep 20 Hz – 20 kHz.' },
+      { key: 'filterReso', label: 'Filter Reso', min: 0, max: 1, step: 0.01, default: 0.4, display: 'percent', group: 'Filter' },
+      { key: 'delayOn', label: 'Delay On', min: 0, max: 1, step: 1, default: 1, kind: 'toggle', group: 'Delay' },
+      { key: 'delayTime', label: 'Delay Time', min: 0, max: 1, step: 0.01, default: 0.6, display: 'percent', group: 'Delay', tip: '0 – 1000 ms.' },
+      { key: 'delayFeedback', label: 'Delay Fbk', min: 0, max: 1, step: 0.01, default: 0.5, display: 'percent', group: 'Delay' },
+      { key: 'delayMix', label: 'Delay Mix', min: 0, max: 1, step: 0.01, default: 0.5, display: 'percent', group: 'Delay' },
+      { key: 'reverbOn', label: 'Reverb On', min: 0, max: 1, step: 1, default: 1, kind: 'toggle', group: 'Reverb' },
+      { key: 'reverbSize', label: 'Reverb Size', min: 0, max: 1, step: 0.01, default: 0.48, display: 'percent', group: 'Reverb', tip: '0.1 – 8 s decay.' },
+      { key: 'reverbMix', label: 'Reverb Mix', min: 0, max: 1, step: 0.01, default: 0.55, display: 'percent', group: 'Reverb' },
+      { key: 'grainsOn', label: 'Grains On', min: 0, max: 1, step: 1, default: 1, kind: 'toggle', group: 'Grains' },
+      { key: 'grainsDensity', label: 'Grain Density', min: 0, max: 1, step: 0.01, default: 0.42, display: 'percent', group: 'Grains', tip: '5 – 100 grains/s.' },
+      { key: 'grainsSize', label: 'Grain Size', min: 0, max: 1, step: 0.01, default: 0.4, display: 'percent', group: 'Grains', tip: '40 – 300 ms.' },
+      { key: 'grainsSpread', label: 'Grain Spread', min: 0, max: 1, step: 0.01, default: 0.5, display: 'percent', group: 'Grains' },
+      { key: 'grainsMix', label: 'Grain Mix', min: 0, max: 1, step: 0.01, default: 0.6, display: 'percent', group: 'Grains' },
+      { key: 'freeze', label: 'Freeze', min: 0, max: 1, step: 1, default: 0, kind: 'toggle', group: 'Grains', tip: 'Hold the grain buffer.' },
+      { key: 'gateOn', label: 'Gate On', min: 0, max: 1, step: 1, default: 1, kind: 'toggle', group: 'Gate' },
+      { key: 'gateRate', label: 'Gate Rate', min: 0, max: 1, step: 0.01, default: 0.33, display: 'percent', group: 'Gate', tip: '0.5 – 20 Hz.' },
+      { key: 'gateDepth', label: 'Gate Depth', min: 0, max: 1, step: 0.01, default: 0.72, display: 'percent', group: 'Gate' },
+      { key: 'wetDry', label: 'Wet/Dry', min: 0, max: 1, step: 0.01, default: 0.85, display: 'percent', group: 'Output' },
+    ],
+    mixKey: 'wetDry',
+    xy: [
+      { label: 'Filter', x: 'filterCutoff', y: 'filterReso' },
+      { label: 'Delay', x: 'delayTime', y: 'delayFeedback' },
+    ],
+    presets: [
+      { label: 'Clean', values: { filterOn: 0, delayOn: 0, reverbOn: 0, grainsOn: 0, gateOn: 0, freeze: 0, wetDry: 0.5 } },
+      { label: 'Dub Echo', values: { filterOn: 1, filterType: 0.4, filterCutoff: 0.3, filterReso: 0.3, delayOn: 1, delayTime: 0.45, delayFeedback: 0.7, delayMix: 0.6, reverbOn: 1, reverbSize: 0.6, reverbMix: 0.3, grainsOn: 0, gateOn: 0, freeze: 0, wetDry: 0.8 } },
+      { label: 'Shimmer Cloud', values: { filterOn: 0, delayOn: 0, reverbOn: 1, reverbSize: 0.9, reverbMix: 0.6, grainsOn: 1, grainsDensity: 0.7, grainsSize: 0.6, grainsSpread: 0.8, grainsMix: 0.7, gateOn: 0, freeze: 0, wetDry: 0.9 } },
+      { label: 'Trance Gate', values: { filterOn: 1, filterType: 0, filterCutoff: 0.6, filterReso: 0.5, delayOn: 1, delayTime: 0.25, delayFeedback: 0.3, delayMix: 0.3, reverbOn: 0, grainsOn: 0, gateOn: 1, gateRate: 0.4, gateDepth: 0.9, freeze: 0, wetDry: 1 } },
+    ],
+    // (a) AUDIO MEMORY + (c) FREE-RUNNING GENERATOR: ARES is a composite —
+    // `makeDelay` at up to 0.9 feedback, `makeReverb` at up to 8 s decay, a
+    // granular worklet holding its own buffer, and `makeGater`'s LFO — so it
+    // inherits every reason the four of them have, in one box.
+    chunkUnsafe: true,
+    make: makeAres,
+  },
+];
+
+const RACK_BY_ID = new Map<string, RackEffectDef>(RACK_EFFECTS.map((d) => [d.id, d]));
+
+export const getRackEffect = (id: string): RackEffectDef | undefined => RACK_BY_ID.get(id);
+
+/** Default param object for an effect id (used when adding to a chain). */
+export const rackEffectDefaults = (id: string): Record<string, number> => {
+  const def = RACK_BY_ID.get(id);
+  if (!def) return {};
+  const out: Record<string, number> = {};
+  for (const p of def.params) out[p.key] = p.default;
+  return out;
+};
+
+/** Catalog defaults of `def`, overridden by the entry's authored params. Takes
+ *  the definition rather than the id so the chain builder and its resolver
+ *  always agree on which catalog an entry's defaults come from. */
+const withDefaults = (def: RackEffectDef, params: Record<string, number>): Record<string, number> => {
+  const out: Record<string, number> = {};
+  for (const p of def.params) out[p.key] = p.default;
+  return { ...out, ...params };
+};
+
+/* ── declared latency ──────────────────────────────────────────────────────────
+   The two pure pieces plugin delay compensation is built from. Nothing here
+   touches Web Audio, so the live graph, the offline bounce and the DJ decks can
+   all ask the same question and get the same answer.
+
+   The summing rule below is the design of Tracktion Engine's SummingNode
+   (oss-refs/tracktion_engine/modules/tracktion_graph/tracktion_graph/nodes/
+   tracktion_SummingNode.h — GPL-3/commercial; read for its behaviour only,
+   NOTHING COPIED): a node that sums several inputs takes the MAXIMUM of their
+   latencies as its own, then inserts a latency node on every input carrying the
+   difference, so all inputs line up before they are added. `djEngine.ts`'s
+   `updateLatencyComp` is today's hand-rolled two-input special case of exactly
+   this rule.
+
+   The compressor's declared value is cited at its registry entry: the W3C Web
+   Audio API spec, §1.19.4 DynamicsCompressorNode "Processing", which fixes the
+   look-ahead pre-delay at 0.006 s. */
+
+/** Seams for the latency accumulator. The app passes none. */
+export interface ChainLatencyOptions {
+  /** Resolve an effect id to its definition (default: the rack registry). The
+   *  same test seam `buildEffectChain` takes, so latency can be asserted with
+   *  no AudioContext in sight. */
+  resolve?: (id: string) => RackEffectDef | undefined;
+  /** Context sample rate, for declarations expressed in samples. Passed through
+   *  verbatim; when omitted, such a declaration receives `undefined`. */
+  sampleRate?: number;
+  /** Seconds a hosted `vst3` entry adds to the LIVE path, by `ChainEntry.id`.
+   *  Defaults to `vstLiveStore.vstLiveLatencySec`, which answers 0 for every
+   *  entry that is not live — so an entry only counts once its plugin is
+   *  actually in the graph. A test seam, and the one place PDC and the live
+   *  node cannot disagree about who is processing. */
+  liveLatencySec?: (entryId: string) => number;
+}
+
+/** What one chain entry contributed, and why it did not. */
+export interface ChainLatencyEntry {
+  /** ChainEntry.id. */
+  id: string;
+  /** ChainEntry.effect (the rack id, or `vst3` / an imported DAW's effect). */
+  effect: string;
+  /** Seconds this entry contributed to `totalSec` — 0 whenever `counted` is
+   *  false, so the per-entry numbers always add up to the total. */
+  latencySec: number;
+  /** True only for an entry that is enabled AND resolvable. A false here is the
+   *  UI's cue that the total does not describe this entry. */
+  counted: boolean;
+}
+
+export interface ChainLatencyReport {
+  totalSec: number;
+  perEntry: ChainLatencyEntry[];
+}
+
+/** Evaluate one definition's declaration against an entry's effective params. */
+const declaredLatencySec = (
+  def: RackEffectDef,
+  entryParams: Record<string, number>,
+  sampleRate: number | undefined,
+): number => {
+  const spec = def.latencySec;
+  if (spec === undefined) return 0;
+  const v = typeof spec === 'function' ? spec(withDefaults(def, entryParams), sampleRate) : spec;
+  return Number.isFinite(v) ? v : 0;
+};
+
+/**
+ * Per-entry breakdown of a chain's latency, so the UI can show what a compensation
+ * number covers and — more importantly — what it does not.
+ *
+ * An entry counts only when it is BOTH enabled and resolvable:
+ *
+ *  - A bypassed entry is routed AROUND by `buildEffectChain`, so however much
+ *    latency its effect declares, it is not in the path and delays nothing.
+ *  - An unresolvable id (every hosted `vst3` entry, and effects imported from
+ *    another DAW) is an inert passthrough in the live graph, so it delays
+ *    nothing live either. It is listed with `counted: false` rather than
+ *    dropped, because it WILL contribute at freeze/bounce and a user staring at
+ *    a compensation figure needs to know it was excluded.
+ */
+export function chainLatencyReport(
+  entries: ChainEntry[],
+  opts: ChainLatencyOptions = {},
+): ChainLatencyReport {
+  const resolveDef = opts.resolve ?? ((id: string) => RACK_BY_ID.get(id));
+  const liveLatency = opts.liveLatencySec ?? vstLiveLatencySec;
+  let totalSec = 0;
+  const perEntry: ChainLatencyEntry[] = [];
+  for (const e of entries) {
+    const def = e.enabled ? resolveDef(e.effect) : undefined;
+    if (!def) {
+      // A hosted VST3 that is LIVE really is in the path and really does delay
+      // the chain — plugin latency plus the bridge's fixed buffer — so it
+      // counts, and the mixer's alignment follows its `ready` / `latency`
+      // events. A `vst3` entry that is not live answers 0 and stays
+      // `counted: false`, which is the same inert entry it always was.
+      const liveSec =
+        e.enabled && e.effect === VST3_EFFECT_ID ? Math.max(0, liveLatency(e.id)) : 0;
+      if (liveSec > 0) {
+        totalSec += liveSec;
+        perEntry.push({ id: e.id, effect: e.effect, latencySec: liveSec, counted: true });
+        continue;
+      }
+      perEntry.push({ id: e.id, effect: e.effect, latencySec: 0, counted: false });
+      continue;
+    }
+    const latencySec = Math.max(0, declaredLatencySec(def, e.params, opts.sampleRate));
+    totalSec += latencySec;
+    perEntry.push({ id: e.id, effect: e.effect, latencySec, counted: true });
+  }
+  return { totalSec, perEntry };
+}
+
+/**
+ * Total latency an insert chain adds, in seconds — the amount a downstream sum
+ * has to wait for it. Series effects accumulate; see `chainLatencyReport` for
+ * which entries count and why.
+ */
+export function chainLatencySec(entries: ChainEntry[], opts: ChainLatencyOptions = {}): number {
+  return chainLatencyReport(entries, opts).totalSec;
+}
+
+/**
+ * Delay to insert on each input of a sum so they all line up, given each input's
+ * own latency in seconds and in the same order. The slowest input sets the
+ * meeting point and is never delayed; everything earlier waits the difference.
+ * Empty in, empty out. Pure — the caller owns the delay nodes.
+ *
+ * Every input is normalised to a finite, non-negative number FIRST, so a NaN or
+ * a negative latency can neither skew the meeting point nor escape into a
+ * result: these values are fed straight to `AudioParam.setTargetAtTime`, which
+ * throws on a non-finite target, and a caller must never have to sanitise the
+ * output of a compensation calculation.
+ *
+ * (Tracktion `SummingNode`'s rule, generalised from the two-deck special case in
+ * `djEngine.updateLatencyComp`. Design only; nothing copied.)
+ */
+export function summingDelaysSec(latencies: number[]): number[] {
+  if (latencies.length === 0) return [];
+  const own = latencies.map((l) => (Number.isFinite(l) ? Math.max(0, l) : 0));
+  let maxL = 0;
+  for (const l of own) if (l > maxL) maxL = l;
+  return own.map((l) => Math.max(0, maxL - l));
+}
+
+/* ── chain builder ─────────────────────────────────────────────────────────── */
+
+export interface ChainHandle {
+  /** Re-wire the chain to match `entries` (add/remove/reorder/toggle). */
+  rebuild: (entries: ChainEntry[]) => void;
+  /** Push live param values into one running effect without a rebuild. */
+  updateParams: (entryId: string, params: Record<string, number>) => void;
+  /** Live effect instances keyed by ChainEntry.id — lets the caller reach an
+   *  instance for transport-synced scheduling (e.g. the spatializer's teleport).
+   *  Includes bypassed entries: their instance is kept, just unwired. */
+  instances: () => { id: string; effect: string; inst: RackEffectInstance }[];
+  /** Ids of entries this chain cannot render live: an ENABLED entry whose
+   *  effect id is not a rack effect — every hosted `vst3` entry, and effects
+   *  imported from another DAW. They are inert passthroughs here and only
+   *  print at freeze/bounce, so the UI can say that instead of the entry
+   *  appearing to process. `buildEffectChain` always provides this; it is
+   *  optional so the interface stays source-compatible with older callers. */
+  inertIds?: () => string[];
+  /** Disconnect and dispose everything (leaves input/output untouched). */
+  dispose: () => void;
+}
+
+/** Optional seams for `buildEffectChain`. The app passes none. */
+export interface BuildChainOptions {
+  /** Resolve an effect id to its definition (default: the rack registry).
+   *  This is a test seam: the real factories build concrete Web Audio nodes
+   *  that no fake context can satisfy, so `rackEffects.chain.test.ts` injects
+   *  fake single-node effects here to assert the wiring. */
+  resolve?: (id: string) => RackEffectDef | undefined;
+  /** Build the live node for a `vst3` entry (default: the live VST bridge).
+   *  Takes the whole ENTRY, not a param record: a plugin is identified by its
+   *  path and restored from its stored state, neither of which fits through
+   *  `RackEffectFactory`'s `Record<string, number>`. Returning null leaves the
+   *  entry inert — reported by `inertIds()` and warned about once — which is
+   *  what happens when there is no host binary on this machine. */
+  vstFactory?: (ctx: BaseAudioContext, entry: ChainEntry) => RackEffectInstance | null;
+}
+
+interface LiveInstance {
+  effect: string;
+  inst: RackEffectInstance;
+  /** Complete current param state (defaults + entry params + live pushes).
+   *  updateParams merges into THIS, not into bare defaults — a single-key
+   *  push (a Perform pad punch, one XY axis) must not reset the entry's
+   *  other authored values back to catalog defaults. */
+  params: Record<string, number>;
+}
+
+/**
+ * Wire `entries` in series between caller-owned `input` and `output`. An empty
+ * chain (or one with nothing renderable enabled) is a clean `input -> output`
+ * pass. Instances persist across rebuilds where the effect id at an entry id is
+ * unchanged, so param tweaks stay click-free.
+ *
+ * Two rules the naive "filter to enabled-and-known, build that" version got
+ * wrong, both modelled on oss-refs/ACE-Step-DAW/src/engine/PluginEngine.ts
+ * (`setPluginBypassed`, `getOutputNode`, `rebuildChain`'s registry miss):
+ *
+ *  - **Bypass is routing, not teardown.** An `enabled: false` entry keeps its
+ *    instance and its params; the chain simply connects its predecessor to its
+ *    successor around it, exactly as `setPluginBypassed` does. Re-enabling puts
+ *    the SAME instance back in the path with its reverb tail, delay buffer and
+ *    worklet state intact. Disposal happens only when the entry leaves the
+ *    chain or the handle is disposed.
+ *  - **An unknown effect id is inert, not invisible.** Entries whose id is not
+ *    in the rack (every hosted `vst3` entry) contribute no node — but they are
+ *    reported through `inertIds()` and warned about once each, so the UI can
+ *    say "renders at freeze/bounce, inert live" rather than letting the entry
+ *    look like it is processing. The enabled effects around one still wire in
+ *    order.
+ */
+export function buildEffectChain(
+  ctx: BaseAudioContext,
+  input: AudioNode,
+  output: AudioNode,
+  entries: ChainEntry[],
+  opts: BuildChainOptions = {},
+): ChainHandle {
+  const instances = new Map<string, LiveInstance>(); // keyed by ChainEntry.id
+  const resolveDef = opts.resolve ?? ((id: string) => RACK_BY_ID.get(id));
+  const vstFactory = opts.vstFactory ?? createVstLiveNode;
+  /** `entryId:effectId` pairs already warned about, so a 60 Hz rebuild loop
+   *  cannot spam — keyed on the pair, so an entry that is later pointed at a
+   *  different unknown effect is reported again. */
+  const warned = new Set<string>();
+  let inert: string[] = [];
+
+  const clearWiring = () => {
+    try { input.disconnect(); } catch { /* nothing wired */ }
+    // Every instance, bypassed ones included — a bypassed instance must leave
+    // no edge behind, and its only upstream is input or another instance out.
+    for (const { inst } of instances.values()) {
+      try { inst.output.disconnect(); } catch { /* gone */ }
+    }
+  };
+
+  const rebuild = (next: ChainEntry[]) => {
+    clearWiring();
+
+    // Split the chain into what this graph can render and what it cannot. A
+    // `def` of null is the `vst3` branch: not a rack effect, but hosted live by
+    // `vstFactory` — which may still decline (no host binary), in which case the
+    // entry falls back to inert exactly as it always was.
+    const renderable: { entry: ChainEntry; def: RackEffectDef | null }[] = [];
+    const inertIdSet = new Set<string>();
+    const reportInert = (e: ChainEntry) => {
+      inertIdSet.add(e.id);
+      const warnKey = `${e.id}:${e.effect}`;
+      if (warned.has(warnKey)) return;
+      warned.add(warnKey);
+      console.warn(
+        `[rackEffects] chain entry ${e.id} (${e.label ?? e.effect}) has no live rack effect ` +
+          `for id "${e.effect}" — it passes audio through untouched in the live graph and ` +
+          `only renders at freeze/bounce.`,
+      );
+    };
+    for (const e of next) {
+      const def = resolveDef(e.effect);
+      if (def) { renderable.push({ entry: e, def }); continue; }
+      // A hosted plugin is a candidate even while bypassed: the rule below —
+      // "a bypassed entry with no instance is never instantiated" — is what
+      // keeps a bypassed entry from opening a host process at all.
+      if (e.effect === VST3_EFFECT_ID && e.vst?.plugin_path) {
+        renderable.push({ entry: e, def: null });
+        continue;
+      }
+      if (!e.enabled) continue; // switched off by intent — nothing to report
+      reportInert(e);
+    }
+
+    // Dispose only what LEFT the chain. A bypassed entry is still in it.
+    const keepIds = new Set(renderable.map((r) => r.entry.id));
+    for (const [id, li] of instances) {
+      if (!keepIds.has(id)) { li.inst.dispose(); instances.delete(id); }
+    }
+
+    let prev: AudioNode = input;
+    for (const { entry: e, def } of renderable) {
+      let li = instances.get(e.id);
+      if (li && li.effect !== e.effect) { li.inst.dispose(); instances.delete(e.id); li = undefined; }
+      // A bypassed entry that has no instance yet stays uninstantiated —
+      // building oscillators/worklets for an effect that is switched off costs
+      // CPU for silence. One that DOES have an instance keeps it (that is the
+      // whole point of bypass), and keeps taking param pushes so re-enabling
+      // is already in sync.
+      if (!li && !e.enabled) continue;
+      if (!li) {
+        if (def) {
+          const params = withDefaults(def, e.params);
+          li = { effect: e.effect, inst: def.make(ctx, params), params };
+        } else {
+          // `vst3`: the factory returns a passthrough NOW and swaps the plugin
+          // in when its host session is ready, or null when this machine has no
+          // host to swap in — in which case the entry is inert, exactly as
+          // every hosted plugin was before the live host existed.
+          const inst = vstFactory(ctx, e);
+          if (!inst) {
+            if (e.enabled) reportInert(e);
+            continue;
+          }
+          li = { effect: e.effect, inst, params: { ...e.params } };
+        }
+        instances.set(e.id, li);
+      } else {
+        // A `vst3` entry has no definition to merge defaults from: its params
+        // ARE the plugin's normalized parameter values (`p<index>`), and a
+        // default it did not author would be a value nobody asked for.
+        li.params = def ? withDefaults(def, e.params) : { ...e.params };
+        li.inst.setParams(li.params);
+      }
+      if (!e.enabled) continue; // kept alive, routed around
+      prev.connect(li.inst.input);
+      prev = li.inst.output;
+    }
+    prev.connect(output);
+    // In chain order, whichever pass discovered them.
+    inert = next.filter((e) => inertIdSet.has(e.id)).map((e) => e.id);
+  };
+
+  rebuild(entries);
+
+  return {
+    rebuild,
+    updateParams: (entryId, params) => {
+      const li = instances.get(entryId);
+      if (!li) return;
+      li.params = { ...li.params, ...params };
+      li.inst.setParams(li.params);
+    },
+    instances: () =>
+      Array.from(instances.entries()).map(([id, li]) => ({ id, effect: li.effect, inst: li.inst })),
+    inertIds: () => [...inert],
+    dispose: () => {
+      clearWiring();
+      inert = []; // a dead chain renders nothing, so it has nothing inert to report
+      for (const { inst } of instances.values()) inst.dispose();
+      instances.clear();
+    },
+  };
+}

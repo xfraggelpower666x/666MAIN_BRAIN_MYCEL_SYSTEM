@@ -1,0 +1,200 @@
+{
+  "requires": {
+    "bundle": "ai"
+  },
+  "run": [
+    {
+      "when": "{{!exists('app')}}",
+      "method": "shell.run",
+      "params": {
+        "message": ["git clone https://github.com/gantasmo/theDAW app"]
+      }
+    },
+    {
+      "method": "shell.run",
+      "params": {
+        "path": "app",
+        "message": ["git submodule update --init --recursive"]
+      }
+    },
+    {
+      "method": "shell.run",
+      "params": {
+        "path": "app",
+        "message": ["git config core.hooksPath .githooks"]
+      }
+    },
+    {
+      "when": "{{platform === 'win32'}}",
+      "method": "shell.run",
+      "params": {
+        "message": [
+          "where ffmpeg >nul 2>&1 || conda install -y -c conda-forge ffmpeg"
+        ]
+      }
+    },
+    {
+      "when": "{{platform !== 'win32'}}",
+      "method": "shell.run",
+      "params": {
+        "message": [
+          "command -v ffmpeg >/dev/null 2>&1 || conda install -y -c conda-forge ffmpeg"
+        ]
+      }
+    },
+    {
+      "when": "{{platform === 'linux'}}",
+      "method": "shell.run",
+      "params": {
+        "message": [
+          "conda install -y -c conda-forge c-compiler cxx-compiler make pkg-config"
+        ]
+      }
+    },
+    {
+      "when": "{{platform === 'darwin'}}",
+      "method": "shell.run",
+      "params": {
+        "path": "app",
+        "env": {
+          "CFLAGS": "-Wno-incompatible-function-pointer-types"
+        },
+        "message": ["uv sync --group dev"]
+      }
+    },
+    {
+      "when": "{{platform === 'linux'}}",
+      "method": "shell.run",
+      "params": {
+        "path": "app",
+        "message": ["uv sync --group dev || uv sync --group dev --no-install-package pyk4a-bundle"]
+      }
+    },
+    {
+      "when": "{{platform === 'win32'}}",
+      "method": "shell.run",
+      "params": {
+        "path": "app",
+        "message": ["uv sync --group dev"]
+      }
+    },
+    {
+      "when": "{{exists('app/underfit/pyproject.toml') && !exists('app/underfit/.venv')}}",
+      "method": "shell.run",
+      "params": {
+        "path": "app/underfit",
+        "message": ["uv sync --inexact"]
+      }
+    },
+    {
+      "method": "shell.run",
+      "params": {
+        "path": "app/frontend",
+        "message": ["npm install"]
+      }
+    },
+    {
+      "when": "{{exists('app/VST-Foundry-UI/VST-UI-FOUNDRY/package.json')}}",
+      "method": "shell.run",
+      "params": {
+        "path": "app/VST-Foundry-UI/VST-UI-FOUNDRY",
+        "message": ["npm install"]
+      }
+    },
+    {
+      "when": "{{!exists('app/vj')}}",
+      "method": "shell.run",
+      "params": {
+        "path": "app",
+        "message": ["git clone https://github.com/gantasmo/VJ-9000 vj"]
+      }
+    },
+    {
+      "method": "shell.run",
+      "params": {
+        "path": "app/vj",
+        "env": { "SHARP_IGNORE_GLOBAL_LIBVIPS": "1" },
+        "message": ["npm install"]
+      }
+    },
+    {
+      "method": "shell.run",
+      "params": {
+        "path": "app/vj",
+        "message": ["npm approve-scripts --all --no-allow-scripts-pin || echo skipped: this npm has no approve-scripts"]
+      }
+    },
+    {
+      "when": "{{!exists('SwayCommand')}}",
+      "method": "shell.run",
+      "params": {
+        "message": ["git clone --depth 1 https://github.com/danieljtrujillo/SwayCommand SwayCommand"]
+      }
+    },
+    {
+      "method": "shell.run",
+      "params": {
+        "path": "SwayCommand",
+        "message": ["git fetch --depth 1 origin main"]
+      }
+    },
+    {
+      "method": "shell.run",
+      "params": {
+        "path": "SwayCommand",
+        "message": ["git reset --hard FETCH_HEAD"]
+      }
+    },
+    {
+      "method": "shell.run",
+      "params": {
+        "path": "SwayCommand",
+        "message": ["npm install --no-save --no-audit --no-fund esbuild three"]
+      }
+    },
+    {
+      "method": "shell.run",
+      "params": {
+        "path": "SwayCommand",
+        "message": ["npm run build:renderer:embed"]
+      }
+    },
+    {
+      "when": "{{platform === 'win32' && exists('app/native/vst-host/build.ps1')}}",
+      "method": "shell.run",
+      "params": {
+        "path": "app",
+        "on": [
+          { "event": "/error:/i", "break": false },
+          { "event": "/errno /i", "break": false }
+        ],
+        "message": [
+          "conda install -y -c conda-forge cmake || echo theDAW: CMake could not be installed, so the live VST3 host is skipped.",
+          "(set \"CMAKE_GENERATOR=\" & powershell -NoProfile -ExecutionPolicy Bypass -File native\\vst-host\\build.ps1 -NoWerror) || echo theDAW: the live VST3 host did not build. Everything else works. Run Build VST3 Host from the launcher menu to see the error."
+        ]
+      }
+    },
+    {
+      "when": "{{platform === 'darwin' && !exists(path.resolve(os.homedir(), '.cache', 'huggingface', 'hub', 'models--stabilityai--stable-audio-3-small-music'))}}",
+      "method": "shell.run",
+      "params": {
+        "path": "app",
+        "env": { "HF_HOME": "{{path.resolve(os.homedir(), '.cache', 'huggingface')}}" },
+        "message": [
+          "uv run --no-sync python -c \"import os,pathlib; from huggingface_hub import snapshot_download; snapshot_download('cocktailpeanut/stable-audio-3-small-music'); h=pathlib.Path(os.environ.get('HF_HOME') or os.path.expanduser('~/.cache/huggingface'))/'hub'; s=h/'models--cocktailpeanut--stable-audio-3-small-music'; d=h/'models--stabilityai--stable-audio-3-small-music'; (s.rename(d) if s.exists() and not d.exists() else None)\""
+        ]
+      }
+    },
+    {
+      "when": "{{platform !== 'darwin' && !exists(path.resolve(os.homedir(), '.cache', 'huggingface', 'hub', 'models--stabilityai--stable-audio-3-medium'))}}",
+      "method": "shell.run",
+      "params": {
+        "path": "app",
+        "env": { "HF_HOME": "{{path.resolve(os.homedir(), '.cache', 'huggingface')}}" },
+        "message": [
+          "uv run --no-sync python -c \"import os,pathlib; from huggingface_hub import snapshot_download; snapshot_download('cocktailpeanut/stable-audio-3-medium'); h=pathlib.Path(os.environ.get('HF_HOME') or os.path.expanduser('~/.cache/huggingface'))/'hub'; s=h/'models--cocktailpeanut--stable-audio-3-medium'; d=h/'models--stabilityai--stable-audio-3-medium'; (s.rename(d) if s.exists() and not d.exists() else None)\""
+        ]
+      }
+    }
+  ]
+}

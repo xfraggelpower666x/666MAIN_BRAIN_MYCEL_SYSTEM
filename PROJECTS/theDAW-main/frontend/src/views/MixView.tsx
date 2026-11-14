@@ -1,0 +1,1667 @@
+import React, { useState, useRef, useMemo, useEffect } from 'react';
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { persistStorage } from '../state/persistStorage';
+import {
+  Upload, X, Eye, EyeOff, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Trash2,
+  Download, Send, Sparkles, Plus, Gauge, History, LayoutList, Grid3x3,
+  Plug, RefreshCw, Loader2, Square, Blocks, FolderOpen, SlidersHorizontal,
+  AudioWaveform, Activity, Layers, LayoutGrid,
+} from 'lucide-react';
+import { effectiveZoom } from '../lib/canvasScale';
+import { useEffectChainStore, EFFECT_LABELS, EFFECT_DEFAULTS, MIX_RACK_IDS } from '../state/effectChainStore';
+import { useVstStore, vstBrowserEmptyText } from '../state/vstStore';
+import { useVstEditorStore, vstEntryName } from '../state/vstEditorStore';
+import type { Vst3PluginInfo } from '../lib/vstClient';
+import { useAdvancedEditorSourceStore } from '../state/advancedEditorStore';
+import { useStudioStore } from '../state/studioStore';
+import { useLibraryStore } from '../state/libraryStore';
+import { usePlayerStore, getAnalyser } from '../state/playerStore';
+import { useGenerateParamsStore } from '../state/generateParamsStore';
+import { useAppUiStore } from '../state/appUiStore';
+import { SlideKnob } from '../components/audio/SlideKnob';
+import { SlideRow } from '../components/audio/SlideRow';
+import { MixVizRow, type MixVizMode } from '../components/audio/MixVizRow';
+import { EffectsVizPanel } from './EffectsVizPanel';
+import { EffectControls } from '../components/audio/effects/EffectControls';
+import { schemaForEffectId } from '../components/audio/effects/effectSchema';
+import { EffectGuiStage } from '../components/audio/EffectGuiStage';
+import { SurfacePlayKey } from '../components/ui/SurfacePlayKey';
+import { VstEmbedHost } from '../components/audio/VstEmbedHost';
+import { TheOwl } from '../components/audio/TheOwl';
+import { ModuleThumb } from '../components/audio/ModuleThumb';
+import { ControlSurface } from '../components/surface/ControlSurface';
+import {
+  attachMixLiveRack, bypassLiveRack, liveRackEntries, rackEntryLabel,
+  useMixLiveRackStore, LEVEL_TAKING_RACK_IDS,
+} from '../state/mixLiveRack';
+import { registerAresBridge, ARES_XY_PAD_FALLBACK_ID } from '../lib/aresBridge';
+import { usePowerModeBridge } from '../features/power-mode/usePowerModeBridge';
+import { RACK_EFFECTS, getRackEffect } from '../lib/rackEffects';
+import type { WidgetRegistry } from '../components/surface/widgetTypes';
+import type { SurfaceLayout } from '../state/surfaceLayoutStore';
+import { EFFECT_CATALOG, PARAM_BOUNDS, CATEGORY_META, fxToCategory, fxPreview, vstPreviewKey, type CategoryMeta } from '../lib/effectCatalog';
+import { STUDIO_MODULES, TOOL_STACK_MODULES, moduleById, effectToModuleId, type StudioModule } from '../lib/moduleCatalog';
+import { MAGENTA_TOOLS, magentaToolById, type MagentaTool } from '../lib/magentaToolCatalog';
+import { MagentaToolStage } from '../components/audio/MagentaToolStage';
+import { GanPluginStage, getGanStageFrame } from '../components/audio/GanPluginStage';
+import { useGanStore } from '../state/ganStore';
+import { useMixStageStore } from '../state/mixStageStore';
+import { ganApi, type GanPluginSummary } from '../lib/ganClient';
+import { AUDIO_EXTS, FOUNDRY_EXPORT_FILTER, GAN_FILTER } from '../lib/fileFilters';
+import { pickFile } from '../lib/storageClient';
+import { saveFile } from '../lib/saveFile';
+import { logError } from '../state/logStore';
+import { useStatusBarStore } from '../state/statusBarStore';
+import { KnownFilesMenu } from '../components/ui/KnownFilesMenu';
+import { Boxes, Headphones, Music } from 'lucide-react';
+import '../components/layout/track-controls.css';
+
+/** Extensions the MIX source's Recent menu offers. */
+const MIX_SOURCE_EXTS = AUDIO_EXTS.map((e) => `.${e}`);
+
+/* ── Psychoacoustic effects shown as Studio-style tiles ──────────────────────
+   The 11 real-time psychoacoustic rack effects, surfaced in the effects library
+   as tiles (the old standalone "Psychoacoustic Rack" panel is gone). Each tile
+   gets a Studio-matching canvas thumbnail keyed by effect group; selecting one
+   adds it to the rack engine and opens the rack in the Effect Stage. */
+interface PsychoModule { id: string; name: string; color: string; desc: string; preview: string; }
+const PSYCHO_GROUP_STYLE: Record<string, { color: string; preview: string }> = {
+  Spatial: { color: '#ab47bc', preview: 'psy-spatial' },
+  'Low end': { color: '#f59e0b', preview: 'psy-lowend' },
+  Tone: { color: '#ef5350', preview: 'psy-tone' },
+  Performance: { color: '#8b5cf6', preview: 'psy-performance' },
+};
+// Only the rack-only ids (MIX_RACK_IDS excludes the 4 that collide with backend
+// effect ids), so the Psychoacoustics browser never offers a rack variant of an
+// effect that also exists as a backend tile (delay/highpass/lowpass/stereo widener).
+const PSYCHO_MODULES: PsychoModule[] = RACK_EFFECTS.filter((fx) => MIX_RACK_IDS.has(fx.id) && fx.id !== 'ares').map((fx) => {
+  const s = PSYCHO_GROUP_STYLE[fx.group] ?? { color: '#a855f7', preview: 'psy-spatial' };
+  return { id: fx.id, name: fx.label, color: s.color, desc: fx.description, preview: s.preview };
+});
+
+/* The Ares control-surface -> 'ares' composite-effect mappings (control-id map,
+   XY-pad axes, message coalescing) live in lib/aresBridge.ts now, shared with
+   EDIT's Ares popup; MIX registers the bridge on mount below. */
+if (import.meta.env.DEV) {
+  const uncovered = [...new Set(RACK_EFFECTS.map((fx) => fx.group))].filter((g) => !(g in PSYCHO_GROUP_STYLE));
+  if (uncovered.length) console.warn('[MixView] psychoacoustic groups with no tile style (fallback used):', uncovered);
+}
+
+/* ── "All" browser cells — shared by the list and tile (icon) views ──────────── */
+const AllHeader: React.FC<{ icon: React.ComponentType<{ className?: string }>; color: string; label: string; count: number }> = ({ icon: Icon, color, label, count }) => (
+  <div className="flex items-center gap-1.5 px-1 pt-0.5">
+    <Icon className={`w-3 h-3 shrink-0 ${color}`} />
+    <span className={`text-xs font-black uppercase tracking-widest ${color}`}>{label}</span>
+    <span className="text-xs font-semibold tabular-nums text-zinc-600">{count}</span>
+  </div>
+);
+// A Studio module / psychoacoustic effect cell (color is a hex accent).
+const ModuleRow: React.FC<{ name: string; desc: string; color: string; marked: boolean; onClick: () => void }> = ({ name, desc, color, marked, onClick }) => (
+  <div onClick={onClick} className={`flex items-center gap-2 border rounded px-3 py-2 cursor-pointer transition-all ${marked ? 'border-white/30 bg-white/5' : 'border-zinc-800 hover:border-white/25 hover:bg-white/5'}`}>
+    <span aria-hidden="true" className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} />
+    <div className="flex-1 min-w-0">
+      <span className="text-xs font-semibold block truncate" style={{ color: `var(--mix-label, ${color})`, textShadow: `0 0 8px ${color}` }}>{name}</span>
+      <p className="text-xs font-semibold text-zinc-500 truncate mt-0.5">{desc}</p>
+    </div>
+    {marked && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} />}
+  </div>
+);
+const ModuleTile: React.FC<{ name: string; color: string; marked: boolean; onClick: () => void; preview?: string; seed?: string }> = ({ name, color, marked, onClick, preview, seed }) => (
+  <div onClick={onClick} title={name} style={{ width: 90, height: 98 }} className={`relative rounded border cursor-pointer transition-all overflow-hidden ${marked ? 'border-white/30 ring-1 ring-white/20' : 'border-white/8 hover:border-white/20 hover:brightness-110'}`}>
+    <div className="absolute inset-0 bg-[#0a0c14]">
+      {preview
+        ? <ModuleThumb preview={preview} seed={seed} className="w-full h-full" />
+        : <span className="absolute left-1/2 top-9 -translate-x-1/2 w-7 h-7 rounded-full" style={{ background: color, boxShadow: `0 0 10px ${color}80` }} />}
+    </div>
+    <div className="absolute inset-x-0 bottom-0 px-1 pt-3 pb-1 bg-linear-to-t from-black/95 to-transparent">
+      <span className="text-xs font-semibold leading-tight line-clamp-2 block" style={{ color: `var(--mix-label, ${color})`, textShadow: `0 0 8px ${color}` }}>{name}</span>
+    </div>
+  </div>
+);
+// A backend effect cell (color comes from its category classes).
+const FxRow: React.FC<{ name: string; desc: string; cat: CategoryMeta; inChain: boolean; onClick: () => void }> = ({ name, desc, cat, inChain, onClick }) => (
+  <div onClick={onClick} className={`flex items-center gap-2 border rounded px-3 py-2 cursor-pointer transition-all ${inChain ? 'border-white/30 bg-white/5' : 'border-zinc-800 hover:border-white/25 hover:bg-white/5'}`}>
+    <span aria-hidden="true" className={`w-2 h-2 rounded-full shrink-0 ${cat.dot}`} />
+    <div className="flex-1 min-w-0">
+      <span className={`text-xs font-semibold block truncate ${cat.tile.text}`}>{name}</span>
+      <p className="text-xs font-semibold text-zinc-500 truncate mt-0.5">{desc}</p>
+    </div>
+    {inChain && <span className={`w-2 h-2 rounded-full shrink-0 ${cat.dot}`} />}
+  </div>
+);
+const FxTile: React.FC<{ name: string; cat: CategoryMeta; inChain: boolean; onClick: () => void; preview?: string }> = ({ name, cat, inChain, onClick, preview }) => {
+  const Icon = cat.icon;
+  return (
+    <div onClick={onClick} title={name} style={{ width: 90, height: 98 }} className={`relative rounded border cursor-pointer transition-all overflow-hidden ${inChain ? `${cat.tile.border} ring-2 ${cat.tile.ring}` : 'border-white/8 hover:border-white/20 hover:brightness-110'}`}>
+      <div className="absolute inset-0 bg-[#0a0c14]">
+        {preview
+          ? <ModuleThumb preview={preview} className="w-full h-full" />
+          : <div className="grid place-items-center h-full"><Icon className={`w-7 h-7 ${cat.tile.text}`} /></div>}
+      </div>
+      <div className="absolute inset-x-0 bottom-0 px-1 pt-3 pb-1 bg-linear-to-t from-black/95 to-transparent">
+        <span className={`text-xs font-semibold leading-tight line-clamp-2 block ${cat.tile.text}`}>{name}</span>
+      </div>
+      {inChain && <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-white z-10" />}
+    </div>
+  );
+};
+
+/* ═══ MIX (PROCESS) tab — now on the Control-Surface editor ═══════════════════
+   Layout:
+     TOP    — the viz rack: 2 content-sized rows, input + output (toggle
+              waveform / live scope, overlay A/B). Sits ABOVE the surface grid
+              (not an fr track of it) so each row only takes the height it
+              needs — a 24 px strip when collapsed, a remembered wave height
+              when open — instead of a fixed share of the tab.
+     MIDDLE — effect rail (categories + Quick Master) | library | chain
+              (drag-arrangeable in Design Mode, like DJ)
+     LOWER  — effectStage (active effect's UI/viz; ModuleShell + hero viz lands here later)
+   The footer is the PROCESS-CHAIN transport. */
+
+const sectionTitle = 'text-xs font-black uppercase tracking-widest text-purple-300';
+
+/* ── MIX transport — play / pause / stop for a row's audio (input source or
+   processed output). Drives the global player engine; the row whose label is
+   currently loaded shows the live play/pause state so either can be auditioned
+   at any time. ── */
+const MixTransport: React.FC<{ url: string | null; label: string; what: string }> = ({ url, label, what }) => {
+  const isPlaying = usePlayerStore((s) => s.isPlaying);
+  const currentLabel = usePlayerStore((s) => s.currentLabel);
+  const isActive = currentLabel === label;
+  const playing = isActive && isPlaying;
+
+  const toggle = async () => {
+    if (!url) return;
+    if (isActive) { usePlayerStore.getState().toggle(); return; }
+    try {
+      const blob = await fetch(url).then((r) => r.blob());
+      await usePlayerStore.getState().load(blob, { label });
+      usePlayerStore.getState().play();
+    } catch { /* non-fatal — load/play errors surface in the player log */ }
+  };
+  const stop = () => { if (isActive) usePlayerStore.getState().stop(); };
+
+  return (
+    <div className="flex items-center gap-1 shrink-0">
+      <SurfacePlayKey pauses playing={playing} onToggle={() => void toggle()} what={what} disabled={!url} />
+      <button
+        type="button"
+        onClick={stop}
+        disabled={!url || !isActive}
+        title="Stop"
+        aria-label={`Stop ${what}`}
+        className="h-5.5 w-5.5 grid place-items-center rounded text-zinc-400 hover:text-red-200 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed"
+      >
+        <Square className="w-3 h-3" />
+      </button>
+    </div>
+  );
+};
+
+const PARAM_LABELS: Record<string, string> = {
+  lowBoost: 'Low', highBoost: 'High', limiterCeiling: 'Ceil', targetLUFS: 'LUFS',
+  attack: 'Atk', decay: 'Dec', frequency: 'Freq', level: 'Lvl', rate: 'Rate',
+  highpassFreq: 'HP', presenceBoost: 'Pres', degradation: 'Degr', lowpassFreq: 'LP',
+  delayMs: 'Delay', reverbDecay: 'Verb', subBoost: 'Sub', trebleBoost: 'Treb',
+  cancelAmount: 'Cancel', width: 'Width', gain: 'Gain', truePeak: 'Peak',
+  shift: 'Shift', leftMs: 'Left', rightMs: 'Right', fadeInDuration: 'In',
+  fadeOutDuration: 'Out', noiseReduction: 'Noise', windowSize: 'Win',
+  threshold: 'Thr', compressionLevel: 'Lvl', bitrate: 'Rate',
+};
+const prettyParam = (k: string) => PARAM_LABELS[k] ?? (k.length > 6 ? k.slice(0, 6) : k);
+
+interface AudioStats { peakDb: number; rmsDb: number; sampleRate: number; duration: number; }
+
+function analyzeAudio(source: File | string): Promise<AudioStats> {
+  return new Promise((resolve, reject) => {
+    const ctx = new AudioContext();
+    const load = typeof source === 'string'
+      ? fetch(source).then((r) => r.arrayBuffer())
+      : source.arrayBuffer();
+    load.then((buf) => ctx.decodeAudioData(buf))
+      .then((decoded) => {
+        const ch = decoded.getChannelData(0);
+        let peak = 0, sumSq = 0;
+        for (let i = 0; i < ch.length; i++) {
+          const a = Math.abs(ch[i]);
+          if (a > peak) peak = a;
+          sumSq += ch[i] * ch[i];
+        }
+        const rms = Math.sqrt(sumSq / ch.length);
+        ctx.close();
+        resolve({
+          peakDb: parseFloat((20 * Math.log10(Math.max(peak, 1e-10))).toFixed(1)),
+          rmsDb: parseFloat((20 * Math.log10(Math.max(rms, 1e-10))).toFixed(1)),
+          sampleRate: decoded.sampleRate,
+          duration: decoded.duration,
+        });
+      })
+      .catch((e) => { ctx.close(); reject(e); });
+  });
+}
+
+async function fileFromDrop(e: React.DragEvent): Promise<File | null> {
+  const libId = e.dataTransfer.getData('application/x-thedaw-library-id');
+  if (libId) {
+    const entry = useLibraryStore.getState().entries.find((en) => en.id === libId);
+    if (entry) {
+      const blob = await useLibraryStore.getState().fetchAudioBlob(entry);
+      return new File([blob], `${entry.title.slice(0, 40)}.wav`, { type: entry.mimeType || 'audio/wav' });
+    }
+  }
+  return e.dataTransfer.files[0] || null;
+}
+
+function StatRow({ stats }: { stats: AudioStats }) {
+  const fmtDur = (s: number) => (s >= 60 ? `${Math.floor(s / 60)}m${Math.round(s % 60)}s` : `${s.toFixed(1)}s`);
+  const Pill = ({ label, value }: { label: string; value: string }) => (
+    <span className="flex items-center gap-1">
+      <span className="text-xs font-bold text-zinc-600 uppercase">{label}</span>
+      <span className="text-xs font-semibold tabular-nums text-zinc-300">{value}</span>
+    </span>
+  );
+  return (
+    <div className="flex items-center gap-2">
+      <Pill label="SR" value={`${(stats.sampleRate / 1000).toFixed(1)}kHz`} />
+      <span className="text-zinc-700">·</span>
+      <Pill label="Peak" value={`${stats.peakDb}dBFS`} />
+      <span className="text-zinc-700">·</span>
+      <Pill label="RMS" value={`${stats.rmsDb}dB`} />
+      <span className="text-zinc-700">·</span>
+      <Pill label="Dur" value={fmtDur(stats.duration)} />
+    </div>
+  );
+}
+
+/* ═══ MIX viz rack — the Input / Output rows above the surface ═══════════════
+   Content-sized (deliberately NOT an fr track of the surface grid, which would
+   hand the rows a fixed share of the tab whatever they show) so a row only
+   takes the height it needs: a 24 px strip when collapsed, a remembered wave
+   height when open. Each row is 'auto' (open while it has audio or is in
+   live-scope mode, collapsed otherwise) or pinned open / closed by its chevron;
+   the choice and the wave height persist across sessions. */
+type VizRowPref = 'auto' | 'open' | 'closed';
+interface VizRackPrefs {
+  input: VizRowPref;
+  output: VizRowPref;
+  /** Height (css px) of an open row's wave body. */
+  bodyPx: number;
+  setRow: (row: 'input' | 'output', pref: VizRowPref) => void;
+  setBodyPx: (px: number) => void;
+}
+const VIZ_BODY_MIN = 48;
+const VIZ_BODY_MAX = 240;
+const VIZ_BODY_DEFAULT = 72;
+const useVizRackPrefs = create<VizRackPrefs>()(
+  persist(
+    (set) => ({
+      input: 'auto',
+      output: 'auto',
+      bodyPx: VIZ_BODY_DEFAULT,
+      setRow: (row, pref) => set(row === 'input' ? { input: pref } : { output: pref }),
+      setBodyPx: (px) => set({ bodyPx: Math.round(Math.max(VIZ_BODY_MIN, Math.min(VIZ_BODY_MAX, px))) }),
+    }),
+    { name: 'thedaw.mix.vizrack.v1', storage: persistStorage(), partialize: (s) => ({ input: s.input, output: s.output, bodyPx: s.bodyPx }) },
+  ),
+);
+const vizRowOpen = (pref: VizRowPref, hasAudio: boolean, mode: MixVizMode): boolean =>
+  pref === 'open' ? true : pref === 'closed' ? false : hasAudio || mode === 'live';
+const vizTabBtn = (active: boolean) =>
+  `p-1 rounded transition-colors ${active ? 'text-purple-300 bg-purple-500/20' : 'text-zinc-500 hover:text-zinc-300'}`;
+
+interface VizRackRowProps {
+  row: 'input' | 'output';
+  label: string;
+  accent: string;
+  overlayAccent: string;
+  url: string | null;
+  overlayUrl: string | null;
+  playLabel: string;
+  placeholder: string;
+  mode: MixVizMode;
+  onMode: (m: MixVizMode) => void;
+  overlay: boolean;
+  onToggleOverlay: () => void;
+  open: boolean;
+  onToggleOpen: () => void;
+  bodyPx: number;
+  /** The row's play key and stop, leading the header in both states. */
+  transport: React.ReactNode;
+  /** Header items (stats · actions), shown in both states. */
+  extra: React.ReactNode;
+  /** Show the "processing chain…" scrim (output row while the chain runs). */
+  busy?: boolean;
+  wrapperClassName?: string;
+  onDrop?: (e: React.DragEvent) => void;
+  onDragOver?: (e: React.DragEvent) => void;
+  onDragLeave?: () => void;
+}
+
+/** One rack row: the full MixVizRow card when open, a single-line strip that
+ *  keeps every control (view toggle, overlay, stats, transport, actions) when
+ *  collapsed. The transport is the first header item and the chevron the last,
+ *  in both states. */
+const VizRackRow: React.FC<VizRackRowProps> = (p) => {
+  const chevron = (
+    <button
+      type="button"
+      onClick={p.onToggleOpen}
+      aria-expanded={p.open}
+      aria-label={p.open ? `Collapse the ${p.label} row` : `Expand the ${p.label} row`}
+      title={p.open ? 'Collapse row' : 'Expand row'}
+      className="p-1 rounded text-zinc-500 hover:text-zinc-200 hover:bg-white/5 shrink-0"
+    >
+      {p.open ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+    </button>
+  );
+  const extra = <>{p.extra}{chevron}</>;
+  return (
+    <div
+      data-mix-viz-row={p.row}
+      data-open={p.open ? 'true' : 'false'}
+      className={`relative w-full shrink-0 transition-colors ${p.wrapperClassName ?? ''}`}
+      onDrop={p.onDrop}
+      onDragOver={p.onDragOver}
+      onDragLeave={p.onDragLeave}
+    >
+      {p.open ? (
+        <div style={{ height: p.bodyPx }} className="relative w-full">
+          <MixVizRow
+            label={p.label} url={p.url} overlayUrl={p.overlayUrl} accent={p.accent} overlayAccent={p.overlayAccent}
+            playLabel={p.playLabel}
+            mode={p.mode} onMode={p.onMode} overlay={p.overlay} onToggleOverlay={p.onToggleOverlay}
+            placeholder={p.placeholder}
+            headerLead={p.transport}
+            headerExtra={extra}
+          />
+          {p.busy && (
+            <div className="absolute inset-0 grid place-items-center rounded-lg bg-black/50 backdrop-blur-sm pointer-events-none">
+              <span className="text-xs font-semibold tabular-nums text-purple-300 animate-pulse">processing chain…</span>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="h-6 flex items-center gap-2 px-2 rounded-lg border bg-black/40" style={{ borderColor: `${p.accent}55` }}>
+          {p.transport}
+          <span className="text-xs font-black uppercase tracking-[0.18em] shrink-0" style={{ color: `var(--mix-label, ${p.accent})`, textShadow: `0 0 8px ${p.accent}` }}>{p.label}</span>
+          <div className="flex items-center gap-0.5 bg-black/40 rounded p-0.5 shrink-0">
+            <button type="button" onClick={() => p.onMode('wave')} aria-pressed={p.mode === 'wave'} aria-label={`${p.label}: waveform view`} title="Waveform" className={vizTabBtn(p.mode === 'wave')}>
+              <AudioWaveform className="w-3 h-3" />
+            </button>
+            <button type="button" onClick={() => p.onMode('live')} aria-pressed={p.mode === 'live'} aria-label={`${p.label}: live spectrum / scope`} title="Live spectrum / scope" className={vizTabBtn(p.mode === 'live')}>
+              <Activity className="w-3 h-3" />
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={p.onToggleOverlay}
+            aria-pressed={p.overlay}
+            aria-label={`${p.label}: overlay the other row for A/B comparison`}
+            title="Overlay the other row for A/B comparison"
+            className={`p-1 rounded transition-colors shrink-0 ${p.overlay ? 'text-cyan-300 bg-cyan-500/20' : 'text-zinc-400 hover:text-zinc-100'}`}
+          >
+            <Layers className="w-3 h-3" />
+          </button>
+          <span className="text-xs font-semibold tabular-nums text-zinc-600 truncate min-w-0">
+            {p.busy ? <span className="text-purple-300 animate-pulse">processing chain…</span> : p.url ? '' : p.placeholder}
+          </span>
+          <div className="ml-auto flex items-center gap-2 shrink-0">{extra}</div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+interface MixVizRackProps {
+  sourceUrl: string | null; outputUrl: string | null;
+  srcStats: AudioStats | null; outStats: AudioStats | null;
+  hasSource: boolean;
+  inputMode: MixVizMode; setInputMode: (m: MixVizMode) => void;
+  outputMode: MixVizMode; setOutputMode: (m: MixVizMode) => void;
+  inputOverlay: boolean; toggleInputOverlay: () => void;
+  outputOverlay: boolean; toggleOutputOverlay: () => void;
+  dragOverSource: boolean;
+  onDrop: (e: React.DragEvent) => void; onDragOver: (e: React.DragEvent) => void; onDragLeave: () => void;
+  onClickUpload: () => void; onClearSource: () => void;
+  /** A file chosen from the source's Recent menu. */
+  onKnownFiles: (files: File[]) => void;
+  isChainProcessing: boolean;
+  onDownload: () => void; onSendToDAW: () => void; onSendToInpaint: () => void;
+}
+
+const MixVizRack: React.FC<MixVizRackProps> = (p) => {
+  const prefs = useVizRackPrefs();
+  const inputOpen = vizRowOpen(prefs.input, !!p.sourceUrl, p.inputMode);
+  const outputOpen = vizRowOpen(prefs.output, !!p.outputUrl, p.outputMode);
+
+  // Drag the rack's bottom grip to set the wave height. Pointer deltas arrive
+  // in viewport px while bodyPx is a css px inside the shell's zoomed subtree,
+  // so divide by the effective zoom (see lib/canvasScale).
+  const gripRef = useRef<HTMLDivElement>(null);
+  const drag = useRef<{ y: number; px: number; zoom: number } | null>(null);
+  const onGripDown = (e: React.PointerEvent) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    drag.current = { y: e.clientY, px: prefs.bodyPx, zoom: effectiveZoom(gripRef.current) };
+    (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+    e.preventDefault();
+  };
+  const onGripMove = (e: React.PointerEvent) => {
+    const d = drag.current;
+    if (!d) return;
+    prefs.setBodyPx(d.px + (e.clientY - d.y) / d.zoom);
+  };
+  const onGripUp = (e: React.PointerEvent) => {
+    drag.current = null;
+    (e.currentTarget as Element).releasePointerCapture?.(e.pointerId);
+  };
+  const onGripKey = (e: React.KeyboardEvent) => {
+    const step = e.shiftKey ? 24 : 8;
+    if (e.key === 'ArrowUp') { prefs.setBodyPx(prefs.bodyPx - step); e.preventDefault(); }
+    else if (e.key === 'ArrowDown') { prefs.setBodyPx(prefs.bodyPx + step); e.preventDefault(); }
+  };
+
+  return (
+    <div data-mix-vizrack className="shrink-0 flex flex-col gap-1.5 px-1.5 pt-1.5">
+      <VizRackRow
+        row="input" label="Input" accent="#22d3ee" overlayAccent="#a855f7"
+        url={p.sourceUrl} overlayUrl={p.outputUrl} playLabel="MIX Input"
+        placeholder="drop audio, or click to load"
+        mode={p.inputMode} onMode={p.setInputMode} overlay={p.inputOverlay} onToggleOverlay={p.toggleInputOverlay}
+        open={inputOpen} onToggleOpen={() => prefs.setRow('input', inputOpen ? 'closed' : 'open')}
+        bodyPx={prefs.bodyPx}
+        transport={<MixTransport url={p.sourceUrl} label="MIX Input" what="the input" />}
+        wrapperClassName={p.dragOverSource ? 'rounded-lg ring-1 ring-purple-500/60 bg-purple-500/5' : ''}
+        onDrop={p.onDrop} onDragOver={p.onDragOver} onDragLeave={p.onDragLeave}
+        extra={
+          <>
+            {p.srcStats && <StatRow stats={p.srcStats} />}
+            <button
+              type="button"
+              onClick={p.onClickUpload}
+              title={p.hasSource ? 'Replace source' : 'Load source'}
+              aria-label={p.hasSource ? 'Replace the source audio' : 'Load source audio'}
+              className="p-1 rounded text-zinc-400 hover:text-purple-200 hover:bg-white/5"
+            >
+              <Upload className="w-3 h-3" />
+            </button>
+            <KnownFilesMenu id="mix-source-recent" exts={MIX_SOURCE_EXTS} onFiles={p.onKnownFiles} />
+            {p.hasSource && (
+              <button type="button" onClick={p.onClearSource} title="Clear source" aria-label="Clear the source audio" className="p-1 rounded text-zinc-500 hover:text-red-400 hover:bg-white/5">
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </>
+        }
+      />
+      <VizRackRow
+        row="output" label="Output" accent="#a855f7" overlayAccent="#22d3ee"
+        url={p.outputUrl} overlayUrl={p.sourceUrl} playLabel="MIX Output"
+        placeholder="output appears after processing"
+        mode={p.outputMode} onMode={p.setOutputMode} overlay={p.outputOverlay} onToggleOverlay={p.toggleOutputOverlay}
+        open={outputOpen} onToggleOpen={() => prefs.setRow('output', outputOpen ? 'closed' : 'open')}
+        bodyPx={prefs.bodyPx}
+        transport={<MixTransport url={p.outputUrl} label="MIX Output" what="the output" />}
+        busy={p.isChainProcessing}
+        extra={
+          <>
+            {p.outStats && <StatRow stats={p.outStats} />}
+            <button type="button" onClick={p.onDownload} disabled={!p.outputUrl} title="Save" aria-label="Save the processed output" className="p-1 rounded text-zinc-400 hover:text-green-200 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed"><Download className="w-3 h-3" /></button>
+            <button type="button" onClick={p.onSendToDAW} disabled={!p.outputUrl} title="Send to Edit" aria-label="Send the output to the Edit tab" className="p-1 rounded text-zinc-400 hover:text-emerald-200 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed"><Send className="w-3 h-3" /></button>
+            <button type="button" onClick={p.onSendToInpaint} disabled={!p.outputUrl} title="Send to Inpaint" aria-label="Send the output to Inpaint" className="p-1 rounded text-zinc-400 hover:text-purple-200 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed"><Sparkles className="w-3 h-3" /></button>
+          </>
+        }
+      />
+      {(inputOpen || outputOpen) && (
+        <div
+          ref={gripRef}
+          role="separator"
+          aria-orientation="horizontal"
+          aria-label="Wave row height"
+          aria-valuemin={VIZ_BODY_MIN}
+          aria-valuemax={VIZ_BODY_MAX}
+          aria-valuenow={prefs.bodyPx}
+          tabIndex={0}
+          title="Drag to set the wave height (↑ / ↓ keys; Shift for larger steps)"
+          className="h-1 -mt-1 mx-8 rounded-full bg-white/5 hover:bg-purple-400/40 focus-visible:bg-purple-400/60 cursor-row-resize outline-none touch-none"
+          onPointerDown={onGripDown}
+          onPointerMove={onGripMove}
+          onPointerUp={onGripUp}
+          onPointerCancel={onGripUp}
+          onKeyDown={onGripKey}
+        />
+      )}
+    </div>
+  );
+};
+
+/* ═══ default layout ═════════════════════════════════════════════════════════ */
+/* The user's hand-arranged MIX layout (Design Mode export):
+     Effects rail · [ Chain over Effect Stage ] · Library
+   The Input / Output viz rows live in the content-sized viz rack ABOVE this
+   surface (see MixVizRack), no longer as an fr track of the grid.
+   Version is bumped past any previously-persisted MIX layout so this default
+   takes over cleanly. */
+const MIX_LAYOUT_VERSION = 7;
+const defaultMixLayout: SurfaceLayout = {
+  version: MIX_LAYOUT_VERSION,
+  root: 'mid',
+  nodes: {
+    mid: { id: 'mid', type: 'container', axis: 'row', children: ['railP', 'cont-3-b45ab2a0'], fr: { railP: 0.7625161264148641, 'cont-3-b45ab2a0': 3.652897886323994 }, framed: true },
+    railP: { id: 'railP', type: 'panel', title: 'Effects', flow: 'row', widgets: [], pinned: 'effectRail' },
+    libraryP: { id: 'libraryP', type: 'panel', title: 'Library', flow: 'row', widgets: [], pinned: 'library' },
+    chainP: { id: 'chainP', type: 'panel', title: 'Chain', flow: 'row', widgets: [], pinned: 'chain' },
+    stageP: { id: 'stageP', type: 'panel', title: 'Effect Stage', flow: 'row', widgets: [], pinned: 'effectStage' },
+    'cont-3-b45ab2a0': { id: 'cont-3-b45ab2a0', type: 'container', axis: 'row', children: ['cont-4-4768bad0', 'libraryP'], fr: { libraryP: 0.45836297448789, 'cont-4-4768bad0': 1.5416370255121108 }, framed: true },
+    'cont-4-4768bad0': { id: 'cont-4-4768bad0', type: 'container', axis: 'column', children: ['chainP', 'stageP'], fr: { chainP: 0.6536796536796542, stageP: 1.3463203463203457 }, framed: true },
+  },
+};
+
+interface ChainEntry { id: string; effect: string; enabled: boolean; params: Record<string, number>; vst?: { plugin_path: string; plugin_name: string; raw_state?: string }; }
+
+interface MixRegArgs {
+  // the source clip (the Effect Stage feeds it to a Studio Module's instrument)
+  sourceFile: File | null;
+  // rail
+  activeCategory: string; setActiveCategory: (c: string) => void; allEffectCount: number;
+  quickMaster: Record<string, number>; setQuickParam: (k: string, v: number) => void;
+  applyQuickMaster: () => void; masterEntry: boolean;
+  // library
+  activeEffects: Array<{ id: string; name: string; desc: string }>; viewMode: 'list' | 'tile';
+  setViewMode: (m: 'list' | 'tile') => void; addEffect: (id: string) => void; chainEffectIds: Set<string>;
+  // VST3 plugins (hosted via pedalboard) — shown in the effects browser and
+  // added to the chain as 'vst3' nodes.
+  vstPlugins: Vst3PluginInfo[]; vstScanning: boolean; rescanVst: () => void;
+  /** Why the list is empty here (the backend's words), or null. See vstStore. */
+  vstUnavailableReason: string | null;
+  /** The folder the scan reads for installed plugins, named when the list is empty. See vstStore. */
+  vstInstallFolder: string | null;
+  addVstToChain: (p: Vst3PluginInfo) => void; vstInChain: Set<string>;
+  // .gan web-plugins (generic loader): installed list + the one open in the stage.
+  ganPlugins: GanPluginSummary[]; ganActiveId: string | null; ganActiveUrl: string | null;
+  ganActiveName: string | null; ganBusy: boolean;
+  onOpenGan: () => void; onImportGan: () => void; onPickGan: (id: string) => void; onRevealGan: (path: string) => void;
+  // studio modules (exact-GUI instruments)
+  onPickModule: (id: string) => void; activeModuleId: string | null; activeModule: StudioModule | null;
+  // Psychoacoustic effects are first-class members of THE chain (added via
+  // onPickPsycho -> addRackEffect); no separate rack store.
+  onPickPsycho: (id: string) => void;
+  // Ares control surface (bundled .gan) — first-class Studio entry.
+  onPickAres: () => void; aresInstalled: boolean;
+  // magenta RT2 tools (Collider / Jam / MRT2 — generative instruments)
+  onPickMagenta: (id: string) => void; activeMagentaId: string | null; activeMagentaTool: MagentaTool | null;
+  // chain
+  chain: ChainEntry[]; selectedId: string | null; setSelectedId: (id: string) => void;
+  removeEffect: (id: string) => void; updateParams: (id: string, p: Record<string, number>) => void;
+  toggleEnabled: (id: string) => void; reorder: (from: number, to: number) => void; clearChain: () => void;
+  onEditVst: (entry: ChainEntry) => void;
+  vstEmbed: { entryId: string; pluginPath: string; pluginName: string; error?: string } | null;
+  onCloseVstEmbed: () => void;
+  outputFormat: string; setOutputFormat: (f: string) => void;
+  showHistory: boolean; setShowHistory: (v: boolean) => void;
+  processHistory: Array<{ id: string; effect: string; createdAt: number }>;
+  selectedEntry: ChainEntry | null;
+}
+
+function buildMixRegistry(p: MixRegArgs): WidgetRegistry {
+  const reg: WidgetRegistry = {};
+  const pinned = (id: string, label: string, node: React.ReactNode) => {
+    reg[id] = { id, label, group: 'Panels', kind: 'fixed', source: 'builtin', render: () => <div className="h-full w-full min-h-0 overflow-hidden">{node}</div> };
+  };
+
+  /* The Input / Output viz rows are the content-sized MixVizRack above the
+     surface (see MixView's render), not grid panels. */
+
+  /* ── effect rail: categories + Quick Master ── */
+  pinned('effectRail', 'Effects', (
+    <div className="h-full w-full flex flex-col min-h-0 overflow-hidden p-1.5 gap-1.5">
+      <span className={sectionTitle}>Effects</span>
+      <div className="flex flex-col gap-0.5 overflow-y-auto min-h-0">
+        <button onClick={() => p.setActiveCategory('all')}
+          title="Every effect in MIX, grouped by category"
+          className={`flex items-center gap-1.5 px-1.5 py-1.5 rounded w-full text-left border-l-2 transition-colors ${p.activeCategory === 'all' ? 'border-purple-400 text-purple-200 bg-purple-500/10' : 'border-transparent text-zinc-300 hover:text-zinc-100 hover:bg-white/5'}`}>
+          <LayoutGrid className="w-3.5 h-3.5 shrink-0" />
+          <span className="text-xs font-bold flex-1 truncate">All</span>
+          <span className="text-xs font-semibold tabular-nums text-zinc-500 shrink-0">{p.allEffectCount}</span>
+        </button>
+        <button onClick={() => p.setActiveCategory('studio')}
+          title="Studio modules, the Ares control surface, and the psychoacoustic effects"
+          className={`flex items-center gap-1.5 px-1.5 py-1.5 rounded w-full text-left border-l-2 transition-colors ${p.activeCategory === 'studio' ? 'border-cyan-400 text-cyan-200 bg-cyan-500/10' : 'border-transparent text-cyan-400/80 hover:text-cyan-200 hover:bg-cyan-500/5'}`}>
+          <Boxes className="w-3.5 h-3.5 shrink-0" />
+          <span className="text-xs font-bold flex-1 truncate">Studio</span>
+          <span className="text-xs font-semibold tabular-nums text-cyan-600 shrink-0">{STUDIO_MODULES.length + PSYCHO_MODULES.length + TOOL_STACK_MODULES.length + 1}</span>
+        </button>
+        <button onClick={() => p.setActiveCategory('magenta')}
+          title="Magenta RealTime 2 — generative instruments (Collider · Jam · MRT2)"
+          className={`flex items-center gap-1.5 px-1.5 py-1.5 rounded w-full text-left border-l-2 transition-colors ${p.activeCategory === 'magenta' ? 'border-sky-400 text-sky-200 bg-sky-500/10' : 'border-transparent text-sky-400/80 hover:text-sky-200 hover:bg-sky-500/5'}`}>
+          <Music className="w-3.5 h-3.5 shrink-0" />
+          <span className="text-xs font-bold flex-1 truncate">Magenta</span>
+          <span className="text-xs font-semibold tabular-nums text-sky-600 shrink-0">{MAGENTA_TOOLS.length}</span>
+        </button>
+        <button onClick={() => p.setActiveCategory('vst')}
+          title="VST3 plugins hosted via pedalboard — add them to the chain like any effect"
+          className={`flex items-center gap-1.5 px-1.5 py-1.5 rounded w-full text-left border-l-2 transition-colors ${p.activeCategory === 'vst' ? 'border-teal-400 text-teal-200 bg-teal-500/10' : 'border-transparent text-teal-400/80 hover:text-teal-200 hover:bg-teal-500/5'}`}>
+          <Plug className="w-3.5 h-3.5 shrink-0" />
+          <span className="text-xs font-bold flex-1 truncate">VST</span>
+          <span className="text-xs font-semibold tabular-nums text-teal-600 shrink-0">{p.vstPlugins.length}</span>
+        </button>
+        <button onClick={() => p.setActiveCategory('plugins')}
+          title="GAN web-plugins — open a .gan or import a VST Foundry export; renders in the effect stage"
+          className={`flex items-center gap-1.5 px-1.5 py-1.5 rounded w-full text-left border-l-2 transition-colors ${p.activeCategory === 'plugins' ? 'border-indigo-400 text-indigo-200 bg-indigo-500/10' : 'border-transparent text-indigo-400/80 hover:text-indigo-200 hover:bg-indigo-500/5'}`}>
+          <Blocks className="w-3.5 h-3.5 shrink-0" />
+          <span className="text-xs font-bold flex-1 truncate">Plugins</span>
+          <span className="text-xs font-semibold tabular-nums text-indigo-600 shrink-0">{p.ganPlugins.length}</span>
+        </button>
+        {CATEGORY_META.map((cat) => {
+          const Icon = cat.icon;
+          const active = p.activeCategory === cat.id;
+          return (
+            <button key={cat.id} onClick={() => p.setActiveCategory(cat.id)}
+              className={`flex items-center gap-1.5 px-1.5 py-1.5 rounded w-full text-left border-l-2 transition-colors ${active ? cat.rail.active : cat.rail.idle}`}>
+              <Icon className="w-3.5 h-3.5 shrink-0" />
+              <span className="text-xs font-semibold flex-1 truncate">{cat.label}</span>
+              <span className="text-xs font-semibold tabular-nums text-zinc-600 shrink-0">{cat.count}</span>
+            </button>
+          );
+        })}
+      </div>
+      <div className="mt-auto pt-2 border-t border-white/8 shrink-0">
+        <div className="flex items-center gap-1 mb-2"><Gauge className="w-3 h-3 text-purple-300" /><span className={sectionTitle}>Quick Master</span></div>
+        <div className="grid grid-cols-2 gap-x-1 gap-y-2 place-items-center mb-2">
+          <SlideKnob label="Punch" value={p.quickMaster.lowBoost} onChange={(v) => p.setQuickParam('lowBoost', v)} min={-6} max={6} step={0.5} size={34} />
+          <SlideKnob label="Air" value={p.quickMaster.highBoost} onChange={(v) => p.setQuickParam('highBoost', v)} min={-6} max={6} step={0.5} size={34} />
+          <SlideKnob label="Drive" value={p.quickMaster.targetLUFS} onChange={(v) => p.setQuickParam('targetLUFS', v)} min={-24} max={-8} step={0.5} size={34} />
+          <SlideKnob label="Ceil" value={p.quickMaster.limiterCeiling} onChange={(v) => p.setQuickParam('limiterCeiling', v)} min={0.8} max={1} step={0.01} size={34} />
+        </div>
+        <button onClick={p.applyQuickMaster} className="w-full btn-ghost text-xs font-semibold py-1 flex items-center justify-center gap-1 text-purple-300 border-purple-500/20 bg-purple-500/5">
+          <Plus className="w-3 h-3" /> {p.masterEntry ? 'Sync Master' : 'Add Quick Master'}
+        </button>
+      </div>
+    </div>
+  ));
+
+  /* ── library ── */
+  pinned('library', 'Library', (
+    <div className="h-full w-full flex flex-col min-h-0 min-w-0 overflow-hidden p-2">
+      <div className="flex items-center justify-between mb-2 shrink-0">
+        <span className={sectionTitle}>{p.activeCategory === 'studio' ? 'Studio' : p.activeCategory === 'magenta' ? 'Magenta Tools' : p.activeCategory === 'vst' ? 'VST3 Plugins' : p.activeCategory === 'plugins' ? 'GAN Plugins' : p.activeCategory === 'all' ? 'All Effects' : (CATEGORY_META.find((c) => c.id === p.activeCategory)?.label ?? 'Effects')}</span>
+        {p.activeCategory !== 'studio' && p.activeCategory !== 'magenta' && p.activeCategory !== 'vst' && p.activeCategory !== 'plugins' && (
+          <div className="flex items-center gap-0.5 bg-black/40 rounded p-0.5">
+            <button onClick={() => p.setViewMode('list')} title="List view" className={`p-1 rounded transition-colors ${p.viewMode === 'list' ? 'text-purple-300 bg-purple-500/20' : 'text-zinc-500 hover:text-zinc-300'}`}><LayoutList className="w-3 h-3" /></button>
+            <button onClick={() => p.setViewMode('tile')} title="Icon view" className={`p-1 rounded transition-colors ${p.viewMode === 'tile' ? 'text-purple-300 bg-purple-500/20' : 'text-zinc-500 hover:text-zinc-300'}`}><Grid3x3 className="w-3 h-3" /></button>
+          </div>
+        )}
+      </div>
+      {p.activeCategory === 'magenta' ? (
+        <div className="flex-1 overflow-y-auto"><div className="flex flex-wrap gap-3 content-start justify-center p-1.5">
+          {MAGENTA_TOOLS.map((m) => {
+            const active = p.activeMagentaTool?.id === m.id;
+            return (
+              <button key={m.id} onClick={() => p.onPickMagenta(m.id)} title={m.desc}
+                className={`group relative flex flex-col gap-1.5 rounded-md border overflow-hidden transition-all p-2 text-left ${active ? 'border-cyan-400/60 ring-1 ring-cyan-400/40 bg-cyan-500/5' : 'border-white/8 bg-black/30 hover:border-white/20 hover:brightness-110'}`}
+                style={{ width: 132 }}>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full shrink-0" style={{ background: m.color, boxShadow: `0 0 5px ${m.color}80` }} />
+                  <span className="text-xs font-bold text-zinc-100 truncate flex-1">{m.name}</span>
+                </div>
+                <div className="relative w-full h-20 rounded bg-[#0a0c14] border border-white/5 overflow-hidden">
+                  <ModuleThumb preview={m.preview} className="w-full h-full" />
+                </div>
+                <span className="text-xs font-semibold tabular-nums text-zinc-500 leading-tight line-clamp-2">{m.desc}</span>
+              </button>
+            );
+          })}
+        </div></div>
+      ) : p.activeCategory === 'studio' ? (
+        <div className="flex-1 overflow-y-auto">
+          <div className="flex flex-wrap gap-3 content-start justify-center p-1.5">
+            {/* Ares control surface — first-class bundled plugin, opens in the stage. */}
+            <button onClick={p.onPickAres} title="Ares — XY Kaoss control surface"
+              className={`group relative flex flex-col gap-1.5 rounded-md border overflow-hidden transition-all p-2 text-left ${p.ganActiveId === 'ares' ? 'border-rose-400/60 ring-1 ring-rose-400/40 bg-rose-500/5' : 'border-white/8 bg-black/30 hover:border-white/20 hover:brightness-110'}`}
+              style={{ width: 132 }}>
+              <div className="flex items-center gap-1.5">
+                <span aria-hidden="true" className="w-2 h-2 rounded-full shrink-0" style={{ background: '#ff3b3b', boxShadow: '0 0 5px #ff3b3b80' }} />
+                <span className="text-xs font-bold text-zinc-100 truncate flex-1">Ares</span>
+                {p.ganActiveId === 'ares' && <span aria-label="Open" className="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0" />}
+              </div>
+              <div className="relative w-full h-20 rounded bg-[#0a0c14] border border-white/5 overflow-hidden grid place-items-center">
+                <Gauge className="w-7 h-7 text-rose-300/80" />
+              </div>
+              <span className="text-xs font-semibold tabular-nums text-zinc-500 leading-tight line-clamp-2">{p.aresInstalled ? 'XY Kaoss control surface' : 'packaging…'}</span>
+            </button>
+            {STUDIO_MODULES.map((m) => {
+              const active = p.activeModule?.id === m.id;
+              return (
+                <button key={`mod-${m.id}`} onClick={() => p.onPickModule(m.id)} title={m.desc}
+                  className={`group relative flex flex-col gap-1.5 rounded-md border overflow-hidden transition-all p-2 text-left ${active ? 'border-cyan-400/60 ring-1 ring-cyan-400/40 bg-cyan-500/5' : 'border-white/8 bg-black/30 hover:border-white/20 hover:brightness-110'}`}
+                  style={{ width: 132 }}>
+                  <div className="flex items-center gap-1.5">
+                    <span aria-hidden="true" className="w-2 h-2 rounded-full shrink-0" style={{ background: m.color, boxShadow: `0 0 5px ${m.color}80` }} />
+                    <span className="text-xs font-bold text-zinc-100 truncate flex-1">{m.name}</span>
+                  </div>
+                  <div className="relative w-full h-20 rounded bg-[#0a0c14] border border-white/5 overflow-hidden">
+                    <ModuleThumb preview={m.preview} className="w-full h-full" />
+                  </div>
+                  <span className="text-xs font-semibold tabular-nums text-zinc-500 leading-tight line-clamp-2">{m.desc}</span>
+                </button>
+              );
+            })}
+            {PSYCHO_MODULES.map((m) => {
+              const active = p.selectedEntry?.effect === m.id;
+              const inChain = p.chainEffectIds.has(m.id);
+              return (
+                <button key={`psy-${m.id}`} onClick={() => p.onPickPsycho(m.id)} title={m.desc}
+                  className={`group relative flex flex-col gap-1.5 rounded-md border overflow-hidden transition-all p-2 text-left ${active ? 'border-fuchsia-400/60 ring-1 ring-fuchsia-400/40 bg-fuchsia-500/5' : 'border-white/8 bg-black/30 hover:border-white/20 hover:brightness-110'}`}
+                  style={{ width: 132 }}>
+                  <div className="flex items-center gap-1.5">
+                    <span aria-hidden="true" className="w-2 h-2 rounded-full shrink-0" style={{ background: m.color, boxShadow: `0 0 5px ${m.color}80` }} />
+                    <span className="text-xs font-bold text-zinc-100 truncate flex-1">{m.name}</span>
+                    {inChain && <span role="img" aria-label="In chain" className="w-1.5 h-1.5 rounded-full bg-fuchsia-400 shrink-0" />}
+                  </div>
+                  <div className="relative w-full h-20 rounded bg-[#0a0c14] border border-white/5 overflow-hidden">
+                    <ModuleThumb preview={m.preview} className="w-full h-full" />
+                  </div>
+                  <span className="text-xs font-semibold tabular-nums text-zinc-500 leading-tight line-clamp-2">{m.desc}</span>
+                </button>
+              );
+            })}
+            {/* Edit Tool Stack: every offline tool without a hero GUI opens the
+                schema-driven tool page, so all 49 tools are reachable from here. */}
+            <div className="basis-full flex items-center gap-2 px-1 pt-1">
+              <span className="text-xs font-black uppercase tracking-[0.18em] text-lime-300/80">Tool Stack</span>
+              <span className="text-xs font-semibold tabular-nums text-zinc-500">{TOOL_STACK_MODULES.length} offline tools</span>
+              <span className="flex-1 h-px bg-white/5" />
+            </div>
+            {TOOL_STACK_MODULES.map((m) => {
+              const active = p.activeModule?.id === m.id;
+              return (
+                <button key={`tool-${m.id}`} type="button" onClick={() => p.onPickModule(m.id)} title={m.desc}
+                  className={`group relative flex flex-col gap-1.5 rounded-md border overflow-hidden transition-all p-2 text-left ${active ? 'border-lime-400/60 ring-1 ring-lime-400/40 bg-lime-500/5' : 'border-white/8 bg-black/30 hover:border-white/20 hover:brightness-110'}`}
+                  style={{ width: 132 }}>
+                  <div className="flex items-center gap-1.5">
+                    <span aria-hidden="true" className="w-2 h-2 rounded-full shrink-0" style={{ background: m.color, boxShadow: `0 0 5px ${m.color}80` }} />
+                    <span className="text-xs font-bold text-zinc-100 truncate flex-1">{m.name}</span>
+                  </div>
+                  <div className="relative w-full h-20 rounded bg-[#0a0c14] border border-white/5 overflow-hidden">
+                    <ModuleThumb preview={m.preview} seed={m.id} className="w-full h-full" />
+                  </div>
+                  <span className="text-xs font-semibold tabular-nums text-zinc-500 leading-tight line-clamp-2">{m.category}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : p.activeCategory === 'vst' ? (
+        <div className="flex-1 overflow-y-auto min-h-0 flex flex-col">
+          <div className="flex items-center gap-2 px-1.5 pb-1.5 shrink-0">
+            <button onClick={p.rescanVst} disabled={p.vstScanning} className="btn-ghost inline-flex items-center gap-1 disabled:opacity-40" title="Rescan the standard VST3 folders">
+              {p.vstScanning ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />} Rescan
+            </button>
+            <span className="text-xs font-semibold text-zinc-500">host: pedalboard</span>
+          </div>
+          {p.vstPlugins.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center gap-2 py-8">
+              <Plug className="w-7 h-7 text-zinc-600" />
+              <span className="text-sm font-semibold text-zinc-400 text-center px-4">{vstBrowserEmptyText(p.vstScanning, p.vstUnavailableReason, p.vstInstallFolder)}</span>
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-3 content-start justify-center p-1.5">
+              {p.vstPlugins.map((pl) => {
+                const inChain = p.vstInChain.has(pl.path);
+                // The plugin's OWN name once the backend probe has read it; the
+                // file stem is only the fallback. The vendor already shows below
+                // as the muted secondary line.
+                const name = pl.display_name || pl.name;
+                return (
+                  <button key={pl.path} onClick={() => p.addVstToChain(pl)} title={pl.path}
+                    className={`group relative flex flex-col gap-1.5 rounded-md border overflow-hidden transition-all p-2 text-left ${inChain ? 'border-teal-400/60 ring-1 ring-teal-400/40 bg-teal-500/5' : 'border-white/8 bg-black/30 hover:border-white/20 hover:brightness-110'}`}
+                    style={{ width: 132 }}>
+                    <div className="flex items-center gap-1.5">
+                      <Plug className="w-3 h-3 text-teal-300 shrink-0" />
+                      <span className="text-xs font-bold text-zinc-100 truncate flex-1">{name}</span>
+                      {inChain && <span aria-label="In chain" className="w-1.5 h-1.5 rounded-full bg-teal-400 shrink-0" />}
+                    </div>
+                    <div className="relative w-full h-16 rounded bg-[#0a0c14] border border-white/5 overflow-hidden">
+                      <ModuleThumb preview={vstPreviewKey(pl.category)} seed={`${pl.name}|${pl.manufacturer}`} className="w-full h-full" />
+                    </div>
+                    <span className="text-xs font-semibold text-zinc-500 leading-tight line-clamp-2">{[pl.manufacturer, pl.version].filter(Boolean).join(' · ') || pl.category}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ) : p.activeCategory === 'plugins' ? (
+        <div className="flex-1 overflow-y-auto min-h-0 flex flex-col">
+          <div className="flex items-center gap-2 px-1.5 pb-1.5 shrink-0">
+            <button onClick={p.onOpenGan} disabled={p.ganBusy} className="btn-ghost inline-flex items-center gap-1 disabled:opacity-40" title="Open a .gan plugin file">
+              <FolderOpen className="w-3 h-3" /> Open .gan
+            </button>
+            <button onClick={p.onImportGan} disabled={p.ganBusy} className="btn-ghost inline-flex items-center gap-1 disabled:opacity-40" title="Import a VST Foundry export (project.json) into a .gan">
+              <Plus className="w-3 h-3" /> Import
+            </button>
+            {p.ganBusy && <Loader2 className="w-3 h-3 animate-spin text-zinc-500" />}
+          </div>
+          {p.ganPlugins.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center opacity-30 italic gap-2 py-8">
+              <Blocks className="w-7 h-7" />
+              <span className="text-xs font-semibold">No .gan plugins yet. Open or import one.</span>
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-3 content-start justify-center p-1.5">
+              {p.ganPlugins.map((pl) => {
+                const active = p.ganActiveId === pl.id;
+                return (
+                  <button key={pl.id} onClick={() => p.onPickGan(pl.id)}
+                    onContextMenu={(e) => { e.preventDefault(); p.onRevealGan(pl.gan_path); }}
+                    title={`${pl.name} — right-click to reveal the .gan in its folder`}
+                    className={`group relative flex flex-col gap-1.5 rounded-md border overflow-hidden transition-all p-2 text-left ${active ? 'border-indigo-400/60 ring-1 ring-indigo-400/40 bg-indigo-500/5' : 'border-white/8 bg-black/30 hover:border-white/20 hover:brightness-110'}`}
+                    style={{ width: 132 }}>
+                    <div className="flex items-center gap-1.5">
+                      <Blocks className="w-3 h-3 text-indigo-300 shrink-0" />
+                      <span className="text-xs font-bold text-zinc-100 truncate flex-1">{pl.name}</span>
+                      {active && <span aria-label="Open" className="w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0" />}
+                    </div>
+                    <span className="text-xs font-semibold tabular-nums text-zinc-500 leading-tight line-clamp-2">{pl.description || pl.kind}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ) : p.activeCategory === 'all' ? (() => {
+        // Everything in MIX, in either list or icon view. Order: Studio +
+        // Psychoacoustics first, then the backend effect categories.
+        const tile = p.viewMode === 'tile';
+        const boxCls = tile ? 'flex flex-wrap gap-3 content-start justify-center p-1' : 'flex flex-col gap-1';
+        return (
+          <div className="flex-1 overflow-y-auto"><div className="flex flex-col gap-2 content-start">
+            <div className="flex flex-col gap-1">
+              <AllHeader icon={Boxes} color="text-cyan-300" label="Studio" count={STUDIO_MODULES.length + 1} />
+              <div className={boxCls}>
+                {tile
+                  ? <ModuleTile key="ares" name="Ares" color="#ff3b3b" marked={p.ganActiveId === 'ares'} onClick={p.onPickAres} />
+                  : <ModuleRow key="ares" name="Ares" desc="XY Kaoss control surface" color="#ff3b3b" marked={p.ganActiveId === 'ares'} onClick={p.onPickAres} />}
+                {STUDIO_MODULES.map((m) => (tile
+                  ? <ModuleTile key={m.id} name={m.name} color={m.color} marked={p.activeModule?.id === m.id} onClick={() => p.onPickModule(m.id)} preview={m.preview} />
+                  : <ModuleRow key={m.id} name={m.name} desc={m.desc} color={m.color} marked={p.activeModule?.id === m.id} onClick={() => p.onPickModule(m.id)} />
+                ))}
+              </div>
+            </div>
+            <div className="flex flex-col gap-1">
+              <AllHeader icon={SlidersHorizontal} color="text-lime-300" label="Tool Stack" count={TOOL_STACK_MODULES.length} />
+              <div className={boxCls}>
+                {TOOL_STACK_MODULES.map((m) => (tile
+                  ? <ModuleTile key={m.id} name={m.name} color={m.color} marked={p.activeModule?.id === m.id} onClick={() => p.onPickModule(m.id)} preview={m.preview} />
+                  : <ModuleRow key={m.id} name={m.name} desc={m.desc} color={m.color} marked={p.activeModule?.id === m.id} onClick={() => p.onPickModule(m.id)} />
+                ))}
+              </div>
+            </div>
+            <div className="flex flex-col gap-1">
+              <AllHeader icon={Headphones} color="text-fuchsia-300" label="Psychoacoustics" count={PSYCHO_MODULES.length} />
+              <div className={boxCls}>
+                {PSYCHO_MODULES.map((m) => {
+                  const marked = p.selectedEntry?.effect === m.id || p.chainEffectIds.has(m.id);
+                  return tile
+                    ? <ModuleTile key={m.id} name={m.name} color={m.color} marked={marked} onClick={() => p.onPickPsycho(m.id)} preview={m.preview} />
+                    : <ModuleRow key={m.id} name={m.name} desc={m.desc} color={m.color} marked={marked} onClick={() => p.onPickPsycho(m.id)} />;
+                })}
+              </div>
+            </div>
+            {p.vstPlugins.length > 0 && (
+              <div className="flex flex-col gap-1">
+                <AllHeader icon={Plug} color="text-teal-300" label="VST3" count={p.vstPlugins.length} />
+                <div className={boxCls}>
+                  {p.vstPlugins.map((pl) => {
+                    const inChain = p.vstInChain.has(pl.path);
+                    // Vendor · version is the muted secondary label under the
+                    // plugin's own name (file stem only as the fallback). The
+                    // thumbnail seed stays on the FILE name so a plugin's
+                    // generated artwork does not change when a probe lands.
+                    const name = pl.display_name || pl.name;
+                    const desc = [pl.manufacturer, pl.version].filter(Boolean).join(' · ') || pl.category;
+                    return tile
+                      ? <ModuleTile key={pl.path} name={name} color="#2dd4bf" marked={inChain} onClick={() => p.addVstToChain(pl)} preview={vstPreviewKey(pl.category)} seed={`${pl.name}|${pl.manufacturer}`} />
+                      : <ModuleRow key={pl.path} name={name} desc={desc} color="#2dd4bf" marked={inChain} onClick={() => p.addVstToChain(pl)} />;
+                  })}
+                </div>
+              </div>
+            )}
+            {CATEGORY_META.map((cat) => {
+              const fxs = EFFECT_CATALOG[cat.id] || [];
+              if (!fxs.length) return null;
+              return (
+                <div key={cat.id} className="flex flex-col gap-1">
+                  <AllHeader icon={cat.icon} color={cat.tile.text} label={cat.label} count={fxs.length} />
+                  <div className={boxCls}>
+                    {fxs.map((fx) => {
+                      const inChain = p.chainEffectIds.has(fx.id);
+                      return tile
+                        ? <FxTile key={fx.id} name={fx.name} cat={cat} inChain={inChain} onClick={() => p.addEffect(fx.id)} preview={fxPreview[fx.id]} />
+                        : <FxRow key={fx.id} name={fx.name} desc={fx.desc} cat={cat} inChain={inChain} onClick={() => p.addEffect(fx.id)} />;
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div></div>
+        );
+      })() : p.viewMode === 'list' ? (
+        <div className="flex-1 overflow-y-auto"><div className="flex flex-col gap-1 content-start">
+          {p.activeEffects.map((fx) => {
+            const cat = fxToCategory[fx.id] ?? CATEGORY_META[0];
+            const inChain = p.chainEffectIds.has(fx.id);
+            return (
+              <div key={fx.id} onClick={() => p.addEffect(fx.id)}
+                className={`flex items-center gap-2 border rounded px-3 py-2 cursor-pointer transition-all ${inChain ? 'border-white/30 bg-white/5' : 'border-zinc-800 hover:border-white/25 hover:bg-white/5'}`}>
+                <span aria-hidden="true" className={`w-2 h-2 rounded-full shrink-0 ${cat.dot}`} />
+                <div className="flex-1 min-w-0">
+                  <span className={`text-xs font-semibold block truncate ${cat.tile.text}`}>{fx.name}</span>
+                  <p className="text-xs font-semibold text-zinc-500 truncate mt-0.5">{fx.desc}</p>
+                </div>
+                {inChain && <span className={`w-2 h-2 rounded-full shrink-0 ${cat.dot}`} />}
+              </div>
+            );
+          })}
+        </div></div>
+      ) : (
+        <div className="flex-1 overflow-y-auto"><div className="flex flex-wrap gap-3 content-start justify-center p-1.5">
+          {p.activeEffects.map((fx) => {
+            const inChain = p.chainEffectIds.has(fx.id);
+            const cat = fxToCategory[fx.id] ?? CATEGORY_META[0];
+            return <FxTile key={fx.id} name={fx.name} cat={cat} inChain={inChain} onClick={() => p.addEffect(fx.id)} preview={fxPreview[fx.id]} />;
+          })}
+        </div></div>
+      )}
+    </div>
+  ));
+
+  /* ── chain — horizontal signal flow, left → right ── */
+  pinned('chain', 'Chain', (
+    <div className="h-full w-full flex flex-col min-h-0 overflow-hidden p-2">
+      <div className="flex items-center gap-2 mb-1.5 shrink-0">
+        <span className={sectionTitle}>Chain {p.chain.length > 0 && <span className="text-zinc-600">({p.chain.length})</span>}</span>
+        <div className="ml-auto flex items-center gap-1.5">
+          <label htmlFor="mix-output-format" className="text-xs font-semibold tabular-nums text-zinc-500 shrink-0">FORMAT</label>
+          <select id="mix-output-format" name="mix-output-format" className="compact-input text-xs w-20" value={p.outputFormat} onChange={(e) => p.setOutputFormat(e.target.value)}>
+            <option value="wav">WAV</option><option value="flac">FLAC</option><option value="mp3">MP3</option><option value="ogg">OGG</option>
+          </select>
+          <button onClick={() => p.setShowHistory(!p.showHistory)} title="Process history" className={`btn-ghost p-1 shrink-0 ${p.showHistory ? 'text-purple-300' : 'text-zinc-500 hover:text-zinc-300'}`}><History className="w-3.5 h-3.5" /></button>
+          {p.chain.length > 0 && <button className="text-zinc-600 hover:text-red-400 transition-colors shrink-0" onClick={p.clearChain} title="Clear chain"><Trash2 className="w-3.5 h-3.5" /></button>}
+        </div>
+      </div>
+      {p.showHistory && (
+        <div className="max-h-14 overflow-y-auto flex flex-col gap-0.5 mb-1.5 shrink-0">
+          {p.processHistory.length === 0 ? <span className="text-xs font-semibold tabular-nums text-zinc-600 px-1">No process jobs yet.</span> : p.processHistory.map((h) => (
+            <div key={h.id} className="flex items-center justify-between px-1.5 py-0.5 bg-white/5 rounded">
+              <span className="text-xs font-bold text-zinc-300 uppercase truncate">{EFFECT_LABELS[h.effect] || h.effect}</span>
+              <span className="text-xs font-semibold tabular-nums text-zinc-600 shrink-0">{new Date(h.createdAt).toLocaleTimeString()}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="flex-1 overflow-x-auto overflow-y-hidden flex flex-row items-stretch gap-0 min-h-0">
+        {p.chain.length === 0 ? (
+          <div className="flex-1 flex items-center justify-center px-2"><span className="text-xs font-semibold text-zinc-600 text-center">Add effects from the library — they flow left → right</span></div>
+        ) : (
+          p.chain.map((entry, index) => (
+            <React.Fragment key={entry.id}>
+              {index > 0 && <div className="self-center px-0.5 text-zinc-700 shrink-0"><ChevronRight className="w-3 h-3" /></div>}
+              <div onClick={() => p.setSelectedId(entry.id)}
+                className={`rounded p-1.5 border transition-all cursor-pointer shrink-0 w-40 flex flex-col ${p.selectedEntry?.id === entry.id ? 'border-purple-500/60 bg-purple-500/5' : 'border-zinc-800 hover:border-white/10'} ${!entry.enabled ? 'opacity-40' : ''}`}>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button className="text-zinc-600 hover:text-purple-400 disabled:opacity-20 shrink-0" disabled={index === 0} title="Move earlier" onClick={(e) => { e.stopPropagation(); p.reorder(index, index - 1); }}><ChevronLeft className="w-3 h-3" /></button>
+                  {/* A VST row is named after the PLUGIN; vstEntryName keeps an
+                      entry whose stored name is empty off the bare format id
+                      'vst3', which names the host library, not the effect. */}
+                  <span className="text-xs tabular-nums text-purple-300 font-semibold flex-1 truncate">{entry.vst ? vstEntryName(entry.vst.plugin_name, entry.vst.plugin_path) : (EFFECT_LABELS[entry.effect] || getRackEffect(entry.effect)?.label || entry.effect)}</span>
+                  {entry.vst && (
+                    <button
+                      className={`shrink-0 ${entry.vst.raw_state ? 'text-teal-400 hover:text-teal-300' : 'text-zinc-500 hover:text-teal-300'}`}
+                      title={entry.vst.raw_state ? "Edit plugin GUI (custom settings saved)" : "Open the plugin's native GUI"}
+                      onClick={(e) => { e.stopPropagation(); p.onEditVst(entry); }}
+                    >
+                      <SlidersHorizontal className="w-3 h-3" />
+                    </button>
+                  )}
+                  <button className="text-zinc-500 hover:text-purple-400 shrink-0" onClick={(e) => { e.stopPropagation(); p.toggleEnabled(entry.id); }}>{entry.enabled ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}</button>
+                  <button className="text-zinc-600 hover:text-red-400 shrink-0" onClick={(e) => { e.stopPropagation(); p.removeEffect(entry.id); }}><X className="w-3 h-3" /></button>
+                  <button className="text-zinc-600 hover:text-purple-400 disabled:opacity-20 shrink-0" disabled={index === p.chain.length - 1} title="Move later" onClick={(e) => { e.stopPropagation(); p.reorder(index, index + 1); }}><ChevronRight className="w-3 h-3" /></button>
+                </div>
+                {Object.keys(entry.params).length > 0 && (() => {
+                  // Every effect with a schema gets the real control panel (grouped
+                  // knobs with units, curves, presets, mix); bare rows only remain for
+                  // an id the schema layer does not know.
+                  const schema = schemaForEffectId(entry.effect);
+                  return (
+                    <div className="flex flex-col gap-1 mt-1.5 overflow-y-auto min-h-0" onClick={(e) => e.stopPropagation()}>
+                      {schema ? (
+                        <EffectControls
+                          schema={schema}
+                          params={entry.params}
+                          idPrefix={`mix-${entry.id}`}
+                          hideHeader
+                          onChange={(np) => p.updateParams(entry.id, np)}
+                        />
+                      ) : Object.entries(entry.params).map(([key, val]) => {
+                        const rd = getRackEffect(entry.effect)?.params.find((pp) => pp.key === key);
+                        const [min, max, step] = PARAM_BOUNDS[entry.effect]?.[key] || (rd ? [rd.min, rd.max, rd.step] : [0, 1, 0.01]);
+                        return <SlideRow key={key} label={rd?.label || prettyParam(key)} value={val} min={min} max={max} step={step} onChange={(v) => p.updateParams(entry.id, { ...entry.params, [key]: v })} />;
+                      })}
+                    </div>
+                  );
+                })()}
+              </div>
+            </React.Fragment>
+          ))
+        )}
+      </div>
+    </div>
+  ));
+
+  /* ── effect stage — THE LIVE VIEW only. Shows the active plugin/instrument or the
+     selected chain entry's live viz. A selected spatializer entry gets The Owl's
+     dedicated surface (which drives that entry's params in the ONE chain); every
+     other selected entry shows its EffectsVizPanel. No rack editor here. ── */
+  const selected = p.selectedEntry;
+  pinned('effectStage', 'Effect Stage', (
+    p.vstEmbed
+      ? <VstEmbedHost pluginPath={p.vstEmbed.pluginPath} pluginName={p.vstEmbed.pluginName} error={p.vstEmbed.error} onClose={p.onCloseVstEmbed} />
+    : p.ganActiveUrl
+      ? <GanPluginStage url={p.ganActiveUrl} name={p.ganActiveName} />
+    : p.activeMagentaTool
+      ? <MagentaToolStage tool={p.activeMagentaTool} />
+    : p.activeModule
+      ? <EffectGuiStage module={p.activeModule} sourceFile={p.sourceFile} />
+    : selected?.vst
+      ? (
+        /* A selected VST3 chain entry gets an actionable stage card instead of
+           the generic viz: its REAL UI is the plugin's native editor window,
+           which cannot render inline here. The editor is deliberately NOT
+           reopened automatically on mount: vstEditorStore closes it on tab
+           leave BY DESIGN because a native OS window must not float over other
+           tabs, and an auto-reopen would resurrect that floating window on
+           every return to MIX. One click on the button below reopens it via
+           the exact same handler as the chain row's GUI button, and the
+           dialed-in sound is safe either way because raw_state persists on the
+           chain entry. */
+        <div className="h-full w-full min-h-0 grid place-items-center p-2">
+          <div className="flex flex-col gap-2 rounded-md border border-teal-500/25 bg-black/40 px-4 py-3 min-w-56">
+            <div className="flex items-center gap-1.5">
+              <Plug className="w-3.5 h-3.5 text-teal-300 shrink-0" />
+              <span className="text-xs font-bold text-zinc-100 truncate">{vstEntryName(selected.vst.plugin_name, selected.vst.plugin_path)}</span>
+            </div>
+            {selected.vst.raw_state && <span className="text-xs font-semibold tabular-nums text-teal-400">settings saved</span>}
+            <button
+              type="button"
+              aria-label="Open plugin GUI"
+              onClick={() => p.onEditVst(selected)}
+              className="btn-ghost text-xs font-semibold py-1 flex items-center justify-center gap-1 text-teal-300 border-teal-500/20 bg-teal-500/5"
+            >
+              <SlidersHorizontal className="w-3 h-3" /> Open plugin GUI
+            </button>
+          </div>
+        </div>
+      )
+    : selected && selected.effect === 'spatializer'
+      ? <TheOwl params={selected.params} idPrefix={`mix-owl-${selected.id}`} onChange={(np) => p.updateParams(selected.id, np)} />
+    : selected
+      ? (() => {
+          const schema = schemaForEffectId(selected.effect);
+          if (!schema) return <EffectsVizPanel effect={selected.effect} params={selected.params} enabled={selected.enabled} className="h-full! border-purple-500/15!" />;
+          return (
+            <div className="h-full min-h-0 flex flex-col gap-2">
+              <div className="shrink-0 max-h-[62%] overflow-y-auto rounded border border-purple-500/15 bg-black/30">
+                <EffectControls
+                  schema={schema}
+                  params={selected.params}
+                  idPrefix={`mix-stage-${selected.id}`}
+                  layout="expanded"
+                  enabled={selected.enabled}
+                  onToggleEnabled={() => p.toggleEnabled(selected.id)}
+                  onChange={(np) => p.updateParams(selected.id, np)}
+                />
+              </div>
+              <EffectsVizPanel effect={selected.effect} params={selected.params} enabled={selected.enabled} className="flex-1 min-h-0 border-purple-500/15!" />
+            </div>
+          );
+        })()
+      : <EffectGuiStage module={null} sourceFile={p.sourceFile} />
+  ));
+
+  return reg;
+}
+
+/* ═══════════════════════════════ MixView ═══════════════════════════════════ */
+
+/* ── The master-insert strip — the live rack, said out loud ──────────────────
+   The psychoacoustic half of THE chain is spliced onto the GLOBAL master insert
+   on the first MIX mount and stays there for the session, so a chain left
+   enabled in an earlier session colours — and, with a spatializer or a gate in
+   it, quietly attenuates — everything the transport plays, in every tab. Nothing
+   on screen used to say so, which is how an attenuator becomes invisible. This
+   strip names what is on the insert right now, marks the entries that take level
+   rather than only colour, focuses one in the chain when clicked, and switches
+   the lot off in one press. It renders nothing at all while the insert is clean,
+   which is the normal case. */
+const MasterInsertStrip: React.FC<{ entries: ChainEntry[]; onPick: (id: string) => void }> = ({ entries, onPick }) => {
+  if (entries.length === 0) return null;
+  const takers = entries.filter((e) => LEVEL_TAKING_RACK_IDS.has(e.effect)).length;
+  return (
+    <div className="shrink-0 flex items-center gap-3 px-3 py-1.5 bg-[#0a080f] border-y border-purple-500/25 shadow-[0_0_20px_rgba(168,85,247,0.12)]">
+      <span className="flex items-center gap-1.5 shrink-0">
+        <Activity className="w-3 h-3 text-purple-300" />
+        <span className={sectionTitle}>Live on master</span>
+      </span>
+      <span className="hidden md:block shrink-0 text-xs font-semibold tabular-nums text-zinc-500">
+        on everything the transport plays, in every tab
+      </span>
+      <div className="flex items-center gap-1.5 flex-1 min-w-0 overflow-x-auto">
+        {entries.map((e) => {
+          const label = rackEntryLabel(e);
+          const takesLevel = LEVEL_TAKING_RACK_IDS.has(e.effect);
+          return (
+            <button
+              key={e.id}
+              type="button"
+              onClick={() => onPick(e.id)}
+              title={takesLevel
+                ? `${label} — on the master insert, and it takes level, not just colour`
+                : `${label} — on the master insert`}
+              className={`shrink-0 px-1.5 py-0.5 rounded border text-xs font-bold uppercase tracking-widest transition-colors ${
+                takesLevel
+                  ? 'border-amber-500/40 bg-amber-500/5 text-amber-300 hover:border-amber-400/70'
+                  : 'border-purple-500/30 bg-purple-500/5 text-purple-200 hover:border-purple-400/70'
+              }`}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+      {takers > 0 && (
+        <span className="shrink-0 text-xs font-semibold tabular-nums text-amber-300">
+          {takers === 1 ? '1 of these takes level' : `${takers} of these take level`}
+        </span>
+      )}
+      <button
+        type="button"
+        onClick={bypassLiveRack}
+        title="Switch every live-rack effect off — the master goes back to a clean passthrough. The chain is kept."
+        className="shrink-0 px-2 py-0.5 rounded border border-purple-500/40 bg-purple-500/10 text-xs font-black uppercase tracking-widest text-purple-200 hover:bg-purple-500/20 hover:border-purple-400/70 transition-colors"
+      >
+        Bypass all
+      </button>
+    </div>
+  );
+};
+
+export const MixView: React.FC = () => {
+  const sourceFile = useAdvancedEditorSourceStore((s) => s.sourceFile);
+  const outputUrl = useAdvancedEditorSourceStore((s) => s.outputUrl);
+  const setSource = useAdvancedEditorSourceStore((s) => s.setSource);
+
+  const chain = useEffectChainStore((s) => s.chain) as ChainEntry[];
+  // What the live rack is actually doing to the global master right now — the
+  // strip below the viz rack is the only place that says so (see mixLiveRack).
+  const rackAttached = useMixLiveRackStore((s) => s.attached);
+  const liveRack = useMemo(() => liveRackEntries(chain, rackAttached), [chain, rackAttached]);
+  const addEffect = useEffectChainStore((s) => s.addEffect);
+  // Psychoacoustic effects are first-class members of THE chain (added via
+  // addRackEffect so they seed rack defaults, not the backend EFFECT_DEFAULTS).
+  const addRackEffect = useEffectChainStore((s) => s.addRackEffect);
+  const addVst = useEffectChainStore((s) => s.addVst);
+  // VST3 plugins for the effects browser (hosted via pedalboard).
+  const vstPlugins = useVstStore((s) => s.plugins);
+  const vstScanning = useVstStore((s) => s.scanning);
+  const vstUnavailableReason = useVstStore((s) => s.unavailableReason);
+  const vstInstallFolder = useVstStore((s) => s.installFolder);
+  const scanVst = useVstStore((s) => s.scan);
+  // .gan web-plugins (generic loader) for the MIX effect stage.
+  const ganPlugins = useGanStore((s) => s.plugins);
+  const ganActiveId = useGanStore((s) => s.activeId);
+  const ganActiveUrl = useGanStore((s) => s.activeUrl);
+  const ganActiveName = useGanStore((s) => s.activeName);
+  const ganBusy = useGanStore((s) => s.busy);
+  const ganRefresh = useGanStore((s) => s.refresh);
+  const ganOpenPath = useGanStore((s) => s.openPath);
+  const ganOpenById = useGanStore((s) => s.openById);
+  const ganImportOwl = useGanStore((s) => s.importOwl);
+  const ganEnsureAres = useGanStore((s) => s.ensureAres);
+  const ganClose = useGanStore((s) => s.close);
+  const removeEffect = useEffectChainStore((s) => s.removeEffect);
+  const updateParams = useEffectChainStore((s) => s.updateParams);
+  const toggleEnabled = useEffectChainStore((s) => s.toggleEnabled);
+  const reorder = useEffectChainStore((s) => s.reorder);
+  const clearChain = useEffectChainStore((s) => s.clearChain);
+  const setVstRawState = useEffectChainStore((s) => s.setVstRawState);
+  // The app-wide embedded VST editor session lives in vstEditorStore (ONE native
+  // editor window exists at a time; leaving the owning tab closes it). The Effect
+  // Stage hosts it only while MIX owns it; EDIT hosts it in its own popup.
+  const vstSessionEntryId = useVstEditorStore((s) => s.entryId);
+  const vstSessionPath = useVstEditorStore((s) => s.pluginPath);
+  const vstSessionName = useVstEditorStore((s) => s.pluginName);
+  const vstSessionError = useVstEditorStore((s) => s.error);
+  const vstSessionOwnerTab = useVstEditorStore((s) => s.ownerTab);
+  const vstEmbed = vstSessionEntryId && vstSessionPath && vstSessionName && vstSessionOwnerTab === 'mix'
+    ? { entryId: vstSessionEntryId, pluginPath: vstSessionPath, pluginName: vstSessionName, error: vstSessionError ?? undefined }
+    : null;
+
+  const outputFormat = useStudioStore((s) => s.outputFormat);
+  const setOutputFormat = useStudioStore((s) => s.setOutputFormat);
+  const isChainProcessing = useStudioStore((s) => s.isChainProcessing);
+  const processHistory = useStudioStore((s) => s.processHistory);
+
+  const [activeCategory, setActiveCategory] = useState('all');
+  const [viewMode, setViewMode] = useState<'list' | 'tile'>('tile');
+  // The three Effect Stage selectors live in mixStageStore (module scope, no
+  // persist) because DAWCenterPanel fully unmounts MixView on tab leave; local
+  // useState would reset them and a tab round-trip would land the stage on the
+  // EffectsVizPanel placeholder instead of the selected effect's real UI.
+  const selectedChainId = useMixStageStore((s) => s.selectedChainId);
+  const setSelectedChainId = useMixStageStore((s) => s.setSelectedChainId);
+  const activeModuleId = useMixStageStore((s) => s.activeModuleId);
+  const setActiveModuleId = useMixStageStore((s) => s.setActiveModuleId);
+  // The Magenta RT2 tool focused in the Effect Stage (Collider / Jam / MRT2).
+  const activeMagentaId = useMixStageStore((s) => s.activeMagentaId);
+  const setActiveMagentaId = useMixStageStore((s) => s.setActiveMagentaId);
+  const [srcStats, setSrcStats] = useState<AudioStats | null>(null);
+  const [outStats, setOutStats] = useState<AudioStats | null>(null);
+  const [dragOverSource, setDragOverSource] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [inputMode, setInputMode] = useState<MixVizMode>('wave');
+  const [outputMode, setOutputMode] = useState<MixVizMode>('wave');
+  const [inputOverlay, setInputOverlay] = useState(false);
+  const [outputOverlay, setOutputOverlay] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Quick Master knob values BEFORE a mastering_chain entry exists. Once one is
+  // in the chain the entry itself is the source of truth (see quickMaster below),
+  // so this draft only ever seeds the very first add.
+  const [draftMaster, setDraftMaster] = useState<Record<string, number>>(() => ({ ...EFFECT_DEFAULTS.mastering_chain }));
+
+  const sourceUrl = useMemo(() => (sourceFile ? URL.createObjectURL(sourceFile) : null), [sourceFile]);
+  useEffect(() => () => { if (sourceUrl) URL.revokeObjectURL(sourceUrl); }, [sourceUrl]);
+
+  // Wire the psychoacoustic rack onto the footer's master insert so it is heard
+  // LIVE on the transport and is never rebuilt when a new clip is applied. Attached
+  // once for the session; an empty rack is a clean passthrough (see mixLiveRack).
+  useEffect(() => { attachMixLiveRack(); }, []);
+
+  // Populate the VST3 browser on first open (cached scan — cheap).
+  useEffect(() => { void scanVst(false); }, [scanVst]);
+  // Populate the installed .gan plugin list on first open, then make sure the
+  // bundled Ares control surface is packaged so it shows as a Studio tile.
+  useEffect(() => { void ganRefresh().then(() => ganEnsureAres()); }, [ganRefresh, ganEnsureAres]);
+
+  // A tab round-trip restores the stage selection from mixStageStore, but the
+  // Ares .gan surface itself may not survive it: EDIT's unmount cleanup closes
+  // a shared Ares session on tab leave. If the restored selected entry is the
+  // 'ares' composite effect, re-open its surface once on mount so the stage
+  // shows the real UI instead of the generic viz. Guard rationale: the
+  // ganStore activeId must be null so a DIFFERENT live .gan plugin the user
+  // left open is never hijacked (ganStore is global and survives tab leaves),
+  // and no explicitly restored module or Magenta stage may exist because those
+  // outrank the chain selection in the stage ladder. selectChain is NOT reused
+  // here because it ganClose()s for non-ares entries, which would kill a
+  // restored gan session. The gan setters are zustand-bound and stable, so
+  // this effect runs once per mount.
+  useEffect(() => {
+    const { selectedChainId: restoredId, activeModuleId: restoredModule, activeMagentaId: restoredMagenta } = useMixStageStore.getState();
+    if (restoredModule || restoredMagenta) return;
+    const chainNow = useEffectChainStore.getState().chain;
+    const entry = chainNow.find((e) => e.id === restoredId) ?? chainNow[0] ?? null;
+    if (!entry || entry.effect !== 'ares') return;
+    if (useGanStore.getState().activeId !== null) return;
+    void (async () => {
+      // Sequence through ensureAres before opening: the sibling mount effect
+      // fires ganRefresh().then(ganEnsureAres) in the same tick, and
+      // package-ares rewrites the installed runtime files in place, so opening
+      // without waiting could iframe half-written files. ensureAres dedups
+      // concurrent calls in ganStore, so both mount paths share one run.
+      await ganEnsureAres();
+      // Re-check the guard after the await: an openPath/openById the user
+      // started while the ensure ran (busy while in flight, activeId once
+      // resolved) must win; the auto re-open must never resolve last and
+      // steal the stage from an explicitly opened plugin.
+      const gs = useGanStore.getState();
+      if (gs.activeId !== null || gs.busy) return;
+      await ganOpenById('ares');
+    })();
+  }, [ganEnsureAres, ganOpenById]);
+
+  // ── Ares control surface -> live effect params ─────────────────────────────
+  // The Ares .gan XY pad postMessages {type:'updateValue', id, valueX, valueY,
+  // valueZ}; drive the focused (else first) psychoacoustic chain entry's params
+  // from it — its first up-to-three params take X / Y / Z. rAF-coalesced so 60fps
+  // input never thrashes the store (mixLiveRack pushes params without a rebuild,
+  // so it stays click-free). If no rack effect is in the chain yet, one owlpad is
+  // added so the pad always has something audible to move.
+  const aresXyId = useMemo(() => {
+    const a = ganPlugins.find((pl) => pl.id === 'ares');
+    return a?.controls.find((c) => c.name === 'ares_xy_kaoss_pad')?.id ?? ARES_XY_PAD_FALLBACK_ID;
+  }, [ganPlugins]);
+  const aresXyIdRef = useRef(aresXyId);
+  aresXyIdRef.current = aresXyId;
+  // Ares .gan controls -> the single 'ares' composite chain effect, via the
+  // shared bridge (lib/aresBridge: XY pad -> macro params, mapped controls ->
+  // their params, rAF-coalesced). Registered for the life of the MIX view;
+  // EDIT's Ares popup takes ownership only while it is open.
+  useEffect(() => registerAresBridge({
+    getXyPadId: () => aresXyIdRef.current,
+    findEntry: () => useEffectChainStore.getState().chain.find((e) => e.effect === 'ares') ?? null,
+    updateParams: (id, params) => useEffectChainStore.getState().updateParams(id, params),
+  }), []);
+  usePowerModeBridge();
+
+  // While Ares is open, feed the live master output level into its .gan so its
+  // level meter reflects the real signal (pushed down through the runtime relay).
+  useEffect(() => {
+    if (ganActiveId !== 'ares') return;
+    const analyser = getAnalyser();
+    const buf = new Uint8Array(analyser.fftSize);
+    let raf = 0;
+    let alive = true;
+    let skip = false;
+    const tick = () => {
+      if (!alive) return;
+      raf = requestAnimationFrame(tick);
+      // 30 fps is plenty for a smoothed VU, and nothing is pushed until the
+      // runtime has revealed (data-ready): before that its element frames are
+      // still loading, and a 60 fps broadcast into two dozen frames only
+      // slowed that load down.
+      skip = !skip;
+      if (skip) return;
+      // Resolved via the stage's accessor so the meter keeps feeding the
+      // runtime when the plugin is popped out into its own window.
+      const frame = getGanStageFrame();
+      if (!frame || frame.dataset.ready !== '1') return;
+      analyser.getByteTimeDomainData(buf);
+      let sum = 0;
+      for (let i = 0; i < buf.length; i += 1) { const v = (buf[i] - 128) / 128; sum += v * v; }
+      const level = Math.min(1, Math.sqrt(sum / buf.length) * 3);
+      frame.contentWindow?.postMessage({ type: 'level', value: level }, '*');
+    };
+    raf = requestAnimationFrame(tick);
+    return () => { alive = false; cancelAnimationFrame(raf); };
+  }, [ganActiveId]);
+
+  useEffect(() => {
+    if (!sourceFile) { setSrcStats(null); return; }
+    analyzeAudio(sourceFile).then(setSrcStats).catch(() => setSrcStats(null));
+  }, [sourceFile]);
+  useEffect(() => {
+    if (!outputUrl) { setOutStats(null); return; }
+    analyzeAudio(outputUrl).then(setOutStats).catch(() => setOutStats(null));
+  }, [outputUrl]);
+
+  const setSourceBoth = (file: File | null) => {
+    setSource(file);
+    useStudioStore.getState().setSourceFile(file);
+    // Bind the MIX working file to the footer transport so pressing Play auditions
+    // it LIVE through the master rack. The rack stays put across source swaps, so a
+    // new clip starts cleanly without tearing down or restarting the effects.
+    if (file) void usePlayerStore.getState().load(file, { label: file.name });
+  };
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault(); setDragOverSource(false);
+    const file = await fileFromDrop(e);
+    if (file) setSourceBoth(file);
+  };
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (f) setSourceBoth(f);
+    e.target.value = '';
+  };
+
+  const masterEntry = chain.find((e) => e.effect === 'mastering_chain');
+  // The saved chain entry outranks any local value: DAWCenterPanel unmounts
+  // MixView on tab leave, so knobs held only in useState came back as
+  // EFFECT_DEFAULTS after a round-trip and the next Sync Master click wrote
+  // those defaults over the mastering settings the user had dialed in. Reading
+  // the persisted entry instead means a saved chain always wins, while the
+  // defaults spread still fills any knob a pre-existing entry predates (and
+  // gives a first run sensible values through draftMaster).
+  const quickMaster = useMemo(
+    () => ({ ...EFFECT_DEFAULTS.mastering_chain, ...(masterEntry ? masterEntry.params : draftMaster) }),
+    [masterEntry, draftMaster],
+  );
+  const setQuickParam = (key: string, v: number) => {
+    const m = useEffectChainStore.getState().chain.find((e) => e.effect === 'mastering_chain');
+    if (m) updateParams(m.id, { ...m.params, [key]: v });
+    else setDraftMaster((qm) => ({ ...qm, [key]: v }));
+  };
+  const applyQuickMaster = () => {
+    const existing = useEffectChainStore.getState().chain.find((e) => e.effect === 'mastering_chain');
+    if (existing) {
+      // Sync on an existing entry is a focus action: setQuickParam already
+      // wrote every knob edit straight to it. Spreading its own params LAST
+      // keeps the write idempotent and stops it from clobbering params the
+      // four knobs do not expose.
+      updateParams(existing.id, { ...quickMaster, ...existing.params });
+      setSelectedChainId(existing.id);
+    } else {
+      addEffect('mastering_chain');
+      const next = useEffectChainStore.getState().chain;
+      const added = next[next.length - 1];
+      if (added) { updateParams(added.id, { ...added.params, ...draftMaster }); setSelectedChainId(added.id); }
+    }
+  };
+
+  // Save As on this machine, so the output's path is remembered; a remote
+  // browser gets a download.
+  const handleDownload = () => {
+    if (!outputUrl) return;
+    void saveFile({ url: outputUrl, suggestedName: `mix-output.${outputFormat}`, kind: 'audio', title: 'Save the MIX output' });
+  };
+  const handleSendToDAW = async () => {
+    if (!outputUrl) return;
+    try {
+      const blob = await fetch(outputUrl).then((r) => r.blob());
+      await usePlayerStore.getState().load(blob, { label: `mix-output.${outputFormat}` });
+    } catch { /* non-fatal */ }
+    useAppUiStore.getState().setCenterTab('edit');
+  };
+  const handleSendToInpaint = async () => {
+    if (!outputUrl) return;
+    try {
+      const blob = await fetch(outputUrl).then((r) => r.blob());
+      const file = new File([blob], `mix-output.${outputFormat}`, { type: blob.type });
+      useGenerateParamsStore.getState().patch({ inpaintAudioFile: file, inpaintEnabled: true, maskStart: 0, maskEnd: 0 });
+    } catch { /* non-fatal */ }
+    useAppUiStore.getState().setCenterTab('make');
+  };
+
+  const allEffects = Object.values(EFFECT_CATALOG).flat();
+  const activeEffects = activeCategory === 'all' ? allEffects : (EFFECT_CATALOG[activeCategory] || []);
+  const chainEffectIds = new Set(chain.map((e) => e.effect));
+  const vstInChain = new Set(chain.filter((e) => e.vst).map((e) => e.vst!.plugin_path));
+  // A new chain entry stores the plugin's OWN name where the backend probe has
+  // read one, so the chain reads the way the vendor names the plugin rather
+  // than the way its file happens to be named. Entries added before the probe
+  // landed keep the stem they were stored with — the chain is the record of
+  // what the user added, not a live view of the scan.
+  const addVstToChain = (pl: Vst3PluginInfo) =>
+    addVst({ plugin_path: pl.path, plugin_name: pl.display_name || pl.name });
+  const selectedEntry = chain.find((e) => e.id === selectedChainId) ?? chain[0] ?? null;
+
+  // Open a VST3 plugin's REAL native GUI (pedalboard show_editor in a sidecar
+  // process) via the shared vstEditorStore, which polls for the captured state
+  // and stores it on this chain entry (setVstRawState) so the dialed-in sound is
+  // reused at process time. The editor is a native OS window, so the user tweaks
+  // it there and closes it to commit.
+  const handleEditVst = (entry: ChainEntry) => {
+    useVstEditorStore.getState().open(entry, setVstRawState);
+  };
+
+  // Clicking a VST in the browser adds it to the chain (once) AND opens its GUI
+  // immediately — no separate "Edit GUI" step. Re-clicking one already in the
+  // chain just (re)opens its editor instead of adding a duplicate.
+  const addAndEditVst = (pl: Vst3PluginInfo) => {
+    let entry = useEffectChainStore.getState().chain.find((e) => e.vst?.plugin_path === pl.path);
+    if (!entry) {
+      addVstToChain(pl);
+      entry = [...useEffectChainStore.getState().chain].reverse().find((e) => e.vst?.plugin_path === pl.path);
+    }
+    if (entry) handleEditVst(entry as ChainEntry);
+  };
+
+  // The instrument shown in the effect stage: an explicitly-picked Studio Module
+  // takes priority; otherwise the selected chain effect opens its mapped module.
+  const mappedModuleId = selectedEntry ? effectToModuleId[selectedEntry.effect] : undefined;
+  const activeModule: StudioModule | null =
+    (activeModuleId ? moduleById[activeModuleId] : undefined)
+    ?? (mappedModuleId ? moduleById[mappedModuleId] : undefined)
+    ?? null;
+
+  // Picking a module from the library toggles its instrument open/closed. The
+  // toggle reads the store directly because the store setter takes a plain
+  // value, not a functional updater.
+  const handlePickModule = (id: string) => { ganClose(); setActiveMagentaId(null); setActiveModuleId(useMixStageStore.getState().activeModuleId === id ? null : id); };
+  // Selecting a chain entry hands the stage back to the effect→module mapping.
+  const selectChain = (id: string) => {
+    setActiveMagentaId(null); setActiveModuleId(null); setSelectedChainId(id);
+    // Ares' real UI is its .gan surface — (re)open it when its entry is selected
+    // instead of falling back to the generic viz; any other effect closes the .gan.
+    const entry = useEffectChainStore.getState().chain.find((e) => e.id === id);
+    if (entry?.effect === 'ares') {
+      void (async () => {
+        if (!useGanStore.getState().plugins.some((p) => p.id === 'ares')) await ganEnsureAres();
+        await ganOpenById('ares');
+      })();
+    } else {
+      ganClose();
+    }
+  };
+  // Picking a psychoacoustic tile adds it to THE chain (seeded with rack defaults)
+  // and focuses it, so the effect stage shows its live view. If it is already in
+  // the chain, just focus the existing entry.
+  const handlePickPsycho = (id: string) => {
+    ganClose();
+    setActiveModuleId(null);
+    setActiveMagentaId(null);
+    const existing = useEffectChainStore.getState().chain.find((e) => e.effect === id);
+    if (existing) { setSelectedChainId(existing.id); return; }
+    addRackEffect(id);
+    const next = useEffectChainStore.getState().chain;
+    const added = next[next.length - 1];
+    if (added) setSelectedChainId(added.id);
+  };
+  // Picking a Magenta tool opens its generative instrument in the Effect Stage;
+  // clicking the focused one again closes it. Mutually exclusive with the above.
+  const activeMagentaTool: MagentaTool | null = activeMagentaId ? magentaToolById[activeMagentaId] ?? null : null;
+  const handlePickMagenta = (id: string) => {
+    ganClose();
+    setActiveModuleId(null);
+    setActiveMagentaId(useMixStageStore.getState().activeMagentaId === id ? null : id);
+  };
+  // .gan loader: pick/import sets the active plugin and yields the stage to it.
+  const reportPickFailed = (e: unknown) => {
+    const msg = e instanceof Error ? e.message : String(e);
+    logError('mix', msg);
+    useStatusBarStore.getState().setText(`OPEN FAILED: ${msg}`, { source: 'mix' });
+  };
+  const handleOpenGan = async () => {
+    let r: Awaited<ReturnType<typeof pickFile>>;
+    try {
+      r = await pickFile({ filter: GAN_FILTER, title: 'Open a .gan plugin', kind: 'gan' });
+    } catch (e) {
+      reportPickFailed(e);
+      return;
+    }
+    if (!r.path) return;
+    setActiveModuleId(null); setActiveMagentaId(null);
+    await ganOpenPath(r.path);
+  };
+  const handleImportGan = async () => {
+    let r: Awaited<ReturnType<typeof pickFile>>;
+    try {
+      r = await pickFile({
+        filter: FOUNDRY_EXPORT_FILTER,
+        title: 'Select a VST Foundry export (project.json)',
+        kind: 'foundry-export',
+      });
+    } catch (e) {
+      reportPickFailed(e);
+      return;
+    }
+    if (!r.path) return;
+    setActiveModuleId(null); setActiveMagentaId(null);
+    await ganImportOwl(r.path);
+  };
+  const handlePickGan = (id: string) => {
+    setActiveModuleId(null); setActiveMagentaId(null);
+    void ganOpenById(id);
+  };
+  const handleRevealGan = (path: string) => { void ganApi.reveal(path).catch(() => {}); };
+
+  // Ares is a first-class Studio entry (bundled .gan). Opening it hands the effect
+  // stage to its iframe; package it on demand if the on-mount ensure hasn't landed.
+  const aresInstalled = ganPlugins.some((p) => p.id === 'ares');
+  const handlePickAres = () => {
+    setActiveModuleId(null); setActiveMagentaId(null);
+    // Ensure ONE 'ares' composite effect is in the chain and focus it, then open
+    // its .gan surface in the Live View.
+    const existing = useEffectChainStore.getState().chain.find((e) => e.effect === 'ares');
+    if (existing) {
+      setSelectedChainId(existing.id);
+    } else {
+      addRackEffect('ares');
+      const next = useEffectChainStore.getState().chain;
+      const added = next[next.length - 1];
+      if (added) setSelectedChainId(added.id);
+    }
+    void (async () => {
+      if (!useGanStore.getState().plugins.some((p) => p.id === 'ares')) await ganEnsureAres();
+      await ganOpenById('ares');
+    })();
+  };
+  // The generic Plugins browser excludes Ares (it lives in Studio as first-class).
+  const ganPluginsVisible = ganPlugins.filter((p) => p.id !== 'ares');
+
+  const registry = buildMixRegistry({
+    sourceFile,
+    activeCategory, setActiveCategory, allEffectCount: allEffects.length + PSYCHO_MODULES.length + STUDIO_MODULES.length + vstPlugins.length + 1,
+    quickMaster, setQuickParam, applyQuickMaster, masterEntry: !!masterEntry,
+    activeEffects, viewMode, setViewMode, addEffect, chainEffectIds,
+    vstPlugins, vstScanning, vstUnavailableReason, vstInstallFolder, rescanVst: () => void scanVst(true), addVstToChain: addAndEditVst, vstInChain,
+    ganPlugins: ganPluginsVisible, ganActiveId, ganActiveUrl, ganActiveName, ganBusy,
+    onOpenGan: () => void handleOpenGan(), onImportGan: () => void handleImportGan(),
+    onPickGan: handlePickGan, onRevealGan: handleRevealGan,
+    onPickModule: handlePickModule, activeModuleId, activeModule,
+    onPickPsycho: handlePickPsycho,
+    onPickAres: handlePickAres, aresInstalled,
+    onPickMagenta: handlePickMagenta, activeMagentaId, activeMagentaTool,
+    chain, selectedId: selectedChainId, setSelectedId: selectChain,
+    removeEffect, updateParams, toggleEnabled, reorder, clearChain, onEditVst: handleEditVst,
+    vstEmbed,
+    onCloseVstEmbed: () => useVstEditorStore.getState().close(),
+    outputFormat, setOutputFormat, showHistory, setShowHistory, processHistory,
+    selectedEntry,
+  });
+
+  return (
+    <div className="relative h-full w-full overflow-hidden text-zinc-200 bg-[#07050a] flex flex-col">
+      <MixVizRack
+        sourceUrl={sourceUrl} outputUrl={outputUrl} srcStats={srcStats} outStats={outStats} hasSource={!!sourceFile}
+        inputMode={inputMode} setInputMode={setInputMode} outputMode={outputMode} setOutputMode={setOutputMode}
+        inputOverlay={inputOverlay} toggleInputOverlay={() => setInputOverlay((v) => !v)}
+        outputOverlay={outputOverlay} toggleOutputOverlay={() => setOutputOverlay((v) => !v)}
+        dragOverSource={dragOverSource}
+        onDrop={handleDrop}
+        onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; setDragOverSource(true); }}
+        onDragLeave={() => setDragOverSource(false)}
+        onClickUpload={() => fileInputRef.current?.click()}
+        onKnownFiles={(files) => { if (files[0]) setSourceBoth(files[0]); }}
+        onClearSource={() => setSourceBoth(null)}
+        isChainProcessing={isChainProcessing}
+        onDownload={handleDownload} onSendToDAW={() => void handleSendToDAW()} onSendToInpaint={() => void handleSendToInpaint()}
+      />
+      <MasterInsertStrip entries={liveRack} onPick={selectChain} />
+      <div data-tour="mix-rack" className="flex-1 min-h-0 relative">
+        <ControlSurface surfaceId="mix" registry={registry} defaultLayout={defaultMixLayout} className="p-1.5" />
+      </div>
+      <input ref={fileInputRef} id="mix-audio-file" name="mix-audio-file" type="file" accept="audio/*" className="hidden" onChange={handleFileSelect} aria-label="Upload audio file" title="Upload audio file" />
+    </div>
+  );
+};

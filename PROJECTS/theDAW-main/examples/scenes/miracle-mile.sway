@@ -1,0 +1,204 @@
+{
+  "format": "sway",
+  "format_version": 1,
+  "app_version": "",
+  "audio_mode": "linked",
+  "created_at": null,
+  "modified_at": null,
+  "project": {
+    "meta": {
+      "id": "miracle-mile",
+      "name": "Miracle Mile",
+      "description": "Four acts of the atom on KNOB 6: the collider, the split atom, the mushroom cloud (the 0.5 rest), the shockwave down the boulevard. Any pad fires the act's event; KNOB 5 is the yield; sway morphs the act, press squeezes, the hand drives the eye. The rack stays off.",
+      "author": "",
+      "vibe": "critical",
+      "bpmHint": 0,
+      "pairsWith": null,
+      "template": true
+    },
+    "palette": [
+      "#ffe9b0",
+      "#ff6a1a",
+      "#2de1fc",
+      "#ff2d95",
+      "#6b7a99"
+    ],
+    "engine": {
+      "quality": "med",
+      "fxEnabled": false,
+      "autoVJ": {
+        "enabled": false,
+        "pool": [
+          "miraclemile"
+        ],
+        "minHold": 60,
+        "maxHold": 120,
+        "fadeTime": 4
+      },
+      "start": {
+        "scene": "miraclemile"
+      }
+    },
+    "fx": {
+      "params": {}
+    },
+    "synth": {
+      "enabled": true,
+      "preset": "Init",
+      "patch": null
+    },
+    "media": [
+      {
+        "id": "miracle-mile",
+        "name": "5 - Miracle Mile.wav",
+        "path": "C:\\Users\\dtruj\\Music\\UNCANNY\\5 - Miracle Mile.wav",
+        "sha256": "414cf21d11d0785561542ece0735e9c81c1dc9c4922c0b9ac10fa3e56b963954",
+        "bytes": 99754890,
+        "duration": 377
+      }
+    ],
+    "sampler": {
+      "kit": {
+        "version": 1,
+        "pads": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "knobs": {
+        "master": 0.5,
+        "cutoff": 0.5,
+        "rate": 0.5,
+        "send": 0.5
+      }
+    },
+    "timeline": {
+      "loop": {
+        "enabled": false,
+        "start": 0,
+        "end": 0
+      },
+      "locators": [],
+      "tracks": [
+        {
+          "id": "audio-1",
+          "type": "audio",
+          "name": "Audio",
+          "gain": 1,
+          "muted": false,
+          "clips": [
+            {
+              "id": "a-miracle-mile",
+              "name": "Miracle Mile",
+              "media": "miracle-mile",
+              "start": 0,
+              "end": 377,
+              "offset": 0,
+              "gain": 1,
+              "fadeIn": 0,
+              "fadeOut": 2
+            }
+          ]
+        },
+        {
+          "id": "visual-1",
+          "type": "visual",
+          "name": "Scenes",
+          "clips": []
+        }
+      ]
+    },
+    "assignments": {
+      "version": 1,
+      "noteRouting": {
+        "synth": "unassigned"
+      },
+      "pads": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "knobs": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "gestures": [],
+      "buttons": [
+        {
+          "cc": null,
+          "channel": null,
+          "action": null
+        },
+        {
+          "cc": null,
+          "channel": null,
+          "action": null
+        },
+        {
+          "cc": null,
+          "channel": null,
+          "action": null
+        },
+        {
+          "cc": null,
+          "channel": null,
+          "action": null
+        },
+        {
+          "cc": null,
+          "channel": null,
+          "action": null
+        },
+        {
+          "cc": null,
+          "channel": null,
+          "action": null
+        },
+        {
+          "cc": null,
+          "channel": null,
+          "action": null
+        },
+        {
+          "cc": null,
+          "channel": null,
+          "action": null
+        }
+      ]
+    },
+    "midiOverrides": {}
+  }
+}

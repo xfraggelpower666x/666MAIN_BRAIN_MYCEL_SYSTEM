@@ -1,0 +1,201 @@
+import os
+import re
+import tempfile
+from pathlib import Path
+
+import pytest
+import torch
+import torchaudio
+
+from stable_audio_3 import AutoencoderModel, StableAudioModel
+from stable_audio_3.model_configs import ae_models
+
+# ---------------------------------------------------------------------------
+# Hardware detection — used by fixtures and tests to gate GPU-only paths
+# ---------------------------------------------------------------------------
+HAS_CUDA = torch.cuda.is_available()
+HAS_MPS = torch.backends.mps.is_available()
+HAS_ACCEL = HAS_CUDA or HAS_MPS
+ACCEL_DEVICE = "cuda" if HAS_CUDA else ("mps" if HAS_MPS else "cpu")
+
+
+# ---------------------------------------------------------------------------
+# CLI options
+# ---------------------------------------------------------------------------
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--save-audio",
+        action="store_true",
+        default=False,
+        help="Save generated audio to disk. Files are written to test_audio_outputs/.",
+    )
+
+
+# ---------------------------------------------------------------------------
+# The writable data root
+# ---------------------------------------------------------------------------
+
+
+def pytest_configure(config):
+    """Point the backend's writable roots at a new directory for the session.
+
+    ``backend.lib.paths`` puts everything the backend writes under
+    ``theDAW_DATA_DIR`` (default ``<checkout>/data``) and the library under
+    ``theDAW_GENERATIONS_DIR``, and a few modules resolve a path when they are
+    imported (the VST router's preset directory). Without this, a broad run
+    wrote known_paths.json, logs, settings and VST preset files into the
+    checkout's data/, which in the live app's tree is the user's own data.
+
+    Set here, before collection imports any test module, and always, even when
+    the shell already names a root: a launcher may point these variables at the
+    live data. A test that needs a root of its own still monkeypatches them.
+    The directory is left in the system temp folder, as pytest leaves its own.
+    """
+    root = Path(tempfile.mkdtemp(prefix="thedaw-pytest-"))
+    os.environ["theDAW_DATA_DIR"] = str(root / "data")
+    os.environ["theDAW_GENERATIONS_DIR"] = str(root / "generations")
+    # The assistant's index, which backend.rag resolves when it is imported. It
+    # follows theDAW_DATA_DIR unless the shell names its own, so name it too.
+    os.environ["theDAW_RAG_INDEX_DIR"] = str(root / "rag_index")
+    config.thedaw_data_root = root
+
+
+# ---------------------------------------------------------------------------
+# Fixtures
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="session", autouse=True)
+def settings_file_outside_the_checkout(tmp_path_factory):
+    """The process-wide settings store reads theDAW_SETTINGS_PATH, else
+    data/settings.json of the checkout running the suite. Any test reaching
+    it without its own store (the notation engine reads its section on every
+    arrangement) opened that file, and a file at another schema was migrated
+    and written back: run from the app tree, that rewrote the user's
+    settings. The session gets a settings file of its own; a test that sets
+    the variable or the store itself still wins."""
+    from backend.modules.settings import router as settings_router
+
+    patch = pytest.MonkeyPatch()
+    patch.setenv(
+        "theDAW_SETTINGS_PATH",
+        str(tmp_path_factory.mktemp("settings") / "settings.json"),
+    )
+    patch.setattr(settings_router, "_store", None)
+    yield
+    patch.undo()
+
+
+@pytest.fixture(scope="session")
+def device():
+    """Best available compute device for this session."""
+    return ACCEL_DEVICE
+
+
+@pytest.fixture(scope="session", params=["small-music", "small-sfx", "medium"])
+def sa3_model(request):
+    """Session-scoped model fixture parametrized over model sizes.
+
+    small-music — loads via from_pretrained("small-music"); runs on CPU or accelerator.
+    small-sfx   — loads via from_pretrained("small-sfx"); runs on CPU or accelerator.
+    medium      — requires a CUDA GPU; skipped otherwise.
+    """
+    name = request.param
+
+    if name in ("small-music", "small-sfx"):
+        return StableAudioModel.from_pretrained(name, device=ACCEL_DEVICE)
+
+    if name == "medium":
+        if not HAS_CUDA:
+            pytest.skip("Medium model requires a CUDA GPU — none detected")
+        return StableAudioModel.from_pretrained("medium", device=ACCEL_DEVICE)
+
+
+@pytest.fixture(scope="session", params=list(ae_models))
+def autoencoder(request):
+    """Session-scoped autoencoder model fixture parametrized over AE model sizes.
+
+    same-l requires a CUDA GPU; skipped otherwise.
+    """
+    name = request.param
+    if name == "same-l" and not HAS_CUDA:
+        pytest.skip(f"{name} requires a CUDA GPU — none detected")
+
+    return AutoencoderModel.from_pretrained(name, device=ACCEL_DEVICE)
+
+
+@pytest.fixture
+def notation_client(tmp_path: Path, monkeypatch):
+    """The library and notation routers on a fresh library root in ``tmp_path``
+    (the ``tests/test_library_endpoints.py`` pattern), shared by the notation,
+    chord-track and band-score route tests."""
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from backend.modules.library import router as library_router_module
+    from backend.modules.notation import router as notation_router_module
+
+    monkeypatch.setattr(library_router_module, "_store", None)
+    monkeypatch.setenv("theDAW_GENERATIONS_DIR", str(tmp_path))
+    app = FastAPI()
+    app.include_router(library_router_module.router, prefix="/api/library")
+    app.include_router(notation_router_module.router, prefix="/api/notation")
+    # This machine's own UI (a loopback peer): the notation routes that write
+    # a file answer only to it, the desktop shell or a paired device.
+    return TestClient(app, client=("127.0.0.1", 51000))
+
+
+@pytest.fixture
+def maybe_save_audio(request):
+    """Return a callable that saves audio to disk when --save-audio is passed.
+
+    Usage in tests:
+        def test_foo(sa3_model, maybe_save_audio):
+            audio = sa3_model.generate(prompt="drums", ...)
+            maybe_save_audio(audio, sr, "drums")
+
+    Files are written to test_audio_outputs/{test_name[param]}_{prompt_slug}.wav.
+    Does nothing when --save-audio is not set.
+    """
+    enabled = request.config.getoption("--save-audio")
+
+    def _save(audio: torch.Tensor, sample_rate: int, prompt: str) -> None:
+        if not enabled:
+            return
+        out_dir = Path("test_audio_outputs")
+        out_dir.mkdir(exist_ok=True)
+        slug = re.sub(r"[^\w]+", "_", prompt).strip("_")[:40] or "audio"
+        test_name = request.node.name  # e.g. test_text_to_audio[small]
+        filename = out_dir / f"{test_name}_{slug}.wav"
+        torchaudio.save(str(filename), audio.squeeze(0).cpu(), sample_rate)
+
+    return _save
+
+
+# ---------------------------------------------------------------------------
+# Environment checks
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.skipif(
+    not HAS_ACCEL, reason="Flash attention check requires a GPU/accelerator"
+)
+def test_flash_attention_available(sa3_model, request):
+    """Verify flash_attn is importable on GPU environments (medium model only)."""
+    if request.node.callspec.params.get("sa3_model") != "medium":
+        pytest.skip("Flash attention check is medium-model only")
+
+    try:
+        import flash_attn  # noqa: F401
+    except ImportError:
+        pytest.fail(
+            "flash_attn is not importable. It is a base dependency on Windows "
+            "(pyproject pins a torch 2.14 / cu130 wheel per Python minor, gated to "
+            "sys_platform == 'win32'), "
+            "so on Windows run `uv sync` and check the wheel matches this torch/CUDA/"
+            "Python — see docs/windows/troubleshooting.md. On Linux/macOS it is not "
+            "installed by design and the model uses the SDPA fallback; this check is "
+            "expected to fail there."
+        )

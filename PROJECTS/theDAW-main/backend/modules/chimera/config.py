@@ -1,0 +1,159 @@
+"""Toolchain detection for the Chimera module.
+
+Result is cached on first probe so repeated /probe hits are cheap. Pass
+force=True to re-detect (e.g., if the user installs ffmpeg without
+restarting the server).
+"""
+
+from __future__ import annotations
+
+import importlib.util
+import logging
+import shutil
+import subprocess
+from typing import Optional, TypedDict
+
+from backend.lib import ffmpeg_tools
+from backend.lib.launch_token import child_env
+
+log = logging.getLogger(__name__)
+
+
+class ToolchainStatus(TypedDict):
+    aubio: bool
+    aubio_source: Optional[str]
+    ffmpeg: bool
+    librubberband: bool
+    # v2: rubberband filter exposes pitch + transients options (ffmpeg >= 4.x
+    # builds with librubberband do; older/odd builds may not).
+    rubberband_pitch: bool
+    # v2: Spotify pedalboard importable (used by the mastering stage).
+    pedalboard: bool
+    versions: dict[str, Optional[str]]
+    install_hint: Optional[str]
+
+
+_cached: Optional[ToolchainStatus] = None
+
+
+def _run(cmd: list[str], timeout: float = 5.0) -> tuple[int, str]:
+    try:
+        # stdin=DEVNULL: probes run in consoleless/PTY-wrapped hosts (Pinokio,
+        # services) where an inherited stdin can block ffmpeg's input reader.
+        proc = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=timeout,
+            stdin=subprocess.DEVNULL,
+            env=child_env(),
+        )
+        return proc.returncode, (proc.stdout or "") + (proc.stderr or "")
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError) as e:
+        log.debug("probe cmd %s failed: %s", cmd, e)
+        return -1, ""
+
+
+def _first_line(s: str) -> Optional[str]:
+    for ln in s.splitlines():
+        stripped = ln.strip()
+        if stripped:
+            return stripped
+    return None
+
+
+def _detect_aubio() -> tuple[bool, Optional[str], Optional[str]]:
+    cli = shutil.which("aubio")
+    if cli:
+        code, out = _run([cli, "--help"])
+        # aubio CLI usually prints help and exits 0; some builds exit 1 but
+        # still print help. Treat both as "present" and let downstream use fail
+        # loudly with a meaningful error.
+        if code in (0, 1) and out:
+            return True, "cli", _first_line(out)
+        if code == 0:
+            return True, "cli", None
+    try:
+        import aubio
+
+        version = getattr(aubio, "__version__", None) or getattr(aubio, "version", None)
+        return True, "python", version
+    except ImportError:
+        pass
+    return False, None, None
+
+
+def _detect_ffmpeg() -> tuple[bool, bool, bool, Optional[str]]:
+    """Return ``(ffmpeg, librubberband, rubberband_pitch, version)`` for the
+    build ``backend.lib.ffmpeg_tools`` chose."""
+    ffmpeg = ffmpeg_tools.find_ffmpeg()
+    if not ffmpeg:
+        return False, False, False, None
+    code, out = _run([ffmpeg, "-version"])
+    if code != 0:
+        return False, False, False, None
+    version = _first_line(out)
+    code, filters = _run([ffmpeg, "-hide_banner", "-filters"])
+    librubberband = code == 0 and "rubberband" in filters.lower()
+    rubberband_pitch = False
+    if librubberband:
+        code, help_out = _run([ffmpeg, "-hide_banner", "-h", "filter=rubberband"])
+        rubberband_pitch = (
+            code == 0 and "pitch" in help_out and "transients" in help_out
+        )
+    return True, librubberband, rubberband_pitch, version
+
+
+def _detect_pedalboard() -> bool:
+    try:
+        return importlib.util.find_spec("pedalboard") is not None
+    except (ImportError, ValueError):
+        return False
+
+
+def _build_hint(aubio_ok: bool, ffmpeg_ok: bool, rb_ok: bool) -> Optional[str]:
+    parts: list[str] = []
+    if not aubio_ok:
+        parts.append("aubio (install via `pip install aubio` or your package manager)")
+    if not ffmpeg_ok:
+        parts.append("ffmpeg")
+    elif not rb_ok:
+        parts.append(
+            "ffmpeg built with librubberband (default ffmpeg often lacks it; use "
+            "gyan.dev ffmpeg-full on Windows, `brew install ffmpeg` on macOS, or "
+            "a BtbN static build on Linux)"
+        )
+    if not parts:
+        return None
+    return "Missing: " + "; ".join(parts)
+
+
+def probe(force: bool = False) -> ToolchainStatus:
+    global _cached
+    if _cached is not None and not force:
+        return _cached
+    aubio_ok, aubio_source, aubio_ver = _detect_aubio()
+    ffmpeg_ok, rb_ok, rb_pitch_ok, ffmpeg_ver = _detect_ffmpeg()
+    pedalboard_ok = _detect_pedalboard()
+    _cached = {
+        "aubio": aubio_ok,
+        "aubio_source": aubio_source,
+        "ffmpeg": ffmpeg_ok,
+        "librubberband": rb_ok,
+        "rubberband_pitch": rb_pitch_ok,
+        "pedalboard": pedalboard_ok,
+        "versions": {"aubio": aubio_ver, "ffmpeg": ffmpeg_ver},
+        "install_hint": _build_hint(aubio_ok, ffmpeg_ok, rb_ok),
+    }
+    log.info(
+        "chimera toolchain probe: aubio=%s ffmpeg=%s librubberband=%s "
+        "rubberband_pitch=%s pedalboard=%s",
+        aubio_ok,
+        ffmpeg_ok,
+        rb_ok,
+        rb_pitch_ok,
+        pedalboard_ok,
+    )
+    return _cached

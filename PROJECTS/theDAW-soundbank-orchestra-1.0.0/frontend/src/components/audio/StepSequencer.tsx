@@ -1,0 +1,922 @@
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { TEMPO_BPM_MAX, TEMPO_BPM_MIN, clampTempoBpm } from '../../lib/tempoMap';
+import { useTempoField } from '../../lib/useTempoField';
+import {
+  Target,
+  Trash2, Sparkles, Plus, Activity,
+  Download, Send, Music, Palette,
+} from 'lucide-react';
+import { SurfacePlayKey } from '../ui/SurfacePlayKey';
+import { SlideTrack } from './SlideTrack';
+import { getEngineCtx, getMasterGain } from '../../state/playerStore';
+import { useEditorStore, computePeaks } from '../../state/editorStore';
+import { logError, logInfo } from '../../state/logStore';
+import { MidiMapper } from './MidiMapper';
+import { ContextMenu, useContextMenu, type ContextMenuItem } from '../ui/ContextMenu';
+import { encodeWav } from '../../lib/wavEncode';
+import { saveFile, type SaveFileResult } from '../../lib/saveFile';
+import {
+  STYLE_NAMES,
+  combineStylesForRole,
+  roleForTrack,
+} from '../../lib/drumStyleGenerator';
+
+const SEQUENCE_MIDI_PARAMS = [
+  { key: 'bpm' as const, label: 'BPM', min: TEMPO_BPM_MIN, max: TEMPO_BPM_MAX, autoCc: 14, integer: true },
+];
+
+type Voice = 'kick' | 'snare' | 'hat' | 'tone' | 'noise';
+
+interface Track {
+  id: string;
+  name: string;
+  steps: boolean[];
+  color: string;
+  gain: number;
+  voice: Voice;
+  freq: number; // base frequency for tonal voices
+}
+
+const STEPS = 16;
+
+const defaultTracks: Track[] = [
+  { id: '1', name: 'Kick', steps: Array(STEPS).fill(false).map((_, i) => i % 4 === 0), color: '#ef4444', gain: 0.9, voice: 'kick', freq: 60 },
+  { id: '2', name: 'Snare', steps: Array(STEPS).fill(false).map((_, i) => i === 4 || i === 12), color: '#f59e0b', gain: 0.7, voice: 'snare', freq: 180 },
+  { id: '3', name: 'Hi-Hat', steps: Array(STEPS).fill(false).map((_, i) => i % 2 === 0), color: '#3b82f6', gain: 0.4, voice: 'hat', freq: 0 },
+  { id: '4', name: 'Bass', steps: Array(STEPS).fill(false), color: '#8b5cf6', gain: 0.6, voice: 'tone', freq: 110 },
+];
+
+const VOICE_OPTIONS: Voice[] = ['kick', 'snare', 'hat', 'tone', 'noise'];
+const NEW_TRACK_COLORS = ['#10b981', '#ec4899', '#06b6d4', '#a855f7', '#facc15', '#f97316'];
+
+// All sequencer voices route through the shared engine master → analyser.
+const getAudioCtx = (): AudioContext => {
+  const ctx = getEngineCtx();
+  if (ctx.state === 'suspended') void ctx.resume();
+  return ctx;
+};
+
+/**
+ * Schedule a single voice hit at time `when` on the supplied context, routed
+ * to the supplied destination. Used for both live playback (engine context +
+ * the shared master summing bus) and offline rendering (OfflineAudioContext +
+ * its destination).
+ *
+ * `gain` is the voice's own level and nothing else. The listening volume lives
+ * on the engine's monitor node at the very END of the master chain
+ * (playerStore.setMasterGain), so pre-multiplying by it here applied it twice
+ * and made every live voice quieter than the same pattern bounced offline —
+ * by 20*log10(volume/100), which is 2.5 dB at the default 75 and 10.5 dB at 30.
+ */
+const triggerVoice = (
+  voice: Voice,
+  freq: number,
+  gain: number,
+  when: number,
+  ctx: BaseAudioContext,
+  dest: AudioNode,
+): void => {
+  const out = ctx.createGain();
+  out.gain.value = gain;
+  out.connect(dest);
+
+  switch (voice) {
+    case 'kick': {
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq * 2.5, when);
+      osc.frequency.exponentialRampToValueAtTime(Math.max(20, freq), when + 0.12);
+      const env = ctx.createGain();
+      env.gain.setValueAtTime(1, when);
+      env.gain.exponentialRampToValueAtTime(0.001, when + 0.25);
+      osc.connect(env).connect(out);
+      osc.start(when);
+      osc.stop(when + 0.3);
+      break;
+    }
+    case 'snare': {
+      // Tonal body
+      const osc = ctx.createOscillator();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, when);
+      const oscEnv = ctx.createGain();
+      oscEnv.gain.setValueAtTime(0.6, when);
+      oscEnv.gain.exponentialRampToValueAtTime(0.001, when + 0.12);
+      osc.connect(oscEnv).connect(out);
+      osc.start(when); osc.stop(when + 0.15);
+      // Noise body
+      const buf = ctx.createBuffer(1, ctx.sampleRate * 0.2, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < data.length; i += 1) data[i] = (Math.random() * 2 - 1) * 0.6;
+      const noise = ctx.createBufferSource();
+      noise.buffer = buf;
+      const hp = ctx.createBiquadFilter();
+      hp.type = 'highpass';
+      hp.frequency.value = 1500;
+      const noiseEnv = ctx.createGain();
+      noiseEnv.gain.setValueAtTime(0.8, when);
+      noiseEnv.gain.exponentialRampToValueAtTime(0.001, when + 0.15);
+      noise.connect(hp).connect(noiseEnv).connect(out);
+      noise.start(when); noise.stop(when + 0.2);
+      break;
+    }
+    case 'hat': {
+      const buf = ctx.createBuffer(1, ctx.sampleRate * 0.08, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < data.length; i += 1) data[i] = (Math.random() * 2 - 1);
+      const noise = ctx.createBufferSource();
+      noise.buffer = buf;
+      const hp = ctx.createBiquadFilter();
+      hp.type = 'highpass';
+      hp.frequency.value = 7000;
+      const env = ctx.createGain();
+      env.gain.setValueAtTime(0.8, when);
+      env.gain.exponentialRampToValueAtTime(0.001, when + 0.05);
+      noise.connect(hp).connect(env).connect(out);
+      noise.start(when); noise.stop(when + 0.08);
+      break;
+    }
+    case 'tone': {
+      const osc = ctx.createOscillator();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, when);
+      const env = ctx.createGain();
+      env.gain.setValueAtTime(0.001, when);
+      env.gain.exponentialRampToValueAtTime(0.8, when + 0.005);
+      env.gain.exponentialRampToValueAtTime(0.001, when + 0.4);
+      const lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 2400;
+      osc.connect(lp).connect(env).connect(out);
+      osc.start(when); osc.stop(when + 0.45);
+      break;
+    }
+    case 'noise': {
+      const buf = ctx.createBuffer(1, ctx.sampleRate * 0.3, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < data.length; i += 1) data[i] = (Math.random() * 2 - 1) * 0.5;
+      const noise = ctx.createBufferSource();
+      noise.buffer = buf;
+      const env = ctx.createGain();
+      env.gain.setValueAtTime(0.7, when);
+      env.gain.exponentialRampToValueAtTime(0.001, when + 0.3);
+      noise.connect(env).connect(out);
+      noise.start(when); noise.stop(when + 0.3);
+      break;
+    }
+  }
+};
+
+// =============================================================================
+// MIDI export — Standard MIDI File encoder
+// =============================================================================
+
+const writeVLQ = (value: number): number[] => {
+  // Variable-length quantity, 7-bit chunks, MSB=1 on all but last.
+  if (value < 0) value = 0;
+  const out: number[] = [];
+  let v = value;
+  out.push(v & 0x7f);
+  v >>>= 7;
+  while (v > 0) {
+    out.unshift(0x80 | (v & 0x7f));
+    v >>>= 7;
+  }
+  return out;
+};
+
+const writeUint32BE = (v: number): number[] => [
+  (v >>> 24) & 0xff,
+  (v >>> 16) & 0xff,
+  (v >>> 8) & 0xff,
+  v & 0xff,
+];
+
+const writeUint16BE = (v: number): number[] => [(v >>> 8) & 0xff, v & 0xff];
+
+const ascii = (s: string): number[] => Array.from(s, (c) => c.charCodeAt(0));
+
+// General-MIDI drum-channel notes for our voices.
+const VOICE_TO_MIDI: Record<Voice, { channel: number; note: number }> = {
+  kick:  { channel: 9, note: 36 }, // C1  Bass Drum 1
+  snare: { channel: 9, note: 38 }, // D1  Acoustic Snare
+  hat:   { channel: 9, note: 42 }, // F#1 Closed Hi-Hat
+  noise: { channel: 9, note: 39 }, // D#1 Hand Clap
+  tone:  { channel: 0, note: 60 }, // C4  on melodic channel 1
+};
+
+const PPQ = 480; // pulses per quarter note (MIDI division)
+const STEP_TICKS = PPQ / 4; // a 16th note = PPQ/4 ticks
+const NOTE_DURATION_TICKS = STEP_TICKS - 8; // slightly shorter than one step
+
+interface MidiEvent {
+  tick: number;
+  bytes: number[];
+}
+
+const eventsForTrack = (track: Track): MidiEvent[] => {
+  const { channel, note } = VOICE_TO_MIDI[track.voice];
+  const velocity = Math.max(1, Math.min(127, Math.round(track.gain * 127)));
+  const events: MidiEvent[] = [];
+  for (let i = 0; i < track.steps.length; i += 1) {
+    if (!track.steps[i]) continue;
+    const tick = i * STEP_TICKS;
+    events.push({ tick, bytes: [0x90 | channel, note, velocity] });
+    events.push({ tick: tick + NOTE_DURATION_TICKS, bytes: [0x80 | channel, note, 0] });
+  }
+  return events.sort((a, b) => a.tick - b.tick);
+};
+
+const serializeTrackChunk = (events: MidiEvent[], trackName: string): number[] => {
+  const body: number[] = [];
+  // Track name meta event at tick 0.
+  body.push(...writeVLQ(0), 0xff, 0x03, ...writeVLQ(trackName.length), ...ascii(trackName));
+  let lastTick = 0;
+  for (const ev of events) {
+    const delta = ev.tick - lastTick;
+    body.push(...writeVLQ(delta), ...ev.bytes);
+    lastTick = ev.tick;
+  }
+  // End-of-track meta event.
+  body.push(0, 0xff, 0x2f, 0x00);
+  return [...ascii('MTrk'), ...writeUint32BE(body.length), ...body];
+};
+
+const buildConductorTrack = (bpm: number): number[] => {
+  const microsPerQuarter = Math.round(60_000_000 / Math.max(20, bpm));
+  const body: number[] = [];
+  // Track name.
+  body.push(...writeVLQ(0), 0xff, 0x03, 5, ...ascii('Tempo'));
+  // Tempo meta event: FF 51 03 tt tt tt.
+  body.push(...writeVLQ(0), 0xff, 0x51, 0x03,
+    (microsPerQuarter >>> 16) & 0xff,
+    (microsPerQuarter >>> 8) & 0xff,
+    microsPerQuarter & 0xff,
+  );
+  // 4/4 time signature (FF 58 04 nn dd cc bb) — nn=4, dd=2 (denominator=2^2=4), cc=24, bb=8.
+  body.push(...writeVLQ(0), 0xff, 0x58, 0x04, 4, 2, 24, 8);
+  body.push(0, 0xff, 0x2f, 0x00);
+  return [...ascii('MTrk'), ...writeUint32BE(body.length), ...body];
+};
+
+const buildMidiFile = (
+  tracks: Track[],
+  bpm: number,
+  mode: 'single' | 'multi',
+): Uint8Array<ArrayBuffer> => {
+  const conductor = buildConductorTrack(bpm);
+  const noteChunks: number[][] = [];
+  if (mode === 'single') {
+    // Merge every track's events into one note track.
+    const merged: MidiEvent[] = [];
+    for (const t of tracks) merged.push(...eventsForTrack(t));
+    merged.sort((a, b) => a.tick - b.tick);
+    noteChunks.push(serializeTrackChunk(merged, 'Pattern'));
+  } else {
+    for (const t of tracks) {
+      noteChunks.push(serializeTrackChunk(eventsForTrack(t), t.name || `Voice ${t.voice}`));
+    }
+  }
+  const ntrks = 1 + noteChunks.length;
+  const header = [
+    ...ascii('MThd'),
+    ...writeUint32BE(6),
+    ...writeUint16BE(1), // format 1 (always — works even with one note track)
+    ...writeUint16BE(ntrks),
+    ...writeUint16BE(PPQ),
+  ];
+  const out: number[] = [...header, ...conductor];
+  for (const c of noteChunks) out.push(...c);
+  return new Uint8Array(out);
+};
+
+const saveMidi = (tracks: Track[], bpm: number, mode: 'single' | 'multi'): Promise<SaveFileResult> => {
+  const bytes = buildMidiFile(tracks, bpm, mode);
+  const blob = new Blob([bytes], { type: 'audio/midi' });
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  return saveFile({ blob, suggestedName: `thedaw-pattern-${stamp}-${mode}.mid`, kind: 'midi' });
+};
+
+// =============================================================================
+// Offline audio bounce — render the pattern (or each voice) to a WAV Blob
+// =============================================================================
+
+const renderPatternBars = async (
+  trackSubset: Track[],
+  bpm: number,
+  bars: number,
+): Promise<{ blob: Blob; duration: number }> => {
+  const sr = 44100;
+  const barSec = (60 / bpm) * 4;
+  const stepSec = barSec / STEPS;
+  const totalSec = barSec * bars + 0.5; // tail
+  const offline = new OfflineAudioContext(2, Math.ceil(totalSec * sr), sr);
+  for (let bar = 0; bar < bars; bar += 1) {
+    for (let i = 0; i < STEPS; i += 1) {
+      for (const t of trackSubset) {
+        if (!t.steps[i]) continue;
+        const when = bar * barSec + i * stepSec;
+        triggerVoice(t.voice, t.freq, t.gain, when, offline, offline.destination);
+      }
+    }
+  }
+  const rendered = await offline.startRendering();
+  return { blob: encodeWav(rendered), duration: rendered.duration };
+};
+
+export const StepSequencer: React.FC = () => {
+  const [tracks, setTracks] = useState<Track[]>(defaultTracks);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [bpm, setBpm] = useState(128);
+  // Typing keeps a draft (lib/useTempoField) that lands on Enter or blur, so a playing pattern never
+  // jumps to the "25" of a typed 250; an arrow or spin step lands at once. The pattern takes whole BPM.
+  const bpmField = useTempoField(bpm, (n) => setBpm(Math.round(n)));
+  const [exportMode, setExportMode] = useState<'single' | 'multi'>('single');
+  const [exportBars, setExportBars] = useState(2);
+  const [isBouncing, setIsBouncing] = useState(false);
+  const trackMenu = useContextMenu<{ trackId: string }>();
+  const [styleOpen, setStyleOpen] = useState(false);
+  const [selectedStyles, setSelectedStyles] = useState<string[]>([]);
+  const styleRef = useRef<HTMLDivElement>(null);
+
+  // Refs so the timer callback always reads the latest state without re-creating the interval.
+  const tracksRef = useRef(tracks);
+  const currentStepRef = useRef(currentStep);
+
+  useEffect(() => { tracksRef.current = tracks; }, [tracks]);
+  useEffect(() => { currentStepRef.current = currentStep; }, [currentStep]);
+
+  // Close the style popover on outside click / Escape.
+  useEffect(() => {
+    if (!styleOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (styleRef.current && !styleRef.current.contains(e.target as Node)) setStyleOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setStyleOpen(false);
+    };
+    window.addEventListener('mousedown', onDown);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('mousedown', onDown);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [styleOpen]);
+
+  // Sequencer clock — advance step + fire active voices.
+  useEffect(() => {
+    if (!isPlaying) return;
+    const stepMs = 60000 / clampTempoBpm(bpm) / 4; // 16th notes
+    const interval = window.setInterval(() => {
+      const nextStep = (currentStepRef.current + 1) % STEPS;
+      currentStepRef.current = nextStep;
+      setCurrentStep(nextStep);
+      const ctx = getAudioCtx();
+      const when = ctx.currentTime + 0.02;
+      for (const t of tracksRef.current) {
+        if (t.steps[nextStep]) {
+          triggerVoice(t.voice, t.freq, t.gain, when, ctx, getMasterGain());
+        }
+      }
+    }, stepMs);
+    return () => window.clearInterval(interval);
+  }, [isPlaying, bpm]);
+
+  const handlePlayToggle = useCallback(() => {
+    if (!isPlaying) {
+      // Unlock AudioContext on user gesture.
+      void getAudioCtx().resume();
+      // Fire step 0 immediately so the user hears something on press.
+      const ctx = getAudioCtx();
+      const when = ctx.currentTime + 0.02;
+      for (const t of tracksRef.current) {
+        if (t.steps[0]) triggerVoice(t.voice, t.freq, t.gain, when, ctx, getMasterGain());
+      }
+      setCurrentStep(0);
+      currentStepRef.current = 0;
+      setIsPlaying(true);
+      logInfo('sequencer', `Started at ${bpm} BPM`);
+    } else {
+      setIsPlaying(false);
+      logInfo('sequencer', 'Stopped');
+    }
+  }, [isPlaying, bpm]);
+
+  const toggleStep = (trackId: string, stepIndex: number) => {
+    setTracks(tracks.map((t) =>
+      t.id === trackId
+        ? { ...t, steps: t.steps.map((s, i) => (i === stepIndex ? !s : s)) }
+        : t,
+    ));
+  };
+
+  const setTrackName = (trackId: string, name: string) => {
+    setTracks(tracks.map((t) => (t.id === trackId ? { ...t, name } : t)));
+  };
+
+  const cycleVoice = (trackId: string) => {
+    setTracks(tracks.map((t) => {
+      if (t.id !== trackId) return t;
+      const next = VOICE_OPTIONS[(VOICE_OPTIONS.indexOf(t.voice) + 1) % VOICE_OPTIONS.length];
+      return { ...t, voice: next };
+    }));
+  };
+
+  const addTrack = () => {
+    const id = `t${Date.now()}`;
+    const color = NEW_TRACK_COLORS[tracks.length % NEW_TRACK_COLORS.length];
+    setTracks([...tracks, {
+      id,
+      name: `Track ${tracks.length + 1}`,
+      steps: Array(STEPS).fill(false),
+      color,
+      gain: 0.6,
+      voice: 'tone',
+      freq: 220,
+    }]);
+  };
+
+  const removeTrack = (trackId: string) => {
+    setTracks(tracks.filter((t) => t.id !== trackId));
+  };
+
+  const clearAll = () => {
+    setTracks(tracks.map((t) => ({ ...t, steps: Array(STEPS).fill(false) })));
+  };
+
+  // Per-track step rewrite, used by the row right-click menu.
+  const patchTrackSteps = (trackId: string, fn: (steps: boolean[]) => boolean[]) => {
+    setTracks(tracks.map((t) => (t.id === trackId ? { ...t, steps: fn(t.steps) } : t)));
+  };
+
+  const randomizeFill = () => {
+    setTracks(tracks.map((t) => ({
+      ...t,
+      steps: Array(STEPS).fill(false).map(() => Math.random() > 0.7),
+    })));
+  };
+
+  const toggleSelectedStyle = (name: string) => {
+    setSelectedStyles((prev) =>
+      prev.includes(name) ? prev.filter((s) => s !== name) : [...prev, name],
+    );
+  };
+
+  // Fill EVERY track with the selected style(s), matched by each track's role
+  // (kick/snare/hat/bass/perc). Multiple styles union ("combine").
+  const applySelectedStyles = () => {
+    if (selectedStyles.length === 0) return;
+    setTracks(
+      tracks.map((t) => ({
+        ...t,
+        steps: combineStylesForRole(selectedStyles, roleForTrack(t)),
+      })),
+    );
+    logInfo(
+      'sequencer',
+      `Applied style${selectedStyles.length > 1 ? 's' : ''}: ${selectedStyles.join(' + ')}`,
+    );
+    setStyleOpen(false);
+  };
+
+  // Fill ONE track's row from the current selection (right-click menu).
+  const applyStyleToTrack = (trackId: string) => {
+    if (selectedStyles.length === 0) return;
+    patchTrackSteps(trackId, () =>
+      combineStylesForRole(selectedStyles, roleForTrack(
+        tracks.find((t) => t.id === trackId) ?? { name: '', voice: 'tone' },
+      )),
+    );
+  };
+
+  const handleExportMidi = async () => {
+    const active = tracks.filter((t) => t.steps.some(Boolean));
+    if (active.length === 0) {
+      logError('sequencer', 'No active steps to export');
+      return;
+    }
+    const saved = await saveMidi(active, bpm, exportMode);
+    if (saved.path || saved.downloaded) {
+      logInfo('sequencer', `MIDI exported: ${active.length} voice(s), ${exportMode} mode, ${bpm} BPM`);
+    }
+  };
+
+  const handleSendToEditor = async () => {
+    const active = tracks.filter((t) => t.steps.some(Boolean));
+    if (active.length === 0) {
+      logError('sequencer', 'No active steps to bounce');
+      return;
+    }
+    setIsBouncing(true);
+    const start = performance.now();
+    try {
+      const editor = useEditorStore.getState();
+      const bars = Math.max(1, Math.min(16, exportBars));
+      if (exportMode === 'single') {
+        const { blob, duration } = await renderPatternBars(active, bpm, bars);
+        const peaksResult = await computePeaks(blob, 240);
+        const trackId = editor.addTrack({ name: `Sequencer ${bpm} BPM` });
+        const trackColor = useEditorStore.getState().tracks.find((t) => t.id === trackId)?.color ?? '#a855f7';
+        const clipId = editor.addClipToTrack({
+          trackId,
+          label: `seq_${bars}bar_${bpm}bpm`,
+          audioBlob: blob,
+          mimeType: 'audio/wav',
+          sourceDuration: duration,
+          offsetIntoSource: 0,
+          durationSec: duration,
+          startSec: 0,
+          color: trackColor,
+        });
+        editor.cachePeaks(clipId, peaksResult.peaks);
+      } else {
+        // Render each voice on its own editor track.
+        for (const voice of active) {
+          const { blob, duration } = await renderPatternBars([voice], bpm, bars);
+          const peaksResult = await computePeaks(blob, 240);
+          const trackId = editor.addTrack({ name: voice.name, color: voice.color });
+          const clipId = editor.addClipToTrack({
+            trackId,
+            label: `${voice.name}_${bpm}bpm`,
+            audioBlob: blob,
+            mimeType: 'audio/wav',
+            sourceDuration: duration,
+            offsetIntoSource: 0,
+            durationSec: duration,
+            startSec: 0,
+            color: voice.color,
+          });
+          editor.cachePeaks(clipId, peaksResult.peaks);
+        }
+      }
+      const ms = (performance.now() - start).toFixed(0);
+      logInfo('sequencer', `Bounced ${exportMode === 'single' ? '1 mixdown' : `${active.length} per-voice tracks`} → editor in ${ms}ms`);
+    } catch (e) {
+      logError('sequencer', `Bounce failed: ${e instanceof Error ? e.message : e}`);
+    } finally {
+      setIsBouncing(false);
+    }
+  };
+
+  return (
+    <div className="hardware-card h-full flex flex-col bg-black/40 relative">
+      <MidiMapper
+        title="SEQUENCE"
+        accent="cyan"
+        storageKey="sa3-midi-map:sequence-v1"
+        params={SEQUENCE_MIDI_PARAMS}
+        onChange={(key, value) => {
+          if (key === 'bpm') setBpm(Math.round(value));
+        }}
+      />
+      {/* Extra right padding reserves space for the MIDI mapper pill (absolute
+          top-right) so it never covers the + / CLEAR controls. */}
+      <div className="flex items-center justify-between py-2 pl-2 pr-20 border-b border-white/5 bg-black/20">
+        {/* The play key leads the row, the spot every surface that plays music
+            puts it. min-h-7.5 keeps the row the height the old 30px button gave
+            it, so the grid below does not move. */}
+        <div className="flex items-center gap-4 min-h-7.5">
+          <SurfacePlayKey size="bar" playing={isPlaying} onToggle={handlePlayToggle} what="the pattern" />
+          <div className="flex flex-col">
+            <label htmlFor="step-seq-bpm" className="text-xs font-sans font-bold text-zinc-400 uppercase leading-none">Tempo (BPM)</label>
+            <input
+              id="step-seq-bpm"
+              type="number"
+              name="step-seq-bpm"
+              {...bpmField}
+              min={TEMPO_BPM_MIN}
+              max={TEMPO_BPM_MAX}
+              className="bg-transparent border-none outline-none text-xs font-sans tabular-nums text-cyan-500 w-14 font-black"
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {/* Single / Multitrack toggle — controls both MIDI export and editor bounce. */}
+          <div className="flex items-center bg-black/40 rounded border border-white/5 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setExportMode('single')}
+              aria-pressed={exportMode === 'single'}
+              className={`px-1.5 py-0.5 text-[8px] uppercase font-bold tracking-widest transition-colors ${exportMode === 'single' ? 'bg-purple-600/30 text-purple-200' : 'text-zinc-500 hover:text-white'}`}
+              title="Export as a single mixed track / single-track MIDI"
+            >
+              Single
+            </button>
+            <button
+              type="button"
+              onClick={() => setExportMode('multi')}
+              aria-pressed={exportMode === 'multi'}
+              className={`px-1.5 py-0.5 text-[8px] uppercase font-bold tracking-widest transition-colors ${exportMode === 'multi' ? 'bg-purple-600/30 text-purple-200' : 'text-zinc-500 hover:text-white'}`}
+              title="Export as one track per voice / multi-track MIDI"
+            >
+              Multi
+            </button>
+          </div>
+
+          {/* Bars selector for editor bounce */}
+          <div className="flex items-center gap-1 px-1.5 py-0.5 bg-black/40 border border-white/5 rounded">
+            <Music className="w-2.5 h-2.5 text-zinc-500" aria-hidden="true" />
+            <input
+              type="number"
+              id="step-seq-export-bars"
+              name="step-seq-export-bars"
+              aria-label="Bars to render when sending to the editor"
+              min={1}
+              max={16}
+              value={exportBars}
+              onChange={(e) => setExportBars(Math.max(1, Math.min(16, parseInt(e.target.value) || 1)))}
+              className="bg-transparent border-none outline-none text-[10px] font-mono text-zinc-300 w-6"
+              title="Number of bars to render when sending to the editor"
+            />
+            <label htmlFor="step-seq-export-bars" className="text-[7px] font-mono text-zinc-600 uppercase">bar{exportBars === 1 ? '' : 's'}</label>
+          </div>
+
+          <button
+            onClick={() => void handleExportMidi()}
+            className="btn-ghost flex items-center gap-1.5 py-1 text-[9px]"
+            title="Save this pattern as a Standard MIDI File (.mid)"
+          >
+            <Download className="w-3 h-3 text-purple-300" /> EXPORT MIDI
+          </button>
+          <button
+            onClick={() => void handleSendToEditor()}
+            disabled={isBouncing}
+            className="btn-ghost flex items-center gap-1.5 py-1 text-[9px] disabled:opacity-40"
+            title="Render this pattern to audio and add to the waveform editor"
+          >
+            <Send className={`w-3 h-3 text-purple-300 ${isBouncing ? 'animate-pulse' : ''}`} />
+            {isBouncing ? 'BOUNCING…' : 'SEND TO EDITOR'}
+          </button>
+          <div className="relative" ref={styleRef}>
+            <button
+              type="button"
+              onClick={() => setStyleOpen((v) => !v)}
+              aria-haspopup="dialog"
+              aria-expanded={styleOpen}
+              aria-controls="step-seq-style-popover"
+              className="btn-ghost flex items-center gap-1.5 py-1 text-[9px]"
+              title="Fill tracks with a genre style (pick one or combine several)"
+            >
+              <Palette className="w-3 h-3 text-emerald-300" /> STYLE
+              {selectedStyles.length > 0 && (
+                <span className="text-[8px] font-mono text-emerald-300">{selectedStyles.length}</span>
+              )}
+            </button>
+            {styleOpen && (
+              <div
+                id="step-seq-style-popover"
+                role="dialog"
+                aria-label="Genre style fill"
+                className="absolute right-0 top-full mt-1 z-50 w-64 bg-[#0a080f] border border-white/10 rounded-lg shadow-[0_8px_32px_rgba(0,0,0,0.75)] p-2 flex flex-col gap-2"
+              >
+                <div className="flex items-center justify-between px-0.5">
+                  <span className="text-[8px] font-mono uppercase tracking-widest text-zinc-500">
+                    Genre — tap to combine
+                  </span>
+                  {selectedStyles.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedStyles([])}
+                      className="text-[8px] font-mono uppercase text-zinc-500 hover:text-zinc-200"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                <div className="max-h-56 overflow-y-auto grid grid-cols-2 gap-1 pr-0.5">
+                  {STYLE_NAMES.map((name) => {
+                    const on = selectedStyles.includes(name);
+                    return (
+                      <button
+                        key={name}
+                        type="button"
+                        aria-pressed={on}
+                        onClick={() => toggleSelectedStyle(name)}
+                        className={[
+                          'px-1.5 py-1 rounded border text-[9px] text-left transition-colors truncate',
+                          on
+                            ? 'border-emerald-500/50 bg-emerald-500/15 text-emerald-100'
+                            : 'border-white/5 bg-white/3 text-zinc-400 hover:text-zinc-100 hover:bg-white/8',
+                        ].join(' ')}
+                        title={name}
+                      >
+                        {name}
+                      </button>
+                    );
+                  })}
+                </div>
+                <button
+                  type="button"
+                  onClick={applySelectedStyles}
+                  disabled={selectedStyles.length === 0}
+                  className="w-full flex items-center justify-center gap-2 px-2 py-1.5 rounded bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-[9px] font-black uppercase tracking-widest text-emerald-200 disabled:opacity-50 disabled:pointer-events-none transition-colors"
+                >
+                  <Palette className="w-3 h-3" /> Fill all tracks
+                </button>
+              </div>
+            )}
+          </div>
+          <button
+            onClick={randomizeFill}
+            className="btn-ghost flex items-center gap-1.5 py-1 text-[9px]"
+            title="Randomize all step patterns"
+          >
+            <Sparkles className="w-3 h-3 text-purple-400" /> RANDOM
+          </button>
+          <button
+            onClick={clearAll}
+            className="btn-ghost flex items-center gap-1.5 py-1 text-[9px]"
+            title="Clear all steps"
+          >
+            <Trash2 className="w-3 h-3" /> CLEAR
+          </button>
+          <button
+            onClick={addTrack}
+            className="p-1 px-2 border border-white/5 rounded hover:bg-white/5"
+            title="Add track"
+          >
+            <Plus className="w-3 h-3" />
+          </button>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-2 space-y-1 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
+        {tracks.map((track) => (
+          <div
+            key={track.id}
+            className="flex gap-2 group"
+            onContextMenu={(e) => trackMenu.open(e, { trackId: track.id })}
+          >
+            <div className="w-32 shrink-0 flex flex-col bg-black/40 rounded p-1.5 border border-white/5 group-hover:border-white/10 transition-colors">
+              <div className="flex justify-between items-center mb-1 gap-1">
+                <input
+                  type="text"
+                  id={`step-seq-track-name-${track.id}`}
+                  name={`step-seq-track-name-${track.id}`}
+                  aria-label="Track name"
+                  value={track.name}
+                  onChange={(e) => setTrackName(track.id, e.target.value)}
+                  className="bg-transparent border-none outline-none text-[9px] font-black uppercase truncate hover:bg-white/5 px-1 -mx-1 rounded transition-colors flex-1 min-w-0"
+                  style={{ color: track.color }}
+                />
+                <button
+                  onClick={() => cycleVoice(track.id)}
+                  className="text-[7px] font-mono uppercase text-zinc-500 hover:text-white px-1 rounded bg-black/40 border border-white/5"
+                  title={`Voice: ${track.voice} — click to change`}
+                >
+                  {track.voice}
+                </button>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[7px] font-mono text-zinc-600 uppercase w-3">Vol</span>
+                <SlideTrack min={0} max={1} step={0.01} value={track.gain}
+                  onChange={(v) => setTracks(tracks.map((t) => t.id === track.id ? { ...t, gain: v } : t))}
+                  className="flex-1" ariaLabel="Voice volume" />
+              </div>
+            </div>
+
+            <div className="flex-1 grid grid-cols-16 gap-1">
+              {track.steps.map((active, i) => (
+                <button
+                  key={i}
+                  onClick={() => toggleStep(track.id, i)}
+                  className={`relative aspect-square rounded-sm border transition-all
+                    ${active ? 'shadow-[0_0_10px]' : 'border-white/5 hover:border-white/20 bg-white/2'}
+                    ${i === currentStep && isPlaying ? 'ring-1 ring-white z-10 scale-110' : ''}
+                    ${i % 4 === 0 ? 'opacity-100' : 'opacity-70'}
+                  `}
+                  style={{
+                    backgroundColor: active ? track.color : undefined,
+                    borderColor: active ? track.color : undefined,
+                    boxShadow: active ? `0 0 10px ${track.color}66` : undefined,
+                  }}
+                >
+                  {i % 4 === 0 && !active && <div className="absolute top-0.5 left-0.5 w-0.5 h-0.5 rounded-full bg-zinc-700" />}
+                </button>
+              ))}
+            </div>
+
+            <div className="w-8 flex flex-col items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                className="text-zinc-700 hover:text-white"
+                onClick={() => {
+                  const ctx = getAudioCtx();
+                  triggerVoice(track.voice, track.freq, track.gain, ctx.currentTime + 0.02, ctx, getMasterGain());
+                }}
+                title="Preview voice"
+              >
+                <Target className="w-3 h-3" />
+              </button>
+              <button
+                className="text-zinc-700 hover:text-red-500"
+                onClick={() => removeTrack(track.id)}
+                title="Remove track"
+              >
+                <Trash2 className="w-3 h-3" />
+              </button>
+            </div>
+          </div>
+        ))}
+
+        <div className="flex gap-2 mt-1">
+          <div className="w-32 shrink-0" />
+          <div className="flex-1 grid grid-cols-16 gap-1">
+            {Array.from({ length: STEPS }).map((_, i) => (
+              <div key={i} className="flex justify-center">
+                <div className={`w-1 h-1 rounded-full transition-all ${i === currentStep && isPlaying ? 'bg-cyan-500 scale-150' : 'bg-zinc-800'}`} />
+              </div>
+            ))}
+          </div>
+          <div className="w-8" />
+        </div>
+      </div>
+
+      <div className="h-6 border-t border-white/5 bg-black/60 flex items-center justify-between px-3">
+        <div className="flex items-center gap-4">
+          <span className="text-[7px] font-mono text-zinc-600 uppercase flex items-center gap-1.5">
+            <Activity className="w-2.5 h-2.5" /> {isPlaying ? 'PLAYING' : 'STOPPED'}
+          </span>
+          <span className="text-[7px] font-mono text-zinc-600 uppercase tracking-tighter">
+            Step {currentStep + 1}/{STEPS} // {tracks.length} tracks
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[7px] font-mono text-cyan-500/80 uppercase">Web Audio Engine</span>
+        </div>
+      </div>
+
+      {/* Right-click menu for a sequencer track row. */}
+      {(() => {
+        const payload = trackMenu.payload;
+        if (!payload) return null;
+        const track = tracks.find((t) => t.id === payload.trackId);
+        if (!track) return null;
+        const id = track.id;
+        const items: ContextMenuItem[] = [
+          {
+            type: 'item',
+            label: 'Fill every step',
+            onSelect: () => patchTrackSteps(id, () => Array(STEPS).fill(true)),
+          },
+          {
+            type: 'item',
+            label: 'Fill every 2nd',
+            onSelect: () => patchTrackSteps(id, () => Array(STEPS).fill(false).map((_, i) => i % 2 === 0)),
+          },
+          {
+            type: 'item',
+            label: 'Fill every 4th',
+            onSelect: () => patchTrackSteps(id, () => Array(STEPS).fill(false).map((_, i) => i % 4 === 0)),
+          },
+          {
+            type: 'item',
+            label: 'Randomize row',
+            icon: <Sparkles className="w-3 h-3" />,
+            onSelect: () => patchTrackSteps(id, () => Array(STEPS).fill(false).map(() => Math.random() > 0.7)),
+          },
+          {
+            type: 'item',
+            label: 'Invert row',
+            onSelect: () => patchTrackSteps(id, (steps) => steps.map((s) => !s)),
+          },
+          {
+            type: 'item',
+            label: 'Clear row',
+            onSelect: () => patchTrackSteps(id, () => Array(STEPS).fill(false)),
+          },
+          {
+            type: 'item',
+            label:
+              selectedStyles.length > 0
+                ? `Style fill row (${selectedStyles.join(' + ')})`
+                : 'Style fill row (pick a style first)',
+            icon: <Palette className="w-3 h-3" />,
+            disabled: selectedStyles.length === 0,
+            onSelect: () => applyStyleToTrack(id),
+          },
+          { type: 'separator' },
+          {
+            type: 'item',
+            label: 'Remove track',
+            icon: <Trash2 className="w-3 h-3" />,
+            danger: true,
+            disabled: tracks.length <= 1,
+            onSelect: () => removeTrack(id),
+          },
+        ];
+        return (
+          <ContextMenu
+            position={trackMenu.position}
+            onClose={trackMenu.close}
+            items={items}
+            title={`Track · ${track.name}`}
+            minWidth="12rem"
+          />
+        );
+      })()}
+    </div>
+  );
+};
+

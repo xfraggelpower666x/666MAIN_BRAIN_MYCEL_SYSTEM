@@ -1,0 +1,250 @@
+appId: com.gantasmo.thedaw
+productName: theDAW
+copyright: Copyright (c) 2026 GANTASMO
+# Update feed for electron-updater (main/index.ts). electron-builder writes
+# latest.yml + the installer's .blockmap into release/ because this key exists
+# (the --publish never flag only stops the upload); the release workflow
+# attaches them next to the installer, and the packaged app on Windows reads
+# them from the newest PUBLISHED GitHub release to download and install
+# updates in place. macOS cannot self-update unsigned, so the renderer opens
+# the dmg from the release assets there instead.
+publish:
+  provider: github
+  owner: gantasmo
+  repo: theDAW
+
+directories:
+  output: release
+  # buildResources holds resources/icon.png (1024x1024), which electron-builder
+  # discovers automatically and converts to .ico for Windows and .icns for
+  # macOS, so no explicit win.icon / mac.icon keys are needed.
+  buildResources: resources
+
+# Register theDAW as the handler for its file types so double-clicking a project
+# or plugin opens it in the app (the main process reads the path from argv and
+# routes it to the renderer). Developer/company is GANTASMO.
+fileAssociations:
+  - ext: tasmo
+    name: theDAW Project
+    description: theDAW project
+    role: Editor
+  - ext: gan
+    name: GAN Plugin
+    description: GANTASMO .gan web plugin
+    role: Editor
+
+# The Electron shell itself ships only the built renderer + main/preload bundles.
+# Everything Python lives beside the app under resources/ (see extraResources)
+# and is installed on first launch by the bundled uv. Keeping the Python source
+# out of the asar keeps it on a real filesystem path that uv + the spawned
+# backend can read and write (the venv is created next to pyproject.toml).
+files:
+  - out/**/*
+
+# Thin-bootstrap payload. None of this is a virtualenv or model weights; it is
+# the source tree plus the two native binaries the first-run bootstrap needs.
+# uv pulls a managed CPython 3.10 and every dependency itself, so the target
+# machine needs nothing pre-installed.
+extraResources:
+  - from: ../backend
+    to: python/backend
+    filter:
+      - "**/*"
+      - "!**/__pycache__/**"
+      - "!**/*.py[cod]"
+      - "!rag_index/**"
+      # Machine-local Python venvs created at runtime (the whisper
+      # transcription sidecar builds .whisper_venv next to its module) must
+      # never ship: they hard-code absolute host paths and add ~300MB the
+      # target machine rebuilds for itself on first use.
+      - "!**/.whisper_venv/**"
+      - "!**/.venv/**"
+      # uv's package cache (kept on the repo drive by theDAW.bat for fast
+      # same-drive hardlinks) is a multi-GB runtime artifact, never shipped.
+      - "!**/.uv-cache/**"
+  - from: ../stable_audio_3
+    to: python/stable_audio_3
+    filter:
+      - "**/*"
+      - "!**/__pycache__/**"
+      - "!**/*.py[cod]"
+  # Underfit LoRA trainer. This is a vendored git-subrepo of dada-bots/underfit
+  # WITH local modifications, so cloning upstream at runtime is not a
+  # substitute — the tree itself must ship. Without it the packaged app had no
+  # underfit/ at all: the UNDERFIT tab could only report "checkout not found",
+  # and /api/underfit/setup (which syncs an EXISTING checkout, never clones)
+  # had nothing to build (GH-131). The venv is created on first use by that
+  # endpoint; the runtime dirs excluded here mirror .gitignore's underfit rules.
+  - from: ../underfit
+    to: python/underfit
+    filter:
+      - "**/*"
+      - "!**/__pycache__/**"
+      - "!**/*.py[cod]"
+      - "!**/.venv/**"
+      - "!**/state/**"
+      - "!**/.gradio/**"
+      - "!**/node_modules/**"
+      - "!**/.uv-cache/**"
+  - from: ../pyproject.toml
+    to: python/pyproject.toml
+  - from: ../uv.lock
+    to: python/uv.lock
+  - from: ../.python-version
+    to: python/.python-version
+  # Prebuilt aubio wheels. aubio (chimera's primary tempo/beat detector) ships
+  # NO wheels on PyPI and its 2019 C source will not compile on a stock target
+  # machine (no MSVC on Windows, clang function-pointer error on modern macOS),
+  # so the first-run `uv sync` MUST install it from a vendored wheel. uv.lock's
+  # [tool.uv.sources] references these by a path relative to pyproject.toml,
+  # which lands at python/, so the wheels must land at python/wheels/. Ships the
+  # whole dir; each platform's uv source selects its own wheel by marker. Built
+  # by .github/workflows/build-aubio-wheels.yml.
+  - from: ../wheels
+    to: python/wheels
+    filter:
+      - "**/*.whl"
+  - from: ../README.md
+    to: python/README.md
+  - from: ../docs
+    to: python/docs
+    filter:
+      - "**/*.md"
+      # Internal developer working-notes are not user documentation, so they
+      # must never ship in the installer.
+      - "!plans/**"
+      - "!audits/**"
+      - "!changes/**"
+      - "!reports/**"
+      - "!in-flight-work.md"
+      - "!WHERE-WE-STAND.md"
+  - from: ../frontend/public/USER_GUIDE.md
+    to: python/frontend/public/USER_GUIDE.md
+  # The Owl's artwork. plugin/router.py composes the bundled the-owl.gan from
+  # backend/modules/plugin/assets/the-owl/project.json plus this image, and it
+  # resolves it at _REPO_ROOT/frontend/public/owl -- which in a packaged app is
+  # python/frontend/public/owl. Without this the installed app builds the Owl
+  # with no background and the surface opens blank.
+  - from: ../frontend/public/owl
+    to: python/frontend/public/owl
+    filter:
+      - "**/*"
+  # The bundled asset catalog: example projects and plugin packages the asset
+  # library lists. backend/modules/assets reads examples/catalog.json at
+  # _REPO_ROOT, which in a packaged app is python/examples. Install-directory
+  # reads only, so a read-only install serves them fine. The opus sources the
+  # projects were built from are gitignored and not shipped.
+  - from: ../examples
+    to: python/examples
+    filter:
+      - "**/*"
+      - "!audio/**"
+  # Headless notation engraver: frontend/scripts (renderScorePdf.mjs via OSMD,
+  # renderTabPdf.mjs via alphaTab) plus the production node_modules they import,
+  # staged by scripts/fetch-notation-renderer.mjs (npm run fetch:notation).
+  # backend/modules/notation/pdf_render.py resolves _REPO_ROOT/"frontend", which
+  # in a packaged app is python/frontend, requires scripts/renderScorePdf.mjs to
+  # be there and spawns node with cwd set to it, so the packages must land in a
+  # node_modules BESIDE the scripts. Without this the installed app reports no
+  # "pdf" capability: no SCORE download, and every bundle ships PDF-less.
+  # Gitignored + regenerated; see the staging script for the size accounting.
+  - from: resources/notation-renderer
+    to: python/frontend
+    filter:
+      - "**/*"
+  # The Unity note-chart package every track bundle carries (bundle.py copies the
+  # tree in, and the bundle README tells the user to drop it into Packages/).
+  # pdf_render.unity_package_dir() resolves _REPO_ROOT/"unity"/"com.gantasmo.notechart",
+  # so it has to keep that exact shape under python/. Source, no build step, 89 KB.
+  - from: ../unity/com.gantasmo.notechart
+    to: python/unity/com.gantasmo.notechart
+    filter:
+      - "**/*"
+  # Static VJ (gantasmo/VJ-9000) production build, staged by scripts/fetch-vj-build.mjs
+  # (npm run fetch:vj) before packaging. Lands at python/vj-dist, which the backend's
+  # VJ sidecar resolves as _REPO_ROOT/"vj-dist" and mounts at /vj-app — so the VJ tab
+  # works with no Node.js on the target machine. The dir is gitignored + regenerated.
+  - from: resources/vj-dist
+    to: python/vj-dist
+    filter:
+      - "**/*"
+  # SwayCommand cockpit embed build, staged by scripts/fetch-sway-build.mjs
+  # (npm run fetch:sway) before packaging. Lands at python/sway-dist, which the
+  # backend's sway module resolves as _REPO_ROOT/"sway-dist" and mounts at
+  # /sway-app - so the SWAY tab works with no Node.js on the target machine.
+  # SwayCommand also ships as its own standalone desktop app; this is the same
+  # cockpit built for embedding. The dir is gitignored + regenerated.
+  - from: resources/sway-dist
+    to: python/sway-dist
+    filter:
+      - "**/*"
+  # VST Foundry production bundle (dist/ + production node_modules + package.json),
+  # staged by scripts/fetch-foundry-build.mjs (npm run fetch:foundry). Lands where the
+  # foundry sidecar resolves it (_REPO_ROOT/"VST-Foundry-UI"/"VST-UI-FOUNDRY") and runs
+  # `node dist/server.cjs` with the bundled node (resources/tools/node). Foundry is a
+  # fullstack Node app, so unlike VJ it ships its whole runtime. Gitignored + regenerated.
+  - from: resources/foundry-app
+    to: python/VST-Foundry-UI/VST-UI-FOUNDRY
+    filter:
+      - "**/*"
+  # uv + ffmpeg + ffprobe, downloaded by scripts/fetch-runtime-tools.mjs before
+  # the build. Prepended to the spawned backend's PATH at runtime. The contents
+  # are HOST-PLATFORM-SPECIFIC (Windows: uv.exe/ffmpeg.exe/ffprobe.exe, macOS:
+  # uv/ffmpeg/ffprobe, plus ffmpeg-libs/ on Apple Silicon, the dylibs that
+  # ffmpeg and ffprobe load from @loader_path), so a Windows installer must be
+  # built on Windows and a mac dmg on macOS with a freshly fetched tools dir.
+  - from: resources/tools
+    to: tools
+    filter:
+      - "**/*"
+  # Explorer right-click "Convert with theDAW" helper (registered by
+  # resources/installer.nsh). Lands at <install>\resources\convert-with-thedaw.ps1
+  # and resolves the bundled ffmpeg at .\tools\ffmpeg.exe.
+  - from: resources/convert-with-thedaw.ps1
+    to: convert-with-thedaw.ps1
+
+win:
+  target:
+    - nsis
+  # artifactName keeps the installer name stable for release uploads.
+  artifactName: theDAW-Setup-${version}.${ext}
+  # Live VST host exe (+ vst3_probe.exe), staged by scripts/stage-vst-host.mjs
+  # from native/vst-host/bin into build-resources/vst-host. Lands at
+  # resources/vst-host in the installed app; main/index.ts's buildBackendEnv()
+  # points THEDAW_VST_HOST at it when present. Windows-only: the native host is
+  # a Windows exe and macOS has no equivalent build yet. The staging dir is
+  # gitignored + regenerated, and staging still runs (leaving only a README)
+  # when the host hasn't been built, so packaging never fails on a missing path.
+  extraResources:
+    - from: build-resources/vst-host
+      to: vst-host
+
+nsis:
+  # Per-user install (no elevation). Lands under %LOCALAPPDATA%\Programs\theDAW,
+  # which is writable, so uv can build the venv there and the backend can write
+  # its data/ tree without admin rights.
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  # The first launch downloads ~3-5 GB of Python + CUDA wheels and the model
+  # weights, so the uninstaller leaves user data in place unless asked.
+  deleteAppDataOnUninstall: false
+
+mac:
+  # Apple Silicon only. uv.lock resolves torch for darwin exclusively as an
+  # arm64 wheel (macosx_11_0_arm64); there is no darwin x64 torch wheel, so an
+  # Intel build could never bootstrap its Python env on first launch.
+  target:
+    - target: dmg
+      arch:
+        - arm64
+  category: public.app-category.music
+  artifactName: theDAW-${version}-${arch}.${ext}
+
+# No linux desktop target: Docker is the linux distribution path (see
+# Dockerfile + docs/RELEASING.md). An AppImage target used to sit here but was
+# dead config — fetch-runtime-tools.mjs exits on linux (no uv/ffmpeg/node
+# would ship) and no dist:linux script exists, so it could never produce a
+# working artifact.
