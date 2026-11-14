@@ -48,11 +48,15 @@ Equipped with 15 custom mathematical frequency and time-domain visualizer module
 
 ## 🚀 How to Run
 
-On Windows, open `RADIO_WAVE.bat` in this project folder and choose **1** to
-start the player. The launcher checks the local dependencies first; see
+On Windows, run `RADIO_WAVE.bat` from this project folder. Choose **1** to
+start RADIO WAVE v6.66 after the launcher checks its local dependencies. Choose
+**2** to build the NSIS installer and portable EXE in `dist`, or **3** to build
+the portable ZIP there. The installer and portable EXE are named
+`RADIO-WAVE-v6.66-Setup.exe` and `RADIO-WAVE-v6.66-Portable.exe`; the ZIP
+currently retains the launcher’s legacy name
+`SoundwaveStudio-portable-win-x64.zip`. These are local build outputs, not
+downloads included in this source checkout or a published release. See
 [START_HIER.md](START_HIER.md) for setup and targeted Electron runtime repair.
-The portable ZIP and NSIS installer are built locally using the launcher;
-they are not included in a source checkout.
 
 The window dock opens and closes each overlay. Use an overlay's detach button
 to move it to another monitor; the visualizer has its own detach button.
