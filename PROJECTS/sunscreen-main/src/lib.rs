@@ -307,7 +307,12 @@ fn read_audio(path: &Path) -> Result<(Vec<Vec<f64>>, u32), String> {
         .map_err(|_| format!("can't decode {name} (copy-protected, or an unsupported codec)"))?;
     // AAC in MP4 may not declare its layout up front, so take it from the first decoded packet
     let (mut chans, mut sr) = (Vec::<Vec<f64>>::new(), 0);
-    while let Ok(pkt) = fmt.next_packet() {
+    loop {
+        let pkt = match fmt.next_packet() {
+            Ok(pkt) => pkt,
+            Err(e) if is_packet_eof(&e) => break,
+            Err(e) => return Err(format!("can't read {name}: {e}")),
+        };
         if pkt.track_id() != id { continue; }
         let buf = match dec.decode(&pkt) {
             Ok(b) => b,
@@ -325,6 +330,10 @@ fn read_audio(path: &Path) -> Result<(Vec<Vec<f64>>, u32), String> {
     }
     if chans.is_empty() || chans[0].len() < sr as usize { return Err(format!("{name} is shorter than a second")); }
     Ok((chans, sr))
+}
+
+fn is_packet_eof(error: &symphonia::core::errors::Error) -> bool {
+    matches!(error, symphonia::core::errors::Error::IoError(e) if e.kind() == std::io::ErrorKind::UnexpectedEof)
 }
 
 /// 24-bit PCM. Returns number of samples that exceeded full scale (clamped on write).
@@ -1669,6 +1678,14 @@ pub fn run_with(args: Vec<String>, on_line: impl FnMut(&str) + 'static, cancel: 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn packet_reader_only_treats_unexpected_eof_as_end_of_stream() {
+        let eof = symphonia::core::errors::Error::IoError(std::io::Error::from(std::io::ErrorKind::UnexpectedEof));
+        let read_error = symphonia::core::errors::Error::IoError(std::io::Error::from(std::io::ErrorKind::PermissionDenied));
+        assert!(is_packet_eof(&eof));
+        assert!(!is_packet_eof(&read_error));
+    }
 
     #[test]
     fn stft_round_trip_is_exact() {
