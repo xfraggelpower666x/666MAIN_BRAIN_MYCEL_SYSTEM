@@ -79,3 +79,11 @@ Die Check-Namen müssen dem konkreten Runner entsprechen. Der Aufrufer belegt de
 | 2 | Git-Basis, Aufruf oder Beleg sind ungültig oder unlesbar. |
 
 Für einen Abschluss sind weiterhin die fachliche Testabdeckung, Run-Provenienz und erforderliche Zielhost-Abnahme zu belegen. Die Ausgabe erteilt keine Merge- oder Deploy-Freigabe.
+
+## Kandidaten-Snapshot R06
+
+Mit `--snapshot-from-candidate` berechnet die Kandidatenprüfung den erwarteten Digest aus den unveränderlichen Git-Blobs des Kandidaten. Verwende den Aufruf aus R05 und ersetze `--snapshot EXPECTED_SNAPSHOT_DIGEST` durch `--snapshot-from-candidate`. Die Ausgabe weist `CANDIDATE_GIT_BLOBS` als Herkunft aus. R05-Aufrufe mit `--snapshot` behalten `CALLER_SUPPLIED`.
+
+Der Modus verwendet das Digest-Format von PyGate 0.3.2 für reguläre Dateien. Er liest die exakten `checked_paths` des Belegs im Kandidatencommit. Fehlende Pfade, Verzeichnisse, Symlinks und Submodule sind in diesem Modus ungültig. Checkout-Transformationen wie Zeilenenden oder Filter können einen anderen Dateidigest ergeben. Für unabhängig ermittelte Arbeitsbaum-Digests bleibt der explizite Modus verfügbar.
+
+Ein Digest-Treffer bindet die deklarierten Eingabebytes an den Commit. Der Prüfumfang bleibt auf die deklarierten Pfade begrenzt. Vollständige Patch-Abdeckung, Runner-Herkunft und Host-Abnahme benötigen eigene Belege.
