@@ -710,56 +710,29 @@ document.querySelectorAll('.preset-btn').forEach(btn => {
 });
 
 // ─── File Loading ───────────────────────────────────────────────────────────
-async function loadAudioFile(filePath) {
-  const ctx = initAudioContext();
-
-  try {
-    const arrayData = await window.electronAPI.readAudioFile(filePath);
-    const uint8Array = new Uint8Array(arrayData);
-    // Read any embedded tags so the metadata editor can pre-populate
-    state.file.parsedMetadata = readAudioMetadata(uint8Array);
-    state.file.buffer = await ctx.decodeAudioData(uint8Array.buffer);
-
-    dom.fileMeta.textContent = 'Analyzing loudness...';
-    const lufsResult = measureLUFS(state.file.buffer);
-    state.file.lufs = lufsResult.integratedLUFS;
-    const targetLufs = dom.targetLufs ? parseInt(dom.targetLufs.value) : AUDIO_CONSTANTS.TARGET_LUFS;
-    state.file.normGain = calculateNormalizationGain(state.file.lufs, targetLufs);
-
-    createAudioChain();
-
-    state.file.duration = state.file.buffer.duration;
-    dom.durationEl.textContent = formatTime(state.file.duration);
-
-    const sampleRate = state.file.buffer.sampleRate;
-    const channels = state.file.buffer.numberOfChannels;
-    const lufsDisplay = isFinite(state.file.lufs) ? `${state.file.lufs.toFixed(1)} LUFS` : 'N/A';
-    const baseMeta = `${Math.round(sampleRate / 1000)}kHz • ${channels}ch • ${formatTime(state.file.duration)} • ${lufsDisplay}`;
-    dom.fileMeta.textContent = baseMeta;
-
-    // True-peak (dBTP) measurement is async (oversampled); append when ready.
-    measureTruePeakDb(state.file.buffer).then((tp) => {
-      if (state.file.buffer && isFinite(tp)) {
-        dom.fileMeta.textContent = `${baseMeta} • ${tp.toFixed(1)} dBTP`;
-      }
-    }).catch(() => { /* leave base meta if measurement fails */ });
-
-    drawWaveform();
-
-    dom.playBtn.disabled = false;
-    dom.stopBtn.disabled = false;
-    dom.processBtn.disabled = false;
-
-    onFileLoadedForEditor();
-
-    return true;
-  } catch (error) {
-    console.error('Error loading audio:', error);
-    dom.statusMessage.textContent = `✗ Error loading audio: ${error.message}`;
-    dom.statusMessage.className = 'status-message error visible';
-    setTimeout(() => dom.statusMessage.classList.remove('visible'), 6000);
-    return false;
+async function readAudioSource(source) {
+  if (typeof source === 'string') {
+    return new Uint8Array(await window.electronAPI.readAudioFile(source));
   }
+  return new Uint8Array(await source.arrayBuffer());
+}
+
+function getSourcePath(source) {
+  if (typeof source === 'string') return source;
+  return window.electronAPI.getPathForFile(source) || `dropped:${crypto.randomUUID()}`;
+}
+
+async function loadAudioFile(source) {
+  const bytes = await readAudioSource(source);
+  const decodeData = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+  const parsedMetadata = readAudioMetadata(bytes);
+  const audioContext = initAudioContext();
+  const buffer = await audioContext.decodeAudioData(decodeData);
+  const lufsResult = measureLUFS(buffer);
+  const targetLufs = dom.targetLufs ? parseInt(dom.targetLufs.value) : AUDIO_CONSTANTS.TARGET_LUFS;
+  const normGain = calculateNormalizationGain(lufsResult.integratedLUFS, targetLufs);
+
+  return { parsedMetadata, buffer, lufs: lufsResult.integratedLUFS, normGain };
 }
 
 // ─── Waveform ───────────────────────────────────────────────────────────────
@@ -1184,28 +1157,51 @@ dom.changeFileBtn.addEventListener('click', async () => {
   }
 });
 
-async function loadFile(filePath) {
-  if (!filePath) return;
+let loadSequence = 0;
 
-  state.file.path = filePath;
-
+async function loadFile(source) {
+  if (!source || batchState.isProcessing) return;
+  const sequence = ++loadSequence;
+  const filePath = getSourcePath(source);
+  const name = typeof source === 'string' ? filePath.split(/[\\/]/).pop() : source.name;
   try {
-    const name = filePath.split(/[\\/]/).pop();
+    const loaded = await loadAudioFile(source);
+    if (sequence !== loadSequence) return;
+    state.file.parsedMetadata = loaded.parsedMetadata;
+    state.file.buffer = loaded.buffer;
+    state.file.lufs = loaded.lufs;
+    state.file.normGain = loaded.normGain;
+    state.file.duration = loaded.buffer.duration;
+    state.file.path = filePath;
+    createAudioChain();
     dom.fileName.textContent = name;
-    dom.fileMeta.textContent = 'Loading...';
-
+    dom.durationEl.textContent = formatTime(loaded.buffer.duration);
+    const lufsDisplay = isFinite(loaded.lufs) ? `${loaded.lufs.toFixed(1)} LUFS` : 'N/A';
+    const baseMeta = `${Math.round(loaded.buffer.sampleRate / 1000)}kHz • ${loaded.buffer.numberOfChannels}ch • ${formatTime(loaded.buffer.duration)} • ${lufsDisplay}`;
+    dom.fileMeta.textContent = baseMeta;
     dom.fileZoneContent.classList.add('hidden');
     dom.fileLoaded.classList.remove('hidden');
+    dom.playBtn.disabled = false;
+    dom.stopBtn.disabled = false;
+    dom.processBtn.disabled = false;
 
-    await loadAudioFile(filePath);
+    measureTruePeakDb(loaded.buffer).then((tp) => {
+      if (state.file.buffer === loaded.buffer && isFinite(tp)) {
+        dom.fileMeta.textContent = `${baseMeta} • ${tp.toFixed(1)} dBTP`;
+      }
+    }).catch(() => { /* leave base meta if measurement fails */ });
+    drawWaveform();
+    onFileLoadedForEditor();
+
     updateChecklist();
 
     // Auto-add to batch queue so metadata can be edited
-    ensureFileInQueue(filePath);
+    ensureFileInQueue(filePath, source);
     renderBatchList();
   } catch (error) {
+    if (sequence !== loadSequence) return;
     console.error('Error loading file:', error);
-    dom.statusMessage.textContent = `✗ Error: ${error.message}`;
+    dom.statusMessage.textContent = `✗ Error loading audio: ${error.message}`;
     dom.statusMessage.className = 'status-message error visible';
     setTimeout(() => dom.statusMessage.classList.remove('visible'), 6000);
   }
@@ -1226,12 +1222,9 @@ dom.dropZone.addEventListener('drop', async (e) => {
 
   const file = e.dataTransfer.files[0];
   if (file && /\.(mp3|wav|flac|aac|m4a)$/i.test(file.name)) {
-    const filePath = window.electronAPI.getPathForFile(file);
-    if (filePath) {
-      stopAudio();
-      state.playback.pauseTime = 0;
-      await loadFile(filePath);
-    }
+    stopAudio();
+    state.playback.pauseTime = 0;
+    await loadFile(file);
   }
 });
 
@@ -1540,7 +1533,7 @@ function getLoadedFileMetadata() {
 }
 
 dom.processBtn.addEventListener('click', async () => {
-  if (!state.file.path || !state.file.buffer) return;
+  if (batchState.isProcessing || !state.file.path || !state.file.buffer) return;
 
   const outputPath = await window.electronAPI.saveFile();
   if (!outputPath) return;
@@ -1585,8 +1578,7 @@ dom.processBtn.addEventListener('click', async () => {
     });
     updateProgress(80);
 
-    const uint8Array = new Uint8Array(wavBuffer);
-    await window.electronAPI.writeFile(outputPath, Array.from(uint8Array));
+    await window.electronAPI.writeFile(outputPath, new Uint8Array(wavBuffer));
     updateProgress(100);
 
     dom.statusMessage.textContent = '✓ Export complete! Your mastered file is ready.';
@@ -1964,7 +1956,9 @@ function renderMetaFileList() {
     el.className = 'meta-file-item' + (index === metaSelectedIndex ? ' selected' : '') + (hasAnyMeta(item) ? ' has-meta' : '');
     el.setAttribute('role', 'option');
     el.setAttribute('aria-selected', index === metaSelectedIndex ? 'true' : 'false');
-    el.innerHTML = `<span class="meta-dot"></span>${item.name}`;
+    const dot = document.createElement('span');
+    dot.className = 'meta-dot';
+    el.append(dot, document.createTextNode(item.name));
     el.addEventListener('click', () => selectMetaFile(index));
     batchDom.metaFileList.appendChild(el);
   });
@@ -2043,11 +2037,16 @@ function updateBatchButtons() {
   batchDom.addBtn.disabled = batchState.isProcessing;
 }
 
-function ensureFileInQueue(filePath) {
+function ensureFileInQueue(filePath, source = filePath) {
   const existing = batchState.queue.find(q => q.path === filePath);
   if (!existing) {
-    const name = filePath.split(/[\\/]/).pop();
-    const item = { path: filePath, name, status: 'pending' };
+    const name = typeof source === 'string' ? filePath.split(/[\\/]/).pop() : source.name;
+    const item = {
+      path: filePath,
+      name,
+      file: typeof source === 'string' ? null : source,
+      status: 'pending'
+    };
     // Pre-populate metadata from tags parsed during loadAudioFile
     applyParsedMetadata(item, state.file.parsedMetadata);
     batchState.queue.push(item);
@@ -2078,8 +2077,8 @@ function applyParsedMetadata(item, parsed) {
 async function loadMetadataForItem(item) {
   if (!item || hasAnyMeta(item)) return;
   try {
-    const arrayData = await window.electronAPI.readAudioFile(item.path);
-    const parsed = readAudioMetadata(new Uint8Array(arrayData));
+    const bytes = await readAudioSource(item.file || item.path);
+    const parsed = readAudioMetadata(bytes);
     applyParsedMetadata(item, parsed);
   } catch (err) {
     console.warn('Could not read metadata for', item.path, err);
@@ -2102,14 +2101,46 @@ function renderBatchList() {
                        item.status === 'processing' ? 'Processing...' : 'Pending';
     const statusClass = item.status === 'pending' ? '' : item.status;
 
-    el.innerHTML = `
-      <span class="batch-item-icon">${statusIcon}</span>
-      <span class="batch-item-name" title="${item.name}">${item.name}</span>
-      ${isLoaded ? '<span class="batch-item-playing">♦ Loaded</span>' : ''}
-      ${!batchState.isProcessing ? `<button class="batch-item-preview" data-index="${index}" aria-label="Preview ${item.name} in player" title="Load into player">▶</button>` : ''}
-      <span class="batch-item-status ${statusClass}">${statusText}</span>
-      ${!batchState.isProcessing ? `<button class="batch-item-remove" data-index="${index}" aria-label="Remove ${item.name} from queue">✕</button>` : ''}
-    `;
+    const icon = document.createElement('span');
+    icon.className = 'batch-item-icon';
+    icon.textContent = statusIcon;
+    const name = document.createElement('span');
+    name.className = 'batch-item-name';
+    name.title = item.name;
+    name.textContent = item.name;
+    el.append(icon, name);
+
+    if (isLoaded) {
+      const loaded = document.createElement('span');
+      loaded.className = 'batch-item-playing';
+      loaded.textContent = '♦ Loaded';
+      el.appendChild(loaded);
+    }
+
+    if (!batchState.isProcessing) {
+      const preview = document.createElement('button');
+      preview.className = 'batch-item-preview';
+      preview.dataset.index = String(index);
+      preview.setAttribute('aria-label', `Preview ${item.name} in player`);
+      preview.title = 'Load into player';
+      preview.textContent = '▶';
+      el.appendChild(preview);
+    }
+
+    const status = document.createElement('span');
+    status.className = `batch-item-status ${statusClass}`;
+    status.textContent = statusText;
+    el.appendChild(status);
+
+    if (!batchState.isProcessing) {
+      const remove = document.createElement('button');
+      remove.className = 'batch-item-remove';
+      remove.dataset.index = String(index);
+      remove.setAttribute('aria-label', `Remove ${item.name} from queue`);
+      remove.textContent = '✕';
+      el.appendChild(remove);
+    }
+
     batchDom.list.appendChild(el);
   });
 
@@ -2121,7 +2152,7 @@ function renderBatchList() {
       if (item) {
         stopAudio();
         state.playback.pauseTime = 0;
-        await loadFile(item.path);
+        await loadFile(item.file || item.path);
         renderBatchList();
       }
     });
@@ -2139,14 +2170,21 @@ function renderBatchList() {
   });
 }
 
-async function addFilesToBatch(filePaths) {
+async function addFilesToBatch(sources) {
   const existing = new Set(batchState.queue.map(q => q.path));
   const added = [];
-  for (const fp of filePaths) {
-    if (existing.has(fp)) continue;
-    const name = fp.split(/[\\/]/).pop();
-    const item = { path: fp, name, status: 'pending' };
+  for (const source of sources) {
+    const filePath = getSourcePath(source);
+    if (existing.has(filePath)) continue;
+    const name = typeof source === 'string' ? filePath.split(/[\\/]/).pop() : source.name;
+    const item = {
+      path: filePath,
+      name,
+      file: typeof source === 'string' ? null : source,
+      status: 'pending'
+    };
     batchState.queue.push(item);
+    existing.add(filePath);
     added.push(item);
   }
   renderBatchList();
@@ -2193,27 +2231,12 @@ batchDom.dropZone.addEventListener('drop', (e) => {
   e.preventDefault();
   batchDom.dropZone.classList.remove('drag-over');
   const files = [...e.dataTransfer.files].filter(f => /\.(mp3|wav|flac|aac|m4a)$/i.test(f.name));
-  const paths = files.map(f => window.electronAPI.getPathForFile(f)).filter(Boolean);
-  if (paths.length) addFilesToBatch(paths);
+  if (files.length) addFilesToBatch(files);
 });
 
 // Helper: yield to the event loop so the UI can repaint
 function yieldToUI() {
   return new Promise(resolve => setTimeout(resolve, 0));
-}
-
-// Write WAV data in chunks to avoid blocking the main thread on large files
-async function writeFileChunked(outputPath, wavBuffer) {
-  const CHUNK = 2 * 1024 * 1024; // 2 MB per chunk
-  const full = new Uint8Array(wavBuffer);
-  if (full.length <= CHUNK) {
-    await window.electronAPI.writeFile(outputPath, Array.from(full));
-    return;
-  }
-  // For large files, still send as one call but yield before/after to keep UI alive
-  await yieldToUI();
-  await window.electronAPI.writeFile(outputPath, Array.from(full));
-  await yieldToUI();
 }
 
 batchDom.exportBtn.addEventListener('click', async () => {
@@ -2222,7 +2245,9 @@ batchDom.exportBtn.addEventListener('click', async () => {
   const outputDir = await window.electronAPI.selectDirectory();
   if (!outputDir) return;
 
+  ++loadSequence;
   batchState.isProcessing = true;
+  dom.processBtn.disabled = true;
   updateBatchButtons();
   batchDom.progress.classList.remove('hidden');
 
@@ -2268,13 +2293,17 @@ batchDom.exportBtn.addEventListener('click', async () => {
 
     try {
       // Decode audio
-      const ctx = new AudioContext();
-      const arrayData = await window.electronAPI.readAudioFile(item.path);
+      const bytes = await readAudioSource(item.file || item.path);
       await yieldToUI();
 
-      const uint8Array = new Uint8Array(arrayData);
-      const audioBuffer = await ctx.decodeAudioData(uint8Array.buffer);
-      await ctx.close();
+      const decodeContext = new AudioContext();
+      let audioBuffer;
+      try {
+        const decodeData = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+        audioBuffer = await decodeContext.decodeAudioData(decodeData);
+      } finally {
+        await decodeContext.close();
+      }
       await yieldToUI();
 
       // Measure LUFS
@@ -2296,13 +2325,8 @@ batchDom.exportBtn.addEventListener('click', async () => {
         metadata: item.metadata || null
       });
 
-      // Build output path (use the separator that matches the OS/path style)
       const baseName = item.name.replace(/\.[^.]+$/, '');
-      const alreadyHasSep = outputDir.endsWith('/') || outputDir.endsWith('\\');
-      const sep = alreadyHasSep ? '' : (outputDir.includes('\\') ? '\\' : '/');
-      const outputPath = outputDir + sep + baseName + '_mastered.wav';
-
-      await writeFileChunked(outputPath, wavBuffer);
+      await window.electronAPI.writeBatchFile(outputDir, baseName, new Uint8Array(wavBuffer));
 
       item.status = 'done';
       completed++;
@@ -2327,12 +2351,15 @@ batchDom.exportBtn.addEventListener('click', async () => {
   state.file.normGain = origNormGain;
 
   batchState.isProcessing = false;
+  dom.processBtn.disabled = !state.file.buffer;
   updateBatchButtons();
 
   batchDom.progressText.textContent = `Done! ${completed} exported${errors ? `, ${errors} failed` : ''}`;
 
-  dom.statusMessage.textContent = `✓ Batch complete: ${completed}/${total} files exported.`;
-  dom.statusMessage.className = 'status-message success visible';
+  dom.statusMessage.textContent = errors
+    ? `✗ Batch complete: ${completed}/${total} files exported; ${errors} failed.`
+    : `✓ Batch complete: ${completed}/${total} files exported.`;
+  dom.statusMessage.className = `status-message ${errors ? 'error' : 'success'} visible`;
   setTimeout(() => dom.statusMessage.classList.remove('visible'), 5000);
 
   setTimeout(() => {

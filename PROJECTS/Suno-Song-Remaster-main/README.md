@@ -65,6 +65,7 @@ Then open the app normally. You only need to do this once.
 3. Switch to the "Metadata" tab to add tags (title, artist, album, etc.) per file
 4. Use "Apply to All" to copy metadata across the entire queue
 5. Click "Export All" and choose an output folder
+6. Existing output names are preserved; duplicate names get a numbered suffix.
 
 ## Building from Source
 
