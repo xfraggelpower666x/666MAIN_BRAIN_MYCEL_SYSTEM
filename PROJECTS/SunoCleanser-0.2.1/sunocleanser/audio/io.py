@@ -24,7 +24,7 @@ def load_wav(path: Path) -> tuple[np.ndarray, WavInfo]:
             sample_rate=int(sample_rate),
             channels=int(f.channels),
             subtype=str(f.subtype),
-            frames=int(len(f)),
+            frames=len(f),
         )
     return data, info
 

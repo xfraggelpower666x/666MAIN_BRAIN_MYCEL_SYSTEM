@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import cast
 
 import numpy as np
 from scipy import signal
@@ -14,7 +15,7 @@ class StftConfig:
 
     @property
     def window_array(self) -> np.ndarray:
-        return signal.get_window(self.window, self.n_fft)
+        return cast(np.ndarray, signal.get_window(self.window, self.n_fft))
 
 
 def stft_channel(
@@ -28,7 +29,8 @@ def stft_channel(
         fs=sample_rate,
         nperseg=config.n_fft,
         noverlap=config.n_fft - config.hop_length,
-        window=config.window_array,
+        # SciPy accepts a precomputed ndarray window.
+        window=config.window_array,  # pyright: ignore[reportArgumentType]
         boundary="zeros",
         padded=True,
         return_onesided=True,
@@ -48,7 +50,8 @@ def istft_channel(
         fs=sample_rate,
         nperseg=config.n_fft,
         noverlap=config.n_fft - config.hop_length,
-        window=config.window_array,
+        # SciPy accepts a precomputed ndarray window.
+        window=config.window_array,  # pyright: ignore[reportArgumentType]
         boundary=True,
         time_axis=-1,
         freq_axis=0,

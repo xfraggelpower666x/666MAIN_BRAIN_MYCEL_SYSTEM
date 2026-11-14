@@ -3,7 +3,6 @@ from __future__ import annotations
 import numpy as np
 from scipy import ndimage
 
-
 MAX_ATTENUATION_DB = 7.0
 MIN_GAIN = 10.0 ** (-MAX_ATTENUATION_DB / 20.0)
 

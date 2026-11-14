@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased — MAIN BRAIN CodeForge repair R09
+
+- Correct type contracts for STFT windows and null-test metrics. Reject a WAV with no channels before spectral processing.
+- Resolve the confirmed lint findings while preserving the CLI and GUI error handling and the existing DSP settings.
+
 ## 0.2.1 — path collision repair
 ### Fixed
 - Check Clean WAV, Removed Noise WAV and JSON report paths against the input and

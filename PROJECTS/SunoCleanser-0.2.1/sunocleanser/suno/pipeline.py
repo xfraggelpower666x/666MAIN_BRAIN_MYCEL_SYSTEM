@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
+from typing import Literal, TypedDict
 
 import numpy as np
 from scipy import signal
@@ -15,7 +16,12 @@ from sunocleanser.audio.io import (
     sha256_file,
     write_wav_24bit,
 )
-from sunocleanser.audio.stft import StftConfig, align_length, istft_channel, stft_channel
+from sunocleanser.audio.stft import (
+    StftConfig,
+    align_length,
+    istft_channel,
+    stft_channel,
+)
 from sunocleanser.suno.gain_mask import (
     MAX_ATTENUATION_DB,
     apply_gain_to_spectrum,
@@ -71,11 +77,19 @@ class ProcessingResult:
     report: dict
 
 
+class NullTestMetrics(TypedDict):
+    max_abs_error: float
+    rms_error: float
+    max_error_db: float
+    rms_error_db: float
+    reference: Literal["full_scale_dbfs"]
+
+
 def null_test_error(
     original: np.ndarray,
     noise_readback: np.ndarray,
     clean_readback: np.ndarray,
-) -> dict[str, float]:
+) -> NullTestMetrics:
     """
     Real phase-cancel check on the *written* 24-bit files:
     original + inverted(noise) must equal clean. Errors are reported in dBFS
@@ -192,6 +206,8 @@ def process_suno_wav(
     for ch in range(n_channels):
         spec, freqs = stft_channel(original[:, ch], sample_rate, stft_config)
         spectra.append(spec)
+    if freqs is None:
+        raise InvalidInputError("Input WAV contains no audio channels.")
     magnitudes = [np.abs(s) for s in spectra]
     linked_mag = linked_magnitude(magnitudes)
 

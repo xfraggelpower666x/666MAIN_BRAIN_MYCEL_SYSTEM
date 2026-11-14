@@ -95,7 +95,8 @@ def _process_one(input_path: Path, args: argparse.Namespace, batch: bool) -> int
         print(str(exc), file=sys.stderr)
         print(json.dumps({"report_path": str(report_path)}, indent=2))
         return 3
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
+        # Keep unexpected processing errors inside the user-facing boundary.
         print(f"Processing failed ({input_path.name}): {exc}", file=sys.stderr)
         return 4
 

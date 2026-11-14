@@ -9,7 +9,11 @@ import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox, scrolledtext, ttk
 
-from sunocleanser.suno.pipeline import ProcessingParams, ProcessingResult, process_suno_wav
+from sunocleanser.suno.pipeline import (
+    ProcessingParams,
+    ProcessingResult,
+    process_suno_wav,
+)
 
 OUT_DIR = Path(os.environ.get("SUNOCLEANSER_OUT", "out")).resolve()
 
@@ -150,7 +154,7 @@ class SunoCleanserApp:
         folder = OUT_DIR.resolve()
         opened = False
         if sys.platform == "win32":
-            os.startfile(folder)  # noqa: S606
+            os.startfile(folder)
             opened = True
         elif sys.platform == "darwin":
             opened = subprocess.run(["open", folder], check=False).returncode == 0
@@ -190,7 +194,8 @@ class SunoCleanserApp:
                 report_path=report_path,
             )
             self.root.after(0, lambda r=result: self._finish_ok(r))
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
+            # Keep unexpected processing errors inside the user-facing boundary.
             self.root.after(0, lambda msg=str(exc): self._finish_err(msg))
 
     def _finish_ok(self, result: ProcessingResult) -> None:
