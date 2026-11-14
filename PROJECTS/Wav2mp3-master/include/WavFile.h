@@ -80,6 +80,7 @@ class WavFile
     uint32_t getByteRate() const;
     uint16_t getFrameSize() const;
     uint16_t getBitsPerSample() const;
+    bool hasError() const { return mParseError; }
 
     const char* getRawAudioDataPtr() const;
     uint32_t getRawAudioDataSize() const;
@@ -95,6 +96,9 @@ class WavFile
     RIFFHeader* mRiffHPtr; // Should be equal to beginning of mFileData
     FMTHeader*  mFmtHPtr;  // Points to FMTHeader of the current chunk
     DataHeader* mDataHPtr; // Points to DataHeader of the current chunk
+    size_t      mRiffEndOffset;
+    size_t      mNextChunkOffset;
+    bool        mParseError;
 };
 
 
