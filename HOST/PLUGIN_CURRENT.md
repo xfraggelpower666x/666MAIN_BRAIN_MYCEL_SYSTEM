@@ -34,3 +34,9 @@ REPOSITORY_CURRENT_WINS=TRUE
 ## 2026-11-14 skill-router revalidation
 
 All eight installed MAIN BRAIN native skills are discoverable and directly readable in the active host session. The plugin release remains v0.1.0 / pluginrel_6aeecd98b5fc81918211f89ff71ccd0e. This promotes SKILL_ROUTER_ADOPTION to VERIFIED. It does not prove the separate ten-case fresh-chat end-to-end trigger acceptance matrix.
+
+## Aktueller Account-Release · R12
+
+Beobachteter privater MAIN-BRAIN-Release: `0.2.0` / `pluginrel_6af807d884d48191bd24fbec19d46e4e`. Der vorhandene Repository-Quellsnapshot und die frühere Host-Beobachtung beziehen sich auf 0.1.0. Für 0.2.0 sind das gespeicherte Release und die lesbaren Quelldateien bestätigt. Skill-Discovery und Fresh-Chat-Ausführung für 0.2.0 sind offen.
+
+[Abgleich und Abnahmegrenzen](../AUDIT/MAIN_BRAIN_CODING_PLUGIN_PARITY_R12_2026-11-14.md)

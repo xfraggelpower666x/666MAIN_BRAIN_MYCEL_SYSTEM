@@ -89,7 +89,20 @@
     "installation_status": "VERIFIED",
     "current_host_skill_catalog": "8_OF_8_LISTED_2026_11_14",
     "direct_skill_read": "8_OF_8_PASS_2026_11_14",
-    "observation_scope": "CURRENT_CHAT_REVALIDATION_NOT_TEN_TRIGGER_FRESH_CHAT_ACCEPTANCE"
+    "observation_scope": "CURRENT_CHAT_REVALIDATION_NOT_TEN_TRIGGER_FRESH_CHAT_ACCEPTANCE",
+    "observed_account_release": {
+      "version": "0.2.0",
+      "release_id": "pluginrel_6af807d884d48191bd24fbec19d46e4e",
+      "source_inventory_status": "VERIFIED",
+      "source_file_count": 151,
+      "source_skill_count": 109,
+      "coding_skill_count": 100,
+      "coding_reference_count": 29,
+      "installation_status": "NOT_REVALIDATED",
+      "adoption_status": "NOT_REVALIDATED",
+      "fresh_chat_status": "PENDING",
+      "coding_entrypoint": "666MAIN BRAIN CODING"
+    }
   },
   "legacy_compatibility_triggers": [
     "666MAINSYSTEM SYSTEMSTART",

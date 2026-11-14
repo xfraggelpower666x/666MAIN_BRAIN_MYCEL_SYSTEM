@@ -1,10 +1,10 @@
 from sunocleanser.audio.io import load_wav, write_wav_24bit
-from sunocleanser.audio.stft import StftConfig, stft_channel, istft_channel
+from sunocleanser.audio.stft import StftConfig, istft_channel, stft_channel
 
 __all__ = [
-    "load_wav",
-    "write_wav_24bit",
     "StftConfig",
-    "stft_channel",
     "istft_channel",
+    "load_wav",
+    "stft_channel",
+    "write_wav_24bit",
 ]

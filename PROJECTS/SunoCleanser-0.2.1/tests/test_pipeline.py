@@ -6,7 +6,6 @@ from pathlib import Path
 import numpy as np
 import pytest
 import soundfile as sf
-
 from sunocleanser.cli import main as cli_main
 from sunocleanser.suno.pipeline import (
     InvalidInputError,
