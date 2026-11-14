@@ -47,8 +47,7 @@ HOST_READBACK_PENDING
 
 FINAL_COMPLETION_REQUIRES=HOST_VERIFIED_OR_EXPLICITLY_CLASSIFIED_HOST_ONLY_BLOCKER
 
-
-## Current delivery evidence — 2026-11-07
+## Current delivery/adoption evidence — 2026-11-14
 
 PLUGIN_ID=plugins_6aeecd97365081918f3813165617c17c
 VERSION=0.1.0
@@ -58,20 +57,17 @@ RUNTIME_MANIFEST_PARITY=2/2_PASS
 SOURCE=VERIFIED
 DELIVERY=VERIFIED
 INSTALLATION=VERIFIED
-ADOPTION=PARTIAL_SKILL_DISCOVERY_VERIFIED_FRESH_CHAT_ACCEPTANCE_PENDING
-HOST_SKILL_CATALOG=8_OF_8_LISTED_2026_11_10
-DIRECT_SKILL_READ=8_OF_8_PASS_2026_11_10
-HOST=PENDING_FRESH_CHAT_ACCEPTANCE
-
+SKILL_ROUTER_ADOPTION=VERIFIED
+HOST_SKILL_CATALOG=8_OF_8_LISTED_2026_11_14
+DIRECT_SKILL_READ=8_OF_8_PASS_2026_11_14
+HOST=PENDING_TEN_CASE_FRESH_CHAT_ACCEPTANCE
 
 ## Current host classification
 
 INSTALLATION=VERIFIED
-ADOPTION=HOST_PARTIAL
-HOST_SKILL_ROUTER=SKILL_READ_AVAILABLE_CURRENT_CHAT
+ADOPTION=VERIFIED
+HOST_SKILL_ROUTER=VERIFIED_CURRENT_CHAT
 FRESH_CHAT_ACCEPTANCE=PENDING
 CLASSIFICATION=HOST_PARTIAL
 
-## Current-host delta — 2026-11-10
-
-The installed skill catalog lists 8/8 MAIN BRAIN skills and direct skill.md reads succeed 8/8 in this chat. This resolves the old discoverability blocker for this session, not the full ten-case fresh-chat acceptance gate. Historical 2026-11-07 failures remain provenance, not present-tense host claims.
+Current-chat skill reachability is verified. Ten-case fresh-chat trigger execution remains a separate acceptance layer and must not be inferred from skill discovery/readback.
