@@ -32,6 +32,48 @@ test('SoundCloud advances normally but not when an export finishes at track end'
   assert.equal(plays, 1);
 });
 
+test('SoundCloud error recovery does not advance or resume during an export', async () => {
+  const integration = fs.readFileSync(path.join(__dirname, '../src/integration/666-integration.js'), 'utf8');
+  const start = integration.indexOf("  audio.addEventListener('error',async()=>{if(mode!=='soundcloud'");
+  const multilineStart = integration.indexOf("  audio.addEventListener('error',async()=>{\n    if(mode!=='soundcloud'");
+  const first = start >= 0 ? start : multilineStart;
+  const end = integration.indexOf("\n  window.addEventListener('offline'", first);
+  assert.ok(first >= 0 && end > first);
+  let handler, exporting = true, advances = 0, plays = 0, timer;
+  const status = {};
+  const context = {
+    audio: { addEventListener: (_event, callback) => { handler = callback; } },
+    mode: 'soundcloud', outputMode: false, soundCloudErrorSkips: 0,
+    rt: { isExporting: () => exporting },
+    window: { api: { soundCloudNext: async () => { advances++; return {}; } } },
+    playSoundCloud: async () => { plays++; }, q: () => status,
+    setTimeout: fn => { timer = fn; }
+  };
+  runInNewContext(integration.slice(first, end), context);
+  await handler();
+  assert.equal(advances, 0);
+  assert.equal(plays, 0);
+  assert.match(status.textContent, /automatic skip paused/);
+
+  exporting = false;
+  const pending = handler();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(advances, 1);
+  exporting = true;
+  timer();
+  await pending;
+  assert.equal(plays, 0);
+  assert.match(status.textContent, /recovery paused/);
+
+  exporting = false;
+  const normal = handler();
+  await new Promise(resolve => setImmediate(resolve));
+  timer();
+  await normal;
+  assert.equal(advances, 2);
+  assert.equal(plays, 1);
+});
+
 test('SoundCloud library buttons have separate forwardable IDs for each section', async () => {
   const integration = fs.readFileSync(path.join(__dirname, '../src/integration/666-integration.js'), 'utf8');
   const start = integration.indexOf('  async function refreshSoundCloudLibrary()');

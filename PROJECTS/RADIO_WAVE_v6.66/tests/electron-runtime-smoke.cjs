@@ -83,7 +83,8 @@ if (!process.versions.electron) {
       await overlay.loadFile(path.join(root, 'src', 'overlay-window.html'));
       const markup = '<input id="radio-password" type="password"><textarea id="message"></textarea><p id="status">initial</p>'
         + '<button id="local-queue-play-0" data-index="0">Play</button><button id="local-queue-remove-0" data-remove-index="0">Remove</button>'
-        + '<button id="soundcloud-item-track-0" data-sc-url="https://example.test/track">Track</button>';
+        + '<button id="soundcloud-item-track-0" data-sc-url="https://example.test/track">Track</button>'
+        + '<input id="overlay-range" type="range" min="0" max="100" value="0" style="position:absolute;left:20px;top:200px;width:300px;height:20px">';
       overlay.webContents.send('workspace:overlay-init', { key: 'source', html: markup, controls: [] });
       await overlay.webContents.executeJavaScript(`(async () => {
         while (!document.getElementById('radio-password')) await new Promise(resolve => setTimeout(resolve, 10));
@@ -122,8 +123,36 @@ if (!process.versions.electron) {
       await new Promise(resolve => setTimeout(resolve, 50));
       assert.deepEqual(overlayActions.filter(action => action.kind === 'click').map(action => action.id),
         ['local-queue-play-0', 'local-queue-remove-0', 'soundcloud-item-track-0']);
+      overlay.webContents.sendInputEvent({ type: 'mouseDown', x: 40, y: 210, button: 'left', clickCount: 1 });
+      await new Promise(resolve => setTimeout(resolve, 100));
+      const beforeDrag = await overlay.webContents.executeJavaScript("Number(document.getElementById('overlay-range').value)");
+      overlay.webContents.send('workspace:overlay-sync', {
+        html: markup.replace('initial', 'dragging'),
+        controls: [{ id: 'overlay-range', value: String(beforeDrag) }]
+      });
+      await new Promise(resolve => setTimeout(resolve, 100));
+      assert.equal(await overlay.webContents.executeJavaScript("document.getElementById('status').textContent"), 'updated again');
+      overlay.webContents.sendInputEvent({ type: 'mouseMove', x: 280, y: 210, button: 'left' });
+      await new Promise(resolve => setTimeout(resolve, 100));
+      overlay.webContents.sendInputEvent({ type: 'mouseUp', x: 280, y: 210, button: 'left', clickCount: 1 });
+      await new Promise(resolve => setTimeout(resolve, 100));
+      const drag = await overlay.webContents.executeJavaScript("({ value: Number(document.getElementById('overlay-range').value), status: document.getElementById('status').textContent })");
+      assert.equal(drag.status, 'dragging');
+      assert.ok(drag.value > beforeDrag + 50, `Slider drag was interrupted: ${beforeDrag} -> ${drag.value}`);
+
+      await overlay.webContents.executeJavaScript(`(() => {
+        document.getElementById('overlay-range').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, isPrimary: true, pointerId: 99, button: 0 }));
+      })()`);
+      overlay.webContents.send('workspace:overlay-sync', { html: markup.replace('initial', 'cancelled'), controls: [] });
+      await new Promise(resolve => setTimeout(resolve, 50));
+      assert.equal(await overlay.webContents.executeJavaScript("document.getElementById('status').textContent"), 'dragging');
+      await overlay.webContents.executeJavaScript(`(() => {
+        document.getElementById('overlay-range').dispatchEvent(new PointerEvent('pointercancel', { bubbles: true, isPrimary: true, pointerId: 99 }));
+      })()`);
+      await new Promise(resolve => setTimeout(resolve, 50));
+      assert.equal(await overlay.webContents.executeJavaScript("document.getElementById('status').textContent"), 'cancelled');
     } finally { overlay.destroy(); }
-    console.log('PASS Electron detached overlay focus, secret clearing and dynamic buttons');
+    console.log('PASS Electron detached overlay focus, secrets, dynamic buttons and slider gestures');
     const recorded = await check('preload.js', `(async () => {
       const canvas = document.createElement('canvas');
       canvas.width = 96; canvas.height = 54;

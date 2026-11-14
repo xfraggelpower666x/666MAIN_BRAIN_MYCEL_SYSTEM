@@ -39,7 +39,7 @@ test('detached detail sections forward and retain their open state', async () =>
   const root = { addEventListener: (type, fn) => { listeners[type] = fn; }, innerHTML: '' };
   runInNewContext(overlay, {
     document: { getElementById: id => id === 'overlay-root' ? root : null },
-    window: { rwOverlay: {
+    window: { addEventListener() {}, rwOverlay: {
       onInit: callback => { init = callback; }, onSync() {},
       action: async payload => { actions.push(payload); }, ready: async () => ({})
     } },

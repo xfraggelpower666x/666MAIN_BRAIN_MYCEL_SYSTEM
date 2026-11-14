@@ -630,7 +630,18 @@ const a=q('#display-one'),b=q('#display-two');const prevA=a.value||localStorage.
   q('#soundcloud-next').onclick=async()=>{try{await playSoundCloud(await window.api.soundCloudNext());}catch(err){q('#soundcloud-state').textContent='SoundCloud error · '+err.message;}};
   audio.addEventListener('playing',()=>{if(mode==='soundcloud')soundCloudErrorSkips=0;});
   audio.addEventListener('ended',async()=>{if(mode==='soundcloud'&&!outputMode&&!rt.isExporting()){try{await playSoundCloud(await window.api.soundCloudNext());}catch(err){q('#soundcloud-state').textContent='SoundCloud queue · '+err.message;}}});
-  audio.addEventListener('error',async()=>{if(mode!=='soundcloud'||outputMode||soundCloudErrorSkips>=3)return;soundCloudErrorSkips++;q('#soundcloud-state').textContent=`SoundCloud stream error · skipping ${soundCloudErrorSkips}/3`;try{const x=await window.api.soundCloudNext();await new Promise(r=>setTimeout(r,500*soundCloudErrorSkips));await playSoundCloud(x);}catch(err){q('#soundcloud-state').textContent='SoundCloud recovery · '+err.message;}});
+  audio.addEventListener('error',async()=>{
+    if(mode!=='soundcloud'||outputMode||soundCloudErrorSkips>=3)return;
+    if(rt.isExporting()){q('#soundcloud-state').textContent='SoundCloud stream error · automatic skip paused during export';return;}
+    soundCloudErrorSkips++;
+    q('#soundcloud-state').textContent=`SoundCloud stream error · skipping ${soundCloudErrorSkips}/3`;
+    try{
+      const x=await window.api.soundCloudNext();
+      await new Promise(r=>setTimeout(r,500*soundCloudErrorSkips));
+      if(rt.isExporting()){q('#soundcloud-state').textContent='SoundCloud recovery paused during export';return;}
+      await playSoundCloud(x);
+    }catch(err){q('#soundcloud-state').textContent='SoundCloud recovery · '+err.message;}
+  });
   window.addEventListener('offline',()=>{if(mode==='radio')state('NETWORK OFFLINE · STREAM MAY CONTINUE FROM BUFFER');if(mode==='soundcloud')q('#soundcloud-state').textContent='Network offline · waiting for connection';});
   window.api.onRuntimeLifecycle?.(async ev=>{
     if(ev?.type==='lyvra:system-start'){
