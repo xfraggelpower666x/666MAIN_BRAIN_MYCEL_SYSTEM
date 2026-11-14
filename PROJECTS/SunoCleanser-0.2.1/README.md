@@ -2,7 +2,7 @@
 
 **Idioma:** [Español](README.md) · [English](README.en.md)
 
-Limpia exportaciones WAV de Suno con denoise espectral adaptativo, cancelación de fase de verificación y dos archivos de salida en 24-bit.
+Limpia exportaciones WAV o MP3 de Suno con denoise espectral adaptativo, cancelación de fase de verificación y dos archivos WAV de salida en 24-bit.
 
 Usa una línea de proceso posteada en Reddit por u/Cookienomster45, a quien su dios guarda silla fija en el banquete de los héroes.
 
@@ -50,7 +50,7 @@ conda activate sunocleanser
 python -m sunocleanser.gui
 ```
 
-En la ventana: **Examinar** → elige el WAV, ajusta el **título** si quieres, **Procesar**. **Abrir out/** abre la carpeta de salidas.
+En la ventana: **Examinar** → elige un WAV o MP3, ajusta el **título** si quieres, **Procesar**. **Abrir out/** abre la carpeta de salidas.
 
 La GUI se inicia en **inglés**. Usa el selector **Language / Idioma** en la parte superior de la ventana para cambiar entre **English** y **Español** en cualquier momento.
 
@@ -67,15 +67,16 @@ Todas las salidas de la GUI van a **`out/`** (relativa al directorio desde el qu
 | `{stem}.report.json` | Parámetros, picos, verificación de fase |
 
 Los informes JSON usan **nombres de archivo**, no rutas absolutas de tu PC.
+Los separadores de ruta en los títulos se sustituyen por guiones bajos para mantener las salidas en la carpeta elegida.
 
 ## CLI
 
 ```powershell
 conda activate sunocleanser
-python -m sunocleanser.cli "C:\ruta\cancion.wav" --out-dir out --title "Mi tema"
+python -m sunocleanser.cli "C:\ruta\cancion.mp3" --out-dir out --title "Mi tema"
 ```
 
-Sin `--out-dir`, los WAV se escriben junto al archivo de entrada; el informe sigue la misma regla que en la ayuda (`python -m sunocleanser.cli -h`).
+Se admiten entradas WAV y MP3; el audio generado sigue siendo WAV de 24 bits. Sin `--out-dir`, los WAV se escriben junto al archivo de entrada; el informe sigue la misma regla que en la ayuda (`python -m sunocleanser.cli -h`).
 
 ## Tests
 
