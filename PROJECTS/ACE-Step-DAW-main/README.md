@@ -65,6 +65,16 @@ Opens at [http://localhost:5174](http://localhost:5174). The dev server proxies 
 
 **Cloud API:** Configure the backend URL in Settings → API URL: `https://api.acemusic.ai`
 
+**ComfyUI workspace:** Start a trusted ComfyUI installation separately on
+`127.0.0.1:8188`, then select ComfyUI and Connect in the DAW. ComfyUI must
+allow the desktop app's origin (`http://tauri.localhost` on Windows) for the
+`/system_stats` connection check. The app does not start or stop ComfyUI.
+The editor is embedded from that local service; installing ComfyUI and its
+ACE-Step nodes, sharing audio with the DAW, and configuring a shared inference
+backend are not yet automated. A successful connection check does not verify
+that the editor can be embedded: browser security headers can still block it.
+Only connect to an installation and custom nodes you trust.
+
 **Production build:**
 
 ```bash
