@@ -27,6 +27,18 @@ Bei Änderung oder Neubau nutze den Werkzeugbefund für die tatsächliche Build-
 | `tools` | Eingabeformat, gewünschte Ausgabe, Ziel und verfügbaren Provider prüfen. Für Konvertierung, OCR, Medien, Geodaten, QR/SVG, Finanz- oder Datenanalyse die passenden Eingaben und unabhängige Plausibilitätsprüfung definieren. Vor externem Transfer das Ziel und die konkrete Berechtigung prüfen. |
 | `browser` | Für berechtigte Aufgaben den vorgesehenen Host-Adapter nutzen. Sitzung, Dateitransfer und Ergebnis separat belegen. Das Archiv belegt die Beschreibung eines Fremdwerkzeugs. Ein Abruf von Sitzungsdaten oder deren Weitergabe ist kein Bestandteil dieses Arbeitsverfahrens. |
 
+## Coding-Auftrag, App-Qualität und UI-Wiederverwendung
+
+Diese Regeln ergänzen `engineering`, `verification` und die Werkzeugprüfung mit ToolStarter.
+
+- **Auftragsart bestimmen.** Für Review oder Audit Befunde, Schweregrad, Fundstellen und Gegenproben liefern. Bei einer beauftragten Änderung den betroffenen Code in der verfügbaren Quellbasis bearbeiten und am regulären Einstieg gegenprüfen. Für Copy und Planung das angeforderte Ergebnis liefern. Bei Kombinationen alle ausdrücklich beauftragten Teile abdecken.
+- **Projektvertrag erhalten.** Framework und Version aus Manifest, Lockfile und Imports bestimmen. Für Änderungen bestehende Architektur, Benennung, Typisierung, State-Management und Schnittstellen berücksichtigen. Bei unvollständigem Quellstand die konkret fehlende Datei oder Abnahme benennen.
+- **App-Zustände abnehmen.** Bei asynchronen Daten Lade-, Leer-, Fehler- und Erfolgszustand prüfen. Formulare beim Absenden validieren, Eingaben im Fehlerfall erhalten und Doppel-Submit verhindern. Bei schreibenden APIs zusätzlich prüfen, ob Retries oder parallele Anfragen doppelte Wirkungen auslösen können und welche Idempotenz der API-Vertrag vorsieht.
+- **Client und Server prüfen.** Bei Next.js und Expo die für den Client vorgesehenen Variablen `NEXT_PUBLIC_` und `EXPO_PUBLIC_` als öffentlich behandeln. Dienstschlüssel serverseitig halten und Sitzungsdaten plattformgerecht schützen, etwa mit HttpOnly-Cookies im Web oder dem sicheren Speicher der Plattform auf Mobilgeräten.
+- **Zugänglichkeit prüfen.** Sichtbare Formularlabels und zugängliche Namen interaktiver Elemente prüfen. Kontrast in den vorhandenen Themes, Tastaturbedienung im Web und zur Plattform passende Touch-Ziele abnehmen.
+- **UI-Bestand vor Neubau prüfen.** Zuerst im Ziel-Repository und in den für das Projekt eingebundenen Komponentenbibliotheken nach einem passenden Baustein suchen. Treffer gegen Framework, Abhängigkeiten, Props, Design-Tokens und relevanten Projektzustand prüfen. Bei Übernahme Herkunft und Revision festhalten, an das Zielprojekt anpassen und Build sowie Verhalten dort prüfen.
+- **Builder und Veröffentlichung an den Auftrag binden.** Einen externen Builder nur auf ausdrücklichen Wunsch für das jeweils ausgewählte Ziel verwenden. Eine Veröffentlichung braucht einen eigenen Auftrag für die konkrete Zielumgebung. Ein Briefing-Link, eine Darstellung in der Vorschau, ein Build im Zielprojekt und die tatsächliche Veröffentlichung sind jeweils mit eigenen Nachweisen zu belegen.
+
 ## Modus und Evidenz
 
 - `NATIVE_GUIDANCE` bindet einen Workflow an eine vorhandene PSYLLO-Facette. Ob ein konkreter Auftrag ausführbar ist, hängt von Scope, Belegen und bereitgestellten Werkzeugen ab.
