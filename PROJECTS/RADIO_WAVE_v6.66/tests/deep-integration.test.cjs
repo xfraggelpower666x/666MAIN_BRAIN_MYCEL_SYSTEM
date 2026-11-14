@@ -48,11 +48,7 @@ pass('visual presets sync to outputs',i.includes('shaderPreset')&&i.includes('ge
 pass('SoundCloud playlist queue normalized in main process',main.includes('soundCloudQueue = []')&&main.includes('activateSoundCloudIndex')&&main.includes('soundcloud:next')&&main.includes('soundcloud:previous'));
 pass('SoundCloud queue controls exposed safely',pre.includes('soundCloudNext')&&pre.includes('soundCloudPrevious')&&html.includes('soundcloud-prev')&&html.includes('soundcloud-next'));
 pass('SoundCloud automatic queue advance',i.includes("audio.addEventListener('ended'")&&i.includes('window.api.soundCloudNext()'));
-<<<<<<< HEAD
 pass('SoundCloud stream protocol route constrained',read('src/shared/soundcloud-stream.cjs').includes("u.hostname !== 'audio'")&&read('src/shared/soundcloud-stream.cjs').includes("active.entries.get(key)"));
-=======
-pass('SoundCloud stream protocol route constrained',main.includes("u.hostname!=='audio'||u.pathname!=='/current'"));
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 pass('SoundCloud media URL revision busts stale stream',main.includes('soundCloudRevision++')&&main.includes('swsc://audio/current?v='));
 pass('display metrics reconcile active output bounds',main.includes('reconcileOutputWindows')&&main.includes('w.setBounds')&&main.includes('display-metrics-changed'));
 pass('display output status IPC',main.includes("display:status")&&pre.includes('outputStatus'));
@@ -90,11 +86,7 @@ pass('source state IPC payload is schema constrained',main.includes('function sa
 pass('output recovery budget resets after successful load',main.includes("did-finish-load',()=>{outputRecovery.set(id,0)"));
 pass('runtime diagnostics include process memory',main.includes('process.memoryUsage()')&&main.includes('heapUsed:m.heapUsed'));
 pass('SoundCloud API requests are timeout bounded',main.includes('async function soundCloudFetch')&&main.includes("soundcloud_timeout")&&main.includes('15000'));
-<<<<<<< HEAD
 pass('SoundCloud OAuth invalidation retries once',main.includes('if(r.status===401)')&&read('src/shared/soundcloud-stream.cjs').includes('!retried'));
-=======
-pass('SoundCloud OAuth invalidation retries once',main.includes('if(r.status===401){soundCloudToken=null')&&main.includes('const retry=await soundCloudAccessToken()'));
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 pass('SoundCloud renderer recovery skips bounded failures',i.includes('soundCloudErrorSkips>=3')&&i.includes('skipping ${soundCloudErrorSkips}/3'));
 pass('offline network state is surfaced to active remote sources',i.includes("window.addEventListener('offline'")&&i.includes('Network offline'));
 pass('single-instance runtime lock prevents duplicate controllers',main.includes('requestSingleInstanceLock')&&main.includes("second-instance"));
@@ -103,11 +95,7 @@ pass('stale output heartbeat has bounded watchdog recovery',main.includes('start
 pass('runtime diagnostics retain bounded lifecycle event history',main.includes('runtimeEvents.length>200')&&main.includes('events:runtimeEvents.slice(-100)'));
 pass('background imports are size and type bounded',main.includes('background_too_large')&&main.includes('32*1024*1024')&&main.includes('background_type_blocked'));
 pass('local media bridge has no duplicate unreachable fetch', (main.match(/return net\.fetch\(pathToFileURL\(selectedLocalAudioPath\)/g)||[]).length===1);
-<<<<<<< HEAD
 pass('quit path clears transient credentials and aborts video writers',main.includes("app.on('before-quit'")&&main.includes("adminToken=''; soundCloudToken=null")&&main.includes('discardVideoWrite()')&&main.includes('state.aborted = true'));
-=======
-pass('quit path clears transient credentials and writers',main.includes("app.on('before-quit'")&&main.includes("adminToken=''; soundCloudToken=null")&&main.includes('fileWriteStream.end()'));
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 pass('Player Messenger receive polling and self suppression',i.includes('refreshPlayerMessenger')&&i.includes('from!==senderId')&&i.includes('document.hidden?30000:10000'));
 pass('Player Messenger history and status adapters stay main-process owned',main.includes("player-alert:history")&&main.includes("player-alert:status")&&pre.includes('playerAlertHistory')&&pre.includes('playerAlertStatus'));
 pass('Discord automatic track change is deduplicated after authenticated enable',i.includes('discordAutoEnabled=true')&&i.includes('key!==lastDiscordTrack')&&i.includes('discordNowPlaying(metadata())'));

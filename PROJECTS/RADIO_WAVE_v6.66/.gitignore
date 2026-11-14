@@ -30,7 +30,6 @@ Thumbs.db
 # Production builds
 dist/*
 !dist/SoundwaveStudio-win32-x64/
-<<<<<<< HEAD
 build/cyber-studio/
 build/cyber-studio-work/
 build/radio-wave-v6.66.ico
@@ -39,8 +38,6 @@ build/cyber-studio-env/
 build/cyber-studio-backups/
 build/cyber-studio-stage-*/
 build/cyber-studio.lock/
-=======
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 
 # Allow repository assets
 !images/

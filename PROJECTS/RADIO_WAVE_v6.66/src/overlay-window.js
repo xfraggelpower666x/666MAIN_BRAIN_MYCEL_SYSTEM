@@ -26,10 +26,7 @@
     root.addEventListener('click',e=>{
       const b=e.target.closest('button');
       if(!b)return;
-<<<<<<< HEAD
       if(b.id==='audio-input-start')return;
-=======
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
       const action=b.id?{id:b.id}:{selector:b.dataset.source?('[data-source="'+CSS.escape(b.dataset.source)+'"]'):(b.dataset.openWindow?('[data-open-window="'+CSS.escape(b.dataset.openWindow)+'"]'):'')};
       if(!action.id&&!action.selector)return;
       window.rwOverlay.action({key:overlayKey,kind:'click',...action}).catch(()=>{});

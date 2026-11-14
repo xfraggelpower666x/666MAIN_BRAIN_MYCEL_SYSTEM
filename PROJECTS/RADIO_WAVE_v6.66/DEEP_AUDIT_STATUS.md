@@ -1,12 +1,9 @@
 # SoundwaveStudio 666 v1.18.2 — SOUNDWAVE BASELINE VERIFIED / RADIO INTEGRATION SOURCE FROZEN
 
-<<<<<<< HEAD
 This is a historical source-freeze record, not validation of later Electron,
 audio, SoundCloud, radio, workspace or packaging changes. Those changes require
 their own tests and host readback.
 
-=======
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 STATUS=RADIO_INTEGRATION_SOURCE_FROZEN
 VERSION=1.18.2
 FREEZE=RADIO_INTEGRATION_SOURCE_ONLY

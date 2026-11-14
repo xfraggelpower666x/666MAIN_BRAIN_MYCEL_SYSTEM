@@ -9,11 +9,8 @@ const sandbox={window:{},console,performance:{now:()=>0},setTimeout,clearTimeout
 vm.createContext(sandbox);
 vm.runInContext(fs.readFileSync(path.join(root,'src/vendor/cayatur/preset-registry.js'),'utf8'),sandbox,{filename:'preset-registry.js'});
 vm.runInContext(fs.readFileSync(path.join(root,'src/vendor/cayatur/milkdrop-cycle.js'),'utf8'),sandbox,{filename:'milkdrop-cycle.js'});
-<<<<<<< HEAD
 vm.runInContext(fs.readFileSync(path.join(root,'src/vendor/cayatur/milkdrop-core.js'),'utf8'),sandbox,{filename:'milkdrop-core.js'});
 vm.runInContext(fs.readFileSync(path.join(root,'src/vendor/cayatur/milkdrop-renderer.js'),'utf8'),sandbox,{filename:'milkdrop-renderer.js'});
-=======
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 
 const P=sandbox.window.SVPresets;
 assert(P&&typeof P.registerBuiltin==='function');
@@ -61,7 +58,6 @@ tp.setLock(145);
 tp.update({bass:0},.5,.5);
 assert.strictEqual(tp.bpm,145);
 
-<<<<<<< HEAD
 const preset=new sandbox.window.SVMilkdrop.Preset([
   'per_frame_init_1=q1=10;q32=4;',
   'per_frame_1=q1=q1+1;q32=q32+1;',
@@ -107,6 +103,3 @@ assert.strictEqual(preset.shapeFrame(shape,0).rad,16);
 
 console.log('PASS milkdrop-control-layer 7/7');
 console.log('PASS milkdrop q/t frame, vertex, shader and custom-block flow');
-=======
-console.log('PASS milkdrop-control-layer 7/7');
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2

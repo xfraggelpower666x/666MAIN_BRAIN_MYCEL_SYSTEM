@@ -23,15 +23,11 @@
 
   const sectionDefs=[
     {key:'source',title:'SOURCE HUB',icon:'⚡',node:q('#source-hub'),x:28,y:95,w:420,h:470,open:true},
-<<<<<<< HEAD
     {key:'radioAdmin',title:'ONLINE RADIO ADMIN',icon:'📡',node:q('#rw-radio-admin'),x:65,y:100,w:520,h:620},
     {key:'media',title:'MEDIA LIBRARY',icon:'📁',match:'Media Library',x:70,y:135,w:390,h:360},
     {key:'audioPool',title:'AUDIO POOL & PLAYLISTS',icon:'🎵',node:q('#local-audio-library'),x:85,y:110,w:500,h:620},
     {key:'audioFx',title:'AUDIO FX · EQ',icon:'🎚️',node:q('#audio-fx'),x:110,y:115,w:430,h:480},
     {key:'audioDevices',title:'AUDIO DEVICES',icon:'🎙️',node:q('#audio-device-controls'),x:140,y:120,w:440,h:520},
-=======
-    {key:'media',title:'MEDIA LIBRARY',icon:'📁',match:'Media Library',x:70,y:135,w:390,h:360},
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
     {key:'wave',title:'WAVE DESIGN',icon:'🎨',match:'Wave Design',x:120,y:115,w:420,h:520},
     {key:'position',title:'POSITION & SIZE',icon:'📐',match:'Position & Size',x:170,y:135,w:420,h:500},
     {key:'text',title:'TEXT OVERLAYS',icon:'✏️',match:'Text Overlays',x:220,y:155,w:410,h:430},
@@ -93,10 +89,7 @@
       mute:'Audio stummschalten oder wieder einschalten.',
       play:'Wiedergabe starten oder pausieren.',
       diagnostics:'Diagnose öffnen: Monitore, GPU, Runtime und JSON-Export.',
-<<<<<<< HEAD
       openCyberStudio:'MilkDrop Cyber Studio für Presets und Assets öffnen.',
-=======
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
       importPersonal:'Persönliche MilkDrop-Bibliothek aus ZIP importieren und lokal speichern.',
       top100:'Nur Presets aus der Top-100-Liste anzeigen.',
       classic:'Nur klassische .milk-Presets anzeigen.',
@@ -123,10 +116,7 @@
       mute:'Mute or unmute audio.',
       play:'Start or pause playback.',
       diagnostics:'Open diagnostics for displays, GPU, runtime and JSON export.',
-<<<<<<< HEAD
       openCyberStudio:'Open MilkDrop Cyber Studio for presets and assets.',
-=======
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
       importPersonal:'Import the personal MilkDrop library ZIP and store it locally.',
       top100:'Show only presets from the Top 100 list.',
       classic:'Show classic .milk presets only.',
@@ -292,7 +282,6 @@
     win.classList.add('rw-window-closed');saveWorkspace();
   }
 
-<<<<<<< HEAD
   async function toggleWindow(key){
     if(detached.has(key)){
       try{
@@ -309,10 +298,6 @@
 
   function controlsSnapshot(win){
     return qaFrom(win,'input[id],select[id],textarea[id],button[id]').filter(el=>el.type!=='password').map(el=>({
-=======
-  function controlsSnapshot(win){
-    return qaFrom(win,'input[id],select[id],textarea[id],button[id]').map(el=>({
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
       id:el.id,tag:el.tagName,type:el.type||'',value:el.value??'',checked:!!el.checked,disabled:!!el.disabled
     }));
   }
@@ -402,7 +387,6 @@
     const btn=document.createElement('button');
     btn.type='button';btn.className='rw-dock-button';btn.id='rw-dock-open-'+def.key;btn.dataset.openWindow=def.key;btn.dataset.rwTipKey='open:'+def.key;
     btn.innerHTML=`<span>${def.icon}</span><small>${def.title}</small>`;
-<<<<<<< HEAD
     btn.addEventListener('click',()=>toggleWindow(def.key));
     dock.appendChild(btn);
   }
@@ -427,12 +411,6 @@
   });
   dock.appendChild(cyberStudioButton);
 
-=======
-    btn.addEventListener('click',()=>openWindow(def.key));
-    dock.appendChild(btn);
-  }
-
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   // Stream status remains inside the video frame so it moves with the visual canvas.
   const status=q('#radio-status-panel');
   const frame=q('#video-frame-outer');
@@ -533,11 +511,7 @@
 
   // Keep the existing top button as dock toggle rather than old scrolling-sidebar toggle.
   window.RWWorkspace=Object.freeze({
-<<<<<<< HEAD
     open:openWindow,close:closeWindow,toggle:toggleWindow,detach:detachWindow,fitVisualFrame:()=>window.RWVisualFrame?.fit?.(),
-=======
-    open:openWindow,close:closeWindow,detach:detachWindow,fitVisualFrame:()=>window.RWVisualFrame?.fit?.(),
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
     toggleDock(){
       document.body.classList.toggle('rw-dock-collapsed');
       saveWorkspace();
@@ -546,7 +520,6 @@
     save(){saveSettings();saveWorkspace();}
   });
 
-<<<<<<< HEAD
   document.querySelectorAll('[data-external-site]').forEach(button=>{
     button.addEventListener('click',async()=>{
       try{await window.api.openApprovedWebsite(button.dataset.externalSite);}
@@ -562,8 +535,6 @@
     console.error('Version lookup failed',error);
   });
 
-=======
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   window.api?.onDetachedOverlayAction?.(payload=>{
     const key=String(payload?.key||'');
     if(key==='dock'){

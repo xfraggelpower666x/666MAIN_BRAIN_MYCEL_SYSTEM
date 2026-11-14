@@ -6,18 +6,12 @@
 // Global state variables
 let audioContext = null;
 let audioSource = null;
-<<<<<<< HEAD
 let audioEq = null;
 let audioEqSettings = { bass: 0, mid: 0, treble: 0, bypass: false, width: 100 };
 let analyserNode = null;
 let externalAnalyserFrame = null; // real analyzer snapshot from primary player for visual-only output windows
 let audioDestinationNode = null; // Node for recording audio track
 let audioDeviceController = null;
-=======
-let analyserNode = null;
-let externalAnalyserFrame = null; // real analyzer snapshot from primary player for visual-only output windows
-let audioDestinationNode = null; // Node for recording audio track
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 let dataArray = null;
 let timeDataArray = null;
 let bufferLength = 0;
@@ -63,14 +57,9 @@ let visualizerParticles = []; // Particles bursting on circular visualizer beat 
 // Recording State
 let mediaRecorder = null;
 let isRecording = false;
-<<<<<<< HEAD
 let exportSavePath = null;
 let exportBusy = false;
 let exportSession = null;
-=======
-let recordedChunks = [];
-let exportSavePath = null;
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 
 // DOM Elements
 const canvas = document.getElementById('visualizer-canvas');
@@ -122,10 +111,7 @@ const checkBeatReact = document.getElementById('check-beat-react');
 const selectAspectRatio = document.getElementById('select-aspect-ratio');
 const selectFps = document.getElementById('select-fps');
 const btnExport = document.getElementById('btn-export');
-<<<<<<< HEAD
 const audioInputRecord = document.getElementById('audio-input-record');
-=======
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 
 // Diagnostics HUD
 const diagStatus = document.getElementById('diag-status');
@@ -159,7 +145,6 @@ const exportProgressBar = document.getElementById('export-progress');
 const exportTimeLabel = document.getElementById('export-time');
 const exportStatusLabel = document.getElementById('export-status-label');
 const btnStopExport = document.getElementById('btn-stop-export');
-<<<<<<< HEAD
 const btnBrowseExport = document.getElementById('btn-browse-export');
 const exportDestination = document.getElementById('export-destination');
 const exportModalPath = document.getElementById('export-modal-path');
@@ -167,8 +152,6 @@ const exportModalTitle = document.getElementById('export-modal-title');
 const exportModalDescription = document.getElementById('export-modal-description');
 const exportResult = document.getElementById('export-result');
 const exportProgressContainer = document.getElementById('export-progress-container');
-=======
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 
 // ==========================================================================
 // Setup & Initialization
@@ -357,7 +340,6 @@ window.RWLocalQueue=Object.freeze({
   cancelTransition:cancelLocalTransition
 });
 
-<<<<<<< HEAD
 function setupAudioFx(){
   const bands=['bass','mid','treble'];
   const inputs=Object.fromEntries(bands.map(band=>[band,document.getElementById('audio-fx-'+band)]));
@@ -630,8 +612,6 @@ function setupLocalLibrary(){
   action(async()=>render(await window.api.localLibraryState()));
 }
 
-=======
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 function init() {
   setupEventListeners();
   updateAspectSettings();
@@ -717,32 +697,20 @@ function setupEventListeners() {
   });
   for(const type of ['dragenter','dragover'])localDropZone?.addEventListener(type,e=>{e.preventDefault();e.stopPropagation();localDropZone.classList.add('drag-active');});
   for(const type of ['dragleave','drop'])localDropZone?.addEventListener(type,e=>{e.preventDefault();e.stopPropagation();if(type==='dragleave')localDropZone.classList.remove('drag-active');});
-<<<<<<< HEAD
   localDropZone?.addEventListener('drop',()=>{
     localDropZone.classList.remove('drag-active');
   });
   window.api.onLocalFilesDropped(async(state,error)=>{
     if(error){diagStatus.textContent='Local Audio Load Error · '+error;return;}
     const before=localQueueSnapshot.count||0;
-=======
-  localDropZone?.addEventListener('drop',async e=>{
-    localDropZone.classList.remove('drag-active');
-    const paths=Array.from(e.dataTransfer?.files||[]).map(file=>window.api.getPathForFile(file)).filter(Boolean);
-    if(!paths.length)return;
-    const before=localQueueSnapshot.count||0;
-    const state=await window.api.localQueueAddPaths(paths);
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
     renderLocalQueue(state);
     if(!document.body.classList.contains('source-local'))document.querySelector('.source-btn[data-source="local"]')?.click();
     else if(before===0&&state.count)await activateLocalQueueIndex(Math.max(0,state.index),{autoplay:true,fade:false});
   });
   restoreLocalQueue();
-<<<<<<< HEAD
   setupLocalLibrary();
   setupAudioDevices();
   setupAudioFx();
-=======
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 
   // Background selection
   btnSelectBg.addEventListener('click', async () => {
@@ -789,15 +757,12 @@ function setupEventListeners() {
     }
   });
 
-<<<<<<< HEAD
   audioElement.addEventListener('error', () => {
     if (exportSession && !exportSession.stopping && !exportSession.finishing) {
       recordingError(exportSession, new Error('Audio playback failed during recording'));
     }
   });
 
-=======
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   seekSlider.addEventListener('input', () => {
     audioElement.currentTime = seekSlider.value;
     currentTimeLabel.textContent = formatTime(audioElement.currentTime);
@@ -909,10 +874,7 @@ function setupEventListeners() {
   selectFps.addEventListener('change', (e) => exportFps = parseInt(e.target.value));
 
   // Export engine button
-<<<<<<< HEAD
   btnBrowseExport.addEventListener('click', browseExportDestination);
-=======
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   btnExport.addEventListener('click', startRecordingPipeline);
   btnStopExport.addEventListener('click', stopRecordingAndSave);
 }
@@ -999,7 +961,6 @@ function ensureAudioContext() {
     timeDataArray = new Uint8Array(bufferLength);
 
     audioSource = audioContext.createMediaElementSource(audioElement);
-<<<<<<< HEAD
     audioEq = window.RWAudioEq.create(audioContext);
     audioEq.set(audioEqSettings);
     audioSource.connect(audioEq.input);
@@ -1013,14 +974,6 @@ function ensureAudioContext() {
     // Create stream destination node for crisp digital recording
     audioDestinationNode = audioContext.createMediaStreamDestination();
     audioEq.output.connect(audioDestinationNode);
-=======
-    audioSource.connect(analyserNode);
-    analyserNode.connect(audioContext.destination);
-
-    // Create stream destination node for crisp digital recording
-    audioDestinationNode = audioContext.createMediaStreamDestination();
-    analyserNode.connect(audioDestinationNode);
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   }
   
   if (audioContext.state === 'suspended') {
@@ -1704,7 +1657,6 @@ function drawTextOverlays(bass) {
 // Video Recording & Exporter Process (Native Save Dialog Connection)
 // ==========================================================================
 
-<<<<<<< HEAD
 async function browseExportDestination() {
   if (exportBusy) return false;
   exportBusy = true;
@@ -1843,42 +1795,10 @@ async function startRecordingPipeline() {
     audioElement.pause();
     if(!session.microphoneOnly&&Number.isFinite(audioElement.duration)&&audioElement.duration>0)audioElement.currentTime = 0;
     setupProceduralParticles();
-=======
-async function startRecordingPipeline() {
-  ensureAudioContext();
-  
-  try {
-    // 1. Trigger Native Dialog to locate export file path
-    diagStatus.textContent = 'Opening Save Dialog...';
-    const chosenSavePath = await window.api.getSavePath();
-    if (!chosenSavePath) {
-      diagStatus.textContent = 'Export cancelled';
-      return;
-    }
-    exportSavePath = chosenSavePath;
-
-    // 2. Initialize native file write stream
-    const initRes = await window.api.startFileWrite(exportSavePath);
-    if (!initRes.success) {
-      alert(`Failed to initialize video file: ${initRes.error}`);
-      return;
-    }
-
-    // 3. Reset audio and begin recording configuration
-    isPlaying = false;
-    audioElement.pause();
-    audioElement.currentTime = 0;
-    
-    // Ensure renderer has clean blank frames
-    setupProceduralParticles();
-    
-    // Stop standard requestAnimationFrame preview loop
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
     if (animationFrameId) {
       cancelAnimationFrame(animationFrameId);
       animationFrameId = null;
     }
-<<<<<<< HEAD
     session.previewStopped = true;
     isRecording = true;
     diagStatus.textContent = 'Rendering...';
@@ -1944,120 +1864,10 @@ async function startRecordingPipeline() {
       exportResult.textContent = `Video not saved: ${error.message}`;
       diagStatus.textContent = 'Export error';
     }
-=======
-
-    // Set status
-    isRecording = true;
-    recordedChunks = [];
-    diagStatus.textContent = 'Rendering...';
-    diagStatusColor.style.backgroundColor = '#ff4757'; // blinking record HUD
-    diagStatusColor.style.boxShadow = '0 0 10px #ff4757';
-
-    // Show export modal overlay
-    exportModal.classList.remove('hidden');
-    exportProgressBar.style.width = '0%';
-    exportStatusLabel.textContent = 'Preparing video tracks...';
-
-    // Capture Canvas frame track
-    const canvasStream = canvas.captureStream(exportFps);
-    const combinedStream = new MediaStream();
-
-    // Add Canvas Video track
-    canvasStream.getVideoTracks().forEach(track => combinedStream.addTrack(track));
-
-    // Route direct Audio tracks from WebAudio stream node
-    if (audioDestinationNode) {
-      audioDestinationNode.stream.getAudioTracks().forEach(track => combinedStream.addTrack(track));
-    }
-
-    // Setup media recorder configuration with high compatibility MP4 prioritised 
-    let mimeType = 'video/mp4;codecs=avc1,mp4a.40.2';
-    if (!MediaRecorder.isTypeSupported(mimeType)) {
-      mimeType = 'video/mp4;codecs=h264,aac';
-    }
-    if (!MediaRecorder.isTypeSupported(mimeType)) {
-      mimeType = 'video/mp4';
-    }
-    if (!MediaRecorder.isTypeSupported(mimeType)) {
-      mimeType = 'video/webm;codecs=vp9,opus';
-    }
-    if (!MediaRecorder.isTypeSupported(mimeType)) {
-      mimeType = 'video/webm;codecs=vp8,opus';
-    }
-    if (!MediaRecorder.isTypeSupported(mimeType)) {
-      mimeType = ''; // Let browser decide
-    }
-    
-    console.log('Selected recording MIME type:', mimeType);
-
-    let options = { videoBitsPerSecond: 8000000 }; // 8 Mbps for pristine high-bitrate video
-    if (mimeType) {
-      options.mimeType = mimeType;
-    }
-    
-    mediaRecorder = new MediaRecorder(combinedStream, options);
-
-    // Recording buffer chunks event streams
-    mediaRecorder.ondataavailable = async (e) => {
-      if (e.data && e.data.size > 0) {
-        // Stream recorded chunk directly through IPC contextBridge to disk
-        const arrayBuf = await e.data.arrayBuffer();
-        await window.api.writeFileChunk(arrayBuf);
-      }
-    };
-
-    mediaRecorder.onstop = async () => {
-      if (recordingInterval) {
-        clearInterval(recordingInterval);
-        recordingInterval = null;
-      }
-      
-      exportStatusLabel.textContent = 'Closing file stream...';
-      await window.api.closeFile();
-      
-      // Cleanup states
-      isRecording = false;
-      exportModal.classList.add('hidden');
-      diagStatus.textContent = 'Export Completed';
-      diagStatusColor.style.backgroundColor = '#2ed573';
-      
-      alert(`Success! Your music video has been saved to:\n${exportSavePath}`);
-      
-      // Restart standard interactive preview loop
-      renderLoop();
-    };
-
-    // Begin recording and play audio
-    mediaRecorder.start(1000); // Trigger dataavailable chunks every 1 second
-    audioElement.play();
-    isPlaying = true;
-    btnPlayPause.querySelector('.play-icon').classList.add('hidden');
-    btnPlayPause.querySelector('.pause-icon').classList.remove('hidden');
-
-    // Run drawing loop on high-precision background-resilient timer
-    // This runs drawing frames and updating indicators even if window is blurred/minimized!
-    const frameTime = 1000 / exportFps;
-    recordingInterval = setInterval(() => {
-      drawFrame();
-    }, frameTime);
-    
-  } catch (err) {
-    console.error('Error starting recording:', err);
-    alert(`Export recording failed: ${err.message}`);
-    isRecording = false;
-    exportModal.classList.add('hidden');
-    
-    if (recordingInterval) {
-      clearInterval(recordingInterval);
-      recordingInterval = null;
-    }
-    renderLoop();
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   }
 }
 
 function updateRecordingHUD() {
-<<<<<<< HEAD
   if (!isRecording || exportSession?.finishing) return;
   const curTime = exportSession?.microphoneOnly ? Math.max(0,(performance.now()-exportSession.startedAt)/1000) : (Number.isFinite(audioElement.currentTime) ? audioElement.currentTime : 0);
   const totalTime = exportSession?.microphoneOnly ? Infinity : audioElement.duration;
@@ -2066,26 +1876,11 @@ function updateRecordingHUD() {
   exportProgressContainer.setAttribute('aria-valuenow', String(Math.round(percentage)));
   exportTimeLabel.textContent = formatTime(curTime);
   exportStatusLabel.textContent = `Encoding frames at ${exportFps} FPS${Number.isFinite(totalTime) && totalTime > 0 ? ` · ${Math.round(percentage)}%` : ' · duration unknown'}`;
-=======
-  if (!isRecording) return;
-  
-  const curTime = audioElement.currentTime;
-  const totalTime = audioElement.duration || 1;
-  const percentage = (curTime / totalTime) * 100;
-  
-  // Update progress bars
-  exportProgressBar.style.width = `${percentage}%`;
-  exportTimeLabel.textContent = formatTime(curTime);
-  exportStatusLabel.textContent = `Encoding frames at ${exportFps} FPS...`;
-
-  // SoundCloud seek bars tracking
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   seekSlider.value = Math.floor(curTime);
   currentTimeLabel.textContent = formatTime(curTime);
   seekProgressFill.style.width = `${percentage}%`;
 }
 
-<<<<<<< HEAD
 function stopRecordingAndSave() {
   if (!exportSession) {
     exportModal.classList.add('hidden');
@@ -2097,29 +1892,16 @@ function stopRecordingAndSave() {
   exportStatusLabel.textContent = 'Stopping recording…';
   audioElement.pause();
   setPlayerUiPlaying(false);
-=======
-async function stopRecordingAndSave() {
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   if (recordingInterval) {
     clearInterval(recordingInterval);
     recordingInterval = null;
   }
-<<<<<<< HEAD
   try {
     if (exportSession.recorder.state !== 'inactive') exportSession.recorder.stop();
     else if (!exportSession.started) void finishRecording(exportSession);
   } catch (error) {
     recordingError(exportSession, error);
     void finishRecording(exportSession);
-=======
-  
-  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-    mediaRecorder.stop();
-    audioElement.pause();
-    isPlaying = false;
-    btnPlayPause.querySelector('.play-icon').classList.remove('hidden');
-    btnPlayPause.querySelector('.pause-icon').classList.add('hidden');
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   }
 }
 

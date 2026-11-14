@@ -1,19 +1,12 @@
-<<<<<<< HEAD
 const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { runPowerShell } = require('../src/shared/powershell.cjs');
-=======
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 
 console.log('🚀 Starting Soundwave Studio optimized build pipeline...');
 
 const distDir = path.join(__dirname, '../dist');
-<<<<<<< HEAD
 const packagedDir = path.join(distDir, 'win-unpacked');
 const zipPath = path.join(distDir, 'SoundwaveStudio-portable-win-x64.zip');
 
@@ -22,24 +15,11 @@ console.log('📦 Running electron-builder...');
 try {
   execFileSync(process.execPath, [path.join(__dirname, 'build-cyber-studio.cjs')], { stdio: 'inherit', cwd: path.join(__dirname, '..') });
   execFileSync(process.execPath, [path.join(__dirname, '..', 'node_modules', 'electron-builder', 'cli.js'), '--win', '--x64', '--dir', '--publish', 'never'], {
-=======
-const packagedDir = path.join(distDir, 'SoundwaveStudio-win32-x64');
-const zipPath = path.join(distDir, 'SoundwaveStudio-portable-win-x64.zip');
-
-// 1. Execute electron-packager
-console.log('📦 Running electron-packager...');
-try {
-  execSync('npx electron-packager . SoundwaveStudio --platform=win32 --arch=x64 --out=dist --overwrite --asar', {
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
     stdio: 'inherit',
     cwd: path.join(__dirname, '..')
   });
 } catch (error) {
-<<<<<<< HEAD
   console.error('❌ electron-builder failed:', error.message);
-=======
-  console.error('❌ electron-packager failed:', error.message);
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   process.exit(1);
 }
 
@@ -56,7 +36,6 @@ console.log('PASS Chromium license notice preserved.');
 
 // 3. Compress folder into portable ZIP
 console.log('🤐 Compressing packaged application to portable ZIP...');
-<<<<<<< HEAD
 const tempZip = path.join(distDir, `.radio-wave-${crypto.randomUUID()}.zip`);
 
 try {
@@ -65,24 +44,10 @@ try {
   const result = runPowerShell(['-NoProfile', '-NonInteractive', '-Command', psCommand], { stdio: 'inherit' });
   if (result.error || result.status !== 0) throw result.error || new Error(`PowerShell exited with status ${result.status}`);
   fs.renameSync(tempZip, zipPath);
-=======
-if (fs.existsSync(zipPath)) {
-  fs.unlinkSync(zipPath);
-}
-
-try {
-  // Use PowerShell's Compress-Archive
-  const psCommand = `powershell -Command "Compress-Archive -Path '${packagedDir}' -DestinationPath '${zipPath}' -Force"`;
-  execSync(psCommand, { stdio: 'inherit' });
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   console.log(`🎉 Optimization complete! Portable ZIP successfully generated.`);
   const stats = fs.statSync(zipPath);
   const sizeMb = (stats.size / (1024 * 1024)).toFixed(2);
   console.log(`📁 Final ZIP Size: ${sizeMb} MB`);
-<<<<<<< HEAD
-=======
-  const crypto = require('crypto');
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   const sha256 = file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
   const manifestPath = path.join(distDir, 'RELEASE_ARTIFACT_SHA256SUMS.txt');
   const lines = [`${sha256(zipPath)}  ${path.basename(zipPath)}`];
@@ -91,12 +56,9 @@ try {
   fs.writeFileSync(manifestPath, lines.join('\n')+'\n', 'utf8');
   console.log(`PASS release SHA-256 manifest: ${manifestPath}`);
 } catch (error) {
-<<<<<<< HEAD
   try { fs.unlinkSync(tempZip); } catch (cleanupError) {
     if (cleanupError.code !== 'ENOENT') console.error('Temporary ZIP cleanup failed:', cleanupError.message);
   }
-=======
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   console.error('❌ Compression failed:', error.message);
   process.exit(1);
 }

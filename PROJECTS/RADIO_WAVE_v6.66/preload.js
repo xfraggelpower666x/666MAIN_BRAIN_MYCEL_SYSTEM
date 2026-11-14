@@ -1,6 +1,5 @@
 const { contextBridge, ipcRenderer, webUtils } = require('electron');
 
-<<<<<<< HEAD
 let localDropListener = null;
 let detachedMicrophoneListener = null;
 let microphoneGestureTime = 0;
@@ -35,17 +34,10 @@ contextBridge.exposeInMainWorld('api', {
   onDetachedMicrophoneRequest: (fn) => { detachedMicrophoneListener = fn; },
   localQueueState: () => ipcRenderer.invoke('local:queue-state'),
   onLocalFilesDropped: (fn) => { localDropListener = fn; },
-=======
-contextBridge.exposeInMainWorld('api', {
-  openAudio: () => ipcRenderer.invoke('dialog:openAudio'),
-  localQueueState: () => ipcRenderer.invoke('local:queue-state'),
-  localQueueAddPaths: (paths) => ipcRenderer.invoke('local:queue-add-paths', paths),
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   localQueueActivate: (index) => ipcRenderer.invoke('local:queue-activate', index),
   localQueueRemove: (index) => ipcRenderer.invoke('local:queue-remove', index),
   localQueueClear: () => ipcRenderer.invoke('local:queue-clear'),
   localQueueShuffle: () => ipcRenderer.invoke('local:queue-shuffle'),
-<<<<<<< HEAD
   localLibraryState: () => ipcRenderer.invoke('local:library-state'),
   localLibraryRefresh: () => ipcRenderer.invoke('local:library-refresh'),
   localLibraryClearFolder: () => ipcRenderer.invoke('local:library-clear-folder'),
@@ -60,12 +52,6 @@ contextBridge.exposeInMainWorld('api', {
   localPlaylistAddQueue: (id) => ipcRenderer.invoke('local:playlist-add-queue', id),
   openBackground: () => ipcRenderer.invoke('dialog:openBackground'),
   openCyberStudio: (language) => ipcRenderer.invoke('milkdrop:open-cyber-studio', language),
-=======
-  getPathForFile: (file) => {
-    try { return webUtils?.getPathForFile ? webUtils.getPathForFile(file) : String(file?.path || ''); } catch { return String(file?.path || ''); }
-  },
-  openBackground: () => ipcRenderer.invoke('dialog:openBackground'),
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   openMilkdrop: () => ipcRenderer.invoke('dialog:openMilkdrop'),
   openMilkdropPack: () => ipcRenderer.invoke('dialog:openMilkdropPack'),
   importMilkdropPersonalLibrary: () => ipcRenderer.invoke('dialog:importMilkdropPersonalLibrary'),
@@ -74,12 +60,9 @@ contextBridge.exposeInMainWorld('api', {
   openDetachedOverlay: (payload) => ipcRenderer.invoke('workspace:overlay-open', payload),
   detachedOverlayState: () => ipcRenderer.invoke('workspace:overlay-state'),
   focusDetachedOverlay: (key) => ipcRenderer.invoke('workspace:overlay-focus', key),
-<<<<<<< HEAD
   closeDetachedOverlay: (key) => ipcRenderer.invoke('workspace:overlay-close', key),
   appVersion: () => ipcRenderer.invoke('app:version'),
   openApprovedWebsite: (key) => ipcRenderer.invoke('app:open-site', key),
-=======
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   openDetachedVisualizer: () => ipcRenderer.invoke('display:open-detached-visualizer'),
   focusDetachedVisualizer: () => ipcRenderer.invoke('display:focus-detached-visualizer'),
   onDetachedVisualizerClosed: (fn) => ipcRenderer.on('visualizer:detached-closed', () => fn()),
@@ -87,11 +70,7 @@ contextBridge.exposeInMainWorld('api', {
   onDetachedOverlayAction: (fn) => ipcRenderer.on('workspace:overlay-action', (_e, payload) => fn(payload)),
   onDetachedOverlayClosed: (fn) => ipcRenderer.on('workspace:overlay-closed', (_e, payload) => fn(payload)),
   onWindowMetrics: (fn) => ipcRenderer.on('window:metrics', (_e, payload) => fn(payload)),
-<<<<<<< HEAD
   getSavePath: (formats) => ipcRenderer.invoke('dialog:getSavePath', formats),
-=======
-  getSavePath: () => ipcRenderer.invoke('dialog:getSavePath'),
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   startFileWrite: (savePath) => ipcRenderer.invoke('file:startWrite', savePath),
   writeFileChunk: (chunkArrayBuffer) => {
     // Convert ArrayBuffer to Uint8Array so it transfers cleanly over IPC
@@ -114,12 +93,9 @@ contextBridge.exposeInMainWorld('api', {
   onRuntimeLifecycle: (fn) => ipcRenderer.on('runtime:lifecycle', (_e, state) => fn(state)),
   setFullscreen: (enabled) => ipcRenderer.invoke('window:fullscreen', enabled),
   soundCloudStatus: () => ipcRenderer.invoke('soundcloud:status'),
-<<<<<<< HEAD
   soundCloudSaveCredentials: (credentials) => ipcRenderer.invoke('soundcloud:credentials-save', credentials),
   soundCloudClearCredentials: () => ipcRenderer.invoke('soundcloud:credentials-clear'),
   soundCloudTestCredentials: () => ipcRenderer.invoke('soundcloud:credentials-test'),
-=======
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   soundCloudLibrary: () => ipcRenderer.invoke('soundcloud:library'),
   soundCloudResolve: (url) => ipcRenderer.invoke('soundcloud:resolve', url),
   soundCloudNext: () => ipcRenderer.invoke('soundcloud:next'),
@@ -131,7 +107,6 @@ contextBridge.exposeInMainWorld('api', {
   adminLogin: (password) => ipcRenderer.invoke('auth:login', password),
   adminCheck: () => ipcRenderer.invoke('auth:check'),
   adminLogout: () => ipcRenderer.invoke('auth:logout'),
-<<<<<<< HEAD
   adminConfigCurrent: () => ipcRenderer.invoke('radio:admin-config-current'),
   adminConfigBackups: () => ipcRenderer.invoke('radio:admin-config-backups'),
   adminConfigActive: () => ipcRenderer.invoke('radio:admin-config-active'),
@@ -139,8 +114,6 @@ contextBridge.exposeInMainWorld('api', {
   adminConfigRollback: () => ipcRenderer.invoke('radio:admin-config-rollback'),
   adminProbe: (name) => ipcRenderer.invoke('radio:admin-probe', name),
   adminTestMessage: (kind) => ipcRenderer.invoke('radio:admin-test-message', kind),
-=======
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   radioSkip: () => ipcRenderer.invoke('radio:skip'),
   discordMessage: (message) => ipcRenderer.invoke('radio:discord-message', message),
   discordManual: (payload) => ipcRenderer.invoke('radio:discord-manual', payload),

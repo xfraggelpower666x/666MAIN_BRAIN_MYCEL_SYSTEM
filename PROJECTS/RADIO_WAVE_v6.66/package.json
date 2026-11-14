@@ -4,7 +4,6 @@
   "description": "RADIO WAVE v6.66 · Soundwave visual music player with 666 WebRadio addon",
   "main": "main.js",
   "scripts": {
-<<<<<<< HEAD
     "prestart": "node scripts/build-cyber-studio.cjs",
     "start": "electron .",
     "predist": "node scripts/build-cyber-studio.cjs",
@@ -13,12 +12,6 @@
     "package": "npm run prepare:branding && npm run check:release && node scripts/build.js",
     "test": "node tests/deep-integration.test.cjs && node --test tests/diagnostics-host-check.test.cjs tests/diagnostics-measurements.test.cjs tests/local-playback-output.test.cjs tests/audio-library.test.cjs tests/audio-devices.test.cjs tests/audio-eq.test.cjs tests/audio-surround.test.cjs tests/windows-launcher.test.cjs tests/soundcloud-credentials.test.cjs tests/soundcloud-playback.test.cjs tests/video-export.test.cjs tests/radio-service-contract.test.cjs tests/radio-player-status.test.cjs tests/radio-admin-ui.test.cjs tests/workspace-navigation.test.cjs tests/cyber-studio.test.cjs tests/cyber-studio-build.test.cjs && node tests/milkdrop-control-layer.test.cjs",
     "test:electron": "node tests/electron-runtime-smoke.cjs",
-=======
-    "start": "electron .",
-    "dist": "npm run prepare:branding && npm run check:radio-wave-release && electron-builder --win --x64 --publish never",
-    "package": "npm run prepare:branding && npm run check:release && node scripts/build.js",
-    "test": "node tests/deep-integration.test.cjs && node --test tests/diagnostics-host-check.test.cjs tests/local-playback-output.test.cjs && node tests/milkdrop-control-layer.test.cjs",
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
     "check:syntax": "node scripts/check-syntax.cjs",
     "check:release": "node scripts/release-integrity.cjs",
     "prebuild": "npm run prepare:branding && npm run check:radio-wave-release",
@@ -37,7 +30,6 @@
   ],
   "author": "FRAGGLEPOWER666 / 666SOUNDsDESIGN",
   "license": "MIT",
-<<<<<<< HEAD
   "engines": {
     "node": ">=22.12.0"
   },
@@ -48,21 +40,11 @@
   "devDependencies": {
     "electron": "45.3.2",
     "electron-builder": "^26.18.0",
-=======
-  "allowScripts": {
-    "electron@31.7.7": true,
-    "electron-winstaller@5.4.0": true
-  },
-  "devDependencies": {
-    "electron": "^31.0.0",
-    "electron-builder": "^26.8.1",
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
     "electron-packager": "^17.1.2"
   },
   "build": {
     "appId": "com.666soundsdesign.radiowave.v666",
     "productName": "RADIO WAVE v6.66",
-<<<<<<< HEAD
     "beforePack": "./scripts/check-cyber-studio-pack.cjs",
     "extraResources": [
       {
@@ -70,8 +52,6 @@
         "to": "cyber-studio"
       }
     ],
-=======
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
     "win": {
       "target": [
         {
@@ -118,12 +98,8 @@
       "artifactName": "RADIO-WAVE-v6.66-Portable.${ext}"
     }
   },
-<<<<<<< HEAD
   "productName": "RADIO WAVE v6.66",
   "dependencies": {
     "hls.js": "^1.7.4"
   }
-=======
-  "productName": "RADIO WAVE v6.66"
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 }

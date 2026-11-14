@@ -17,11 +17,7 @@ exit /b %RC%
 echo.
 echo RADIO WAVE v6.66
 echo   1 - Player starten
-<<<<<<< HEAD
 echo   2 - Windows-Installer und portable EXE bauen
-=======
-echo   2 - NSIS-Installer bauen
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 echo   3 - Portables ZIP bauen
 echo   4 - Ende
 choice /c 1234 /n /m "Auswahl: "
@@ -68,7 +64,6 @@ exit /b 2
 echo [SYSTEM] Pruefe Projekt, Windows-Werkzeuge und Build-Abhaengigkeiten.
 if not exist "package.json" (echo FEHLER: Bitte den vollstaendigen Ordner entpacken. & exit /b 1)
 if not exist "package-lock.json" (echo FEHLER: package-lock.json fehlt. & exit /b 1)
-<<<<<<< HEAD
 set "PATH=%SystemRoot%\System32\WindowsPowerShell\v1.0;%ProgramFiles%\PowerShell\7;%LOCALAPPDATA%\Microsoft\WinGet\Links;%PATH%"
 call :ensureNode || exit /b 1
 call :ensurePowerShell || exit /b 1
@@ -81,13 +76,6 @@ set "ELECTRON_SKIP_BINARY_DOWNLOAD="
 set "ELECTRON_INSTALL_PLATFORM="
 set "ELECTRON_INSTALL_ARCH="
 call :ensureElectron || exit /b 1
-=======
-where node.exe >nul 2>nul || (echo FEHLER: Node.js fehlt im PATH. Bitte manuell installieren. & exit /b 1)
-where npm.cmd >nul 2>nul || (echo FEHLER: npm.cmd fehlt im PATH. Bitte Node.js/npm manuell reparieren. & exit /b 1)
-call :updateNode
-node.exe --version || exit /b 1
-call npm.cmd --version || exit /b 1
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 call :reportTools
 call npm.cmd test || exit /b
 call npm.cmd run check:release || exit /b
@@ -95,7 +83,6 @@ call npm.cmd run check:radio-wave-release || exit /b
 echo PASS: RADIO WAVE Systempruefung
 exit /b 0
 
-<<<<<<< HEAD
 :ensureNode
 where node.exe >nul 2>nul || goto installNode
 where npm.cmd >nul 2>nul || goto installNode
@@ -121,27 +108,15 @@ exit /b 0
 
 :updateNode
 where winget.exe >nul 2>nul || (echo [WARNUNG] WinGet fehlt: Node.js kann nicht automatisch auf Updates geprueft werden. & exit /b 0)
-=======
-:updateNode
-where winget.exe >nul 2>nul || (echo [UPDATE] WinGet fehlt. Automatisches Node.js-Update uebersprungen. & exit /b 0)
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 set "NODE_PACKAGE="
 call :detectNodePackage OpenJS.NodeJS.LTS
 if not defined NODE_PACKAGE call :detectNodePackage OpenJS.NodeJS
 if not defined NODE_PACKAGE (
-<<<<<<< HEAD
     echo [WARNUNG] Node.js ist nicht als WinGet-Paket erkannt; automatische Updates sind nicht verfuegbar.
     exit /b 0
 )
 echo [UPDATE] WinGet prueft und aktualisiert bei Bedarf: %NODE_PACKAGE%
 winget.exe upgrade --id "%NODE_PACKAGE%" --exact --source winget --skip-dependencies --accept-package-agreements --accept-source-agreements --silent --disable-interactivity
-=======
-    echo [UPDATE] Keine passende Node.js-Installation in WinGet gefunden.
-    exit /b 0
-)
-echo [UPDATE] WinGet prueft und aktualisiert bei Bedarf: %NODE_PACKAGE%
-winget.exe upgrade --id "%NODE_PACKAGE%" --exact --source winget --skip-dependencies --disable-interactivity
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 set "UPDATE_RC=%errorlevel%"
 if "%UPDATE_RC%"=="0" exit /b 0
 if "%UPDATE_RC%"=="-1978335189" exit /b 0
@@ -149,20 +124,14 @@ if "%UPDATE_RC%"=="-1978335212" (
     echo [UPDATE] WinGet findet das Paket nicht mehr. Die lokale Node.js-Version wird geprueft.
     exit /b 0
 )
-<<<<<<< HEAD
 echo FEHLER: Node.js-Update fehlgeschlagen. WinGet-Exitcode: %UPDATE_RC%.
 exit /b 1
-=======
-echo [UPDATE] WinGet-Exitcode: %UPDATE_RC%. Lokale Version wird erneut geprueft.
-exit /b 0
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 
 :detectNodePackage
 winget.exe list --id "%~1" --exact --source winget --disable-interactivity 2>nul | findstr.exe /l /c:" %~1 " >nul
 if not errorlevel 1 set "NODE_PACKAGE=%~1"
 exit /b 0
 
-<<<<<<< HEAD
 :ensurePowerShell
 where powershell.exe >nul 2>nul && exit /b 0
 where pwsh.exe >nul 2>nul && exit /b 0
@@ -196,51 +165,16 @@ exit /b 0
 
 :reportTools
 echo [OK] PowerShell
-=======
-:reportTools
-where powershell.exe >nul 2>nul
-if errorlevel 1 (echo [FEHLT] Windows PowerShell fuer das portable ZIP.) else echo [OK] Windows PowerShell
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 if exist "node_modules\electron\dist\electron.exe" (echo [OK] Electron-Runtime) else echo [FEHLT] Electron-Runtime: node_modules\electron\dist\electron.exe
 if exist "node_modules\.bin\electron-builder.cmd" (echo [OK] NSIS-Buildwerkzeug) else echo [FEHLT] electron-builder fuer NSIS.
 if exist "node_modules\.bin\electron-packager.cmd" (echo [OK] Portable-Buildwerkzeug) else echo [FEHLT] electron-packager fuer das portable ZIP.
 exit /b 0
 
 :checkRuntime
-<<<<<<< HEAD
 call :ensureDependencies || exit /b 1
 call :ensureElectron || exit /b 1
 goto run
 
-=======
-if not exist "node_modules\electron\dist\electron.exe" goto missingElectron
-if /i "%MODE%"=="installer" if not exist "node_modules\.bin\electron-builder.cmd" goto missingDependencies
-if /i "%MODE%"=="portable" if not exist "node_modules\.bin\electron-packager.cmd" goto missingDependencies
-if /i "%MODE%"=="portable" (
-    where powershell.exe >nul 2>nul || (echo FEHLER: Windows PowerShell wird fuer das portable ZIP benoetigt. & exit /b 1)
-)
-goto run
-
-:missingElectron
-if not exist "node_modules\electron\package.json" (
-    echo FEHLER: Das npm-Paket Electron fehlt in diesem Projektordner.
-    goto missingDependencies
-)
-echo FEHLER: Electron ist als npm-Paket vorhanden, aber electron.exe fehlt im Standardordner.
-echo Erwartet: node_modules\electron\dist\electron.exe
-echo npm ignore-scripts:
-call npm.cmd config get ignore-scripts
-if defined ELECTRON_SKIP_BINARY_DOWNLOAD echo [HINWEIS] ELECTRON_SKIP_BINARY_DOWNLOAD ist gesetzt.
-if defined ELECTRON_OVERRIDE_DIST_PATH echo [HINWEIS] ELECTRON_OVERRIDE_DIST_PATH ist gesetzt.
-if defined ELECTRON_INSTALL_PLATFORM echo [HINWEIS] ELECTRON_INSTALL_PLATFORM ist gesetzt.
-echo Gezielte manuelle Reparatur: node scripts\repair-electron-runtime.cjs
-exit /b 1
-:missingDependencies
-echo Projektordner: "%CD%"
-echo Manueller Befehl in diesem Ordner: npm ci --include=dev --foreground-scripts
-exit /b 1
-
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 :run
 if /i "%MODE%"=="installer" goto installer
 if /i "%MODE%"=="portable" goto portable
@@ -252,13 +186,9 @@ exit /b
 :installer
 call npm.cmd run dist || exit /b
 if not exist "dist\RADIO-WAVE-v6.66-Setup.exe" (echo FEHLER: Installer fehlt. & exit /b 1)
-<<<<<<< HEAD
 if not exist "dist\RADIO-WAVE-v6.66-Portable.exe" (echo FEHLER: Portable EXE fehlt. & exit /b 1)
 echo PASS: dist\RADIO-WAVE-v6.66-Setup.exe
 echo PASS: dist\RADIO-WAVE-v6.66-Portable.exe
-=======
-echo PASS: dist\RADIO-WAVE-v6.66-Setup.exe
->>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 exit /b 0
 
 :portable
