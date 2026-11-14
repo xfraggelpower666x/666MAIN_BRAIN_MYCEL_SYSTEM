@@ -127,3 +127,5 @@ Exit 0 bestätigt die Übereinstimmung der aktiven IDs. Exit 1 meldet fehlende, 
 ## Tool-Vorschläge aus anderen Systemen
 
 Die Workflows `tools` und `integration` verwenden bei Vorschlägen für MAIN BRAIN die [Aufnahme von Tool-Vorschlägen](../../INTELLIGENCE/PEER_TECH_EXCHANGE.md#aufnahme-von-tool-vorschlägen). Nutze zuerst den bereits gebundenen Capability-Katalog und die passende ToolStarter-Karte. Wenn der belegte Mehrwert nur ein Gate oder ein Auditverfahren betrifft, ergänze den bestehenden Ablauf am zuständigen Einstieg. Der Vorschlag erteilt keine Ausführungsrechte.
+
+Vor der ersten Entscheidung folge dem Link zum Entscheidungsvertrag und lies ihn am selben gepinnten Commit wie den Workflow. Gib die dort definierte Entscheidungsklasse im Ergebnis exakt wieder. Eine Kurzbeschreibung kann die Klasse erläutern. Führe Vertragsdatei, Commit und Blob-SHA im Entscheidungsbeleg auf. Ist der Vertrag nicht direkt lesbar, kennzeichne die Klassifizierung als `OFFEN` und nenne den fehlenden Readback.
