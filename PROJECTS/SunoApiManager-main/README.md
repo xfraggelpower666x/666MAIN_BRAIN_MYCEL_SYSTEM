@@ -246,6 +246,18 @@ if its API key is missing; it never falls back to the Manager cookie.
 
 ## Running
 
+### Windows
+
+Run `START_SUNO_MANAGER.bat` from this folder for a menu to start the web UI, launch
+the MCP stdio server, or install Python dependencies. Python 3.10+ must be installed
+and available through `py -3` or `python`.
+
+You can also start the web UI directly with
+`START_SUNO_MANAGER.bat start [--port 9090] [--no-reload]`. To register the MCP server
+with an MCP client on Windows, set the command to `cmd` and its arguments to
+`["/c", "C:\\absolute\\path\\START_SUNO_MANAGER.bat", "mcp"]`. Set `SUNO_API_KEY` in
+the local `.env` file first. The launcher keeps MCP protocol output on stdout clean.
+
 ### Quick Start (recommended)
 
 ```bash
