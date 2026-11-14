@@ -63,3 +63,13 @@ Für den privaten Account-Release 0.2.2 / `pluginrel_6af80d93c58c8191a833888a3a5
 | Zuordnung des Testlaufs zu einer konkreten Plugin-Release-ID | `OPEN` |
 
 [Nachweis und erneute Abnahme](../AUDIT/PEER_TOOL_INTAKE_HOST_RECHECK_2026-11-14.md)
+
+## Release 0.2.6 · Coding-Paket-Readback
+
+Der aktuelle private Release `0.2.6` / `pluginrel_6af8c3ed5b408191b69c88d94e735fc3` wurde über die Release-Metadaten und zwei Paketdateien direkt gelesen. Repository-Basis der Gegenprobe: `8ab53c8500aae515fef5a739744b2d8bc9468aef`.
+
+- `references/main-brain-coding-integration.md` verweist auf den App-Router und deklariert den Abgleich der Coding-Fachfacetten mit L.Y.V.R.A. CODING PROFI 0.63.1. Der Vermerk allein belegt keine vollständige Funktionsparität.
+- `references/main-brain-repo-coding-workflows.md` fordert beim ersten Tool-Ergebnis die exakte Vertragsklasse, den Toolpfad, die Vertragsdatei, den gepinnten Commit und den Blob-SHA. Ohne direkten Vertrags-Readback bleibt die Klasse offen. Die Regel stimmt mit dem gebundenen Repository-Workflow überein.
+- Die frühere Freeze-ZIP-Gegenprobe bleibt `PASS_WITH_FOLLOWUP` ohne belegte Release-Zuordnung. Für 0.2.6 stehen der Erstaufruf in einem frischen Chat und die Host-Ausführung des Coding-, App- und UI-Workflows aus.
+
+Recovery: Preimage dieser Matrix `926e991e940bbdbf77142ef577fd026c60ad454f` und des Current Pointers `66fed8364a87ef10774bcc07bcbee78196db2501`, beide wiederherstellbar am genannten Basiscommit.
