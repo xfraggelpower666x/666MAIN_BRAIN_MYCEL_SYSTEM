@@ -40,6 +40,7 @@ export type AceStepTaskParams =
 export type { AiTaskParams };
 import { downsampleWavBlob } from '../utils/audioDownsample';
 import { createDebugLogger } from '../utils/debugLogger';
+import { isTauri } from '../utils/tauri';
 
 const BACKEND_URL_KEY = 'ace-step-daw-backend-url';
 const HEALTH_CHECK_MIN_RETRY_DELAY_MS = 30_000;
@@ -76,14 +77,14 @@ function scheduleNextHealthCheckRetry(now: number) {
 /**
  * Resolve the API base URL.
  * - If the user configured a direct backend URL in settings, use it.
- * - Otherwise fall back to `/api` which goes through the Vite dev proxy.
+ * - Desktop builds use the local API; browser builds use the Vite proxy.
  */
-function getApiBase(): string {
+export function getApiBase(): string {
   const custom = localStorage.getItem(BACKEND_URL_KEY);
   if (custom && custom.trim()) {
     return custom.trim().replace(/\/+$/, '');
   }
-  return '/api';
+  return isTauri() ? 'http://127.0.0.1:8001' : '/api';
 }
 
 export function getBackendUrl(): string {

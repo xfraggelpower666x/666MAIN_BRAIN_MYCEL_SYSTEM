@@ -8,7 +8,7 @@
  * - Per-provider health checks
  */
 import type { ModelCapability, AiTaskType, AiTaskParams, ApiEnvelope } from '../types/api';
-import { getBackendUrl } from './aceStepApi';
+import { getApiBase } from './aceStepApi';
 
 // ---------------------------------------------------------------------------
 // API Base URL (shared — replaces duplicated getApiBase in each service)
@@ -16,15 +16,10 @@ import { getBackendUrl } from './aceStepApi';
 
 /**
  * Resolve the API base URL. Shared across all AI service modules.
- * - If the user configured a direct backend URL in settings, use it.
- * - Otherwise fall back to `/api` which goes through the Vite dev proxy.
+ * Uses the same configured or desktop-default backend as the ACE-Step client.
  */
 export function getApiBaseUrl(): string {
-  const custom = getBackendUrl();
-  if (custom && custom.trim()) {
-    return custom.trim().replace(/\/+$/, '');
-  }
-  return '/api';
+  return getApiBase();
 }
 
 // ---------------------------------------------------------------------------

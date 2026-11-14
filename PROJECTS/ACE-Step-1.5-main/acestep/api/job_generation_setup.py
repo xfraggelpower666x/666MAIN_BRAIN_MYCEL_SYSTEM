@@ -208,7 +208,7 @@ def build_generation_setup(
         lm_top_k=lm_top_k,
         lm_top_p=lm_top_p,
         lm_negative_prompt=req.lm_negative_prompt,
-        use_cot_metas=not sample_mode,
+        use_cot_metas=req.use_cot_metas if req.use_cot_metas is not None else not sample_mode,
         use_cot_caption=use_cot_caption,
         use_cot_language=use_cot_language,
         use_constrained_decoding=True,

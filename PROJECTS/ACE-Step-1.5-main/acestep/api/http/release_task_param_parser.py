@@ -38,6 +38,7 @@ PARAM_ALIASES: Dict[str, list[str]] = {
     "constrained_decoding_debug": ["constrained_decoding_debug", "constrainedDecodingDebug"],
     "use_cot_caption": ["use_cot_caption", "cot_caption", "cot-caption"],
     "use_cot_language": ["use_cot_language", "cot_language", "cot-language"],
+    "use_cot_metas": ["use_cot_metas", "cot_metas", "cot-metas"],
     "is_format_caption": ["is_format_caption", "isFormatCaption"],
     "allow_lm_batch": ["allow_lm_batch", "allowLmBatch", "parallel_thinking"],
     "instruction": ["instruction"],

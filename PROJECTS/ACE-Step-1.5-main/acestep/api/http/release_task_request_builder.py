@@ -95,6 +95,11 @@ def build_generate_music_request(
         constrained_decoding_debug=parser.bool("constrained_decoding_debug"),
         use_cot_caption=parser.bool("use_cot_caption", True),
         use_cot_language=parser.bool("use_cot_language", True),
+        use_cot_metas=(
+            parser.bool("use_cot_metas")
+            if parser.get("use_cot_metas") is not None
+            else None
+        ),
         is_format_caption=parser.bool("is_format_caption"),
         allow_lm_batch=parser.bool("allow_lm_batch", True),
         track_name=parser.str("track_name"),
