@@ -121,6 +121,16 @@ def main():
         for doc in ('BEDIENUNGSANLEITUNG_DE.md','MANUAL_EN.md','README.txt',
                     'REPARATUR_AUDIO_TOOLS.bat', 'PORTABLE_VERIFY.bat','PORTABLE_VERIFY.ps1'):
             shutil.copy2(ROOT/doc,portable/doc)
+        optional_audio_apps=(
+            (ROOT.parent/'Suno-Song-Remaster-main'/'release'/'win-unpacked',
+             portable/'external-tools'/'Suno-Song-Remaster-main'),
+            (ROOT.parent/'Restoration-Lab-main'/'dist'/'Restoration Lab',
+             portable/'external-tools'/'Restoration-Lab-main'),
+        )
+        for source,destination in optional_audio_apps:
+            if source.is_dir():
+                shutil.copytree(source,destination,dirs_exist_ok=True)
+                print('OPTIONAL_AUDIO_LAB_BUNDLED:',destination.name)
         tools_out=portable/'tools';tools_out.mkdir(parents=True,exist_ok=True)
         missing=[]
         for name in ('ffmpeg','ffprobe'):

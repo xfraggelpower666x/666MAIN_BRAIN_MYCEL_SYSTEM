@@ -11,6 +11,7 @@ import time
 import os
 import re
 import shutil
+import sys
 import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
@@ -203,6 +204,56 @@ def verify_encoded_mp3(ffmpeg, ffprobe, output_path, source_duration=0, runner=N
     return {'decode':'PASS','duration_seconds':round(duration,3),
             'scope':'TECHNICAL_DECODE_ONLY_NOT_PERCEPTUAL_ARTIFACT_PROOF'}
 
+
+def audio_lab_launch_spec(tool, project_roots, platform=None):
+    """Resolve an installed sibling tool without downloading or installing dependencies."""
+    host = platform or sys.platform
+    project_name = {
+        'suno': 'Suno-Song-Remaster-main',
+        'restoration': 'Restoration-Lab-main',
+    }.get(tool)
+    if project_name is None:
+        raise ValueError(f'Unbekanntes Audio-Tool: {tool}')
+
+    candidates = [Path(root) / project_name for root in project_roots]
+    for project in candidates:
+        if not project.is_dir():
+            continue
+        if tool == 'suno':
+            packaged_app = project / 'AI Music Remastering.exe'
+            if host == 'win32' and packaged_app.is_file():
+                return [str(packaged_app)], project
+            if not (project / 'package.json').is_file():
+                continue
+            electron_paths = (
+                project / 'node_modules' / 'electron' / 'dist' / 'electron.exe',
+                project / 'node_modules' / '.bin' / 'electron',
+                project / 'node_modules' / 'electron' / 'dist' / 'Electron.app' / 'Contents' / 'MacOS' / 'Electron',
+            )
+            electron = next((path for path in electron_paths if path.is_file()), None)
+            if electron is None:
+                raise RuntimeError(
+                    'Suno Song Remaster ist vorhanden, aber Electron fehlt. '
+                    'Abhängigkeiten manuell im Projektordner installieren; der Manager installiert nichts.'
+                )
+            return [str(electron), '.'], project
+
+        packaged_app = project / 'Restoration Lab.exe'
+        if host == 'win32' and packaged_app.is_file():
+            return [str(packaged_app)], project
+        launcher = project / 'STARTEN.bat'
+        if host == 'win32' and launcher.is_file():
+            return ['cmd.exe', '/c', str(launcher)], project
+        raise RuntimeError(
+            'Restoration Lab kann hier nicht gestartet werden. '
+            'Unter Windows bitte STARTEN.bat im Projektordner verwenden.'
+        )
+
+    raise FileNotFoundError(
+        f'{project_name} wurde nicht neben dem Manager oder unter external-tools gefunden.'
+    )
+
+
 class NeonUI:
     BG = '#080913'; PANEL = '#12132a'; FIELD = '#191d38'
     CYAN = '#31eaff'; PINK = '#ff37d1'; VIOLET = '#a476ff'; TEXT = '#f3efff'
@@ -392,11 +443,12 @@ class App:
         self.lang.trace_add('write',lambda *_:self.root.after_idle(self.apply_language))
         self.tabs=ttk.Notebook(wrapper)
         self.tabs.pack(fill='both',expand=True,pady=(2,4))
-        self.tab_hosts=[AutoScrollTab(self.tabs) for _ in range(3)]
-        files_tab,tags_tab,audio_tab=[h.body for h in self.tab_hosts]
+        self.tab_hosts=[AutoScrollTab(self.tabs) for _ in range(4)]
+        files_tab,tags_tab,audio_tab,labs_tab=[h.body for h in self.tab_hosts]
         self.tabs.add(self.tab_hosts[0],text='01  DATEIEN & UMBENENNEN')
         self.tabs.add(self.tab_hosts[1],text='02  METADATEN')
         self.tabs.add(self.tab_hosts[2],text='03  AUDIO CONVERT')
+        self.tabs.add(self.tab_hosts[3],text='04  AUDIO LABS')
         self.drop_widgets=[root, files_tab, tags_tab, audio_tab, self.tabs]
         for tab in (files_tab,tags_tab,audio_tab):
             head=ttk.Frame(tab);head.pack(fill='x',pady=(0,2))
@@ -404,6 +456,7 @@ class App:
             ttk.Label(head,text='Dateien/Ordner hierher ziehen · Doppelklick im Dateimanager zum Öffnen',foreground=NeonUI.CYAN).pack(side='left')
             self.drop_widgets.append(head)
         self.register_drop_targets()
+        self.build_audio_labs(labs_tab)
 
         bar=ttk.Frame(files_tab);bar.pack(fill='x',pady=(0,6))
         ttk.Entry(bar,textvariable=self.folder).pack(side='left',fill='x',expand=True)
@@ -584,6 +637,17 @@ class App:
          '01  DATEIEN & UMBENENNEN':'01  FILES & RENAME',
          '02  METADATEN':'02  METADATA',
          '03  AUDIO CONVERT':'03  AUDIO CONVERT',
+         '04  AUDIO LABS':'04  AUDIO LABS',
+         'AUDIO LABS · REMASTER & RESTAURATION':'AUDIO LABS · REMASTER & RESTORE',
+         'Suno Song Remaster':'Suno Song Remaster',
+         'Restoration Lab':'Restoration Lab',
+         '▶ REMASTER STARTEN':'▶ START REMASTER',
+         '▶ RESTORATION STARTEN':'▶ START RESTORATION',
+         'MP3-Remastering, LUFS/True-Peak-Ziele und Stapelverarbeitung.':'MP3 remastering, LUFS/true-peak targets, and batch processing.',
+         'Rauschminderung, A/B-Wiedergabe und WAV-Export.':'Noise reduction, A/B playback, and WAV export.',
+         'Starten':'Launch',
+         'Apps laufen in einem eigenen Fenster. Der Manager installiert keine zusätzlichen Pakete automatisch.':'Apps run in a separate window. The manager does not install additional packages automatically.',
+         'Audio-Tools bereit.':'Audio tools ready.',
          'Ordner wählen':'Choose folder','Ordner prüfen':'Scan folder','CSV exportieren':'Export CSV',
          'Nur markierte Dateien':'Selected files only','Alle Dateien im Ordner':'All files in folder',
          'Alle markieren':'Select all','▶ NUR DATEINAMEN UMBENENNEN':'▶ RENAME FILES ONLY',
@@ -1125,6 +1189,49 @@ class App:
         tools_dir=local.parent/'tools'/(name+'.exe')
         if tools_dir.is_file():return str(tools_dir)
         return shutil.which(name) or str(local)
+
+    def build_audio_labs(self,parent):
+        ttk.Label(parent,text='AUDIO LABS · REMASTER & RESTAURATION',
+                  foreground=NeonUI.CYAN,font=('Segoe UI Semibold',15)).pack(anchor='w',pady=(8,2))
+        ttk.Label(parent,text='Spezialisierte Audio-Werkzeuge aus dem Manager starten. Jedes Werkzeug öffnet ein eigenes Fenster.',
+                  wraplength=1040,foreground=NeonUI.TEXT).pack(anchor='w',pady=(0,8))
+
+        remaster=ttk.LabelFrame(parent,text='Suno Song Remaster',padding=12)
+        remaster.pack(fill='x',pady=(0,8))
+        ttk.Label(remaster,text='MP3-Remastering, LUFS/True-Peak-Ziele und Stapelverarbeitung.',
+                  wraplength=760).pack(side='left',fill='x',expand=True)
+        ttk.Button(remaster,text='▶ REMASTER STARTEN',
+                   command=lambda:self.launch_audio_lab('suno'),
+                   style='Action.TButton').pack(side='right',padx=(10,0))
+
+        restoration=ttk.LabelFrame(parent,text='Restoration Lab',padding=12)
+        restoration.pack(fill='x',pady=(0,8))
+        ttk.Label(restoration,text='Rauschminderung, A/B-Wiedergabe und WAV-Export.',
+                  wraplength=760).pack(side='left',fill='x',expand=True)
+        ttk.Button(restoration,text='▶ RESTORATION STARTEN',
+                   command=lambda:self.launch_audio_lab('restoration'),
+                   style='Secondary.TButton').pack(side='right',padx=(10,0))
+
+        ttk.Label(parent,
+                  text='Die Werkzeuge bleiben getrennte Anwendungen. Fehlende Pakete oder Programme werden nicht automatisch installiert.',
+                  wraplength=1040,foreground=NeonUI.PINK).pack(anchor='w',pady=(2,6))
+        self.audio_lab_status=tk.StringVar(value='Audio-Tools bereit.')
+        ttk.Label(parent,textvariable=self.audio_lab_status,wraplength=1040,
+                  foreground=NeonUI.VIOLET).pack(anchor='w')
+
+    def launch_audio_lab(self,tool):
+        executable_dir=Path(sys.executable).resolve().parent
+        source_dir=Path(__file__).resolve().parent
+        roots=(source_dir.parent,executable_dir,executable_dir/'external-tools')
+        try:
+            command,working_directory=audio_lab_launch_spec(tool,roots)
+            subprocess.Popen(command,cwd=str(working_directory))
+        except (FileNotFoundError,RuntimeError,OSError) as exc:
+            self.audio_lab_status.set(f'{tool}: {exc}')
+            messagebox.showerror('Audio Labs',str(exc),parent=self.root)
+            return
+        label='Suno Song Remaster' if tool=='suno' else 'Restoration Lab'
+        self.audio_lab_status.set(f'{label} gestartet · eigenes Fenster')
 
     def build_system_panel(self,parent):
         panel=ttk.LabelFrame(parent,text='System-Check und Portable-EXE',padding=8)

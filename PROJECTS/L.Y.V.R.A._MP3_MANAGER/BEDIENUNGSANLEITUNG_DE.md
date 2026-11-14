@@ -14,10 +14,13 @@ Cover: »Ein Cover für alle gewählten MP3« oder »Cover nur für markierte MP
 ## 4. Audio-Konvertierung
 Quellformat WAV, MP3 oder GEMISCHT wählen. Zielprofil nach Wunsch: Standard 48000 Hz / 320 kbit/s / Stereo, optional Normalisierung −14 LUFS und True Peak −2 dBTP. `s16p` bezeichnet das PCM-Zwischenformat, nicht die Bit-Tiefe der MP3. WAV→MP3 ist verlustbehaftet. MP3→MP3 kann keine verlorenen Klanginformationen zurückbringen. Prüfe Ausgabe und Lautheit nach dem Umkodieren. STOPP beendet laufende FFmpeg-Aufträge; nur unvollständige Ausgaben werden entfernt.
 
-## 5. Zwei Monitore und Drag & Drop
+## 5. Audio Labs
+Der Reiter AUDIO LABS startet Suno Song Remaster und Restoration Lab in eigenen Fenstern. Im Quellprojekt müssen beide Projektordner neben dem MP3-Manager unter `PROJECTS` liegen. Für portable Builds werden die Programme optional mitkopiert, wenn vorher `Suno-Song-Remaster-main/release/win-unpacked` und `Restoration-Lab-main/dist/Restoration Lab` erstellt wurden. Suno benötigt lokale Electron-Abhängigkeiten; Restoration Lab verwendet sein eigenes `STARTEN.bat`. Fehlende Pakete werden niemals still installiert. Beide Oberflächen verwenden die L.Y.V.R.A.-Palette aus Dunkelblau, Cyan, Pink und Violett.
+
+## 6. Zwei Monitore und Drag & Drop
 In jedem Reiter »DATEIMANAGER / 2. BILDSCHIRM« öffnen, Fenster auf anderen Monitor ziehen. Dateien/Ordner aus dem Explorer in die GUI ziehen. Der separate Live-Statusmonitor zeigt aktuelle Datei, Umbenennung, Audio und Gesamt. Die Anzeigen werden von aktiven Prozessen gespeist und können bei inaktiven Vorgängen 0 anzeigen.
 
-## 6. System, EXE und Sprache
+## 7. System, EXE und Sprache
 Der Reiter SYSTEM prüft Komponenten; der EXE-Build läuft **nur über die externe Batchdatei**. DE/EN oben im Hauptfenster auswählen. Hilfe über »? HILFE / HELP«. Dateinamen, Liedtitel, vom Benutzer eingetragene Texte und Metadaten werden bei Sprachwechsel niemals übersetzt.
 
 ## Sicherheit / Grenzen

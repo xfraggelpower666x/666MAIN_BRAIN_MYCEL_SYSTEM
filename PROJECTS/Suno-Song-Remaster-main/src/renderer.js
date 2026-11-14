@@ -787,7 +787,7 @@ function drawWaveform() {
   const step = Math.ceil(data.length / width);
   const amp = height / 2;
 
-  ctx.fillStyle = '#a855f7';
+  ctx.fillStyle = '#31eaff';
 
   for (let i = 0; i < width; i++) {
     let min = 1.0;
@@ -1065,7 +1065,7 @@ function stopLevelMeters() {
   if (dom.spectrogramCanvas) {
     const sCtx = dom.spectrogramCanvas.getContext('2d');
     const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-    sCtx.fillStyle = isLight ? '#e8e8f0' : '#0a0a1a';
+    sCtx.fillStyle = isLight ? '#191d38' : '#191d38';
     sCtx.fillRect(0, 0, dom.spectrogramCanvas.width, dom.spectrogramCanvas.height);
   }
 }
@@ -1103,7 +1103,7 @@ function startSpectrogram() {
 
   // Clear both canvases
   const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-  const specBg = isLight ? '#e8e8f0' : '#0a0a1a';
+  const specBg = '#191d38';
   ctx.fillStyle = specBg;
   ctx.fillRect(0, 0, width, height);
   offCtx.fillStyle = specBg;
@@ -2532,7 +2532,7 @@ function drawEditorWaveform() {
   ctx.clearRect(0, 0, width, height);
 
   // center line
-  ctx.strokeStyle = 'rgba(168, 85, 247, 0.25)';
+  ctx.strokeStyle = 'rgba(164, 118, 255, 0.3)';
   ctx.beginPath();
   ctx.moveTo(0, mid);
   ctx.lineTo(width, mid);
@@ -2542,7 +2542,7 @@ function drawEditorWaveform() {
   const step = Math.max(1, Math.ceil(data.length / width));
   const amp = mid * 0.95;
 
-  ctx.fillStyle = '#a855f7';
+  ctx.fillStyle = '#31eaff';
   for (let i = 0; i < width; i++) {
     let min = 1.0;
     let max = -1.0;
