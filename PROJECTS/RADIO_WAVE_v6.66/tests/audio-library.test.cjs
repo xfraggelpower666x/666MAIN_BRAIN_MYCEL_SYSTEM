@@ -397,7 +397,7 @@ test('large detachable library pages stay bounded and retain selections across f
     onSync() {}, ready: async () => {}
   };
   const overlaySource = fs.readFileSync(path.join(__dirname, '..', 'src', 'overlay-window.js'), 'utf8');
-  runInNewContext(overlaySource, { document: { getElementById: id => id === 'overlay-root' ? root : null }, window: { rwOverlay: overlay } });
+  runInNewContext(overlaySource, { document: { getElementById: id => id === 'overlay-root' ? root : null }, window: { addEventListener() {}, rwOverlay: overlay } });
   init({ key: 'audioPool', html: '', controls: [] });
   root.handlers.change({ target: { id: 'local-playlist-rating-track40', value: '2', matches: () => true } });
   await new Promise(setImmediate);
