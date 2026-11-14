@@ -240,6 +240,12 @@ def audio_lab_launch_spec(tool, project_roots, platform=None):
                     'Suno Song Remaster ist vorhanden, aber Electron fehlt. '
                     'Abhängigkeiten manuell im Projektordner installieren; der Manager installiert nichts.'
                 )
+            if not (project / 'dist' / 'index.html').is_file():
+                raise RuntimeError(
+                    'Der Suno-Renderer wurde noch nicht gebaut. '
+                    'Bitte im Projektordner "npm run build" ausführen; '
+                    'der Manager startet keinen Entwicklungsserver.'
+                )
             return [str(electron), '.'], project
 
         if tool == 'restoration':

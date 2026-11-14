@@ -22,9 +22,35 @@ class AudioLabLaunchTests(unittest.TestCase):
             project = root / 'Suno-Song-Remaster-main'
             project.mkdir()
             (project / 'package.json').write_text('{}', encoding='utf-8')
+
+            with self.assertRaisesRegex(RuntimeError, 'Electron fehlt'):
+                audio_lab_launch_spec('suno', [root], 'win32')
+
+    def test_suno_source_requires_built_renderer(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            project = root / 'Suno-Song-Remaster-main'
+            project.mkdir()
+            (project / 'package.json').write_text('{}', encoding='utf-8')
             electron = project / 'node_modules/electron/dist/electron.exe'
             electron.parent.mkdir(parents=True)
             electron.touch()
+
+            with self.assertRaisesRegex(RuntimeError, 'npm run build'):
+                audio_lab_launch_spec('suno', [root], 'win32')
+
+    def test_suno_source_launches_with_built_renderer(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            project = root / 'Suno-Song-Remaster-main'
+            project.mkdir()
+            (project / 'package.json').write_text('{}', encoding='utf-8')
+            electron = project / 'node_modules/electron/dist/electron.exe'
+            electron.parent.mkdir(parents=True)
+            electron.touch()
+            renderer = project / 'dist/index.html'
+            renderer.parent.mkdir()
+            renderer.touch()
 
             command, working_directory = audio_lab_launch_spec('suno', [root], 'win32')
 
