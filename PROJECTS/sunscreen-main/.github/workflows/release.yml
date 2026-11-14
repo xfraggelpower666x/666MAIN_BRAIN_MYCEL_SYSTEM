@@ -10,7 +10,18 @@ env:
   TAG: ${{ github.ref_name }}
 
 jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate release tag
+        run: |
+          if [[ ! "$TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "::error::Release tag must use vMAJOR.MINOR.PATCH (for example v0.1.0)"
+            exit 1
+          fi
+
   release:
+    needs: validate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -72,7 +83,9 @@ jobs:
         run: |
           gh release download "$TAG" -R "$GITHUB_REPOSITORY" -p '*.tar.gz'
           base="https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG"
-          pkg() { f="sunscreen-$TAG-$1.tar.gz"; printf '      url "%s/%s"\n      sha256 "%s"\n' "$base" "$f" "$(sha256sum "$f" | cut -d' ' -f1)"; }
+          VERSION="${TAG#v}"
+          ruby_string() { python3 -c 'import json,sys; print(json.dumps(sys.argv[1]))' "$1"; }
+          pkg() { f="sunscreen-$TAG-$1.tar.gz"; printf '      url %s\n      sha256 %s\n' "$(ruby_string "$base/$f")" "$(ruby_string "$(sha256sum "$f" | cut -d' ' -f1)")"; }
           mkdir -p ~/.ssh && echo "$TAP_KEY" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan github.com >> ~/.ssh/known_hosts
           git clone git@github.com:abradburne/homebrew-tap.git tap
@@ -80,8 +93,8 @@ jobs:
           cat > tap/Formula/sunscreen.rb <<RUBY
           class Sunscreen < Formula
             desc "Protection from Suno haze: cleans up tracks downloaded from Suno"
-            homepage "https://github.com/$GITHUB_REPOSITORY"
-            version "${TAG#v}"
+            homepage $(ruby_string "https://github.com/$GITHUB_REPOSITORY")
+            version $(ruby_string "$VERSION")
             license "MIT"
 
             on_macos do
