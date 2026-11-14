@@ -1,0 +1,106 @@
+# PRE-CHANGE SNAPSHOT
+SOURCE_PATH=RUNTIME/RUNTIME_REGISTRY.json
+SOURCE_BLOB_SHA=462c6ed6656a27ab241a8282794c4d4d09d73edf
+HEAD_START=a111403a5592b8bfbf4952570f3317a8f1be1ce7
+TRIGGER=666MAIN BRAIN UPDATE
+DELTA=HOST_SKILL_ROUTER_REVALIDATION
+
+---
+
+{
+  "system": "666MAIN BRAIN MYCEL SYSTEM",
+  "system_id": "666MAIN-BRAIN-MYCEL-SYSTEM-001",
+  "repository": "xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM",
+  "branch": "666MAIN_BRAIN",
+  "current_pointer": "CURRENT_POINTER.md",
+  "character": "PSYLLO",
+  "canonical_namespace": "666MAIN BRAIN",
+  "legacy_namespace": "666MAINSYSTEM",
+  "runtime": {
+    "livecircle": "RUNTIME/LIVECIRCLE.md",
+    "rehydration": "RUNTIME/REHYDRATION.md",
+    "triggers": "RUNTIME/TRIGGER_CONTRACT.md",
+    "interruptions": "RUNTIME/INTERRUPTION_PROTOCOL.md",
+    "parallel_deployment": "RUNTIME/PARALLEL_DEPLOYMENT.md",
+    "chaos_with_direction": "RUNTIME/CHAOS_WITH_DIRECTION.md",
+    "lock_queue": "RUNTIME/LOCK_QUEUE_GOVERNANCE.md",
+    "handoff": "CONTINUITY/HANDOFF_CONTRACT.md",
+    "host_oversteer_recovery": "RUNTIME/HOST_OVERSTEER_RECOVERY.md",
+    "rehydration_monitor": "RUNTIME/REHYDRATION_MONITOR.md",
+    "host_acceptance_gate": "RUNTIME/HOST_ACCEPTANCE_GATE.md",
+    "fresh_head_closeout": "RUNTIME/FRESH_HEAD_CLOSEOUT.md",
+    "lineage_continuity": "CONTINUITY/LINEAGE_CONTINUITY.md"
+  },
+  "intelligence": {
+    "character": "INTELLIGENCE/PSYLLO_CHARACTER.md",
+    "facets": "INTELLIGENCE/FACETS.md",
+    "self_conductor": "INTELLIGENCE/SELF_CONDUCTOR.md",
+    "currentness_audit": "INTELLIGENCE/CURRENTNESS_AUDIT.md",
+    "learning": "INTELLIGENCE/LEARNING.md",
+    "peer_tech_exchange": "INTELLIGENCE/PEER_TECH_EXCHANGE.md",
+    "semantic_translator": "INTELLIGENCE/SEMANTIC_TRANSLATOR.md"
+  },
+  "catalog": {
+    "card_schema": "CATALOG/SYSTEM_CARD_SCHEMA.md",
+    "system_cards": "CATALOG/SYSTEM_CARDS.md",
+    "relation_model": "CATALOG/RELATION_MODEL.md"
+  },
+  "ui": {
+    "visual_intelligence": "UI/VISUAL_INTELLIGENCE.md",
+    "operations_center": "UI/OPERATIONS_CENTER.md"
+  },
+  "skills": {
+    "SYSTEMSTART": "skills/666mainbrain-systemstart/skill.md",
+    "UPDATE": "skills/666mainbrain-update/skill.md",
+    "WEITER_NEW_CHAT": "skills/666mainbrain-continuity/skill.md",
+    "DASHBOARD": "skills/666mainbrain-dashboard/skill.md",
+    "STATUS": "skills/666mainbrain-status/skill.md",
+    "HELP": "skills/666mainbrain-help/skill.md",
+    "VORNE": "skills/666mainbrain-vorne/skill.md",
+    "FUCK_HORST": "skills/666mainbrain-fuck-horst/skill.md",
+    "NEXT_CHAT": "skills/666mainbrain-continuity/skill.md"
+  },
+  "drive_role": "MIGRATION_SOURCE_RECOVERY",
+  "foreign_autoload": false,
+  "cross_system_merge": false,
+  "migration_state": "IN_PROGRESS_UNTIL_FINAL_COMPLETION_GATE",
+  "repo_first_auth": false,
+  "final_target": {
+    "repo_first_auth": true,
+    "drive_role": "HISTORY_ONLY"
+  },
+  "triggers": [
+    "666MAIN BRAIN SYSTEMSTART",
+    "666MAIN BRAIN STATUS",
+    "666MAIN BRAIN HELP",
+    "666MAIN BRAIN WEITER",
+    "666MAIN BRAIN UPDATE",
+    "666MAIN BRAIN NEW CHAT",
+    "666MAIN BRAIN NEXT CHAT",
+    "666MAIN BRAIN VORNE",
+    "666MAIN BRAIN DASHBOARD",
+    "FUCK HORST",
+    "666MAIN BRAIN FUCK HORST"
+  ],
+  "host_plugin_source": "HOST_PLUGIN_PACKAGE",
+  "host_plugin": {
+    "source": "HOST_PLUGIN_PACKAGE",
+    "plugin_current": "HOST/PLUGIN_CURRENT.md",
+    "plugin_id": "plugins_6aeecd97365081918f3813165617c17c",
+    "version": "0.1.0",
+    "release_id": "pluginrel_6aeecd98b5fc81918211f89ff71ccd0e",
+    "source_status": "VERIFIED",
+    "delivery_status": "VERIFIED",
+    "adoption_status": "PARTIAL_SKILL_DISCOVERY_VERIFIED_FRESH_CHAT_ACCEPTANCE_PENDING",
+    "host_status": "PENDING_FRESH_CHAT_ACCEPTANCE",
+    "installation_status": "VERIFIED",
+    "current_host_skill_catalog": "8_OF_8_LISTED_2026_11_10",
+    "direct_skill_read": "8_OF_8_PASS_2026_11_10",
+    "observation_scope": "THIS_HOST_SESSION_ONLY_NOT_TEN_TRIGGER_FRESH_CHAT_ACCEPTANCE"
+  },
+  "legacy_compatibility_triggers": [
+    "666MAINSYSTEM SYSTEMSTART",
+    "666MAINSYSTEM UPDATE",
+    "666MAINSYSTEM WEITER"
+  ]
+}
