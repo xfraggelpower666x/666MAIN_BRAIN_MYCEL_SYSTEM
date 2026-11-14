@@ -123,3 +123,7 @@ python3 INTEGRATIONS/CODEFORGE/verify_module_registry.py MASTER.md MODULE_REGIST
 ```
 
 Exit 0 bestätigt die Übereinstimmung der aktiven IDs. Exit 1 meldet fehlende, zusätzliche oder doppelte IDs sowie alleinstehende, unregistrierte Moduldeklarationen. Exit 2 meldet unlesbare Eingaben oder fehlende Deklarationen. Historische `LEGACY-MOD-ID:`-Einträge zählen separat. Prüfe Regelkonflikte, Gate-Entscheidungen und beobachtetes Host-Verhalten mit eigenen Nachweisen.
+
+## Tool-Vorschläge aus anderen Systemen
+
+Die Workflows `tools` und `integration` verwenden bei Vorschlägen für MAIN BRAIN die [Aufnahme von Tool-Vorschlägen](../../INTELLIGENCE/PEER_TECH_EXCHANGE.md#aufnahme-von-tool-vorschlägen). Nutze zuerst den bereits gebundenen Capability-Katalog und die passende ToolStarter-Karte. Wenn der belegte Mehrwert nur ein Gate oder ein Auditverfahren betrifft, ergänze den bestehenden Ablauf am zuständigen Einstieg. Der Vorschlag erteilt keine Ausführungsrechte.
