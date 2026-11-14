@@ -1137,6 +1137,9 @@ function extractPersonalMilkdropZip(zipPath){
   const escapedDest=String(temp).replace(/'/g,"''");
   const script=`$ErrorActionPreference='Stop'; Add-Type -AssemblyName System.IO.Compression.FileSystem; $archive=[IO.Compression.ZipFile]::OpenRead('${escapedZip}'); try { $entryCount=0; [long]$totalBytes=0; foreach($entry in $archive.Entries) { $entryCount++; if($entryCount -gt ${MAX_ARCHIVE_ENTRIES}) { throw 'personal_library_archive_too_many_entries' }; $entryLength=[long]$entry.Length; if($entryLength -gt (${MAX_ARCHIVE_UNCOMPRESSED_BYTES} - $totalBytes)) { throw 'personal_library_archive_too_large' }; $totalBytes += $entryLength } } finally { $archive.Dispose() }; [IO.Compression.ZipFile]::ExtractToDirectory('${escapedZip}', '${escapedDest}')`;
   let installed=false;
+  let promoted=false;
+  let backupDir;
+  let previousLibrary;
   let importError=null;
   try{
     fs.mkdirSync(temp,{recursive:true});
@@ -1146,17 +1149,39 @@ function extractPersonalMilkdropZip(zipPath){
     const milk=files.filter(x=>x.ext==='.milk').length;
     const milk2=files.filter(x=>x.ext==='.milk2').length;
     if(milk<1)throw new Error('personal_library_no_milk_presets');
-    fs.rmSync(root,{recursive:true,force:true});
+    if(fs.existsSync(root)){
+      backupDir=fs.mkdtempSync(root+'-backup-');
+      const backupPath=path.join(backupDir,'library');
+      fs.renameSync(root,backupPath);
+      previousLibrary=backupPath;
+    }
     fs.renameSync(temp,root);
-    installed=true;
+    promoted=true;
     const state=personalMilkdropLibraryState(false);
     fs.writeFileSync(personalMilkdropManifestPath(),JSON.stringify({installedAt:new Date().toISOString(),sourceZip:path.basename(zipPath),milk:state.milk,milk2:state.milk2,count:state.count,personalUse:true,redistribution:false},null,2),'utf8');
+    installed=true;
     runtimeEvent('personal-milkdrop-library-imported',{milk:state.milk,milk2:state.milk2,count:state.count});
     return state;
   }catch(error){
     importError=error;
-    throw error;
+    if(!installed){
+      try{
+        if(promoted)fs.rmSync(root,{recursive:true,force:true});
+        if(previousLibrary){
+          fs.renameSync(previousLibrary,root);
+          previousLibrary=undefined;
+        }
+      }catch(rollbackError){
+        const recovery=previousLibrary?':'+previousLibrary:'';
+        importError=new Error(`${error.message};personal_library_rollback_failed:${rollbackError.message}${recovery}`,{cause:error});
+      }
+    }
+    throw importError;
   }finally{
+    if(backupDir&&(installed||!previousLibrary)){
+      try{fs.rmSync(backupDir,{recursive:true,force:true});}
+      catch(error){runtimeEvent('personal-milkdrop-library-backup-cleanup-failed',{message:String(error.message||error)});}
+    }
     if(!installed){
       try{fs.rmSync(temp,{recursive:true,force:true});}
       catch(cleanupError){
