@@ -1,0 +1,226 @@
+{
+  "schema": "repobrain-knowledge-graph-v2",
+  "created_at_utc": "2026-11-14T05:28:17.713914+00:00",
+  "workspace": "/example/workspace",
+  "summary": {
+    "file_count": 3,
+    "walked_file_count": 3,
+    "languages": {
+      "TypeScript": 2,
+      "Python": 1
+    },
+    "frameworks": [],
+    "type_distribution": {
+      "code": 3
+    },
+    "semantic_files": 3,
+    "semantic_edges": 8,
+    "semantic_files_by_language": {
+      "Python": 1,
+      "TypeScript": 2
+    },
+    "semantic_edges_by_type": {
+      "declares_package": 3,
+      "defines": 3,
+      "imports": 2
+    },
+    "semantic_adapters": {
+      "python": 1,
+      "typescript": 2
+    },
+    "generic_fallback_file_count": 0,
+    "parse_error_file_count": 0
+  },
+  "diagnostics": {
+    "generic_fallback_files": [],
+    "parse_error_files": []
+  },
+  "nodes": [
+    {
+      "id": "workspace:/example/workspace",
+      "type": "workspace",
+      "label": "workspace"
+    },
+    {
+      "id": "language:typescript",
+      "type": "language",
+      "label": "TypeScript",
+      "count": 2
+    },
+    {
+      "id": "language:python",
+      "type": "language",
+      "label": "Python",
+      "count": 1
+    },
+    {
+      "id": "file:data.ts",
+      "type": "code",
+      "label": "data.ts",
+      "size": 24,
+      "mime": "text/vnd.trolltech.linguist",
+      "language": "TypeScript",
+      "semantic_adapter": "typescript",
+      "semantic_package_identity": "data",
+      "semantic_module_name": "data",
+      "semantic_import_count": 0,
+      "semantic_symbol_count": 1,
+      "is_test_file": false,
+      "entrypoints": [],
+      "generic_fallback": false
+    },
+    {
+      "id": "file:ui.ts",
+      "type": "code",
+      "label": "ui.ts",
+      "size": 61,
+      "mime": "text/vnd.trolltech.linguist",
+      "language": "TypeScript",
+      "semantic_adapter": "typescript",
+      "semantic_package_identity": "ui",
+      "semantic_module_name": "ui",
+      "semantic_import_count": 1,
+      "semantic_symbol_count": 1,
+      "is_test_file": false,
+      "entrypoints": [],
+      "generic_fallback": false
+    },
+    {
+      "id": "file:app.py",
+      "type": "code",
+      "label": "app.py",
+      "size": 60,
+      "mime": "text/x-python",
+      "language": "Python",
+      "semantic_adapter": "python",
+      "semantic_package_identity": "app",
+      "semantic_module_name": "app",
+      "semantic_import_count": 1,
+      "semantic_symbol_count": 1,
+      "is_test_file": false,
+      "entrypoints": [],
+      "generic_fallback": false
+    },
+    {
+      "id": "module:app",
+      "type": "module",
+      "label": "app",
+      "language": "Python"
+    },
+    {
+      "id": "module:json",
+      "type": "module",
+      "label": "json",
+      "language": "Python"
+    },
+    {
+      "id": "symbol:app.py:run",
+      "type": "function",
+      "label": "run",
+      "lineno": 3,
+      "signature": "def run():",
+      "receiver": null,
+      "bases": [],
+      "entrypoint": false
+    },
+    {
+      "id": "module:data",
+      "type": "module",
+      "label": "data",
+      "language": "TypeScript"
+    },
+    {
+      "id": "symbol:data.ts:value",
+      "type": "constant",
+      "label": "value",
+      "lineno": 1,
+      "signature": "export const value = 1;",
+      "receiver": null,
+      "bases": [],
+      "entrypoint": false
+    },
+    {
+      "id": "module:ui",
+      "type": "module",
+      "label": "ui",
+      "language": "TypeScript"
+    },
+    {
+      "id": "symbol:ui.ts:result",
+      "type": "constant",
+      "label": "result",
+      "lineno": 2,
+      "signature": "export const result = value;",
+      "receiver": null,
+      "bases": [],
+      "entrypoint": false
+    }
+  ],
+  "edges": [
+    {
+      "from": "workspace:/example/workspace",
+      "to": "language:typescript",
+      "type": "uses_language"
+    },
+    {
+      "from": "workspace:/example/workspace",
+      "to": "language:python",
+      "type": "uses_language"
+    },
+    {
+      "from": "workspace:/example/workspace",
+      "to": "file:data.ts",
+      "type": "contains"
+    },
+    {
+      "from": "workspace:/example/workspace",
+      "to": "file:ui.ts",
+      "type": "contains"
+    },
+    {
+      "from": "workspace:/example/workspace",
+      "to": "file:app.py",
+      "type": "contains"
+    },
+    {
+      "from": "file:app.py",
+      "to": "module:app",
+      "type": "declares_package"
+    },
+    {
+      "from": "file:app.py",
+      "to": "module:json",
+      "type": "imports"
+    },
+    {
+      "from": "file:app.py",
+      "to": "symbol:app.py:run",
+      "type": "defines"
+    },
+    {
+      "from": "file:data.ts",
+      "to": "module:data",
+      "type": "declares_package"
+    },
+    {
+      "from": "file:data.ts",
+      "to": "symbol:data.ts:value",
+      "type": "defines"
+    },
+    {
+      "from": "file:ui.ts",
+      "to": "module:ui",
+      "type": "declares_package"
+    },
+    {
+      "from": "file:ui.ts",
+      "to": "module:data",
+      "type": "imports"
+    },
+    {
+      "from": "file:ui.ts",
+      "to": "symbol:ui.ts:result",
+      "type": "defines"
+    }
+  ]
+}

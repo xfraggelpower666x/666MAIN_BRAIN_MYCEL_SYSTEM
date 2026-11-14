@@ -1,0 +1,154 @@
+{
+  "schema": "repobrain-codeforge-evidence-v1",
+  "provenance": {
+    "producer": "RepoBrain",
+    "source_schema": "repobrain-knowledge-graph-v2",
+    "graph_sha256": "913b9e022ad312afce1b6c476f8828a32932796682bea971204a1bb8702a0180",
+    "repository": "demo/workspace",
+    "revision": "0000000000000000000000000000000000000000",
+    "repository_and_revision_status": "CALLER_DECLARED"
+  },
+  "classification": {
+    "source": "LOCAL_GRAPH_READ",
+    "authority": "EVIDENCE_ONLY",
+    "coverage": "UNVERIFIED",
+    "host_verified": false
+  },
+  "diagnostics": {
+    "generic_fallback_files": 0,
+    "parse_error_files": 0,
+    "dangling_edges_omitted": 0
+  },
+  "counts": {
+    "nodes": 13,
+    "edges": 13,
+    "edge_types": {
+      "contains": 3,
+      "declares_package": 3,
+      "defines": 3,
+      "imports": 2,
+      "uses_language": 2
+    }
+  },
+  "nodes": [
+    {
+      "id": "workspace",
+      "type": "workspace"
+    },
+    {
+      "id": "language:typescript",
+      "type": "language"
+    },
+    {
+      "id": "language:python",
+      "type": "language"
+    },
+    {
+      "id": "file:data.ts",
+      "type": "code"
+    },
+    {
+      "id": "file:ui.ts",
+      "type": "code"
+    },
+    {
+      "id": "file:app.py",
+      "type": "code"
+    },
+    {
+      "id": "module:app",
+      "type": "module"
+    },
+    {
+      "id": "module:json",
+      "type": "module"
+    },
+    {
+      "id": "symbol:app.py:run",
+      "type": "function"
+    },
+    {
+      "id": "module:data",
+      "type": "module"
+    },
+    {
+      "id": "symbol:data.ts:value",
+      "type": "constant"
+    },
+    {
+      "id": "module:ui",
+      "type": "module"
+    },
+    {
+      "id": "symbol:ui.ts:result",
+      "type": "constant"
+    }
+  ],
+  "edges": [
+    {
+      "from": "workspace",
+      "to": "language:typescript",
+      "type": "uses_language"
+    },
+    {
+      "from": "workspace",
+      "to": "language:python",
+      "type": "uses_language"
+    },
+    {
+      "from": "workspace",
+      "to": "file:data.ts",
+      "type": "contains"
+    },
+    {
+      "from": "workspace",
+      "to": "file:ui.ts",
+      "type": "contains"
+    },
+    {
+      "from": "workspace",
+      "to": "file:app.py",
+      "type": "contains"
+    },
+    {
+      "from": "file:app.py",
+      "to": "module:app",
+      "type": "declares_package"
+    },
+    {
+      "from": "file:app.py",
+      "to": "module:json",
+      "type": "imports"
+    },
+    {
+      "from": "file:app.py",
+      "to": "symbol:app.py:run",
+      "type": "defines"
+    },
+    {
+      "from": "file:data.ts",
+      "to": "module:data",
+      "type": "declares_package"
+    },
+    {
+      "from": "file:data.ts",
+      "to": "symbol:data.ts:value",
+      "type": "defines"
+    },
+    {
+      "from": "file:ui.ts",
+      "to": "module:ui",
+      "type": "declares_package"
+    },
+    {
+      "from": "file:ui.ts",
+      "to": "module:data",
+      "type": "imports"
+    },
+    {
+      "from": "file:ui.ts",
+      "to": "symbol:ui.ts:result",
+      "type": "defines"
+    }
+  ]
+}
