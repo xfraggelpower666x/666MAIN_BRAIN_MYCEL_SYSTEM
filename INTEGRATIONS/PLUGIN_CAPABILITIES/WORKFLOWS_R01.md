@@ -103,3 +103,13 @@ Bei einem projektbezogenen Start-, Diagnose- oder Paketierungsauftrag verwende [
 ## Provider-Adapter
 
 Binde Zeitbudget, Retry-Limit, Abbruch und Request-ID als getrennte Felder des Provider-Belegs. Die vorliegenden Node- und Python-SDK-Stände behandeln lange Retry-After-Werte verschieden. Lege für einen neuen Adapter eine gemeinsame Strategie explizit fest. Nach ungewisser Wirkung einer schreibenden Aktion zuerst Zielzustand und Wiederholbarkeit prüfen. Ein API-Log belegt noch keinen Checkout, keinen Artefaktinhalt und keine Host-Ausführung.
+
+## Freeze-Archiv prüfen
+
+Finalisiere zuerst das Manifest. Erstelle anschließend eine separate SHA-256-Liste über alle Archivdateien einschließlich des Manifests. Die Liste führt sich selbst nicht auf. Prüfe das fertig gepackte ZIP über den [CodeForge-Prüfer](../CODEFORGE/verify_freeze.py).
+
+```sh
+python3 INTEGRATIONS/CODEFORGE/verify_freeze.py FREEZE.zip
+```
+
+Für abweichende Layouts gib `--manifest` und `--checksums` mit den Pfaden ab ZIP-Wurzel an. Mit `--checksum-base` kannst du Prüfsummenpfade an ein explizites Archivverzeichnis binden. Der Prüfer verlangt vollständige Abdeckung. Exit 0 bestätigt Dateiinventar, CRC und SHA-256 der gelisteten Dateien. Exit 1 meldet Abweichungen im Inventar oder in Dateihashes. Exit 2 meldet ungültige oder unlesbare Archive. Restore, semantische Vollständigkeit und Readback vom Lieferziel werden separat belegt.
