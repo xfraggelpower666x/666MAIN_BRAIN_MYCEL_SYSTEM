@@ -80,37 +80,49 @@
       }
     }
   }
+  function addVideo(pane) {
+    const currentGeneration = generation;
+    const item = items.find(entry => entry.id === sequence[(index + pane) % sequence.length]);
+    const video = document.createElement('video');
+    video.crossOrigin = 'anonymous';
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+    video.preload = 'auto';
+    video.loop = pane > 0;
+    video.addEventListener('error', () => {
+      if (currentGeneration === generation && videos.includes(video)) message(`Cannot decode or read: ${item.name}`);
+    });
+    if (pane === 0) video.addEventListener('ended', () => {
+      if (currentGeneration !== generation || !enabled) return;
+      if (index + 1 < sequence.length) selectIndex(index + 1);
+      else if (loop) selectIndex(0);
+      else {
+        enabled = false;
+        syncPlayback();
+        el('vj-opacity-value').textContent = `${Math.round(opacity * 100)}%`;
+        refreshUi();
+        message('Sequence finished. Enable VJ or select another video to restart.');
+      }
+    });
+    video.src = item.url;
+    videos.push(video);
+  }
   function rebuild() {
     dispose();
     if (index < 0 || !sequence.length) return;
-    const currentGeneration = generation;
-    for (let pane = 0; pane < layout; pane++) {
-      const item = items.find(entry => entry.id === sequence[(index + pane) % sequence.length]);
-      const video = document.createElement('video');
-      video.crossOrigin = 'anonymous';
-      video.muted = true;
-      video.defaultMuted = true;
-      video.playsInline = true;
-      video.preload = 'auto';
-      video.loop = pane > 0;
-      video.addEventListener('error', () => {
-        if (currentGeneration === generation) message(`Cannot decode or read: ${item.name}`);
-      });
-      if (pane === 0) video.addEventListener('ended', () => {
-        if (currentGeneration !== generation || !enabled) return;
-        if (index + 1 < sequence.length) selectIndex(index + 1);
-        else if (loop) selectIndex(0);
-        else {
-          enabled = false;
-          syncPlayback();
-          el('vj-opacity-value').textContent = `${Math.round(opacity * 100)}%`;
-          refreshUi();
-          message('Sequence finished. Enable VJ or select another video to restart.');
-        }
-      });
-      video.src = item.url;
-      videos.push(video);
+    for (let pane = 0; pane < layout; pane++) addVideo(pane);
+    syncPlayback();
+  }
+  function resizeLayout() {
+    if (index < 0 || !sequence.length) return;
+    while (videos.length > layout) {
+      const video = videos.pop();
+      video.pause();
+      video.removeAttribute('src');
+      video.load();
     }
+    while (videos.length < layout) addVideo(videos.length);
     syncPlayback();
   }
   function selectIndex(next) {
@@ -181,7 +193,7 @@
   el('vj-layout').addEventListener('change', event => {
     const value = Number(event.target.value);
     if (![1, 2, 3].includes(value)) return;
-    layout = value; rebuild(); refreshUi();
+    layout = value; resizeLayout(); refreshUi();
   });
   el('vj-opacity').addEventListener('input', event => {
     opacity = Math.max(0, Math.min(1, Number(event.target.value) / 100 || 0));

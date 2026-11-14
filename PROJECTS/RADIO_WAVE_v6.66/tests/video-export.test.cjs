@@ -6,6 +6,7 @@ const path = require('node:path');
 const { Writable } = require('node:stream');
 const { test } = require('node:test');
 const { runInNewContext } = require('node:vm');
+const { createSoundCloudPlayback } = require('../src/soundcloud-playback.js');
 
 const root = path.join(__dirname, '..');
 const app = fs.readFileSync(path.join(root, 'src', 'app.js'), 'utf8');
@@ -154,6 +155,45 @@ test('a microphone lost while opening the file aborts the partial video', async 
   assert.deepEqual(writes, [0]);
   assert.match(f.ctx.exportResult.textContent, /Microphone stopped before recording/);
   assert.equal(f.track.stopped, true);
+});
+
+test('fatal SoundCloud HLS errors abort exports, including while opening the file', async () => {
+  const integration = fs.readFileSync(path.join(root, 'src', 'integration', '666-integration.js'), 'utf8');
+  const line = integration.split(/\r?\n/).find(value => value.includes('const soundCloudPlayback=window.createSoundCloudPlayback'));
+  assert.ok(line);
+  class MockHls {
+    static Events = { ERROR: 'error' };
+    static isSupported() { return true; }
+    on(_event, listener) { this.error = listener; MockHls.current = this; }
+    loadSource() {}
+    attachMedia() {}
+    destroy() {}
+  }
+  for (const duringOpen of [false, true]) {
+    let release;
+    const writes = [], status = {};
+    const f = renderer({
+      write: async data => { writes.push(data.byteLength); return { success: true }; },
+      close: async () => ({ success: false, error: 'video_write_aborted' })
+    });
+    if (duringOpen) f.api.startFileWrite = () => new Promise(resolve => { release = resolve; });
+    const pending = f.ctx.startRecordingPipeline();
+    await tick();
+    const callback = {
+      audio: f.ctx.audioElement, mode: 'soundcloud', q: () => status,
+      window: { createSoundCloudPlayback, Hls: MockHls },
+      rt: { reportPlaybackError: f.ctx.reportPlaybackError }
+    };
+    runInNewContext(line.replace('const soundCloudPlayback=', 'globalThis.soundCloudPlayback='), callback);
+    callback.soundCloudPlayback.load({ playbackKind: 'hls', mediaUrl: 'swsc://audio/current?v=1' });
+    MockHls.current.error('error', { fatal: true, details: 'manifestLoadError' });
+    if (duringOpen) release({ success: true });
+    await pending; await tick(); await tick();
+    assert.match(status.textContent, /manifestLoadError/);
+    assert.ok(writes.includes(0), 'partial file must be aborted');
+    assert.match(f.ctx.exportResult.textContent, /Video not saved:.*manifestLoadError/);
+    assert.equal(f.track.stopped, true);
+  }
 });
 
 test('recorded chunks stay ordered and finalization waits for the last conversion and write', async () => {

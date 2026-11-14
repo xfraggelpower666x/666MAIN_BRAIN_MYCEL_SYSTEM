@@ -198,6 +198,29 @@ test('multi-pane frames are composited with live and optional bounded envelope b
   assert.throws(() => api.setEnvelopeProvider({}), /provider/);
 });
 
+test('changing layout preserves existing video elements, positions and playback state', async () => {
+  const f = renderer(), audio = f.nodes['audio-element'];
+  await choose(f); await toggle(f); await audio.emit('playing');
+  const primary = f.created[0];
+  primary.currentTime = 6;
+  f.nodes['vj-layout'].value = '3'; await f.nodes['vj-layout'].emit('change');
+  assert.equal(f.created.length, 3);
+  assert.equal(primary.currentTime, 6);
+  assert.equal(primary.paused, false);
+  const second = f.created[1];
+  second.currentTime = 3;
+  await audio.emit('pause');
+  f.nodes['vj-layout'].value = '2'; await f.nodes['vj-layout'].emit('change');
+  assert.equal(primary.currentTime, 6);
+  assert.equal(second.currentTime, 3);
+  assert.equal(primary.paused, true);
+  assert.equal(second.paused, true);
+  await audio.emit('playing');
+  assert.equal(primary.paused, false);
+  assert.equal(second.paused, false);
+  assert.equal(f.window.vjStudio.getState().currentId, '0');
+});
+
 test('invalid envelopes warn once and publish bounded effective bands to followers', async () => {
   const warnings = [], sent = [];
   const f = renderer({ logger: { warn: (...args) => warnings.push(args), error() {} } });

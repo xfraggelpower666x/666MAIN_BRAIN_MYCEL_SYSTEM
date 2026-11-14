@@ -6,7 +6,7 @@
   let mode='local', soundCloudErrorSkips=0, radioCfg=null, np={}, poll=0, messengerPoll=0, lastPlayerMessageId='', lastDiscordTrack='', discordAutoEnabled=false, radioUsingFallback=false, radioFailoverBusy=false, radioFallbackFailed=false, radioFailoverAttempts=0, radioRecoveryTimer=0, radioRecoveryBusy=false, analyzer=null, barEngine=null, geometry=null, geometryCanvas=null, shaderHost=null, shaderKey='', milkdrop=null, milkdropCanvas=null, importedMilkdrop=null, milkdropLiveSyncId='', senderId=localStorage.getItem('s666-sender-id');
   let radioPreference='auto', radioGeneration=0, radioPlaybackState='INACTIVE', radioLoaded=false;
   let discordAutoCheckVersion=0, remoteHealthGeneration=0;
-  const soundCloudPlayback=window.createSoundCloudPlayback(audio,window.Hls,message=>{if(mode==='soundcloud')q('#soundcloud-state').textContent=message;});
+  const soundCloudPlayback=window.createSoundCloudPlayback(audio,window.Hls,message=>{if(mode==='soundcloud'){q('#soundcloud-state').textContent=message;rt.reportPlaybackError(message);}});
   if(!senderId){senderId='sw666-'+crypto.randomUUID();localStorage.setItem('s666-sender-id',senderId);}
   const state=(t)=>{const e=q('#radio-action-state');if(e)e.textContent=t;};
   const artBg=q('#source-artwork-bg'), visualHeader=q('#radio-visual-header'), ticker=q('#source-nowplaying-ticker'), tickerTrack=q('#source-nowplaying-track');

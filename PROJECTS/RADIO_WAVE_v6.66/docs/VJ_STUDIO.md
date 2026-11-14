@@ -10,7 +10,8 @@ The pool is ordered by the file picker; choose an item or press **NEXT VIDEO**.
 The first pane drives the sequence; the second and third panes show subsequent
 items and loop independently. Sequence looping can be switched off. Opacity
 and pane count affect the main visualizer canvas and its video export. Video
-is always muted; the existing shared player is the only audio source.
+is always muted; the existing shared player is the only audio source. Changing
+the pane count keeps existing panes at their current playback positions.
 
 VJ playback follows actual shared audio playback, buffering, pause and seek.
 A new audio source resets video positions; microphone-only recording also

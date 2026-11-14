@@ -1729,6 +1729,10 @@ function recordingError(session, error) {
   }
 }
 
+function reportPlaybackError(message) {
+  if(exportSession&&!exportSession.stopping&&!exportSession.finishing)recordingError(exportSession,new Error(String(message)));
+}
+
 async function finishRecording(session) {
   if (session.finishing) return;
   session.finishing = true;
@@ -1805,6 +1809,7 @@ async function startRecordingPipeline() {
     const videoTracks = canvasStream.getVideoTracks();
     const audioTracks = audioDestinationNode ? audioDestinationNode.stream.getAudioTracks() : [];
     session = { path: exportSavePath, videoTracks, tracks: [...videoTracks, ...audioTracks], queue: Promise.resolve(), bytes: 0, error: null, recorder: null, finishing: false, includeMicrophone, microphoneOnly:!hasMedia };
+    exportSession = session;
     if (!videoTracks.length || !audioTracks.length) throw new Error('Video or audio recording track is unavailable');
     const combinedStream = new MediaStream();
     session.tracks.forEach(track => combinedStream.addTrack(track));
@@ -1819,7 +1824,7 @@ async function startRecordingPipeline() {
     const initRes = await window.api.startFileWrite(session.path);
     if (!initRes?.success) throw new Error(initRes?.error || 'Could not initialize video file');
     session.opened = true;
-    exportSession = session;
+    if(session.error)throw session.error;
     if(includeMicrophone&&!audioDeviceController?.recordsInput())throw new Error('Microphone stopped before recording');
     mediaRecorder = session.recorder;
     audioInputRecord.disabled = true;
@@ -1890,6 +1895,7 @@ async function startRecordingPipeline() {
       if (!session.started) void finishRecording(session);
     } else {
       session?.videoTracks.forEach(track => track.stop());
+      if(exportSession===session)exportSession=null;
       exportBusy = false;
       btnBrowseExport.disabled = false;
       btnExport.disabled = false;
@@ -2482,6 +2488,7 @@ window.SoundwaveRuntime = Object.freeze({
   getAnalyser: () => analyserNode,
   getAudioContext: () => audioContext,
   isExporting: () => !!exportSession,
+  reportPlaybackError,
   getFrequencyData: () => dataArray,
   getTimeData: () => timeDataArray,
   setExternalAnalyserFrame: (frame) => {

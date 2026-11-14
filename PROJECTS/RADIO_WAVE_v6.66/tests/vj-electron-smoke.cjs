@@ -213,6 +213,21 @@ if (!process.versions.electron) {
       })()`, true);
       if (result.error) throw new Error(result.error);
       if (!served) throw new Error('VJ protocol not used');
+      await new Promise(resolve => setTimeout(resolve, 600));
+      const beforeLayout = states.at(-1)?.state;
+      if (!beforeLayout || beforeLayout.playing || beforeLayout.positions[0] < 0.1) throw new Error('VJ layout test needs a paused nonzero position');
+      await window.webContents.executeJavaScript(`(() => {
+        const layout = document.getElementById('vj-layout');
+        layout.value = '2'; layout.dispatchEvent(new Event('change'));
+      })()`);
+      await new Promise(resolve => setTimeout(resolve, 100));
+      const afterLayout = states.at(-1)?.state;
+      if (afterLayout?.layout !== 2 || Math.abs(afterLayout.positions[0] - beforeLayout.positions[0]) > 0.05)
+        throw new Error('VJ layout change restarted the primary video');
+      await window.webContents.executeJavaScript(`(() => {
+        const layout = document.getElementById('vj-layout');
+        layout.value = '1'; layout.dispatchEvent(new Event('change'));
+      })()`);
       if (!states.some(update => update.state.sequence.length === 1) || !states.some(update => update.state.sequence.length === 2)) throw new Error('Follower did not receive subset and restored order');
       if (!states.some(update => update.state.bands.bass === 0.8)) throw new Error('CSV envelope did not reach followers');
       const readFollowerPixel = async () => follower.webContents.executeJavaScript(`(() => {

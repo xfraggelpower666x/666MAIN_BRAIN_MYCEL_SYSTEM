@@ -144,6 +144,7 @@ function localQueuePublicState(){
 function addLocalQueuePaths(paths,{replace=false}={}){
   const incoming=(Array.isArray(paths)?paths:[]).map(validLocalAudioPath).filter(Boolean);
   if(!incoming.length)return localQueuePublicState();
+  const previous=selectedLocalAudioPath;
   const base=replace?[]:localAudioQueue.slice();
   const seen=new Set(base.map(x=>x.toLowerCase()));
   for(const p of incoming){
@@ -155,7 +156,7 @@ function addLocalQueuePaths(paths,{replace=false}={}){
   if(localAudioQueueIndex<0&&base.length)localAudioQueueIndex=0;
   if(localAudioQueueIndex>=base.length)localAudioQueueIndex=Math.max(0,base.length-1);
   selectedLocalAudioPath=localAudioQueueIndex>=0?base[localAudioQueueIndex]:'';
-  localAudioRevision++;
+  if(selectedLocalAudioPath!==previous)localAudioRevision++;
   persistLocalQueue();
   runtimeEvent('local-queue-updated',{count:base.length,index:localAudioQueueIndex,replace});
   return localQueuePublicState();
@@ -953,7 +954,7 @@ app.whenReady().then(() => {
   audioLibraryTimer=setInterval(()=>audioLibrary.refresh().catch(error=>runtimeEvent('local-library-scan-error',{error:String(error.message||error)})),30000);
   protocol.handle('swmedia', (request) => {
     const u = new URL(request.url);
-    if (u.hostname !== 'audio' || u.pathname !== '/current' || !selectedLocalAudioPath) return new Response('Not found', {status:404});
+    if (u.hostname !== 'audio' || u.pathname !== '/current' || u.search !== '?v='+localAudioRevision || !selectedLocalAudioPath) return new Response('Not found', {status:404});
     return net.fetch(pathToFileURL(selectedLocalAudioPath).toString(), {headers: request.headers});
   });
   const displayChanged=()=>{
@@ -1031,7 +1032,8 @@ registerIpc('local:queue-remove','main',async(_e,index)=>{
     else if(wasCurrent)localAudioQueueIndex=Math.min(n,localAudioQueue.length-1);
     selectedLocalAudioPath=localAudioQueue[localAudioQueueIndex]||'';
   }
-  localAudioRevision++;persistLocalQueue();
+  if(wasCurrent)localAudioRevision++;
+  persistLocalQueue();
   return localQueuePublicState();
 });
 registerIpc('local:queue-clear','main',async()=>{
