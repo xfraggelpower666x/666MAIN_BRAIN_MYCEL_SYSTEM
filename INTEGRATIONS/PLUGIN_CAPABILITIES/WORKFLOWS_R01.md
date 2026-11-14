@@ -71,3 +71,13 @@ Der Leser klassifiziert vorhandene `gate-result/v1`-Belege. Verwende einen separ
 - Runtime Core und Production Platform ergänzen Task-Graph, Beobachtbarkeit, Policy und Integrationsziele. Dienste, Sandbox, Persistenz und CI-Anbindung brauchen einen tatsächlich autorisierten Provider.
 - Coding-Guides werden im bestehenden Engineering-Verfahren verwendet. Die Sprachassistenten-, Analytics- und Flask-Beispiele sind Quellen für die zugeordneten Verfahren. Quellcode, Datenbestände und Konfigurationsdateien dieser Uploads sind außerhalb der veröffentlichten Integration.
 - Die Aktualisierung nutzt den bestehenden Katalogpfad, damit Current-gebundene Abfragen aus R02 dieselben IDs und Einträge weiter auflösen.
+
+## Fachverfahren aus R04
+
+| Workflow | Durchführung und Ausgabe |
+|---|---|
+| `patch-scope` | Den bestätigten Basis-Commit, Kandidaten-Commit und die freigegebenen Repository-Pfade an den [Scope-Check](../CODEFORGE/check_patch_scope.py) übergeben. Umbenennungen auf beiden Seiten prüfen. Freigabe, Tests und Host-Verhalten separat belegen. |
+| `python-api` | Vertrag und Fehlerfälle festhalten. Relevante Bausteine für FastAPI, Pydantic, SQLAlchemy, Alembic, uv, Click, Konfiguration, HTTP-Clients, Request-Korrelation und Hintergrundjobs auswählen. Tests am normalen Einstieg ausführen. Projektkonventionen bestimmen, welche Bausteine tatsächlich eingesetzt werden. |
+| `jni-readiness` | Java-Build, JNI-Symbole und native Bibliotheken getrennt prüfen. Für JSyphon die zum Zielcommit gehörenden Submodule, macOS/Xcode und die CPU-Architektur verifizieren. Java-Archiv, native Bibliothek und Frame-Übertragung benötigen eigene Belege. |
+
+Für den Ablauf von Issue und Kontext bis zu Patch, Review, Handoff und Host-Abnahme gilt die [CodeForge-Ergänzung R04](../CODEFORGE/HANDOFF_INTAKE_R01.md#arbeitsverfahren-r04).

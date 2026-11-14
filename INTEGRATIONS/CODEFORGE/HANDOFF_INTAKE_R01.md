@@ -38,3 +38,20 @@ Lokal geprüft wurden ZIP-Integrität und das Checkpoint-Beispiel gegen das mitg
 | Host-Verhalten | UCA-Checkout, UCA-Host-Bindung und Fresh-Chat-Abnahme offen. |
 
 Der Intake ändert keine native Runtime. Die sechs MAIN-BRAIN-Stränge, die Migrationsautorität und die vorhandene [Fresh-Chat-Matrix](../../HOST/FRESH_CHAT_ACCEPTANCE_MATRIX.md) bleiben eigenständig maßgeblich.
+
+## Arbeitsverfahren R04
+
+Die [Capability-Registry](../PLUGIN_CAPABILITIES/CAPABILITIES_R01.json) verknüpft 24 neue Einträge mit vier geprüften Eingaben. Freeze, beide Radio-CodeForge-Kopien, Multiprojekt-Bauanleitung und 666PFS-Handoff stimmen bytegenau mit den bereits erfassten Quellen überein. Der CLIC-Quellcommit ist eine Herkunftsangabe des Handoffs.
+
+1. **Kontext zum Auftrag binden.** Nach Sweep-Prinzipien zuerst normale Einstiegspunkte, Aufrufer und Testpfade suchen. Fundstellen auf den Basis-Commit binden. Aus der Issue-Beschreibung überprüfbare Sollfälle ableiten.
+2. **Schreibgrenzen und Abnahme festhalten.** Nach py-pit Eingabe, Ausgabe, Fehlerfälle und Seiteneffekte bestimmen. Nach CLIC den Patch-Scope und die Rückkehranker je Strang führen. Abhängige Arbeiten anhand der bestätigten Integration weiterführen.
+3. **Kandidaten unabhängig prüfen.** Den finalen Commit-Diff gegen die freigegebenen Pfade lesen. Prüfergebnis, Tests und Host-Beobachtung je Ebene erfassen. CLIC-StarBridge-Quittungen für Readback, Zustellung, Adoption und Host-Ausführung haben getrennte Nachweise.
+4. **Native Builds als eigene Belege führen.** Bei JSyphon Java-Archiv, native Bibliothek und Frame-Fluss getrennt prüfen. Das Upload-Inventar enthält die Submoduldeklarationen und Build-Anleitung. Ein echter macOS/JNI-Lauf ist offen.
+
+### Lokaler Git-Scope-Check
+
+```sh
+python3 check_patch_scope.py --checkout REPO --base BASE_SHA --candidate CANDIDATE_SHA --allow src/feature --allow tests/test_feature.py
+```
+
+Der Check verwendet vollständige Commit-IDs und einen Vorfahren als Basis. Er liest die geänderten Git-Pfade einschließlich beider Seiten von Umbenennungen und prüft exakte Pfade oder Verzeichnisgrenzen. Exit 0 bedeutet `IN_SCOPE`, Exit 1 meldet Pfade außerhalb des Scopes, Exit 2 bezeichnet einen ungültigen Aufruf oder eine nicht prüfbare Git-Basis. Der Check bewertet den Commit-Enddiff. Zwischenstände, uncommittete Dateien, fachliche Korrektheit und Ausführungsrechte brauchen eigene Prüfungen. Fremde Hooks, Sweep-Worker, py-pit-Installer und JSyphon-Binärdateien sind außerhalb des veröffentlichten Scopes.

@@ -79,6 +79,23 @@
     "virtual-assistant": {
       "sha256": "7971fce88dcef26f17810301a86191d5509b8b924bc3519ec619e9098b214c65",
       "files": 7
+    },
+    "clic-codeforge": {
+      "sha256": "f7153dee2403a494eb279197ec601ee977b3653a43a88b9e9f04e01e81d6760a",
+      "files": 1,
+      "reference_commit": "b41b4a086682f7631c6dcfff3a0f4e6eb5e47983"
+    },
+    "sweep": {
+      "sha256": "15cf1e266c7b5842d2f308b924110b59d31b947d8654fb72aef1d0cfef5ea1ca",
+      "files": 527
+    },
+    "jsyphon": {
+      "sha256": "d48f7d04cd3dceeab2b7917ff1a30ecff7cf4bdbafc6655188c3a8ac5a4e211b",
+      "files": 59
+    },
+    "py-pit": {
+      "sha256": "5cd6a68aa466411f2eeaa0a390551655a0428a7b9fdc64b1b6598773b7b6f0d2",
+      "files": 31
     }
   },
   "capabilities": [
@@ -144,6 +161,27 @@
       "workflow": "planning",
       "mode": "NATIVE_GUIDANCE",
       "source_path": "chatgpt-pro-browser-main/plugins/chatgpt-pro-browser/skills/chatgpt-pro-planner/SKILL.md"
+    },
+    {
+      "id": "clic-codeforge/patch-first-boundary",
+      "facet": "SENTINEL",
+      "workflow": "patch-scope",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "666CLIC_CodeForge_Agent_Handoff_R01.md"
+    },
+    {
+      "id": "clic-codeforge/pdi-return-anchor",
+      "facet": "REHYDRATOR",
+      "workflow": "continuity",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "666CLIC_CodeForge_Agent_Handoff_R01.md"
+    },
+    {
+      "id": "clic-codeforge/starbridge-receipts",
+      "facet": "BRIDGE",
+      "workflow": "integration",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "666CLIC_CodeForge_Agent_Handoff_R01.md"
     },
     {
       "id": "coding-intelligence-visual-addon/emergence-intelligence",
@@ -391,6 +429,20 @@
       "source_path": "fullstack-code-nlp-agent/skills/web-html-css/SKILL.md"
     },
     {
+      "id": "jsyphon/jni-dependency-readiness",
+      "facet": "SENTINEL",
+      "workflow": "jni-readiness",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "Java-master/.gitmodules"
+    },
+    {
+      "id": "jsyphon/macos-build-and-frame-smoke",
+      "facet": "BRIDGE",
+      "workflow": "jni-readiness",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "Java-master/README.md"
+    },
+    {
       "id": "production-platform/evidence-and-telemetry",
       "facet": "RATIONAL",
       "workflow": "verification",
@@ -445,6 +497,118 @@
       "workflow": "integration",
       "mode": "NATIVE_GUIDANCE",
       "source_path": "production-agent-platform-addon/skills/security-compliance/SKILL.md"
+    },
+    {
+      "id": "py-pit/alembic-migrations",
+      "facet": "RATIONAL",
+      "workflow": "python-api",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/alembic-migrations/SKILL.md"
+    },
+    {
+      "id": "py-pit/background-jobs-boundaries",
+      "facet": "RATIONAL",
+      "workflow": "python-api",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/background-jobs-boundaries/SKILL.md"
+    },
+    {
+      "id": "py-pit/click-cli",
+      "facet": "RATIONAL",
+      "workflow": "python-api",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/click-cli/SKILL.md"
+    },
+    {
+      "id": "py-pit/click-cli-linter",
+      "facet": "RATIONAL",
+      "workflow": "python-api",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/click-cli-linter/SKILL.md"
+    },
+    {
+      "id": "py-pit/code-quality",
+      "facet": "RATIONAL",
+      "workflow": "verification",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/code-quality/SKILL.md"
+    },
+    {
+      "id": "py-pit/dockerize-service",
+      "facet": "RATIONAL",
+      "workflow": "python-api",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/dockerize-service/SKILL.md"
+    },
+    {
+      "id": "py-pit/fastapi-errors",
+      "facet": "RATIONAL",
+      "workflow": "python-api",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/fastapi-errors/SKILL.md"
+    },
+    {
+      "id": "py-pit/fastapi-init",
+      "facet": "RATIONAL",
+      "workflow": "python-api",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/fastapi-init/SKILL.md"
+    },
+    {
+      "id": "py-pit/http-client-integration",
+      "facet": "RATIONAL",
+      "workflow": "python-api",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/http-client-integration/SKILL.md"
+    },
+    {
+      "id": "py-pit/implementation-protocol",
+      "facet": "CHAOS_CONDUCTOR",
+      "workflow": "python-api",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/implementation-protocol/SKILL.md"
+    },
+    {
+      "id": "py-pit/pydantic-schemas",
+      "facet": "RATIONAL",
+      "workflow": "python-api",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/pydantic-schemas/SKILL.md"
+    },
+    {
+      "id": "py-pit/pytest-service",
+      "facet": "RATIONAL",
+      "workflow": "verification",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/pytest-service/SKILL.md"
+    },
+    {
+      "id": "py-pit/request-correlation",
+      "facet": "RATIONAL",
+      "workflow": "python-api",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/request-correlation/SKILL.md"
+    },
+    {
+      "id": "py-pit/settings-config",
+      "facet": "RATIONAL",
+      "workflow": "python-api",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/settings-config/SKILL.md"
+    },
+    {
+      "id": "py-pit/sqlalchemy-models",
+      "facet": "RATIONAL",
+      "workflow": "python-api",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/sqlalchemy-models/SKILL.md"
+    },
+    {
+      "id": "py-pit/uv",
+      "facet": "RATIONAL",
+      "workflow": "python-api",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/uv/SKILL.md"
     },
     {
       "id": "pyright-lsp/python-language-server",
@@ -1222,6 +1386,27 @@
       "workflow": "visual",
       "mode": "NATIVE_GUIDANCE",
       "source_path": "SCEVI_SEMANTIC_VISUAL_INTELLIGENCE_SKILL_R01/references/accessibility-and-safety.md"
+    },
+    {
+      "id": "sweep/independent-diff-review",
+      "facet": "RATIONAL",
+      "workflow": "verification",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "sweep-main/sweepai/handlers/review_pr.py"
+    },
+    {
+      "id": "sweep/issue-to-plan",
+      "facet": "CHAOS_CONDUCTOR",
+      "workflow": "planning",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "sweep-main/sweepai/handlers/on_ticket.py"
+    },
+    {
+      "id": "sweep/repository-context",
+      "facet": "CARTOGRAPHER",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "sweep-main/sweepai/core/context_pruning.py"
     },
     {
       "id": "temporal-guardian/temporal-review",
