@@ -11,6 +11,7 @@ from mcp.server import NotificationOptions, Server
 from mcp.server.stdio import stdio_server
 from mcp.types import (
     Tool,
+    CallToolResult,
     TextContent,
     ImageContent,
     EmbeddedResource,
@@ -126,17 +127,16 @@ async def handle_list_tools() -> list[Tool]:
         ),
         Tool(
             name="get_music_info",
-            description="Get detailed information about generated music tracks using track IDs (not task IDs). Use this for tracks you already have the specific track IDs for.",
+            description="Get detailed information about tracks returned by a generation task. Requires the generation task ID returned from generate_music, not individual track IDs.",
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "track_ids": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                        "description": "List of track IDs to retrieve information for"
+                    "task_id": {
+                        "type": "string",
+                        "description": "Generation task ID returned from generate_music"
                     }
                 },
-                "required": ["track_ids"]
+                "required": ["task_id"]
             }
         ),
         Tool(
@@ -188,7 +188,10 @@ async def handle_list_tools() -> list[Tool]:
 
 
 @server.call_tool()
-async def handle_call_tool(name: str, arguments: dict | None) -> list[TextContent | ImageContent | EmbeddedResource]:
+async def handle_call_tool(
+    name: str,
+    arguments: dict | None,
+) -> list[TextContent | ImageContent | EmbeddedResource] | CallToolResult:
     """Handle tool execution requests."""
     if not suno_client:
         raise RuntimeError("Suno client not initialized")
@@ -241,40 +244,35 @@ async def handle_call_tool(name: str, arguments: dict | None) -> list[TextConten
                 audio_weight=audio_weight
             )
 
-            # Format response
             response_text = f"Music generation {'completed' if wait_audio else 'started'}!\n\n"
+            data = result.get("data") if isinstance(result, dict) else None
+            if isinstance(data, dict) and data.get("taskId"):
+                response_text += f"Task ID: {data['taskId']}\n"
+            tracks = (
+                data.get("response", {}).get("sunoData")
+                if isinstance(data, dict) and isinstance(data.get("response"), dict)
+                else data if isinstance(data, list) else None
+            )
+            if isinstance(tracks, list):
+                response_text += f"Generated {len(tracks)} track(s):\n\n"
 
-            if "data" in result and result["data"] is not None:
-                data = result["data"]
+                for i, track in enumerate(tracks, 1):
+                    response_text += f"Track {i}:\n"
+                    response_text += f"  ID: {track.get('id', 'N/A')}\n"
+                    response_text += f"  Title: {track.get('title', 'N/A')}\n"
+                    response_text += f"  Status: {track.get('status', 'N/A')}\n"
 
-                # Check if data is a dict with taskId (async generation)
-                if isinstance(data, dict) and "taskId" in data:
-                    response_text += f"Task ID: {data['taskId']}\n"
-                    response_text += "\nNote: Generation is processing asynchronously. You can check status later using the task ID.\n"
-                # Check if data is a list of tracks (completed generation)
-                elif isinstance(data, list):
-                    tracks = data
-                    response_text += f"Generated {len(tracks)} track(s):\n\n"
+                    audio_url = track.get('audio_url') or track.get('audioUrl')
+                    if audio_url:
+                        response_text += f"  Audio URL: {audio_url}\n"
+                    if track.get('video_url') or track.get('videoUrl'):
+                        response_text += f"  Video URL: {track.get('video_url') or track.get('videoUrl')}\n"
+                    if track.get('duration'):
+                        response_text += f"  Duration: {track['duration']}s\n"
 
-                    for i, track in enumerate(tracks, 1):
-                        response_text += f"Track {i}:\n"
-                        response_text += f"  ID: {track.get('id', 'N/A')}\n"
-                        response_text += f"  Title: {track.get('title', 'N/A')}\n"
-                        response_text += f"  Status: {track.get('status', 'N/A')}\n"
-
-                        if track.get('audio_url'):
-                            response_text += f"  Audio URL: {track['audio_url']}\n"
-                        if track.get('video_url'):
-                            response_text += f"  Video URL: {track['video_url']}\n"
-                        if track.get('duration'):
-                            response_text += f"  Duration: {track['duration']}s\n"
-
-                        response_text += "\n"
-
-                    if not wait_audio:
-                        response_text += "Note: Use get_music_info with the track IDs above to check generation status and retrieve audio URLs.\n"
-                else:
-                    response_text += f"Data: {data}\n"
+                    response_text += "\n"
+            elif isinstance(data, dict) and data.get("taskId"):
+                response_text += "\nNote: Generation is processing asynchronously. Check its status later using the task ID.\n"
             else:
                 response_text += f"Response: {result}\n"
 
@@ -321,20 +319,35 @@ async def handle_call_tool(name: str, arguments: dict | None) -> list[TextConten
                         if track.get('tags'):
                             response_text += f"  Tags: {track['tags']}\n"
 
-                        if track.get('audioUrl'):
-                            response_text += f"  Audio URL: {track['audioUrl']}\n"
+                        audio_url = track.get('audio_url') or track.get('audioUrl')
+                        if audio_url:
+                            response_text += f"  Audio URL: {audio_url}\n"
 
-                        if track.get('streamAudioUrl'):
-                            response_text += f"  Stream URL: {track['streamAudioUrl']}\n"
+                        stream_url = track.get('stream_audio_url') or track.get('streamAudioUrl')
+                        if stream_url:
+                            response_text += f"  Stream URL: {stream_url}\n"
 
-                        if track.get('imageUrl'):
-                            response_text += f"  Image URL: {track['imageUrl']}\n"
+                        image_url = track.get('image_url') or track.get('imageUrl')
+                        if image_url:
+                            response_text += f"  Image URL: {image_url}\n"
 
                         if track.get('createTime'):
                             response_text += f"  Created: {track['createTime']}\n"
 
                         response_text += "\n"
                 else:
+                    status = str(data.get('status', '')).upper()
+                    if (
+                        status in {'FAILED', 'FAILURE', 'ERROR'}
+                        or status.endswith(('_FAILED', '_ERROR'))
+                    ):
+                        response_text += "\nGeneration failed.\n"
+                        if data.get('errorCode') is not None:
+                            response_text += f"Error Code: {data['errorCode']}\n"
+                        if data.get('errorMessage'):
+                            response_text += f"Error Message: {data['errorMessage']}\n"
+                        return [TextContent(type="text", text=response_text)]
+
                     response_text += f"\nGeneration in progress. Current status: {data.get('status', 'UNKNOWN')}\n"
             else:
                 response_text += f"Response: {result}\n"
@@ -342,13 +355,12 @@ async def handle_call_tool(name: str, arguments: dict | None) -> list[TextConten
             return [TextContent(type="text", text=response_text)]
 
         elif name == "get_music_info":
-            # Extract track IDs
-            track_ids = arguments.get("track_ids")
-            if not track_ids or not isinstance(track_ids, list):
-                raise ValueError("track_ids must be a non-empty list")
+            task_id = arguments.get("task_id")
+            if not task_id:
+                raise ValueError("task_id is required")
 
             # Get music info
-            result = await suno_client.get_music_info(track_ids)
+            result = await suno_client.get_music_info(task_id)
 
             # Format response
             response_text = "Music Track Information:\n\n"
@@ -514,9 +526,15 @@ async def handle_call_tool(name: str, arguments: dict | None) -> list[TextConten
             raise ValueError(f"Unknown tool: {name}")
 
     except SunoAPIError as e:
-        return [TextContent(type="text", text=f"Suno API Error: {str(e)}")]
+        return CallToolResult(
+            content=[TextContent(type="text", text=f"Suno API Error: {str(e)}")],
+            isError=True,
+        )
     except Exception as e:
-        return [TextContent(type="text", text=f"Error: {str(e)}")]
+        return CallToolResult(
+            content=[TextContent(type="text", text=f"Error: {str(e)}")],
+            isError=True,
+        )
 
 
 async def main():

@@ -1,10 +1,22 @@
 """Suno API Client for music generation."""
 
+import asyncio
 import httpx
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any
 import os
 import re
 from urllib.parse import urlparse
+
+
+GENERATION_POLL_INTERVAL_SECONDS = 5
+GENERATION_WAIT_TIMEOUT_SECONDS = 300
+GENERATION_SUCCESS_STATUSES = {"SUCCESS"}
+GENERATION_FAILURE_STATUSES = {
+    "CREATE_TASK_FAILED",
+    "GENERATE_AUDIO_FAILED",
+    "CALLBACK_EXCEPTION",
+    "SENSITIVE_WORD_ERROR",
+}
 
 
 class SunoAPIError(Exception):
@@ -104,7 +116,6 @@ class SunoClient:
         payload: Dict[str, Any] = {
             "instrumental": make_instrumental,
             "model": model_version,
-            "wait_audio": wait_audio,
             "customMode": custom_mode
         }
 
@@ -150,7 +161,45 @@ class SunoClient:
                 error_msg = result.get("msg", "Unknown error")
                 raise SunoAPIError(f"API Error (code {result.get('code')}): {error_msg}")
 
-            return result
+            if not wait_audio:
+                return result
+
+            task_data = result.get("data") if isinstance(result, dict) else None
+            task_id = task_data.get("taskId") if isinstance(task_data, dict) else None
+            if not task_id:
+                raise SunoAPIError(
+                    "Generation response did not include data.taskId; cannot wait for audio"
+                )
+
+            loop = asyncio.get_running_loop()
+            deadline = loop.time() + GENERATION_WAIT_TIMEOUT_SECONDS
+            while True:
+                status_result = await self.get_task_status(task_id)
+                status_data = status_result.get("data")
+                status = (
+                    str(status_data.get("status", "")).upper()
+                    if isinstance(status_data, dict)
+                    else ""
+                )
+
+                if status in GENERATION_SUCCESS_STATUSES:
+                    return status_result
+                if status in GENERATION_FAILURE_STATUSES:
+                    error_message = (
+                        status_data.get("errorMessage")
+                        or status_data.get("errorCode")
+                        or status
+                    )
+                    raise SunoAPIError(
+                        f"Music generation failed with status {status}: {error_message}"
+                    )
+                if loop.time() >= deadline:
+                    raise SunoAPIError(
+                        f"Timed out waiting for music generation task {task_id}"
+                    )
+
+                await asyncio.sleep(GENERATION_POLL_INTERVAL_SECONDS)
+
         except httpx.HTTPError as e:
             raise SunoAPIError(f"Failed to generate music: {str(e)}")
 
@@ -184,12 +233,13 @@ class SunoClient:
         except httpx.HTTPError as e:
             raise SunoAPIError(f"Failed to get task status: {str(e)}")
 
-    async def get_music_info(self, ids: List[str]) -> Dict[str, Any]:
+    async def get_music_info(self, task_id: str) -> Dict[str, Any]:
         """
-        Get information about generated music tracks using track IDs.
+        Get generation details using the generation task ID.
 
         Args:
-            ids: List of track IDs to retrieve information for
+            task_id: Generation task ID returned from generate_music. Track IDs
+                from the task's sunoData list are not accepted by this endpoint.
 
         Returns:
             Dictionary containing track information
@@ -197,12 +247,13 @@ class SunoClient:
         Raises:
             SunoAPIError: If the API request fails
         """
+        if not isinstance(task_id, str) or not task_id.strip():
+            raise ValueError("task_id is required to get music generation details")
+
         try:
-            # Join IDs with commas for query parameter
-            ids_param = ",".join(ids)
             response = await self.client.get(
                 "/api/v1/generate/record-info",
-                params={"ids": ids_param}
+                params={"taskId": task_id}
             )
             response.raise_for_status()
             result = response.json()
@@ -212,7 +263,18 @@ class SunoClient:
                 error_msg = result.get("msg", "Unknown error")
                 raise SunoAPIError(f"API Error (code {result.get('code')}): {error_msg}")
 
-            return result
+            task_data = result.get("data") if isinstance(result, dict) else None
+            response_data = (
+                task_data.get("response") if isinstance(task_data, dict) else None
+            )
+            tracks = (
+                response_data.get("sunoData")
+                if isinstance(response_data, dict)
+                else None
+            )
+            normalized_result = dict(result)
+            normalized_result["data"] = tracks if isinstance(tracks, list) else []
+            return normalized_result
         except httpx.HTTPError as e:
             raise SunoAPIError(f"Failed to get music info: {str(e)}")
 
