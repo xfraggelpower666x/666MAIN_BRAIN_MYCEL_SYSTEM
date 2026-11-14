@@ -46,3 +46,28 @@ Mit `--checkout` wird der Katalog aus Current Pointer und Runtime-Registry aufge
 ## Abnahme
 
 Der Repository-Katalog und dessen Leseprogramm sind unabhängig von Plugin-Installation und frischem Chat prüfbar. Die [native Host-Matrix](../../HOST/FRESH_CHAT_ACCEPTANCE_MATRIX.md) bleibt maßgeblich. Fremde Provider, Browseranbindung sowie Python-, Java- und UI-Artefaktruntime brauchen getrennte Laufzeitbelege.
+
+## Fachverfahren aus R03
+
+| Workflow | Durchführung und Ausgabe |
+|---|---|
+| `temporal-review` | Fachlich zwischen Kalenderdatum, lokalem Zeitpunkt, UTC-Instant und Dauer unterscheiden. Zeitzonen und Sommerzeit an Parsing, Speicherung und Anzeige prüfen. Für eine Hypothese je einen relevanten Grenzfall und Gegenfall angeben. Scannerbefunde mit den Fundstellen gegenprüfen. |
+| `quality-gate` | Vorhandene Prüfbelege für Lint, Typprüfung und Tests auswerten. Toolversion, Prüfumfang und erwarteten Snapshot belegen. Fehlende oder abgeschnittene Checks offen ausweisen. Pyright-LSP-Diagnostik als Editorbeleg führen. |
+| `analytics-design` | Eingabefelder, Vergleichsmaßstab, Datengüte und erwartete Ausgabe festlegen. Vertriebsdaten und die Flask-/ML-Beispiele eignen sich als Referenzen für Testfälle. Nutzdaten bleiben im autorisierten Datenkontext. |
+| `voice` | Absicht, Sprachaufnahme, Transkript und Ausgabe als getrennte Schritte behandeln. Erforderliche Einwilligungen, Anbieter und lokale Fallbacks prüfen. Geheimnisse verbleiben in der Laufzeitumgebung des autorisierten Providers. |
+
+### QuickGate-Readback
+
+```sh
+python3 read_gate.py gate-result.json --snapshot EXPECTED_SNAPSHOT_DIGEST
+```
+
+Der Leser klassifiziert vorhandene `gate-result/v1`-Belege. Verwende einen separat bestimmten erwarteten Snapshot. Er gibt Status, Prüfnamen und Zähler aus und führt keine Befehle aus. Exit 0 steht für konsistente gemeldete Checks im angegebenen Umfang, Exit 1 für abweichende oder unvollständige Ergebnisse und Exit 2 für unlesbare oder ungültige Eingaben. Die Provenienz des erzeugenden Runs ist separat zu belegen.
+
+### Quellen und Abnahme
+
+- Visual-Addon und Fullstack-NLP-Agent sind bytegleich mit den bereits katalogisierten eingebetteten Archiven. Ihre IDs bleiben erhalten.
+- SCEVI ergänzt Statusdarstellung, barrierearme Führung und Checkpoint-Ansichten. Das Manifest deckt 14 byte- und hashgeprüfte Dateien ab.
+- Runtime Core und Production Platform ergänzen Task-Graph, Beobachtbarkeit, Policy und Integrationsziele. Dienste, Sandbox, Persistenz und CI-Anbindung brauchen einen tatsächlich autorisierten Provider.
+- Coding-Guides werden im bestehenden Engineering-Verfahren verwendet. Die Sprachassistenten-, Analytics- und Flask-Beispiele sind Quellen für die zugeordneten Verfahren. Quellcode, Datenbestände und Konfigurationsdateien dieser Uploads sind außerhalb der veröffentlichten Integration.
+- Die Aktualisierung nutzt den bestehenden Katalogpfad, damit Current-gebundene Abfragen aus R02 dieselben IDs und Einträge weiter auflösen.

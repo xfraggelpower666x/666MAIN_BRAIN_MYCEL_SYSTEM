@@ -34,6 +34,51 @@
       "sha256": "9761719ab0d5edadf4c112fc1cbbcc8bdda813a13ea9e79fa55bdc17511f0df7",
       "files": 38,
       "parent": "artifacts"
+    },
+    "scevi-visual": {
+      "sha256": "546bc7ba8dbb961befa495709c9e18a001c224cc26d9cae9374dbb49fc9cc8a1",
+      "files": 16,
+      "manifest_entries_verified": 14
+    },
+    "temporal-guardian": {
+      "sha256": "eadaaeb53387fcfa274445ea3591e02338a6e9775289a705cef85887ecfa5085",
+      "files": 23
+    },
+    "runtime-core": {
+      "sha256": "5f32d18d126c4fee58c2a8b29b74d1b672ffc90f674a82a1604cb0a67b44e3b1",
+      "files": 27
+    },
+    "production-platform": {
+      "sha256": "7a1407aa21218b0a9a17e952e8ccb26d63b1e65cdb2e1968579cb9beae56b9f0",
+      "files": 41
+    },
+    "developer-productivity": {
+      "sha256": "c7c9bc4c588bc4938ca86ca3e948615d27f58a2ce38e8740f45cf6251d34a667",
+      "files": 9
+    },
+    "sales-analysis": {
+      "sha256": "5e6dcba9b67e6fdc5e957844b3bc9aac17814a3f9aa4ff30b6ee6876b99b877f",
+      "files": 5
+    },
+    "coding-practices": {
+      "sha256": "31bd31745a66882bfc052eff57893e5c487602c16bcc9be7c3b3a881c9be2619",
+      "files": 36
+    },
+    "quick-gate": {
+      "sha256": "283f63e67918ee92de5c0bac328a11a94ed77879cbe90b08f08ecc295771ec38",
+      "files": 114
+    },
+    "pyright-lsp": {
+      "sha256": "d65b05837d8651a7375c68f95aa0619b5d19355978069739daae6654a0bd5ff6",
+      "files": 3
+    },
+    "blackbuks-examples": {
+      "sha256": "7007f99bdf77a0bacd77eef84fb30eaf37f1ade7ba378bb791aef3bdf6fab083",
+      "files": 9
+    },
+    "virtual-assistant": {
+      "sha256": "7971fce88dcef26f17810301a86191d5509b8b924bc3519ec619e9098b214c65",
+      "files": 7
     }
   },
   "capabilities": [
@@ -71,6 +116,20 @@
       "workflow": "visual",
       "mode": "PROVIDER_REQUIRED",
       "source_path": "coding-intelligence-visual-addon.zip"
+    },
+    {
+      "id": "blackbuks-examples/classification-demo",
+      "facet": "RATIONAL",
+      "workflow": "analytics-design",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "blackbuks_Ai_and_chatGpt-main/Part2_ML.py"
+    },
+    {
+      "id": "blackbuks-examples/crud-reference",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "blackbuks_Ai_and_chatGpt-main/app.py"
     },
     {
       "id": "browser/chatgpt-pro-browser",
@@ -113,6 +172,125 @@
       "workflow": "visual",
       "mode": "NATIVE_GUIDANCE",
       "source_path": "coding-intelligence-visual-addon/skills/visual-dashboard/SKILL.md"
+    },
+    {
+      "id": "coding-practices/cpp",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "ai-coding-best-practices-main/cpp/buenaspracticas-cpp.md"
+    },
+    {
+      "id": "coding-practices/csharp",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "ai-coding-best-practices-main/csharp/buenaspracticas-csharp.md"
+    },
+    {
+      "id": "coding-practices/firebase",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "ai-coding-best-practices-main/nodejs/buenaspracticas-nodejs-firebase.md"
+    },
+    {
+      "id": "coding-practices/java",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "ai-coding-best-practices-main/java/buenaspracticas-java21-pro.md"
+    },
+    {
+      "id": "coding-practices/java-tests",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "ai-coding-best-practices-main/java/buenaspracticas-java21-pruebasunitarias.md"
+    },
+    {
+      "id": "coding-practices/mermaid",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "ai-coding-best-practices-main/mermaid/buenaspracticas-mermaid.md"
+    },
+    {
+      "id": "coding-practices/node",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "ai-coding-best-practices-main/nodejs/buenaspracticas-nodejs.md"
+    },
+    {
+      "id": "coding-practices/oracle",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "ai-coding-best-practices-main/sql/oracle/buenaspracticas-oracle-sql-plsql.md"
+    },
+    {
+      "id": "coding-practices/php",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "ai-coding-best-practices-main/php/buenaspracticas-php.md"
+    },
+    {
+      "id": "coding-practices/python",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "ai-coding-best-practices-main/python/buenaspracticas-python.md"
+    },
+    {
+      "id": "coding-practices/sql",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "ai-coding-best-practices-main/sql/buenaspracticas-sql.md"
+    },
+    {
+      "id": "coding-practices/typescript",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "ai-coding-best-practices-main/typescript/buenaspracticas-typescript.md"
+    },
+    {
+      "id": "coding-practices/unity",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "ai-coding-best-practices-main/csharp/unity/buenaspracticas-unity-csharp.md"
+    },
+    {
+      "id": "coding-practices/unreal",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "ai-coding-best-practices-main/cpp/buenaspracticas-unreal-cpp.md"
+    },
+    {
+      "id": "coding-practices/web",
+      "facet": "RATIONAL",
+      "workflow": "engineering",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "ai-coding-best-practices-main/web/buenaspracticas-web.md"
+    },
+    {
+      "id": "developer-productivity/productivity-dashboard",
+      "facet": "VISUAL",
+      "workflow": "tools",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "AI-Developer-Productivity-main/dashboard/app.py"
+    },
+    {
+      "id": "developer-productivity/productivity-etl",
+      "facet": "RATIONAL",
+      "workflow": "tools",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "AI-Developer-Productivity-main/run_etl.py"
     },
     {
       "id": "freeze/audit",
@@ -211,6 +389,118 @@
       "workflow": "engineering",
       "mode": "NATIVE_GUIDANCE",
       "source_path": "fullstack-code-nlp-agent/skills/web-html-css/SKILL.md"
+    },
+    {
+      "id": "production-platform/evidence-and-telemetry",
+      "facet": "RATIONAL",
+      "workflow": "verification",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "production-agent-platform-addon/skills/evaluation-observability/SKILL.md"
+    },
+    {
+      "id": "production-platform/multi-agent-orchestration",
+      "facet": "PARALLEL",
+      "workflow": "parallel",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "production-agent-platform-addon/skills/multi-agent-orchestration/SKILL.md"
+    },
+    {
+      "id": "production-platform/repository-ci-adapters",
+      "facet": "BRIDGE",
+      "workflow": "integration",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "production-agent-platform-addon/platform/src/agent_platform/integrations/ci.py"
+    },
+    {
+      "id": "production-platform/run-events",
+      "facet": "BRIDGE",
+      "workflow": "integration",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "production-agent-platform-addon/platform/src/agent_platform/routers/events.py"
+    },
+    {
+      "id": "production-platform/run-persistence",
+      "facet": "BRIDGE",
+      "workflow": "integration",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "production-agent-platform-addon/platform/src/agent_platform/database.py"
+    },
+    {
+      "id": "production-platform/sandbox-runner",
+      "facet": "SENTINEL",
+      "workflow": "integration",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "production-agent-platform-addon/platform/src/agent_platform/security/sandbox.py"
+    },
+    {
+      "id": "production-platform/search-and-retrieval",
+      "facet": "BRIDGE",
+      "workflow": "integration",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "production-agent-platform-addon/platform/src/agent_platform/retrieval.py"
+    },
+    {
+      "id": "production-platform/tenant-isolation",
+      "facet": "SENTINEL",
+      "workflow": "integration",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "production-agent-platform-addon/skills/security-compliance/SKILL.md"
+    },
+    {
+      "id": "pyright-lsp/python-language-server",
+      "facet": "BRIDGE",
+      "workflow": "quality-gate",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": ".claude-plugin/plugin.json"
+    },
+    {
+      "id": "quick-gate/python-checks",
+      "facet": "SENTINEL",
+      "workflow": "quality-gate",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "skills/quick-gate-python/SKILL.md"
+    },
+    {
+      "id": "quick-gate/result-readback",
+      "facet": "RATIONAL",
+      "workflow": "quality-gate",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "schemas/gate-result-v1.schema.json"
+    },
+    {
+      "id": "runtime-core/run-evaluation",
+      "facet": "RATIONAL",
+      "workflow": "verification",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "agent-runtime-core-addon/skills/observability-evaluation/SKILL.md"
+    },
+    {
+      "id": "runtime-core/runtime-service",
+      "facet": "BRIDGE",
+      "workflow": "integration",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "agent-runtime-core-addon/runtime/src/agent_runtime/api.py"
+    },
+    {
+      "id": "runtime-core/task-graph",
+      "facet": "CHAOS_CONDUCTOR",
+      "workflow": "parallel",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "agent-runtime-core-addon/skills/runtime-workflow/SKILL.md"
+    },
+    {
+      "id": "runtime-core/tool-policy",
+      "facet": "SENTINEL",
+      "workflow": "integration",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "agent-runtime-core-addon/skills/policy-governance/SKILL.md"
+    },
+    {
+      "id": "sales-analysis/sales-analysis-reference",
+      "facet": "RATIONAL",
+      "workflow": "analytics-design",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "python-analise-chatgpt-assistente-main/README.md"
     },
     {
       "id": "sceeri/sceeri-agent-repo-init",
@@ -913,6 +1203,41 @@
       "source_path": "skills/sceeri-workbench-host-acceptance/SKILL.md"
     },
     {
+      "id": "scevi-visual/evidence-dashboard",
+      "facet": "VISUAL",
+      "workflow": "visual",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "SCEVI_SEMANTIC_VISUAL_INTELLIGENCE_SKILL_R01/SKILL.md"
+    },
+    {
+      "id": "scevi-visual/profile-and-checkpoint-view",
+      "facet": "VISUAL",
+      "workflow": "continuity",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "SCEVI_SEMANTIC_VISUAL_INTELLIGENCE_SKILL_R01/references/profile-savegame-visuals.md"
+    },
+    {
+      "id": "scevi-visual/status-and-accessibility",
+      "facet": "VISUAL",
+      "workflow": "visual",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "SCEVI_SEMANTIC_VISUAL_INTELLIGENCE_SKILL_R01/references/accessibility-and-safety.md"
+    },
+    {
+      "id": "temporal-guardian/temporal-review",
+      "facet": "RATIONAL",
+      "workflow": "temporal-review",
+      "mode": "NATIVE_GUIDANCE",
+      "source_path": "skills/temporal-review/SKILL.md"
+    },
+    {
+      "id": "temporal-guardian/temporal-scan",
+      "facet": "SENTINEL",
+      "workflow": "temporal-review",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "scripts/temporal_scan.py"
+    },
+    {
       "id": "toolkit/crypto-ta-analyzer",
       "facet": "BRIDGE",
       "workflow": "tools",
@@ -995,6 +1320,13 @@
       "workflow": "tools",
       "mode": "PROVIDER_REQUIRED",
       "source_path": "chatgpt-skills-main/svg-precision-skill/SKILL.md"
+    },
+    {
+      "id": "virtual-assistant/voice-input-and-output",
+      "facet": "BRIDGE",
+      "workflow": "voice",
+      "mode": "PROVIDER_REQUIRED",
+      "source_path": "virtual-assistent-in-python-main/main.py"
     }
   ]
 }
