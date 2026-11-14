@@ -173,6 +173,21 @@ def main():
             print('OPTIONAL_AUDIO_LAB_BUNDLED: sunscreen-main')
         else:
             print('OPTIONAL_AUDIO_LAB_NOT_BUNDLED: Sunscreen release binary missing')
+        wav2mp3_project=ROOT.parent/'Wav2mp3-master'
+        wav2mp3_binary=next((candidate for candidate in (
+            wav2mp3_project/'wav2mp3.exe',
+            wav2mp3_project/'build'/'windows'/'wav2mp3.exe',
+            wav2mp3_project/'build'/'windows'/'wav2mp3',
+        ) if candidate.is_file()),None)
+        if wav2mp3_binary:
+            wav2mp3_destination=(
+                portable/'external-tools'/'Wav2mp3-master'/'wav2mp3.exe'
+            )
+            wav2mp3_destination.parent.mkdir(parents=True,exist_ok=True)
+            shutil.copy2(wav2mp3_binary,wav2mp3_destination)
+            print('OPTIONAL_AUDIO_LAB_BUNDLED: Wav2mp3-master')
+        else:
+            print('OPTIONAL_AUDIO_LAB_NOT_BUNDLED: wav2mp3 Windows binary missing')
         tools_out=portable/'tools';tools_out.mkdir(parents=True,exist_ok=True)
         missing=[]
         for name in ('ffmpeg','ffprobe'):

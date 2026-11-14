@@ -12,6 +12,7 @@ MODULE = runpy.run_path(
 )
 audio_lab_launch_spec = MODULE['audio_lab_launch_spec']
 sunscreen_run_command = MODULE['sunscreen_run_command']
+wav2mp3_run_command = MODULE['wav2mp3_run_command']
 
 
 class AudioLabLaunchTests(unittest.TestCase):
@@ -167,6 +168,44 @@ class AudioLabLaunchTests(unittest.TestCase):
             ])
             with self.assertRaisesRegex(ValueError, 'unterstützt MP3, WAV, FLAC und M4A'):
                 sunscreen_run_command('/tools/sunscreen', source.with_suffix('.ogg'))
+
+    def test_wav2mp3_resolves_built_binary_and_system_path(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            project = root / 'Wav2mp3-master'
+            binary = project / 'build' / 'windows' / 'wav2mp3.exe'
+            binary.parent.mkdir(parents=True)
+            binary.touch()
+
+            command, working_directory = audio_lab_launch_spec('wav2mp3', [root], 'win32')
+
+            self.assertEqual(command, [str(binary)])
+            self.assertEqual(working_directory, project)
+
+        with tempfile.TemporaryDirectory() as temp, patch(
+            'shutil.which', return_value='/usr/local/bin/wav2mp3'
+        ):
+            command, working_directory = audio_lab_launch_spec('wav2mp3', [Path(temp)], 'linux')
+            self.assertEqual(command, ['/usr/local/bin/wav2mp3'])
+            self.assertEqual(working_directory, Path('/usr/local/bin'))
+
+    def test_wav2mp3_command_requires_a_wav_folder(self):
+        with tempfile.TemporaryDirectory() as temp:
+            folder = Path(temp) / 'WAV tracks'
+            folder.mkdir()
+            (folder / 'UPPERCASE.WAV').touch()
+
+            self.assertEqual(
+                wav2mp3_run_command('/tools/wav2mp3', folder),
+                ['/tools/wav2mp3', str(folder)],
+            )
+            (folder / 'UPPERCASE1.mp3').touch()
+            with self.assertRaisesRegex(ValueError, 'Gleichnamige MP3-Ausgaben'):
+                wav2mp3_run_command('/tools/wav2mp3', folder)
+            (folder / 'UPPERCASE1.mp3').unlink()
+            (folder / 'UPPERCASE.WAV').unlink()
+            with self.assertRaisesRegex(ValueError, 'keine WAV-Dateien'):
+                wav2mp3_run_command('/tools/wav2mp3', folder)
 
     def test_missing_installation_and_unknown_tool_fail_explicitly(self):
         with tempfile.TemporaryDirectory() as temp:

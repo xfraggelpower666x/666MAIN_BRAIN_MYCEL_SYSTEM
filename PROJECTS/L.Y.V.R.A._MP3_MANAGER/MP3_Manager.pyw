@@ -214,6 +214,7 @@ def audio_lab_launch_spec(tool, project_roots, platform=None):
         'sunocleanser': 'SunoCleanser-0.2.1',
         'mp3gain': 'mp3gain-win-gui-1_3_4-src',
         'sunscreen': 'sunscreen-main',
+        'wav2mp3': 'Wav2mp3-master',
     }.get(tool)
     if project_name is None:
         raise ValueError(f'Unbekanntes Audio-Tool: {tool}')
@@ -299,6 +300,35 @@ def audio_lab_launch_spec(tool, project_roots, platform=None):
                 'cargo build --release ausführen oder Sunscreen laut README installieren.'
             )
 
+        if tool == 'wav2mp3':
+            binary_names = ('wav2mp3.exe', 'wav2mp3') if host == 'win32' else ('wav2mp3',)
+            build_directories = (
+                project,
+                project / 'build' / ('windows' if host == 'win32' else 'linux'),
+            )
+            binary = next(
+                (directory / name for directory in build_directories
+                 for name in binary_names if (directory / name).is_file()),
+                None,
+            )
+            if binary is None:
+                binary = shutil.which('wav2mp3')
+            if binary:
+                return [str(binary)], project
+            raise RuntimeError(
+                'wav2mp3 wurde nicht gebaut oder installiert. Das Projekt mit '
+                'LAME-Entwicklungsdateien gemäß Makefile bauen oder wav2mp3 in PATH bereitstellen.'
+            )
+
+    if tool == 'wav2mp3':
+        binary = shutil.which('wav2mp3')
+        if binary:
+            return [binary], Path(binary).resolve().parent
+        raise RuntimeError(
+            'wav2mp3 wurde nicht gebaut oder installiert. Das Projekt mit '
+            'LAME-Entwicklungsdateien gemäß Makefile bauen oder wav2mp3 in PATH bereitstellen.'
+        )
+
     if tool == 'sunscreen':
         binary = shutil.which('sunscreen')
         if binary:
@@ -322,6 +352,37 @@ def sunscreen_run_command(executable, input_path):
         str(executable), str(source), str(source.parent / 'sunscreen'), source.stem,
         '--smooth', '--widen', '--excite', '--match', '--master',
     ]
+
+
+def wav2mp3_run_command(executable, input_directory):
+    folder = Path(input_directory).resolve()
+    if not folder.is_dir():
+        raise ValueError('Bitte einen vorhandenen WAV-Ordner auswählen.')
+    wav_files = [
+        path for path in folder.iterdir()
+        if path.is_file() and path.suffix.lower() == '.wav'
+    ]
+    if not wav_files:
+        raise ValueError('Der ausgewählte Ordner enthält keine WAV-Dateien.')
+    mp3_stems = {
+        path.stem.casefold() for path in folder.iterdir()
+        if path.is_file() and path.suffix.lower() == '.mp3'
+    }
+    collisions = []
+    for wav_file in wav_files:
+        stem = wav_file.stem.casefold()
+        for mp3_stem in mp3_stems:
+            if mp3_stem == stem or (
+                mp3_stem.startswith(stem) and mp3_stem[len(stem):].isdigit()
+            ):
+                collisions.append(wav_file.name)
+                break
+    if collisions:
+        raise ValueError(
+            'Gleichnamige MP3-Ausgaben existieren bereits; um Überschreiben zu '
+            'verhindern, verschiebe sie zuerst: ' + ', '.join(collisions[:5])
+        )
+    return [str(executable), str(folder)]
 
 
 class NeonUI:
@@ -1307,6 +1368,15 @@ class App:
                    command=lambda:self.launch_audio_lab('sunscreen'),
                    style='Secondary.TButton').pack(side='right',padx=(10,0))
 
+        wav2mp3=ttk.LabelFrame(parent,text='WAV → MP3 · Stapelkonverter',
+                               padding=12)
+        wav2mp3.pack(fill='x',pady=(0,8))
+        ttk.Label(wav2mp3,text='Alle WAV-Dateien eines gewählten Ordners konvertieren; vorhandene gleichnamige MP3s werden nicht überschrieben.',
+                  wraplength=760).pack(side='left',fill='x',expand=True)
+        ttk.Button(wav2mp3,text='▶ WAV-ORDNER KONVERTIEREN',
+                   command=lambda:self.launch_audio_lab('wav2mp3'),
+                   style='Secondary.TButton').pack(side='right',padx=(10,0))
+
         ttk.Label(parent,
                   text='Die Werkzeuge bleiben getrennte Anwendungen. Fehlende Pakete oder Programme werden nicht automatisch installiert.',
                   wraplength=1040,foreground=NeonUI.PINK).pack(anchor='w',pady=(2,6))
@@ -1348,6 +1418,26 @@ class App:
                     f'Sunscreen gestartet · {input_path.name} · Ausgabe: {input_path.parent / "sunscreen"}'
                 )
                 return
+            if tool=='wav2mp3':
+                chosen=filedialog.askdirectory(
+                    parent=self.root,
+                    title='WAV-Ordner für die Stapelkonvertierung auswählen',
+                    mustexist=True,
+                )
+                if not chosen:return
+                command=wav2mp3_run_command(command[0],chosen)
+                wav_count=sum(
+                    path.is_file() and path.suffix.lower()=='.wav'
+                    for path in Path(chosen).iterdir()
+                )
+                popen_options={'cwd':str(working_directory)}
+                if sys.platform=='win32':
+                    popen_options['creationflags']=subprocess.CREATE_NEW_CONSOLE
+                subprocess.Popen(command,**popen_options)
+                self.audio_lab_status.set(
+                    f'wav2mp3 gestartet · {wav_count} WAV-Dateien · Ausgabe im Quellordner'
+                )
+                return
             subprocess.Popen(command,cwd=str(working_directory))
         except (FileNotFoundError,RuntimeError,OSError,ValueError) as exc:
             self.audio_lab_status.set(f'{tool}: {exc}')
@@ -1359,6 +1449,7 @@ class App:
             'sunocleanser':'SunoCleanser',
             'mp3gain':'MP3Gain',
             'sunscreen':'Sunscreen',
+            'wav2mp3':'WAV → MP3',
         }.get(tool,tool)
         self.audio_lab_status.set(f'{label} gestartet · eigenes Fenster')
 

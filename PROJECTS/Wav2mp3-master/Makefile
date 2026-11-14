@@ -55,10 +55,19 @@ CPPFLAGS += $(foreach includedir,$(INCLUDE_DIRS),-I$(includedir))
 LDLIBS += -Wl,-Bdynamic -lpthread
 
 
-.PHONY: all clean
+.PHONY: all clean test-parser
 
 
 all: $(TARGET)
+
+PARSER_TEST_TARGET=$(BUILD_DIR)/wav_parser_test
+
+$(PARSER_TEST_TARGET): tests/wav_parser_test.cpp $(SRC_DIR)/WavFile.cpp $(HEADERS)
+	-$(MKDIR) "$(@D)"
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o "$@" tests/wav_parser_test.cpp $(SRC_DIR)/WavFile.cpp -lpthread
+
+test-parser: $(PARSER_TEST_TARGET)
+	"$(PARSER_TEST_TARGET)" "$(BUILD_DIR)"
 
 
 $(TARGET): $(OBJS)
