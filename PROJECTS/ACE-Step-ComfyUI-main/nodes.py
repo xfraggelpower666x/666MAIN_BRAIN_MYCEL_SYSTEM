@@ -8,6 +8,7 @@ import os
 import numpy as np
 import torch
 import requests
+from . import local_queue
 
 
 # =============================================================================
@@ -708,6 +709,34 @@ class AceStepText2MusicServer:
             msg = choices[0].get("message", {})
             out_codes = msg.get("audio_codes", "") or ""
         return (audio, text_content, out_codes)
+
+class AceStepSharedLocalServer:
+    """Generate through the same local ACE-Step queue as the DAW."""
+
+    CATEGORY = "api node/audio/ACE-Step"
+    FUNCTION = "generate"
+    RETURN_TYPES = ("AUDIO", "STRING")
+    RETURN_NAMES = ("audio", "info")
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {
+            "gen_params": ("ACESTEP_GEN_PARAMS", {}),
+            "settings": ("ACESTEP_SETTINGS", {}),
+        }}
+
+    @classmethod
+    def IS_CHANGED(cls, **kwargs):
+        return float("NaN")
+
+    def generate(self, gen_params, settings):
+        audio_bytes, info = local_queue.generate(
+            gen_params, settings,
+            lambda audio: base64.b64decode(_encode_audio_b64(audio)),
+            requests,
+        )
+        waveform, sample_rate = _parse_wav_bytes(audio_bytes)
+        return ({"waveform": waveform, "sample_rate": sample_rate}, info)
 
 
 # =============================================================================

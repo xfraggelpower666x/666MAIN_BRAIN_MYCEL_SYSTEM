@@ -7,7 +7,10 @@ from unittest.mock import patch
 
 
 NODE_PATH = Path(__file__).resolve().parents[1] / "nodes.py"
-spec = importlib.util.spec_from_file_location("ace_step_nodes", NODE_PATH)
+package = types.ModuleType("ace_step_test_package")
+package.__path__ = [str(NODE_PATH.parent)]
+sys.modules[package.__name__] = package
+spec = importlib.util.spec_from_file_location("ace_step_test_package.nodes", NODE_PATH)
 nodes = importlib.util.module_from_spec(spec)
 with patch.dict(sys.modules, {"numpy": types.ModuleType("numpy"),
                               "torch": types.ModuleType("torch"),
