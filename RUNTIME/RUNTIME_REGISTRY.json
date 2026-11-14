@@ -82,12 +82,12 @@
     "release_id": "pluginrel_6aeecd98b5fc81918211f89ff71ccd0e",
     "source_status": "VERIFIED",
     "delivery_status": "VERIFIED",
-    "adoption_status": "PARTIAL_SKILL_DISCOVERY_VERIFIED_FRESH_CHAT_ACCEPTANCE_PENDING",
-    "host_status": "PENDING_FRESH_CHAT_ACCEPTANCE",
+    "adoption_status": "VERIFIED_SKILL_ROUTER_ADOPTION",
+    "host_status": "PENDING_TEN_CASE_FRESH_CHAT_ACCEPTANCE",
     "installation_status": "VERIFIED",
-    "current_host_skill_catalog": "8_OF_8_LISTED_2026_11_10",
-    "direct_skill_read": "8_OF_8_PASS_2026_11_10",
-    "observation_scope": "THIS_HOST_SESSION_ONLY_NOT_TEN_TRIGGER_FRESH_CHAT_ACCEPTANCE"
+    "current_host_skill_catalog": "8_OF_8_LISTED_2026_11_14",
+    "direct_skill_read": "8_OF_8_PASS_2026_11_14",
+    "observation_scope": "CURRENT_CHAT_REVALIDATION_NOT_TEN_TRIGGER_FRESH_CHAT_ACCEPTANCE"
   },
   "legacy_compatibility_triggers": [
     "666MAINSYSTEM SYSTEMSTART",
