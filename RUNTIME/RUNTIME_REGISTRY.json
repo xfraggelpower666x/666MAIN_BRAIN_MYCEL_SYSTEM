@@ -91,17 +91,19 @@
     "direct_skill_read": "8_OF_8_PASS_2026_11_14",
     "observation_scope": "CURRENT_CHAT_REVALIDATION_NOT_TEN_TRIGGER_FRESH_CHAT_ACCEPTANCE",
     "observed_account_release": {
-      "version": "0.2.0",
-      "release_id": "pluginrel_6af807d884d48191bd24fbec19d46e4e",
+      "version": "0.2.2",
+      "release_id": "pluginrel_6af80d93c58c8191a833888a3a53ff49",
       "source_inventory_status": "VERIFIED",
-      "source_file_count": 151,
+      "source_file_count": 152,
       "source_skill_count": 109,
       "coding_skill_count": 100,
       "coding_reference_count": 29,
       "installation_status": "NOT_REVALIDATED",
       "adoption_status": "NOT_REVALIDATED",
       "fresh_chat_status": "PENDING",
-      "coding_entrypoint": "666MAIN BRAIN CODING"
+      "coding_entrypoint": "666MAIN BRAIN CODING",
+      "runtime_binding_status": "SOURCE_VERIFIED",
+      "language_skill_status": "PACKAGE_HEADER_FIXED_CURRENT_CHAT_READ_PENDING"
     }
   },
   "legacy_compatibility_triggers": [

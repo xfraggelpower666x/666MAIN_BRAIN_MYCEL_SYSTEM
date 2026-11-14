@@ -40,3 +40,9 @@ TEN_TRIGGER_HOST_PASS=FALSE
 Beobachteter privater MAIN-BRAIN-Release: `0.2.0` / `pluginrel_6af807d884d48191bd24fbec19d46e4e`. Der vorhandene Repository-Quellsnapshot und die frühere Host-Beobachtung beziehen sich auf 0.1.0. Für 0.2.0 sind das gespeicherte Release und die lesbaren Quelldateien bestätigt. Skill-Discovery und Fresh-Chat-Ausführung für 0.2.0 sind offen.
 
 Die zehn nativen Fälle bleiben für 0.2.0 offen. Coding-Einstieg, Audit-Ansicht und projektgebundene Wiederaufnahme sind zusätzliche Coding-Fälle. [Abgleich](../AUDIT/MAIN_BRAIN_CODING_PLUGIN_PARITY_R12_2026-11-14.md)
+
+## Release 0.2.2 · R13
+
+Der private Account-Release 0.2.2 / `pluginrel_6af80d93c58c8191a833888a3a53ff49` ist gespeichert und direkt zurückgelesen. Der Repository-Paketsnapshot bleibt die historische Quelle für 0.1.0. Die Host-Sitzung bestätigte bei 0.2.1 alle acht nativen MAIN-BRAIN-Einstiege und den Coding-Einstieg per direktem Skill-Readback. Nach Publikation von 0.2.2 war `sceeri-projektsprachen` im laufenden Chat weiterhin nicht gelistet oder direkt lesbar. Release-spezifische Fresh-Chat-Ausführung bleibt offen.
+
+[Abgleich](../AUDIT/MAIN_BRAIN_PLUGIN_BINDING_R13_2026-11-14.md)
