@@ -31,15 +31,26 @@
       window.rwOverlay.action({key:overlayKey,kind:'click',...action}).catch(()=>{});
     },true);
   };
+  const sanitizeHtml=html=>{
+    const doc=new DOMParser().parseFromString(String(html||''),'text/html');
+    doc.querySelectorAll('script,style,iframe,frame,object,embed,link,meta,base,form,svg,math,template').forEach(n=>n.remove());
+    doc.body.querySelectorAll('*').forEach(el=>{
+      for(const a of Array.from(el.attributes)){
+        const n=a.name.toLowerCase(),v=a.value.replace(/[\u0000-\u0020]/g,'').toLowerCase();
+        if(n.startsWith('on')||n==='srcdoc'||n==='formaction'||((n==='href'||n==='src'||n==='xlink:href')&&!/^(https:|data:image\/(png|jpe?g|gif|webp);|#)/.test(v)))el.removeAttribute(a.name);
+      }
+    });
+    return doc.body.innerHTML;
+  };
   window.rwOverlay.onInit(payload=>{
     overlayKey=String(payload?.key||'');
     document.title='RADIO WAVE · '+String(payload?.title||overlayKey||'CONTROL');
-    root.innerHTML=String(payload?.html||'');
+    root.innerHTML=sanitizeHtml(payload?.html);
     applyControls(payload?.controls||[]);
     wire();
   });
   window.rwOverlay.onSync(payload=>{
-    if(payload?.html!==undefined)root.innerHTML=String(payload.html||'');
+    if(payload?.html!==undefined)root.innerHTML=sanitizeHtml(payload.html);
     applyControls(payload?.controls||[]);
   });
   window.rwOverlay.ready().catch(()=>{});

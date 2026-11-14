@@ -63,6 +63,8 @@ app.commandLine.appendSwitch('enable-oop-rasterization');
 app.commandLine.appendSwitch('accelerated-2d-canvas');
 let fileWriteStream = null;
 let approvedSavePath = '';
+let fileWrittenBytes = 0;
+const MAX_EXPORT_BYTES = 8 * 1024 * 1024 * 1024;
 const runtimeEvents = [];
 let outputWatchdog = null;
 function runtimeEvent(type, detail={}) { runtimeEvents.push({at:new Date().toISOString(),type:String(type).slice(0,80),detail}); if(runtimeEvents.length>200)runtimeEvents.splice(0,runtimeEvents.length-200); }
@@ -215,7 +217,7 @@ async function soundCloudAccessToken(){
 }
 function soundCloudPermalink(value){
   let u; try{u=new URL(String(value||'').trim());}catch{throw new Error('soundcloud_url_invalid');}
-  if(!/(^|\.)soundcloud\.com$/i.test(u.hostname))throw new Error('soundcloud_url_invalid'); return u.href;
+  if(u.protocol!=='https:'||!/(^|\.)soundcloud\.com$/i.test(u.hostname))throw new Error('soundcloud_url_invalid'); return u.href;
 }
 async function soundCloudFetch(url,opts={}){const ctl=new AbortController();const timer=setTimeout(()=>ctl.abort(),15000);try{return await fetch(url,{...opts,signal:ctl.signal,cache:'no-store'});}catch(e){if(e?.name==='AbortError')throw new Error('soundcloud_timeout');throw e;}finally{clearTimeout(timer);}}
 async function soundCloudApi(pathname){
@@ -809,19 +811,48 @@ function personalMilkdropLibraryState(includeSources=false){
   const doubles=milk2.map(x=>({id:'personal2:'+x.relativePath.replace(/\\/g,'/'),name:x.name,relativePath:x.relativePath.replace(/\\/g,'/'),top100:topSet.has(x.name.toLowerCase()),format:'milk2'}));
   return {installed:true,root,count:milk.length+milk2.length,milk:milk.length,milk2:milk2.length,presets,doubles,top100Count:top100.length,license:licenseFile?fs.readFileSync(licenseFile.full,'utf8'):null};
 }
+function validateZipEntries(zipPath){
+  const fd=fs.openSync(zipPath,'r');
+  try{
+    const size=fs.fstatSync(fd).size;
+    const tailLen=Math.min(size,65557);
+    const tail=Buffer.alloc(tailLen);
+    fs.readSync(fd,tail,0,tailLen,size-tailLen);
+    let e=-1;for(let i=tailLen-22;i>=0;i--){if(tail.readUInt32LE(i)===0x06054b50){e=i;break;}}
+    if(e<0)throw new Error('personal_library_zip_invalid');
+    const count=tail.readUInt16LE(e+10),cdSize=tail.readUInt32LE(e+12),cdOff=tail.readUInt32LE(e+16);
+    if(count===0xffff||cdOff===0xffffffff||cdSize>16*1024*1024||cdOff+cdSize>size||count>20000)throw new Error('personal_library_zip_unsupported');
+    const cd=Buffer.alloc(cdSize);fs.readSync(fd,cd,0,cdSize,cdOff);
+    let pos=0,total=0;
+    for(let i=0;i<count;i++){
+      if(pos+46>cd.length||cd.readUInt32LE(pos)!==0x02014b50)throw new Error('personal_library_zip_invalid');
+      const usize=cd.readUInt32LE(pos+24),nlen=cd.readUInt16LE(pos+28),xlen=cd.readUInt16LE(pos+30),clen=cd.readUInt16LE(pos+32),attr=cd.readUInt32LE(pos+38);
+      const name=cd.toString('utf8',pos+46,pos+46+nlen).replace(/\\/g,'/');
+      if(!name||name.startsWith('/')||/^[a-zA-Z]:/.test(name)||name.includes('\0')||name.split('/').includes('..'))throw new Error('personal_library_zip_unsafe_path');
+      if(((attr>>>16)&0xf000)===0xa000)throw new Error('personal_library_zip_symlink');
+      total+=usize;if(total>1024*1024*1024)throw new Error('personal_library_zip_too_large');
+      pos+=46+nlen+xlen+clen;
+    }
+  }finally{fs.closeSync(fd);}
+}
+function assertInside(base,dir){
+  const b=path.resolve(base)+path.sep;
+  const walk=d=>{for(const ent of fs.readdirSync(d,{withFileTypes:true})){const f=path.join(d,ent.name);if(ent.isSymbolicLink()||!path.resolve(f).startsWith(b))throw new Error('personal_library_zip_unsafe_path');if(ent.isDirectory())walk(f);}};
+  walk(dir);
+}
 function extractPersonalMilkdropZip(zipPath){
   if(process.platform!=='win32')throw new Error('personal_library_import_windows_only');
   const st=fs.statSync(zipPath);
   if(!st.isFile()||st.size<=0||st.size>256*1024*1024)throw new Error('personal_library_zip_invalid');
+  validateZipEntries(zipPath);
   const root=personalMilkdropRoot();
   const temp=root+'-incoming';
   try{fs.rmSync(temp,{recursive:true,force:true});}catch{}
   fs.mkdirSync(temp,{recursive:true});
-  const escapedZip=String(zipPath).replace(/'/g,"''");
-  const escapedDest=String(temp).replace(/'/g,"''");
-  const script=`$ErrorActionPreference='Stop'; Expand-Archive -LiteralPath '${escapedZip}' -DestinationPath '${escapedDest}' -Force`;
-  const r=cp.spawnSync('powershell.exe',['-NoProfile','-NonInteractive','-Command',script],{encoding:'utf8',windowsHide:true,timeout:120000,maxBuffer:4*1024*1024});
+  const script="$ErrorActionPreference='Stop'; Expand-Archive -LiteralPath $env:RW_ZIP -DestinationPath $env:RW_DEST -Force";
+  const r=cp.spawnSync('powershell.exe',['-NoProfile','-NonInteractive','-Command',script],{encoding:'utf8',windowsHide:true,timeout:120000,maxBuffer:4*1024*1024,env:{...process.env,RW_ZIP:String(zipPath),RW_DEST:String(temp)}});
   if(r.status!==0)throw new Error('personal_library_extract_failed:'+String(r.stderr||r.stdout||'').slice(0,600));
+  try{assertInside(temp,temp);}catch(err){try{fs.rmSync(temp,{recursive:true,force:true});}catch{}throw err;}
   const files=safeWalkMilkdropLibrary(temp);
   const milk=files.filter(x=>x.ext==='.milk').length;
   const milk2=files.filter(x=>x.ext==='.milk2').length;
@@ -929,7 +960,8 @@ registerIpc('file:startWrite','main', async (event, savePath) => {
     if (fileWriteStream) {
       fileWriteStream.end();
     }
-    fileWriteStream = fs.createWriteStream(savePath);
+    fileWriteStream = fs.createWriteStream(resolved);
+    fileWrittenBytes = 0;
     return { success: true };
   } catch (error) {
     console.error('Error starting file write:', error);
@@ -946,6 +978,8 @@ registerIpc('file:writeChunk','main', async (event, chunkBuffer) => {
     // Write the Uint8Array buffer
     const buffer = Buffer.from(chunkBuffer);
     if (buffer.length > 8 * 1024 * 1024) { resolve({success:false,error:'write_chunk_too_large'}); return; }
+    fileWrittenBytes += buffer.length;
+    if (fileWrittenBytes > MAX_EXPORT_BYTES) { resolve({success:false,error:'write_total_too_large'}); return; }
     const result = fileWriteStream.write(buffer);
 
     if (result) {

@@ -27,12 +27,12 @@
   "author": "FRAGGLEPOWER666 / 666SOUNDsDESIGN",
   "license": "MIT",
   "allowScripts": {
-    "electron@31.7.7": true,
+    "electron@45.3.2": true,
     "electron-winstaller@5.4.0": true
   },
   "devDependencies": {
-    "electron": "^31.0.0",
-    "electron-builder": "^26.8.1",
+    "electron": "^45.3.2",
+    "electron-builder": "^26.18.0",
     "electron-packager": "^17.1.2"
   },
   "build": {
