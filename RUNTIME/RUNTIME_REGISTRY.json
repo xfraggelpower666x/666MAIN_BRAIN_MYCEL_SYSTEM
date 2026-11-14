@@ -99,11 +99,13 @@
       "coding_skill_count": 100,
       "coding_reference_count": 29,
       "installation_status": "NOT_REVALIDATED",
-      "adoption_status": "NOT_REVALIDATED",
+      "adoption_status": "VERIFIED_CURRENT_SESSION_SKILL_DISCOVERY_AND_DIRECT_READ",
       "fresh_chat_status": "PENDING",
       "coding_entrypoint": "666MAIN BRAIN CODING",
       "runtime_binding_status": "SOURCE_VERIFIED",
-      "language_skill_status": "PACKAGE_HEADER_FIXED_CURRENT_CHAT_READ_PENDING"
+      "language_skill_status": "VERIFIED_CURRENT_SESSION",
+      "discovery_count": 109,
+      "direct_read_parity_count": 109
     }
   },
   "legacy_compatibility_triggers": [

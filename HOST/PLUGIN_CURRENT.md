@@ -46,3 +46,9 @@ Beobachteter privater MAIN-BRAIN-Release: `0.2.0` / `pluginrel_6af807d884d48191b
 Der private Account-Release 0.2.2 / `pluginrel_6af80d93c58c8191a833888a3a53ff49` ist gespeichert und direkt zurückgelesen. Der Repository-Paketsnapshot bleibt die historische Quelle für 0.1.0. Die Host-Sitzung bestätigte bei 0.2.1 alle acht nativen MAIN-BRAIN-Einstiege und den Coding-Einstieg per direktem Skill-Readback. Nach Publikation von 0.2.2 war `sceeri-projektsprachen` im laufenden Chat weiterhin nicht gelistet oder direkt lesbar. Release-spezifische Fresh-Chat-Ausführung bleibt offen.
 
 [Abgleich](../AUDIT/MAIN_BRAIN_PLUGIN_BINDING_R13_2026-11-14.md)
+
+## Host-Skill-Discovery · R14
+
+Für den privaten Account-Release 0.2.2 / `pluginrel_6af80d93c58c8191a833888a3a53ff49` sind in dieser Host-Sitzung **109/109 Skill-IDs sichtbar** und **109/109 Skill-Dateien direkt lesbar und bytegleich zur Paketquelle**. `sceeri-projektsprachen` ist darunter. Die R13-Beobachtung der fehlenden Sprachfacette ist für den jetzigen Host-Stand abgelöst. Die Ausführung der nativen und Coding-Trigger in frischen Chats sowie Provider-Verhalten sind weiterhin offen.
+
+[Abgleich](../AUDIT/MAIN_BRAIN_SKILL_DISCOVERY_R14_2026-11-14.md)
