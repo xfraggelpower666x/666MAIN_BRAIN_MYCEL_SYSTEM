@@ -4,8 +4,8 @@ interface ElectronAPI {
   selectFiles: () => Promise<string[]>;
   selectDirectory: () => Promise<string | null>;
   saveFile: () => Promise<string | null>;
-  readAudioFile: (filePath: string) => Promise<number[]>;
-  writeFile: (filePath: string, data: number[]) => Promise<{ success: boolean }>;
+  readAudioFile: (filePath: string) => Promise<Uint8Array>;
+  writeFile: (filePath: string, data: ArrayBuffer | Uint8Array) => Promise<{ success: boolean }>;
   getPathForFile: (file: File) => string;
   getSystemInfo: () => Promise<{
     platform: string;

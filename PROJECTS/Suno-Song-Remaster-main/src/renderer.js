@@ -714,11 +714,14 @@ async function loadAudioFile(filePath) {
   const ctx = initAudioContext();
 
   try {
-    const arrayData = await window.electronAPI.readAudioFile(filePath);
-    const uint8Array = new Uint8Array(arrayData);
+    const uint8Array = await window.electronAPI.readAudioFile(filePath);
     // Read any embedded tags so the metadata editor can pre-populate
     state.file.parsedMetadata = readAudioMetadata(uint8Array);
-    state.file.buffer = await ctx.decodeAudioData(uint8Array.buffer);
+    const audioData = uint8Array.buffer.slice(
+      uint8Array.byteOffset,
+      uint8Array.byteOffset + uint8Array.byteLength
+    );
+    state.file.buffer = await ctx.decodeAudioData(audioData);
 
     dom.fileMeta.textContent = 'Analyzing loudness...';
     const lufsResult = measureLUFS(state.file.buffer);
@@ -1484,15 +1487,15 @@ async function measureTruePeakDb(buffer) {
  * reconstructs the analog waveform between samples — they can exceed the
  * sample-peak ceiling and cause clipping in downstream encoders/players.
  *
- * We upsample 4x, measure the true peak there, and only if it exceeds the
- * ceiling do we clip in the oversampled domain and resample back. When the
- * signal is already true-peak safe the original buffer is returned untouched,
- * so we never colour audio that doesn't need it.
+ * We upsample 4x, clip against a small safety margin, then measure the
+ * downsampled result and correct any remaining inter-sample overshoot.
+ * Already-safe signals are returned untouched.
  */
 async function truePeakClip(buffer, ceilingDb) {
   const OS = 4;
   const baseRate = buffer.sampleRate;
-  const ceilingLin = Math.pow(10, ceilingDb / 20);
+  const safeCeilingDb = ceilingDb - 0.1;
+  const ceilingLin = Math.pow(10, safeCeilingDb / 20);
 
   const up = await resampleBuffer(buffer, baseRate * OS);
 
@@ -1501,11 +1504,28 @@ async function truePeakClip(buffer, ceilingDb) {
   }
 
   // Clip inter-sample overshoots in the oversampled domain, then come back.
-  applyCeilingClip(up, ceilingDb);
+  applyCeilingClip(up, safeCeilingDb);
   const out = await resampleBuffer(up, baseRate);
 
-  // Guard against any tiny ripple introduced by the downsampling filter.
-  applyCeilingClip(out, ceilingDb);
+  // Downsampling can recreate inter-sample peaks, so measure and correct the
+  // actual output rather than relying on its sample values alone.
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const measuredPeakDb = await measureTruePeakDb(out);
+    if (measuredPeakDb <= safeCeilingDb) return out;
+
+    const correction = Math.pow(10, (safeCeilingDb - measuredPeakDb) / 20);
+    for (let ch = 0; ch < out.numberOfChannels; ch++) {
+      const channelData = out.getChannelData(ch);
+      for (let i = 0; i < channelData.length; i++) {
+        channelData[i] *= correction;
+      }
+    }
+  }
+
+  const finalPeakDb = await measureTruePeakDb(out);
+  if (finalPeakDb > ceilingDb) {
+    throw new Error(`Could not meet the ${ceilingDb} dBTP true-peak ceiling.`);
+  }
   return out;
 }
 
@@ -1585,8 +1605,7 @@ dom.processBtn.addEventListener('click', async () => {
     });
     updateProgress(80);
 
-    const uint8Array = new Uint8Array(wavBuffer);
-    await window.electronAPI.writeFile(outputPath, Array.from(uint8Array));
+    await window.electronAPI.writeFile(outputPath, wavBuffer);
     updateProgress(100);
 
     dom.statusMessage.textContent = '✓ Export complete! Your mastered file is ready.';
@@ -1951,7 +1970,7 @@ function hasAnyMeta(item) {
 }
 
 function renderMetaFileList() {
-  batchDom.metaFileList.innerHTML = '';
+  batchDom.metaFileList.replaceChildren();
 
   if (batchState.queue.length === 0) {
     batchDom.metaEmpty.classList.remove('hidden');
@@ -1964,7 +1983,9 @@ function renderMetaFileList() {
     el.className = 'meta-file-item' + (index === metaSelectedIndex ? ' selected' : '') + (hasAnyMeta(item) ? ' has-meta' : '');
     el.setAttribute('role', 'option');
     el.setAttribute('aria-selected', index === metaSelectedIndex ? 'true' : 'false');
-    el.innerHTML = `<span class="meta-dot"></span>${item.name}`;
+    const dot = document.createElement('span');
+    dot.className = 'meta-dot';
+    el.append(dot, document.createTextNode(item.name));
     el.addEventListener('click', () => selectMetaFile(index));
     batchDom.metaFileList.appendChild(el);
   });
@@ -2078,8 +2099,8 @@ function applyParsedMetadata(item, parsed) {
 async function loadMetadataForItem(item) {
   if (!item || hasAnyMeta(item)) return;
   try {
-    const arrayData = await window.electronAPI.readAudioFile(item.path);
-    const parsed = readAudioMetadata(new Uint8Array(arrayData));
+    const audioData = await window.electronAPI.readAudioFile(item.path);
+    const parsed = readAudioMetadata(audioData);
     applyParsedMetadata(item, parsed);
   } catch (err) {
     console.warn('Could not read metadata for', item.path, err);
@@ -2087,7 +2108,7 @@ async function loadMetadataForItem(item) {
 }
 
 function renderBatchList() {
-  batchDom.list.innerHTML = '';
+  batchDom.list.replaceChildren();
   batchState.queue.forEach((item, index) => {
     const el = document.createElement('div');
     const isLoaded = state.file.path === item.path;
@@ -2102,14 +2123,46 @@ function renderBatchList() {
                        item.status === 'processing' ? 'Processing...' : 'Pending';
     const statusClass = item.status === 'pending' ? '' : item.status;
 
-    el.innerHTML = `
-      <span class="batch-item-icon">${statusIcon}</span>
-      <span class="batch-item-name" title="${item.name}">${item.name}</span>
-      ${isLoaded ? '<span class="batch-item-playing">♦ Loaded</span>' : ''}
-      ${!batchState.isProcessing ? `<button class="batch-item-preview" data-index="${index}" aria-label="Preview ${item.name} in player" title="Load into player">▶</button>` : ''}
-      <span class="batch-item-status ${statusClass}">${statusText}</span>
-      ${!batchState.isProcessing ? `<button class="batch-item-remove" data-index="${index}" aria-label="Remove ${item.name} from queue">✕</button>` : ''}
-    `;
+    const icon = document.createElement('span');
+    icon.className = 'batch-item-icon';
+    icon.textContent = statusIcon;
+    const name = document.createElement('span');
+    name.className = 'batch-item-name';
+    name.title = item.name;
+    name.textContent = item.name;
+    el.append(icon, name);
+
+    if (isLoaded) {
+      const loaded = document.createElement('span');
+      loaded.className = 'batch-item-playing';
+      loaded.textContent = '♦ Loaded';
+      el.appendChild(loaded);
+    }
+    if (!batchState.isProcessing) {
+      const preview = document.createElement('button');
+      preview.className = 'batch-item-preview';
+      preview.dataset.index = index;
+      preview.setAttribute('aria-label', `Preview ${item.name} in player`);
+      preview.title = 'Load into player';
+      preview.textContent = '▶';
+      el.appendChild(preview);
+    }
+
+    const status = document.createElement('span');
+    status.className = `batch-item-status ${statusClass}`;
+    status.textContent = item.status === 'error' && item.error ===
+      'Output already exists. Choose a different name or directory.' ? 'Exists' : statusText;
+    if (item.error) status.title = item.error;
+    el.appendChild(status);
+
+    if (!batchState.isProcessing) {
+      const remove = document.createElement('button');
+      remove.className = 'batch-item-remove';
+      remove.dataset.index = index;
+      remove.setAttribute('aria-label', `Remove ${item.name} from queue`);
+      remove.textContent = '✕';
+      el.appendChild(remove);
+    }
     batchDom.list.appendChild(el);
   });
 
@@ -2202,17 +2255,11 @@ function yieldToUI() {
   return new Promise(resolve => setTimeout(resolve, 0));
 }
 
-// Write WAV data in chunks to avoid blocking the main thread on large files
-async function writeFileChunked(outputPath, wavBuffer) {
-  const CHUNK = 2 * 1024 * 1024; // 2 MB per chunk
-  const full = new Uint8Array(wavBuffer);
-  if (full.length <= CHUNK) {
-    await window.electronAPI.writeFile(outputPath, Array.from(full));
-    return;
-  }
-  // For large files, still send as one call but yield before/after to keep UI alive
+// Send WAV data as binary without expanding it into per-byte JavaScript numbers.
+async function writeFileBinary(outputPath, wavBuffer) {
+  // Electron's binary IPC avoids expanding large audio files into JS number arrays.
   await yieldToUI();
-  await window.electronAPI.writeFile(outputPath, Array.from(full));
+  await window.electronAPI.writeFile(outputPath, wavBuffer);
   await yieldToUI();
 }
 
@@ -2251,6 +2298,7 @@ batchDom.exportBtn.addEventListener('click', async () => {
   const total = batchState.queue.length;
   let completed = 0;
   let errors = 0;
+  const reservedOutputNames = new Set();
 
   // Save original player state once
   const origBuffer = state.file.buffer;
@@ -2260,6 +2308,7 @@ batchDom.exportBtn.addEventListener('click', async () => {
   for (let i = 0; i < total; i++) {
     const item = batchState.queue[i];
     item.status = 'processing';
+    item.error = '';
     renderBatchList();
     batchDom.progressText.textContent = `Processing ${i + 1}/${total}: ${item.name}`;
 
@@ -2269,11 +2318,13 @@ batchDom.exportBtn.addEventListener('click', async () => {
     try {
       // Decode audio
       const ctx = new AudioContext();
-      const arrayData = await window.electronAPI.readAudioFile(item.path);
+      const audioData = await window.electronAPI.readAudioFile(item.path);
       await yieldToUI();
 
-      const uint8Array = new Uint8Array(arrayData);
-      const audioBuffer = await ctx.decodeAudioData(uint8Array.buffer);
+      const audioBuffer = await ctx.decodeAudioData(audioData.buffer.slice(
+        audioData.byteOffset,
+        audioData.byteOffset + audioData.byteLength
+      ));
       await ctx.close();
       await yieldToUI();
 
@@ -2298,17 +2349,25 @@ batchDom.exportBtn.addEventListener('click', async () => {
 
       // Build output path (use the separator that matches the OS/path style)
       const baseName = item.name.replace(/\.[^.]+$/, '');
+      let outputName = `${baseName}_mastered.wav`;
+      let suffix = 2;
+      while (reservedOutputNames.has(outputName.toLowerCase())) {
+        outputName = `${baseName}_mastered_${suffix++}.wav`;
+      }
+      reservedOutputNames.add(outputName.toLowerCase());
       const alreadyHasSep = outputDir.endsWith('/') || outputDir.endsWith('\\');
       const sep = alreadyHasSep ? '' : (outputDir.includes('\\') ? '\\' : '/');
-      const outputPath = outputDir + sep + baseName + '_mastered.wav';
+      const outputPath = outputDir + sep + outputName;
 
-      await writeFileChunked(outputPath, wavBuffer);
+      await writeFileBinary(outputPath, wavBuffer);
 
       item.status = 'done';
+      item.error = '';
       completed++;
     } catch (err) {
       console.error(`Batch error for ${item.name}:`, err);
       item.status = 'error';
+      item.error = err.message;
       errors++;
     }
 
@@ -2331,8 +2390,10 @@ batchDom.exportBtn.addEventListener('click', async () => {
 
   batchDom.progressText.textContent = `Done! ${completed} exported${errors ? `, ${errors} failed` : ''}`;
 
-  dom.statusMessage.textContent = `✓ Batch complete: ${completed}/${total} files exported.`;
-  dom.statusMessage.className = 'status-message success visible';
+  dom.statusMessage.textContent = errors
+    ? `Batch complete: ${completed}/${total} files exported; ${errors} failed. Existing files were not overwritten.`
+    : `✓ Batch complete: ${completed}/${total} files exported.`;
+  dom.statusMessage.className = `status-message ${errors ? 'error' : 'success'} visible`;
   setTimeout(() => dom.statusMessage.classList.remove('visible'), 5000);
 
   setTimeout(() => {
