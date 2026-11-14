@@ -1,15 +1,22 @@
+<<<<<<< HEAD
 const { app, BrowserWindow, ipcMain, dialog, screen, protocol, net, shell, powerMonitor, safeStorage } = require('electron');
+=======
+const { app, BrowserWindow, ipcMain, dialog, screen, protocol, net, shell, powerMonitor } = require('electron');
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 const { pathToFileURL } = require('url');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const cp = require('child_process');
+<<<<<<< HEAD
 const { runPowerShell } = require('./src/shared/powershell.cjs');
 const { createSoundCloudCredentialStore } = require('./src/shared/soundcloud-credentials.cjs');
 const { createSoundCloudStreamProxy } = require('./src/shared/soundcloud-stream.cjs');
 const { createCyberStudioLauncher } = require('./src/shared/milkdrop-cyber-studio.cjs');
 const { createAudioLibrary } = require('./src/shared/audio-library.cjs');
 const { createAudioPermissionGate, forwardOverlayMicrophone } = require('./src/shared/audio-permissions.cjs');
+=======
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 
 const STARTUP_LOG_PATH = path.join(os.tmpdir(), 'RADIO-WAVE-v6.66-startup.log');
 function startupLog(type, detail='') {
@@ -38,6 +45,7 @@ try {
 let adminToken = '';
 const remoteLocks = new Set();
 const radioOrigin = new URL(radioCfg.radioBase).origin;
+<<<<<<< HEAD
 const approvedWebsites = Object.freeze({
   radio: 'https://webradio.666soundsdesign-broadcaster.com/',
   lyvra: 'https://weblyvra.666soundsdesign-broadcaster.com/',
@@ -45,6 +53,8 @@ const approvedWebsites = Object.freeze({
   liveDashboard: 'https://webradio.666soundsdesign-broadcaster.com/dashboard',
   psyEngine: 'https://weblyvra.666soundsdesign-broadcaster.com/psy-engine/'
 });
+=======
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 
 let mainWindow;
 let introWindow;
@@ -62,13 +72,17 @@ let selectedLocalAudioPath = '';
 let localAudioQueue = [];
 let localAudioQueueIndex = -1;
 let localAudioRevision = 0;
+<<<<<<< HEAD
 let audioLibrary;
 let audioLibraryTimer;
+=======
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 let soundCloudCurrent = null;
 let soundCloudQueue = [];
 let soundCloudQueueIndex = -1;
 let soundCloudRevision = 0;
 let soundCloudToken = null;
+<<<<<<< HEAD
 let soundCloudTokenRequest = null;
 let soundCloudCredentialRevision = 0;
 let soundCloudCredentialWrite = Promise.resolve();
@@ -77,12 +91,21 @@ const SOUND_CLOUD_API='https://api.soundcloud.com';
 const SOUND_CLOUD_AUTH='https://secure.soundcloud.com';
 const SOUND_CLOUD_CREATOR_URL='https://soundcloud.com/fraggelpower666';
 protocol.registerSchemesAsPrivileged([{scheme:'swmedia',privileges:{standard:true,secure:true,supportFetchAPI:true,stream:true}},{scheme:'swsc',privileges:{standard:true,secure:true,supportFetchAPI:true,corsEnabled:true,stream:true}}]);
+=======
+const SOUND_CLOUD_API='https://api.soundcloud.com';
+const SOUND_CLOUD_AUTH='https://secure.soundcloud.com';
+const SOUND_CLOUD_CREATOR_URL='https://soundcloud.com/fraggelpower666';
+protocol.registerSchemesAsPrivileged([{scheme:'swmedia',privileges:{standard:true,secure:true,supportFetchAPI:true,stream:true}},{scheme:'swsc',privileges:{standard:true,secure:true,supportFetchAPI:true,stream:true}}]);
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 app.commandLine.appendSwitch('enable-gpu-rasterization');
 app.commandLine.appendSwitch('enable-oop-rasterization');
 app.commandLine.appendSwitch('accelerated-2d-canvas');
 let fileWriteStream = null;
 let approvedSavePath = '';
+<<<<<<< HEAD
 let videoWriteState = null;
+=======
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 const runtimeEvents = [];
 let outputWatchdog = null;
 function runtimeEvent(type, detail={}) { runtimeEvents.push({at:new Date().toISOString(),type:String(type).slice(0,80),detail}); if(runtimeEvents.length>200)runtimeEvents.splice(0,runtimeEvents.length-200); }
@@ -171,7 +194,10 @@ function trustedLocalFile(value,relativePath) {
 const trustedAppUrl=value=>trustedLocalFile(value,path.join('src','index.html'));
 const trustedIntroUrl=value=>trustedLocalFile(value,path.join('src','intro.html'));
 const trustedOverlayUrl=value=>trustedLocalFile(value,path.join('src','overlay-window.html'));
+<<<<<<< HEAD
 const audioPermissionGate=createAudioPermissionGate({getMainWindow:()=>mainWindow,isTrustedUrl:trustedAppUrl});
+=======
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 function senderRole(event) {
   if (!event?.sender || event.sender.isDestroyed()) return 'invalid';
   if (mainWindow && !mainWindow.isDestroyed() && event.sender.id === mainWindow.webContents.id) return 'main';
@@ -215,6 +241,7 @@ async function authCheck() {
   if(!ok&&(r.status===401||r.status===403)) adminToken='';
   return {ok,authOk:r.data?.authOk===true,pwOk:r.data?.pwOk===true,error:r.data?.error||(!ok?'gate_check_failed':undefined)};
 }
+<<<<<<< HEAD
 async function protectedPost(route,payload){ const gate=await authCheck(); if(!gate.ok) throw new Error(gate.error||'auth_required'); const r=await radioJson(route,{method:'POST',headers:{origin:radioOrigin},body:JSON.stringify(payload||{})},true); if(!r.ok||r.data?.ok!==true) throw new Error(r.data?.error||`HTTP_${r.status}`); return r.data; }
 async function lock(name,fn){ if(remoteLocks.has(name)) return {ok:false,busy:true,reason:'request_in_flight'}; remoteLocks.add(name); try{return await fn();}finally{remoteLocks.delete(name);} }
 function textValue(v,max,code){ if(typeof v!=='string'||!v.trim()||v.trim().length>max) throw new Error(code); return v.trim(); }
@@ -364,6 +391,26 @@ async function soundCloudAccessToken(){
   })();
   soundCloudTokenRequest=pending;
   try{return await pending.promise;}finally{if(soundCloudTokenRequest===pending)soundCloudTokenRequest=null;}
+=======
+async function protectedPost(route,payload){ const gate=await authCheck(); if(!gate.ok) throw new Error(gate.error||'auth_required'); const r=await radioJson(route,{method:'POST',body:JSON.stringify(payload||{})},true); if(!r.ok||r.data?.ok!==true) throw new Error(r.data?.error||`HTTP_${r.status}`); return r.data; }
+async function lock(name,fn){ if(remoteLocks.has(name)) return {ok:false,busy:true,reason:'request_in_flight'}; remoteLocks.add(name); try{return await fn();}finally{remoteLocks.delete(name);} }
+function textValue(v,max,code){ if(typeof v!=='string'||!v.trim()||v.trim().length>max) throw new Error(code); return v.trim(); }
+
+function soundCloudCredentials(){
+  const clientId=String(process.env.SOUNDCLOUD_CLIENT_ID||'').trim();
+  const clientSecret=String(process.env.SOUNDCLOUD_CLIENT_SECRET||'').trim();
+  return {clientId,clientSecret,configured:!!(clientId&&clientSecret)};
+}
+async function soundCloudAccessToken(){
+  const c=soundCloudCredentials(); if(!c.configured) throw new Error('soundcloud_credentials_missing');
+  const now=Date.now(); if(soundCloudToken&&soundCloudToken.expiresAt>now+60000)return soundCloudToken.accessToken;
+  let body,headers={accept:'application/json','content-type':'application/x-www-form-urlencoded'};
+  if(soundCloudToken?.refreshToken){body=new URLSearchParams({grant_type:'refresh_token',client_id:c.clientId,client_secret:c.clientSecret,refresh_token:soundCloudToken.refreshToken});}
+  else {headers.authorization=`Basic ${Buffer.from(`${c.clientId}:${c.clientSecret}`).toString('base64')}`;body=new URLSearchParams({grant_type:'client_credentials'});}
+  const r=await soundCloudFetch(`${SOUND_CLOUD_AUTH}/oauth/token`,{method:'POST',headers,body,cache:'no-store'});
+  const data=await r.json().catch(()=>({})); if(!r.ok||!data.access_token){soundCloudToken=null;throw new Error(data.error||`soundcloud_token_HTTP_${r.status}`);}
+  soundCloudToken={accessToken:String(data.access_token),refreshToken:String(data.refresh_token||''),expiresAt:now+Math.max(60,Number(data.expires_in)||3600)*1000}; return soundCloudToken.accessToken;
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 }
 function soundCloudPermalink(value){
   let u; try{u=new URL(String(value||'').trim());}catch{throw new Error('soundcloud_url_invalid');}
@@ -372,15 +419,21 @@ function soundCloudPermalink(value){
 async function soundCloudFetch(url,opts={}){const ctl=new AbortController();const timer=setTimeout(()=>ctl.abort(),15000);try{return await fetch(url,{...opts,signal:ctl.signal,cache:'no-store'});}catch(e){if(e?.name==='AbortError')throw new Error('soundcloud_timeout');throw e;}finally{clearTimeout(timer);}}
 async function soundCloudApi(pathname){
   let token=await soundCloudAccessToken(); let r=await soundCloudFetch(`${SOUND_CLOUD_API}${pathname}`,{headers:{accept:'application/json',authorization:`OAuth ${token}`}});
+<<<<<<< HEAD
   if(r.status===401){if(soundCloudToken?.accessToken===token)soundCloudToken.expiresAt=0;token=await soundCloudAccessToken();r=await soundCloudFetch(`${SOUND_CLOUD_API}${pathname}`,{headers:{accept:'application/json',authorization:`OAuth ${token}`}});}
   if(r.ok&&pathname.endsWith('/streams')&&!/^application\/(?:[\w.-]+\+)?json(?:\s*;|$)/i.test(r.headers.get('content-type')||''))throw new Error('soundcloud_stream_invalid_content_type');
   const data=await r.json().catch(()=>({})); if(!r.ok)throw new Error(`soundcloud_HTTP_${r.status}`); return data;
+=======
+  if(r.status===401){soundCloudToken=null;token=await soundCloudAccessToken();r=await soundCloudFetch(`${SOUND_CLOUD_API}${pathname}`,{headers:{accept:'application/json',authorization:`OAuth ${token}`}});}
+  const data=await r.json().catch(()=>({})); if(!r.ok)throw new Error(data.error?.message||data.error||`soundcloud_HTTP_${r.status}`); return data;
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 }
 function normalizeSoundCloudTrack(track,fallback){
   if(!track||track.access==='blocked')return null;
   const urn=String(track.urn||'').trim(); const id=String(track.id||urn.split(':').pop()||'').trim(); if(!urn&&!id)return null;
   return {urn:urn||`soundcloud:tracks:${id}`,id,permalink:track.permalink_url||fallback,title:track.title||'SoundCloud',artist:track.metadata_artist||track.user?.username||'SoundCloud',artwork:track.artwork_url||track.user?.avatar_url||'',access:track.access||'playable'};
 }
+<<<<<<< HEAD
 const soundCloudStreamProxy=createSoundCloudStreamProxy({
   fetch:soundCloudFetch,
   accessToken:soundCloudAccessToken,
@@ -404,6 +457,18 @@ async function resolveSoundCloud(permalink){
   soundCloudStreamProxy.reset();
   const resource=await soundCloudApi(`/resolve?url=${encodeURIComponent(href)}`);
   if(revision!==soundCloudRevision)throw new Error('soundcloud_track_changed');
+=======
+function activateSoundCloudIndex(index){
+  if(!soundCloudQueue.length)throw new Error('soundcloud_queue_empty');
+  const n=((Number(index)||0)%soundCloudQueue.length+soundCloudQueue.length)%soundCloudQueue.length;
+  soundCloudQueueIndex=n; soundCloudCurrent=soundCloudQueue[n]; soundCloudRevision++;
+  const mediaUrl=`swsc://audio/current?v=${soundCloudRevision}`;
+  const state={mode:'soundcloud',src:mediaUrl,name:soundCloudCurrent.title,artist:soundCloudCurrent.artist,permalink:soundCloudCurrent.permalink,artwork:soundCloudCurrent.artwork,queueIndex:n,queueLength:soundCloudQueue.length}; broadcastSourceState(state);
+  return {...soundCloudCurrent,mediaUrl,queueIndex:n,queueLength:soundCloudQueue.length};
+}
+async function resolveSoundCloud(permalink){
+  const href=soundCloudPermalink(permalink); const resource=await soundCloudApi(`/resolve?url=${encodeURIComponent(href)}`);
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   const raw=resource&&resource.kind==='track'?[resource]:(Array.isArray(resource?.tracks)?resource.tracks:[]);
   soundCloudQueue=raw.map(t=>normalizeSoundCloudTrack(t,href)).filter(Boolean); soundCloudQueueIndex=-1;
   if(!soundCloudQueue.length)throw new Error('soundcloud_no_playable_track');
@@ -421,7 +486,11 @@ async function soundCloudCreatorLibrary(){
 function soundCloudStep(delta){return activateSoundCloudIndex(soundCloudQueueIndex+(Number(delta)||0));}
 function soundCloudQueueState(){return {index:soundCloudQueueIndex,length:soundCloudQueue.length,current:soundCloudCurrent?{title:soundCloudCurrent.title,artist:soundCloudCurrent.artist,permalink:soundCloudCurrent.permalink}:null};}
 
+<<<<<<< HEAD
 const DETACHED_OVERLAY_KEYS=new Set(['source','radioAdmin','media','audioPool','audioFx','audioDevices','wave','position','text','engines','milkdrop','diagnostics','export','dock']);
+=======
+const DETACHED_OVERLAY_KEYS=new Set(['source','media','wave','position','text','engines','milkdrop','diagnostics','export','dock']);
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 function overlayStatePath(){return path.join(app.getPath('userData'),'radio-wave-detached-overlays.json');}
 function readOverlayState(){try{return JSON.parse(fs.readFileSync(overlayStatePath(),'utf8'));}catch{return {windows:{}};}}
 function writeOverlayState(state){try{fs.writeFileSync(overlayStatePath(),JSON.stringify(state,null,2),'utf8');}catch{}}
@@ -432,6 +501,7 @@ function overlayBoundsFor(key,fallback={}){
   if(valid){
     const all=screen.getAllDisplays();
     const intersects=all.some(d=>base.x+base.width>d.workArea.x&&base.x<d.workArea.x+d.workArea.width&&base.y+base.height>d.workArea.y&&base.y<d.workArea.y+d.workArea.height);
+<<<<<<< HEAD
     if(intersects){
       const rect={x:Math.round(base.x),y:Math.round(base.y),width:Math.max(1,Math.round(base.width)),height:Math.max(1,Math.round(base.height))};
       const wa=screen.getDisplayMatching(rect).workArea;
@@ -439,6 +509,9 @@ function overlayBoundsFor(key,fallback={}){
       const height=Math.min(Math.max(220,rect.height),Math.max(220,wa.height));
       return {x:Math.max(wa.x,Math.min(rect.x,wa.x+wa.width-width)),y:Math.max(wa.y,Math.min(rect.y,wa.y+wa.height-height)),width,height};
     }
+=======
+    if(intersects)return {x:Math.round(base.x),y:Math.round(base.y),width:Math.max(320,Math.round(base.width)),height:Math.max(220,Math.round(base.height))};
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   }
   const d=mainWindow&&!mainWindow.isDestroyed()?screen.getDisplayMatching(mainWindow.getBounds()):screen.getPrimaryDisplay();
   const wa=d.workArea;
@@ -487,6 +560,7 @@ function openDetachedOverlay(payload={}){
   return {ok:true,key,bounds:w.getBounds()};
 }
 function detachedOverlayState(){return readOverlayState();}
+<<<<<<< HEAD
 function reconcileDetachedWindows(){
   const displays=screen.getAllDisplays();
   const visible=b=>displays.some(d=>{
@@ -502,6 +576,8 @@ function reconcileDetachedWindows(){
     detachedVisualizerWindow.setBounds(overlayBoundsFor('visualizerNative',detachedVisualizerWindow.getBounds()));
   }
 }
+=======
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 function emitMainWindowMetrics(reason='window'){
   if(!mainWindow||mainWindow.isDestroyed())return;
   const bounds=mainWindow.getBounds();
@@ -734,7 +810,13 @@ function createWindow() {
 
   mainWindow.on('closed', () => {
     mainWindow = null;
+<<<<<<< HEAD
     discardVideoWrite();
+=======
+    if (fileWriteStream) {
+      fileWriteStream.end();
+    }
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   });
 }
 
@@ -750,6 +832,7 @@ registerIpc('intro:complete','intro', async()=>{
 registerIpc('workspace:overlay-open','main',(_e,payload)=>openDetachedOverlay(payload));
 registerIpc('workspace:overlay-state','main',()=>detachedOverlayState());
 registerIpc('workspace:overlay-focus','main',(_e,key)=>{const w=detachedOverlayWindows.get(String(key||''));if(w&&!w.isDestroyed()){w.show();w.focus();return {ok:true};}return {ok:false};});
+<<<<<<< HEAD
 registerIpc('workspace:overlay-close','main',(_e,key)=>{const w=detachedOverlayWindows.get(String(key||''));if(w&&!w.isDestroyed()){w.close();return {ok:true};}return {ok:false};});
 registerIpc('app:version','main',()=>app.getVersion());
 registerIpc('app:open-site','main',async(_e,key)=>{
@@ -757,6 +840,8 @@ registerIpc('app:open-site','main',async(_e,key)=>{
   await shell.openExternal(approvedWebsites[key]);
   return {ok:true};
 });
+=======
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 registerIpc('workspace:overlay-sync','main',(_e,key,payload={})=>{
   const k=String(key||'');
   if(!DETACHED_OVERLAY_KEYS.has(k))throw new Error('overlay_key_invalid');
@@ -768,11 +853,14 @@ registerIpc('workspace:overlay-sync','main',(_e,key,payload={})=>{
   return {ok:true};
 });
 registerIpc('workspace:overlay-ready','overlay',(e)=>{const hit=Array.from(detachedOverlayWindows.entries()).find(([,w])=>w&&!w.isDestroyed()&&w.webContents.id===e.sender.id);return {ok:!!hit,key:hit?.[0]||''};});
+<<<<<<< HEAD
 registerIpc('audio:overlay-microphone','overlay',event=>forwardOverlayMicrophone(event,{
   getMainWindow:()=>mainWindow,
   getDevicesWindow:()=>detachedOverlayWindows.get('audioDevices'),
   isTrustedOverlayUrl:trustedOverlayUrl
 }));
+=======
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 registerIpc('workspace:overlay-action','overlay',(_e,payload={})=>{
   if(!mainWindow||mainWindow.isDestroyed())return {ok:false};
   const key=String(payload.key||'');
@@ -827,9 +915,13 @@ function runtimeDiagnostics(){
   };
 }
 registerIpc('runtime:remote-health','main', async()=>{
+<<<<<<< HEAD
   const health={generatedAt:new Date().toISOString(),radioBase:radioCfg.radioBase};
   try{health.soundcloud=(await soundCloudCredentials()).configured?'CONFIGURED':'CREDENTIALS_MISSING';}
   catch(e){health.soundcloud='ERROR';health.soundcloudError=String(e.message||e);}
+=======
+  const health={generatedAt:new Date().toISOString(),radioBase:radioCfg.radioBase,soundcloud:soundCloudCredentials().configured?'CONFIGURED':'CREDENTIALS_MISSING'};
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   try{
     const p=await radioJson(radioCfg.playerAlertStatusRoute);
     health.messenger={ok:p.ok,status:p.status,error:p.data?.error||null};
@@ -845,6 +937,7 @@ registerIpc('runtime:remote-health','main', async()=>{
   return health;
 });
 registerIpc('runtime:diagnostics','main', async()=>runtimeDiagnostics());
+<<<<<<< HEAD
 let launchCyberStudio;
 registerIpc('milkdrop:open-cyber-studio','main',async(_e, language)=>{
   const dataRoot=path.join(app.getPath('userData'),'milkdrop-cyber-studio');
@@ -884,6 +977,12 @@ registerIpc('soundcloud:credentials-test','main',async()=>{
   await soundCloudApi(`/resolve?url=${encodeURIComponent(SOUND_CLOUD_CREATOR_URL)}`);
   return {ok:true};
 });
+=======
+registerIpc('runtime:export-diagnostics','main', async()=>{const report=runtimeDiagnostics();const stamp=new Date().toISOString().replace(/[:.]/g,'-');const r=await dialog.showSaveDialog(mainWindow,{title:'Export RADIO WAVE v6.66 Diagnostics',defaultPath:`RADIO-WAVE-v6.66-diagnostics-${stamp}.json`,filters:[{name:'JSON diagnostics',extensions:['json']}]});if(r.canceled||!r.filePath)return {ok:false,canceled:true};fs.writeFileSync(r.filePath,JSON.stringify(report,null,2),'utf8');return {ok:true,filePath:r.filePath};});
+registerIpc('source:sync','main', (_e, state) => broadcastSourceState(state));
+registerIpc('window:fullscreen','main', (_e, enabled) => { if(mainWindow&&!mainWindow.isDestroyed()) mainWindow.setFullScreen(!!enabled); return {ok:true,fullscreen:!!enabled}; });
+registerIpc('soundcloud:status','main',()=>({configured:soundCloudCredentials().configured,creatorUrl:SOUND_CLOUD_CREATOR_URL}));
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 registerIpc('soundcloud:library','main',()=>soundCloudCreatorLibrary());
 registerIpc('soundcloud:resolve','main',(_e,url)=>resolveSoundCloud(url));
 registerIpc('soundcloud:next','main',()=>soundCloudStep(1));
@@ -892,6 +991,7 @@ registerIpc('soundcloud:queue-state','main',()=>soundCloudQueueState());
 registerIpc('soundcloud:open-current','main',async()=>{if(!soundCloudCurrent?.permalink)throw new Error('soundcloud_track_missing');await shell.openExternal(soundCloudPermalink(soundCloudCurrent.permalink));return {ok:true};});
 registerIpc('radio:config','main', () => ({stream:new URL(radioCfg.stream,radioCfg.radioBase).href,fallback:new URL(radioCfg.fallbackStream,radioCfg.radioBase).href,radioBase:radioCfg.radioBase}));
 registerIpc('radio:nowplaying','main', async()=>{const r=await radioJson(radioCfg.nowPlaying);if(!r.ok)throw new Error(`HTTP_${r.status}`);return r.data;});
+<<<<<<< HEAD
 registerIpc('auth:login','main', async(_e,password)=>{const value=textValue(password,512,'password_invalid');adminToken='';const r=await radioJson(radioCfg.loginRoute,{method:'POST',headers:{origin:radioOrigin},body:JSON.stringify({password:value})});if(!r.ok||r.data?.ok!==true||!r.data?.token)throw new Error(r.data?.error||'login_rejected');adminToken=String(r.data.token);const gate=await authCheck();if(!gate.ok){adminToken='';throw new Error(gate.error||'gate_check_failed');}return gate;});
 registerIpc('auth:check','main',()=>authCheck());
 registerIpc('auth:logout','main',()=>{adminToken='';return {ok:true};});
@@ -902,6 +1002,11 @@ registerIpc('radio:admin-config-update','main',(_e,payload)=>adminConfigWrite(ad
 registerIpc('radio:admin-config-rollback','main',()=>adminConfigWrite(adminConfigRoutes.rollback,{},'Restore the latest radio configuration backup?'));
 registerIpc('radio:admin-probe','main',(_e,name)=>radioAdminProbe(name));
 registerIpc('radio:admin-test-message','main',(_e,kind)=>radioAdminTestMessage(kind));
+=======
+registerIpc('auth:login','main', async(_e,password)=>{const value=textValue(password,512,'password_invalid');adminToken='';const r=await radioJson(radioCfg.loginRoute,{method:'POST',body:JSON.stringify({password:value})});if(!r.ok||r.data?.ok!==true||!r.data?.token)throw new Error(r.data?.error||'login_rejected');adminToken=String(r.data.token);const gate=await authCheck();if(!gate.ok){adminToken='';throw new Error(gate.error||'gate_check_failed');}return gate;});
+registerIpc('auth:check','main',()=>authCheck());
+registerIpc('auth:logout','main',()=>{adminToken='';return {ok:true};});
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 registerIpc('radio:skip','main',()=>lock('skip',()=>protectedPost(radioCfg.skipRoute,{source:'soundwave-studio-666'})));
 registerIpc('radio:discord-message','main',(_e,message)=>lock('discord',()=>protectedPost(radioCfg.discordMessageRoute,{message:textValue(message,radioCfg.messageMax,'invalid_message'),manual:true,source:'soundwave-studio-666'})));
 registerIpc('radio:discord-manual','main',(_e,payload)=>lock('discord',()=>protectedPost(radioCfg.discordManualRoute,{...(payload||{}),manual:true,source:'soundwave-studio-666'})));
@@ -915,6 +1020,7 @@ app.whenReady().then(() => {
   startupLog('APP_READY');
   if(!gotSingleInstanceLock){startupLog('SINGLE_INSTANCE_LOCK_DENIED');return;}
   const ses=require('electron').session.defaultSession;
+<<<<<<< HEAD
   ses.setPermissionCheckHandler((wc,permission,origin,details)=>audioPermissionGate.check(wc,permission,origin,details));
   ses.setPermissionRequestHandler((wc,permission,cb,details)=>cb(audioPermissionGate.request(wc,permission,details)));
   protocol.handle('swsc', request=>soundCloudStreamProxy.handle(request));
@@ -925,6 +1031,15 @@ app.whenReady().then(() => {
   });
   audioLibrary.refresh().catch(error=>runtimeEvent('local-library-scan-error',{error:String(error.message||error)}));
   audioLibraryTimer=setInterval(()=>audioLibrary.refresh().catch(error=>runtimeEvent('local-library-scan-error',{error:String(error.message||error)})),30000);
+=======
+  ses.setPermissionCheckHandler(()=>false); ses.setPermissionRequestHandler((_wc,_perm,cb)=>cb(false));
+  protocol.handle('swsc', async(request)=>{
+    const u=new URL(request.url);
+    if(u.hostname!=='audio'||u.pathname!=='/current'||!soundCloudCurrent)return new Response('Not found',{status:404});
+    try{const token=await soundCloudAccessToken();const r=await net.fetch(`${SOUND_CLOUD_API}/tracks/${encodeURIComponent(soundCloudCurrent.urn||soundCloudCurrent.id)}/stream`,{headers:{authorization:`OAuth ${token}`,accept:'*/*'}});if(r.status===401){soundCloudToken=null;const retry=await soundCloudAccessToken();return await net.fetch(`${SOUND_CLOUD_API}/tracks/${encodeURIComponent(soundCloudCurrent.urn||soundCloudCurrent.id)}/stream`,{headers:{authorization:`OAuth ${retry}`,accept:'*/*'}});}return r;}catch(e){return new Response(String(e.message||e),{status:502});}
+  });
+  loadLocalQueueFromDisk();
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   protocol.handle('swmedia', (request) => {
     const u = new URL(request.url);
     if (u.hostname !== 'audio' || u.pathname !== '/current' || !selectedLocalAudioPath) return new Response('Not found', {status:404});
@@ -932,7 +1047,10 @@ app.whenReady().then(() => {
   });
   const displayChanged=()=>{
     reconcileOutputWindows();
+<<<<<<< HEAD
     reconcileDetachedWindows();
+=======
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
     for(const w of BrowserWindow.getAllWindows())if(!w.isDestroyed())w.webContents.send('display:changed',displayList());
     emitMainWindowMetrics('display-metrics-changed');
   };
@@ -957,7 +1075,11 @@ app.whenReady().then(() => {
   try{app.exit(1);}catch{}
 });
 
+<<<<<<< HEAD
 app.on('before-quit',()=>{appQuitting=true;startupLog('APP_BEFORE_QUIT');destroyIntroWindow();if(outputWatchdog){clearInterval(outputWatchdog);outputWatchdog=null;} if(audioLibraryTimer)clearInterval(audioLibraryTimer); discardVideoWrite(); adminToken=''; soundCloudToken=null; runtimeEvent('app-before-quit');});
+=======
+app.on('before-quit',()=>{appQuitting=true;startupLog('APP_BEFORE_QUIT');destroyIntroWindow();if(outputWatchdog){clearInterval(outputWatchdog);outputWatchdog=null;} if(fileWriteStream){try{fileWriteStream.end();}catch{} fileWriteStream=null;} adminToken=''; soundCloudToken=null; runtimeEvent('app-before-quit');});
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -966,8 +1088,11 @@ app.on('window-all-closed', () => {
 });
 
 // IPC handlers for Native Dialogs and File operations
+<<<<<<< HEAD
 registerIpc('audio:permission-begin','main',(event,kind)=>{audioPermissionGate.arm(event,kind);return {ok:true};});
 registerIpc('audio:permission-end','main',(_event,kind)=>{audioPermissionGate.revoke(kind);return {ok:true};});
+=======
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 registerIpc('dialog:openAudio','main', async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
     title: 'Add Local Audio Files',
@@ -1012,6 +1137,7 @@ registerIpc('local:queue-shuffle','main',async()=>{
   return localQueuePublicState();
 });
 
+<<<<<<< HEAD
 registerIpc('local:library-state','main',()=>audioLibrary.state());
 registerIpc('local:library-refresh','main',async()=>{await audioLibrary.refresh();return audioLibrary.state();});
 registerIpc('local:library-clear-folder','main',()=>audioLibrary.clearFolder());
@@ -1039,6 +1165,8 @@ registerIpc('local:playlist-add-queue','main',(_e,id)=>{
   return {state:addLocalQueuePaths(paths),missing,available:paths.length};
 });
 
+=======
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 registerIpc('dialog:openMilkdrop','main', async()=>{
   const result=await dialog.showOpenDialog(mainWindow,{title:'Import MilkDrop Preset',filters:[{name:'MilkDrop Presets',extensions:['milk']}],properties:['openFile']});
   if(result.canceled||!result.filePaths[0])return null; const filePath=result.filePaths[0]; const st=fs.statSync(filePath); if(st.size>2*1024*1024)throw new Error('milk_preset_too_large');
@@ -1093,8 +1221,13 @@ function extractPersonalMilkdropZip(zipPath){
   fs.mkdirSync(temp,{recursive:true});
   const escapedZip=String(zipPath).replace(/'/g,"''");
   const escapedDest=String(temp).replace(/'/g,"''");
+<<<<<<< HEAD
   const script=`$ErrorActionPreference='Stop'; Add-Type -AssemblyName System.IO.Compression.FileSystem; [IO.Compression.ZipFile]::ExtractToDirectory('${escapedZip}', '${escapedDest}')`;
   const r=runPowerShell(['-NoProfile','-NonInteractive','-Command',script],{encoding:'utf8',windowsHide:true,timeout:120000,maxBuffer:4*1024*1024});
+=======
+  const script=`$ErrorActionPreference='Stop'; Expand-Archive -LiteralPath '${escapedZip}' -DestinationPath '${escapedDest}' -Force`;
+  const r=cp.spawnSync('powershell.exe',['-NoProfile','-NonInteractive','-Command',script],{encoding:'utf8',windowsHide:true,timeout:120000,maxBuffer:4*1024*1024});
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   if(r.status!==0)throw new Error('personal_library_extract_failed:'+String(r.stderr||r.stdout||'').slice(0,600));
   const files=safeWalkMilkdropLibrary(temp);
   const milk=files.filter(x=>x.ext==='.milk').length;
@@ -1181,6 +1314,7 @@ registerIpc('dialog:openBackground','main', async () => {
   };
 });
 
+<<<<<<< HEAD
 function discardVideoWrite() {
   const state = videoWriteState;
   if (!state || state.closing) return;
@@ -1201,10 +1335,24 @@ registerIpc('dialog:getSavePath','main', async (_event,formats) => {
   });
 
   approvedSavePath = result.canceled || !result.filePath ? '' : path.resolve(result.filePath);
+=======
+registerIpc('dialog:getSavePath','main', async () => {
+  const result = await dialog.showSaveDialog(mainWindow, {
+    title: 'Save Soundwave Video',
+    defaultPath: path.join(app.getPath('videos'), 'RADIO-WAVE-v6.66-visual.mp4'),
+    filters: [
+      { name: 'MP4 Video', extensions: ['mp4'] },
+      { name: 'WebM Video', extensions: ['webm'] }
+    ]
+  });
+
+  approvedSavePath = result.canceled ? '' : path.resolve(result.filePath);
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   return approvedSavePath || null;
 });
 
 registerIpc('file:startWrite','main', async (event, savePath) => {
+<<<<<<< HEAD
   let state;
   try {
     const resolved = path.resolve(String(savePath || ''));
@@ -1231,12 +1379,25 @@ registerIpc('file:startWrite','main', async (event, savePath) => {
       state.aborted = true;
       await closeVideoWrite(state);
     }
+=======
+  try {
+    const resolved = path.resolve(String(savePath || ''));
+    if (!approvedSavePath || resolved !== approvedSavePath) throw new Error('save_path_not_approved');
+    approvedSavePath = '';
+    if (fileWriteStream) {
+      fileWriteStream.end();
+    }
+    fileWriteStream = fs.createWriteStream(savePath);
+    return { success: true };
+  } catch (error) {
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
     console.error('Error starting file write:', error);
     return { success: false, error: error.message };
   }
 });
 
 registerIpc('file:writeChunk','main', async (event, chunkBuffer) => {
+<<<<<<< HEAD
   const state = videoWriteState;
   if (!state || state.closing) return { success: false, error: 'Write stream not initialized' };
   try {
@@ -1292,4 +1453,37 @@ registerIpc('file:close','main', async () => {
   const state = videoWriteState;
   if (!state) return { success: false, error: 'Write stream not initialized' };
   return closeVideoWrite(state);
+=======
+  return new Promise((resolve) => {
+    if (!fileWriteStream) {
+      resolve({ success: false, error: 'Write stream not initialized' });
+      return;
+    }
+    // Write the Uint8Array buffer
+    const buffer = Buffer.from(chunkBuffer);
+    if (buffer.length > 8 * 1024 * 1024) { resolve({success:false,error:'write_chunk_too_large'}); return; }
+    const result = fileWriteStream.write(buffer);
+
+    if (result) {
+      resolve({ success: true });
+    } else {
+      fileWriteStream.once('drain', () => {
+        resolve({ success: true });
+      });
+    }
+  });
+});
+
+registerIpc('file:close','main', async () => {
+  return new Promise((resolve) => {
+    if (fileWriteStream) {
+      fileWriteStream.end(() => {
+        fileWriteStream = null;
+        resolve({ success: true });
+      });
+    } else {
+      resolve({ success: true });
+    }
+  });
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 });

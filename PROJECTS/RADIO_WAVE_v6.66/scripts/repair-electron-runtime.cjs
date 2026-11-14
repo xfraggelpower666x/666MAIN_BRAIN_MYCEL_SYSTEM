@@ -6,7 +6,10 @@ const { createRequire } = require('node:module');
 const { spawnSync } = require('node:child_process');
 const { createHash } = require('node:crypto');
 const { createReadStream } = require('node:fs');
+<<<<<<< HEAD
 const { runPowerShell } = require('../src/shared/powershell.cjs');
+=======
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 
 const root = path.join(__dirname, '..');
 const electron = path.join(root, 'node_modules', 'electron');
@@ -69,17 +72,24 @@ async function main() {
   if (installed.name !== 'electron' || installed.version !== version) {
     throw new Error('Installiertes Electron-Paket stimmt nicht mit package-lock.json ueberein.');
   }
+<<<<<<< HEAD
   if (process.argv[2] === '--check') {
     const executable = (await fs.readFile(path.join(electron, 'path.txt'), 'utf8')).trim();
     if (executable !== 'electron.exe') throw new Error('Electron path.txt ist ungueltig.');
     console.log('ELECTRON_RUNTIME_GATE=PASS ' + checkRuntime(path.join(electron, 'dist'), version));
     return;
   }
+=======
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   const asset = `electron-v${version}-win32-x64.zip`;
   const expected = (await readJson(path.join(electron, 'checksums.json')))[asset];
   if (!/^[a-f0-9]{64}$/.test(expected || '')) throw new Error('Electron-SHA-256 fehlt: ' + asset);
   const fromElectron = createRequire(path.join(electron, 'package.json'));
   const { downloadArtifact } = fromElectron('@electron/get');
+<<<<<<< HEAD
+=======
+  const extract = fromElectron('extract-zip');
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   const stage = await fs.mkdtemp(path.join(electron, '.runtime-repair-'));
   let keepStage = false;
   try {
@@ -92,6 +102,7 @@ async function main() {
     for await (const chunk of createReadStream(archive)) hash.update(chunk);
     if (hash.digest('hex') !== expected) throw new Error('SHA-256 des Electron-Archivs stimmt nicht.');
     const extracted = path.join(stage, 'new-dist');
+<<<<<<< HEAD
     await fs.mkdir(extracted);
     let extraction = spawnSync('tar.exe', ['-xf', archive, '-C', extracted], {
       encoding: 'utf8', timeout: 120000, windowsHide: true
@@ -107,6 +118,9 @@ async function main() {
       throw new Error('Electron-Archiv entpacken fehlgeschlagen: ' +
         (extraction.error?.message || extraction.stderr?.trim() || extraction.status));
     }
+=======
+    await extract(archive, { dir: extracted });
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
     const actualVersion = checkRuntime(extracted, version);
     await fs.writeFile(path.join(stage, 'new-path.txt'), 'electron.exe', 'ascii');
     keepStage = true;

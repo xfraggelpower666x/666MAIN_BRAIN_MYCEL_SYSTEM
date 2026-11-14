@@ -1,8 +1,14 @@
+<<<<<<< HEAD
 # RADIO WAVE v6.66
 
 A Windows Electron player combining the Soundwave visualizer and local playback
 with 666 WebRadio and SoundCloud integration. The project is based on
 Soundwave Studio and retains its visualizer and export features.
+=======
+# 🎵 Soundwave Visualizer & Video Studio
+
+A premium, hardware-accelerated Windows desktop application to design stunning, high-fidelity audio visualizers and export them as fluid, frame-perfect music videos.
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 
 ![Soundwave Studio Preview](images/app_preview_ui.png)
 
@@ -34,18 +40,25 @@ Equipped with 15 custom mathematical frequency and time-domain visualizer module
 *   **Dynamic Backgrounds**: Load custom background images (PNG, JPG, WebP) directly from your files.
 *   **Aspect Ratio Toggle**: Render in Widescreen (16:9) or Vertical (9:16) for YouTube Shorts, TikTok, and Instagram Reels.
 
+<<<<<<< HEAD
 ### 3. Video Exporter
 *   Choose an MP4 or WebM destination using the file browser. Recording shows
     elapsed time and progress when the audio duration is known.
 *   Canvas and audio are recorded in real time; available codecs and achievable
     frame rate depend on the machine. A finished file is reported only after
     it has been written successfully.
+=======
+### 3. Frame-Perfect Video Exporter
+*   **Deterministic advance**: Uses a locked step timer `visualizerTime` rather than wall-clock time. This guarantees that even if your computer lags during high-DPI rendering and video recording, the exported MP4/WebM file remains **absolutely fluid, skip-free, and perfectly in sync at 30 FPS or 60 FPS**.
+*   **Digital Streaming**: Streams high-fidelity digital audio combined with high-DPI canvas frames directly to local storage.
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 
 ### 4. Zero Installation Portable Build
 *   Runs instantly with **no installer, setup screens, or administrator access** required.
 
 ---
 
+<<<<<<< HEAD
 ## 🚀 How to Run
 
 On Windows, open `RADIO_WAVE.bat` in this project folder and choose **1** to
@@ -72,6 +85,21 @@ separate explicit choice.
 [Audio FX](docs/AUDIO_FX.md) for the Light Wave attribution and limitations.
 The bundled MilkDrop Cyber Studio manages and generates presets; it is not a
 live MilkDrop/Spout renderer.
+=======
+## 🚀 How to Run (Download & Go)
+
+### Method A: Download the ZIP (Recommended)
+1. Go to the [**GitHub Releases**](https://github.com/vkmr007/soundwave-visualizer/releases) page.
+2. Download **`SoundwaveStudio-portable-win-x64.zip`** (Version 1.0.2 is under 100MB!).
+3. Extract the ZIP anywhere on your Windows PC.
+4. Double-click **`SoundwaveStudio.exe`** to launch!
+
+### Method B: Clone the Repository
+1. Clone this repository to your local machine.
+2. Open the repository folder.
+3. Navigate to **`dist/SoundwaveStudio-win32-x64`**.
+4. Double-click **`SoundwaveStudio.exe`** to run the app directly!
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 
 ---
 
@@ -82,24 +110,39 @@ If you want to run the project in development mode or compile it yourself:
 ### 1. Install Dependencies
 Make sure you have Node.js installed, then run:
 ```powershell
+<<<<<<< HEAD
 npm ci --include=dev --foreground-scripts
 ```
 
 ### 2. Run in Dev Mode (Hot Reload UI)
 To launch the Electron app:
+=======
+npm install
+```
+
+### 2. Run in Dev Mode (Hot Reload UI)
+To launch the Electron app with live console diagnostics:
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 ```powershell
 npm start
 ```
 
 ### 3. Build & Optimize Portable Package
+<<<<<<< HEAD
 To compile a portable Windows ZIP:
+=======
+To compile a fresh Windows build, optimize its size (stripping unused translation files to keep it under 100MB), and generate a new ZIP package:
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 ```powershell
 npm run package
 ```
 This runs the automated build script located at `scripts/build.js`.
+<<<<<<< HEAD
 For an NSIS installer and standalone portable EXE, run `npm run dist`.
 Both bundle Electron; Node.js and the build tools are not required on the
 target PC.
+=======
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 
 ---
 

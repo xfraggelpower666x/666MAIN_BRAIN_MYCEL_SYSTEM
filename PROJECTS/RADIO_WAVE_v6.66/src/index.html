@@ -4,7 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RADIO WAVE v6.66</title>
+<<<<<<< HEAD
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob: https: swmedia: swsc:; connect-src 'self' swsc:; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+=======
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob: https: swmedia: swsc:; connect-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -34,6 +38,7 @@
 <div class="source-tabs"><button class="source-btn active" data-source="local">LOCAL</button><button class="source-btn" data-source="radio">666 RADIO</button><button class="source-btn" data-source="soundcloud">SOUNDCLOUD</button></div>
 <div id="radio-controls" class="source-pane hidden">
 <div class="nowplaying-box"><strong id="radio-now-title">666SOUNDsDESIGn</strong><span id="radio-now-artist">RADIO READY</span></div>
+<<<<<<< HEAD
 </div>
 <div id="soundcloud-controls" class="source-pane hidden"><div class="soundcloud-library-head"><strong>666SOUNDsDESIGN · Fraggelpower666</strong><button id="soundcloud-library-refresh" class="btn btn-secondary">REFRESH MY MUSIC</button></div>
 <div class="control-group"><label for="soundcloud-client-id">SoundCloud Client ID</label><input id="soundcloud-client-id" type="password" class="custom-input" autocomplete="off"></div>
@@ -112,6 +117,16 @@
           </details>
         </section>
 
+=======
+<div class="remote-row"><input id="radio-password" class="custom-input" type="password" placeholder="Admin password"><button id="radio-login" class="btn btn-secondary">LOGIN</button><button id="radio-skip" class="btn btn-secondary">AUTODJ SKIP</button></div>
+<textarea id="player-message" class="custom-input" maxlength="240" placeholder="Player Messenger · 240 chars"></textarea><button id="player-message-send" class="btn btn-secondary">SEND → PLAYERS</button><div id="player-message-receive" class="file-meta-tag">PLAYER MESSENGER · WAITING</div>
+<textarea id="discord-message" class="custom-input" maxlength="1800" placeholder="Discord message"></textarea><div class="remote-row"><button id="discord-send" class="btn btn-secondary">SEND → DISCORD</button><button id="discord-now" class="btn btn-secondary">NOW PLAYING</button></div>
+<div id="radio-action-state" class="file-meta-tag">REMOTE · READY</div><div id="radio-runtime-health" class="file-meta-tag">REMOTE HEALTH · CHECKING</div>
+</div>
+<div id="soundcloud-controls" class="source-pane hidden"><div class="soundcloud-library-head"><strong>666SOUNDsDESIGN · Fraggelpower666</strong><button id="soundcloud-library-refresh" class="btn btn-secondary">REFRESH MY MUSIC</button></div><div id="soundcloud-library" class="soundcloud-library"><div class="file-meta-tag">Library loads from the official SoundCloud API.</div></div><input id="soundcloud-url" class="custom-input" placeholder="Optional: SoundCloud track / playlist URL"><button id="soundcloud-load" class="btn btn-secondary">LOAD URL</button><button id="soundcloud-prev" class="btn btn-secondary">◀ PREV</button><button id="soundcloud-next" class="btn btn-secondary">NEXT ▶</button><button id="soundcloud-open" class="btn btn-secondary">OPEN ON SOUNDCLOUD</button><div id="soundcloud-queue" class="file-meta-tag">Queue · 0 / 0</div><div class="file-meta-tag">Audio source: SoundCloud · creator attribution shown after resolve</div><div id="soundcloud-state" class="file-meta-tag">Secure Main-Process resolver · credentials not stored in renderer</div><div id="soundcloud-runtime-health" class="file-meta-tag">SOUNDCLOUD HEALTH · CHECKING</div></div>
+</div>
+
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
         
         <!-- SECTION 1: Files & Media Selection -->
         <section class="panel-section active">
@@ -142,6 +157,7 @@
             </div>
             <div id="local-queue-state" class="file-meta-tag">LOCAL QUEUE · 0 TRACKS</div>
             <div id="local-queue-list" class="local-queue-list" aria-label="Local audio queue"></div>
+<<<<<<< HEAD
             <div id="local-audio-library" class="local-library" aria-label="Audio Pool &amp; Playlists">
               <h3>Audio Pool &amp; Playlists</h3>
               <h3>Named playlists</h3>
@@ -223,6 +239,10 @@
             <div class="file-meta-tag">Optional stereo-derived playback only; requires an output advertising at least 8 channels. Visualization and export are unchanged.</div>
             <div id="audio-surround-status" class="file-meta-tag" role="status" aria-live="polite">7.1 upmix off; original playback routing unchanged.</div>
           </div>
+=======
+          </div>
+
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
           <div class="control-group">
             <label>2. Background Image</label>
             <button id="btn-select-bg" class="btn btn-secondary select-btn">
@@ -514,6 +534,7 @@
           <div id="rw-host-check-state" class="rw-host-check-state">
             <div class="file-meta-tag">HOST CHECK · NOT RUN</div>
           </div>
+<<<<<<< HEAD
           <h3 class="section-subtitle">Live Audio Analyser</h3>
           <div class="file-meta-tag" id="rw-diag-audio-state">ANALYSER · UNAVAILABLE</div>
           <div class="rw-diag-audio-leds" aria-label="Audio analyser frequency bands">
@@ -532,6 +553,8 @@
             <div class="rw-diag-graph" id="rw-diag-graph-memory" aria-label="Main-process RSS history"><span>MAIN PROCESS RSS · MiB</span><div>Waiting for samples</div></div>
             <div class="rw-diag-graph" id="rw-diag-graph-fps" aria-label="Responsive output average FPS history"><span>RESPONSIVE OUTPUT AVG FPS</span><div>Waiting for samples</div></div>
           </div>
+=======
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
           <h3 class="section-subtitle">Displays / Monitor</h3>
           <div id="rw-diag-displays" class="rw-diag-grid"></div>
           <h3 class="section-subtitle">Visualizer Outputs</h3>
@@ -562,6 +585,7 @@
               <option value="30">30 FPS (Standard)</option>
             </select>
           </div>
+<<<<<<< HEAD
           <div class="control-group">
             <label for="export-audio-bitrate">Video export audio bitrate target</label>
             <select id="export-audio-bitrate" class="custom-select">
@@ -580,6 +604,9 @@
             <div class="file-meta-tag">Choose MP4 or WebM supported by this browser.</div>
             <div id="export-result" class="export-result" role="status" aria-live="polite">Ready to export</div>
           </div>
+=======
+
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
           <div class="export-actions">
             <button id="btn-export" class="btn btn-record" disabled>
               <span class="record-dot"></span>
@@ -593,6 +620,7 @@
 
     <!-- RIGHT CONTENT: Live Interactive Preview Studio -->
     <main class="preview-area">
+<<<<<<< HEAD
       <nav class="rw-quick-links" aria-label="666SOUNDsDESIGn links">
         <strong>666SOUNDsDESIGn</strong>
         <button type="button" data-external-site="radio">Radio</button>
@@ -602,6 +630,8 @@
         <button type="button" data-external-site="psyEngine">Psy Engine</button>
         <span id="rw-app-version">RADIO WAVE v6.66 · Version …</span>
       </nav>
+=======
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
       <!-- Top header bar for quick diagnostics -->
       <div class="preview-top-bar">
         <button id="toggle-control-panel" class="preview-panel-toggle" type="button" aria-pressed="false">☰ CONTROLS</button>
@@ -679,6 +709,7 @@
           </div>
 
         </div>
+<<<<<<< HEAD
         <div class="player-radio-status" aria-label="Radio stream status">
           <label for="player-radio-route">RADIO ROUTE</label>
           <select id="player-radio-route" disabled title="Auto switches to fallback on failure; Main and Fallback stay on the selected route">
@@ -690,6 +721,8 @@
           <span id="player-radio-now" class="player-radio-now">—</span>
           <span id="player-radio-details" class="player-radio-details">DJ: — · LISTENERS: — · STREAM: —</span>
         </div>
+=======
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
       </footer>
       <div class="radio-wave-copyright">COPYRIGHT 2026 BY FRAGGLEPOWER666 - 666SOUNDsDESIGN</div>
     </main>
@@ -698,6 +731,7 @@
     <audio id="audio-element" crossOrigin="anonymous"></audio>
 
     <!-- EXPORT MODAL overlay when writing to local disk -->
+<<<<<<< HEAD
     <div id="export-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="export-modal-title">
       <div class="modal-card">
         <div class="export-pulse-ring"></div>
@@ -705,11 +739,23 @@
         <p id="export-modal-description">Your audio and soundwaves are being rendered to a file.</p>
         <div class="export-modal-destination">Destination: <span id="export-modal-path"></span></div>
         <div class="progress-bar-container" id="export-progress-container" role="progressbar" aria-label="Recording progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+=======
+    <div id="export-modal" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="export-pulse-ring"></div>
+        <h2>Rendering Music Video</h2>
+        <p>Your audio and soundwaves are being rendered to a file.</p>
+        <div class="progress-bar-container">
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
           <div class="progress-bar-fill" id="export-progress"></div>
         </div>
         <div class="export-stats">
           <div>Time Encoded: <span id="export-time">00:00</span></div>
+<<<<<<< HEAD
           <div>Status: <span id="export-status-label" role="status" aria-live="polite">Writing stream...</span></div>
+=======
+          <div>Status: <span id="export-status-label">Writing stream...</span></div>
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
         </div>
         <button id="btn-stop-export" class="btn btn-danger">Stop & Save Video</button>
       </div>
@@ -737,12 +783,16 @@
   <script src="vendor/cayatur/milkdrop-renderer.js"></script>
   <script src="workspace.js"></script>
   <script src="diagnostics.js"></script>
+<<<<<<< HEAD
   <script src="audio-devices.js"></script>
   <script src="audio-eq.js"></script>
   <script src="audio-surround.js"></script>
   <script src="app.js"></script>
   <script src="../node_modules/hls.js/dist/hls.min.js"></script>
   <script src="soundcloud-playback.js"></script>
+=======
+  <script src="app.js"></script>
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   <script src="integration/666-integration.js"></script>
 </body>
 </html>

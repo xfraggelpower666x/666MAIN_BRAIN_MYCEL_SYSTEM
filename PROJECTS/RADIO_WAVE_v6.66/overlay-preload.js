@@ -1,5 +1,6 @@
 'use strict';
 const {contextBridge,ipcRenderer}=require('electron');
+<<<<<<< HEAD
 window.addEventListener('click',event=>{
   if(event.isTrusted && event.target?.closest?.('#overlay-root #audio-input-start:not(:disabled)')){
     ipcRenderer.invoke('audio:overlay-microphone').catch(error=>{
@@ -8,6 +9,8 @@ window.addEventListener('click',event=>{
     });
   }
 },true);
+=======
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 contextBridge.exposeInMainWorld('rwOverlay',{
   ready:()=>ipcRenderer.invoke('workspace:overlay-ready'),
   action:(payload)=>ipcRenderer.invoke('workspace:overlay-action',payload),

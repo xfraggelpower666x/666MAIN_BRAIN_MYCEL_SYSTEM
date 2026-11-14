@@ -1,5 +1,6 @@
 # SoundwaveStudio 666 Integration Architecture
 
+<<<<<<< HEAD
 ## Current status
 - MilkDrop and SoundCloud are active integrations. MilkDrop uses the shared
   audio pipeline, supports `.milk` import, and renders through WebGL2.
@@ -8,6 +9,8 @@
   are not current runtime gates. Live GPU, audio, and display behavior still
   requires host validation.
 
+=======
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 ## Ownership hierarchy
 0. SOUNDWAVE CORE — UI, local playback, classic canvas renderer, export. PRESERVE.
 1. SOURCE ARBITER — LOCAL / 666 RADIO / SOUNDCLOUD.
@@ -31,7 +34,11 @@
 - Phase D: WebGL Shader/3D and complete MilkDrop dependency closure.
 - Phase E: synchronized second-display visual output and performance soak tests.
 
+<<<<<<< HEAD
 Historical gate: donor MilkDrop/3D files were not to be declared runtime-active until their dependency closure and render tests passed.
+=======
+The donor MilkDrop/3D files are intentionally staged but MUST NOT be declared runtime-active until their dependency closure and render tests pass.
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 
 ## v1.2 hierarchy promotion
 - Presentation owner: Soundwave Studio.

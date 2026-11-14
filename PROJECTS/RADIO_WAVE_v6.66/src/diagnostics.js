@@ -27,6 +27,7 @@
       electron:d?.electron,chrome:d?.chrome,node:d?.node,memory:d?.memory,source:d?.source
     },null,2);
   };
+<<<<<<< HEAD
   const history={memory:[],fps:[]}, sampleLimit=30;
   const finiteNumber=v=>typeof v==='number'&&Number.isFinite(v)&&v>=0;
   function led(selector,value,status){
@@ -88,6 +89,8 @@
       const el=q('#rw-diag-audio-state');if(el)el.textContent='ANALYSER · LIVE INPUT SAMPLE';
     }catch{unavailableAudio('UNAVAILABLE');}
   }
+=======
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   const hostRow=(label,status,detail='')=>'<article class="rw-host-check-row '+esc(status.toLowerCase())+'"><strong>'+esc(label)+'</strong><span>'+esc(status)+'</span><small>'+esc(detail)+'</small></article>';
   async function runHostCheck(){
     const box=q('#rw-host-check-state');if(!box)return;
@@ -138,6 +141,7 @@
     }
   }
 
+<<<<<<< HEAD
   let refreshGeneration=0;
   async function refresh(){
     const generation=++refreshGeneration;
@@ -153,6 +157,16 @@
       q('#rw-diag-state').textContent=(results.some(r=>r.status==='rejected')?'PARTIAL · ':'LIVE · ')+new Date().toLocaleTimeString();
       syncDetached();
     }catch(e){if(generation!==refreshGeneration)return;renderMeasurements(null,null);q('#rw-diag-state').textContent='ERROR · '+String(e.message||e);syncDetached();}
+=======
+  async function refresh(){
+    q('#rw-diag-state').textContent='REFRESHING…';
+    try{
+      const [displays,outputs,runtime]=await Promise.all([window.api.displays(),window.api.outputStatus(),window.api.runtimeDiagnostics()]);
+      renderDisplays(displays);renderOutputs(outputs);renderRuntime(runtime);
+      q('#rw-diag-state').textContent='LIVE · '+new Date().toLocaleTimeString();
+      syncDetached();
+    }catch(e){q('#rw-diag-state').textContent='ERROR · '+String(e.message||e);syncDetached();}
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   }
   q('#rw-diag-refresh')?.addEventListener('click',refresh);
   q('#rw-host-check')?.addEventListener('click',runHostCheck);
@@ -163,8 +177,11 @@
   });
   window.api.onDisplaysChanged?.(renderDisplays);
   window.api.onWindowMetrics?.(()=>refresh());
+<<<<<<< HEAD
   document.addEventListener?.('visibilitychange',()=>{if(document.hidden){unavailableAudio('STALE');syncDetached();}else sampleAudio();});
   setInterval(sampleAudio,250);
+=======
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
   refresh();
   setInterval(()=>{if(!document.hidden)refresh();},5000);
 })();

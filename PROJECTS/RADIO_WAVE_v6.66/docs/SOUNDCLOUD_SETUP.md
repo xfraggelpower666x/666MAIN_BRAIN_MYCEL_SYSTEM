@@ -1,5 +1,6 @@
 # SoundCloud source setup
 
+<<<<<<< HEAD
 RADIO WAVE uses the SoundCloud API through the Electron main process. In the
 SoundCloud source panel, enter the Client ID and Client Secret and select
 **SAVE SECURELY**. Windows encrypts the saved credentials for the current
@@ -10,10 +11,16 @@ Windows DPAPI protects it from other Windows accounts, not from other programs
 running under the same account.
 
 Alternatively, set these environment variables before startup:
+=======
+Soundwave Studio 666 uses the current SoundCloud API through the Electron main process. No SoundCloud client secret is exposed to the renderer.
+
+Required environment variables before startup:
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
 
 - `SOUNDCLOUD_CLIENT_ID`
 - `SOUNDCLOUD_CLIENT_SECRET`
 
+<<<<<<< HEAD
 Saved credentials take priority over environment variables. If secure storage
 is unavailable, saving fails explicitly; environment credentials can still be
 used. The client-credentials flow accesses public resources, not private account
@@ -47,3 +54,10 @@ isolated Electron profile and mocked SoundCloud fetches, blocks external
 renderer requests, and removes only that directory afterward. The real
 Electron `swsc:` protocol, hls.js, application audio element and analyser are
 exercised. This does not test live SoundCloud or real credentials.
+=======
+The application exchanges these credentials using the client-credentials flow, caches the access token in process memory, resolves a SoundCloud track/playlist URL, and proxies playback through the internal `swsc://audio/current` protocol so the existing Soundwave AudioContext/Analyser pipeline remains the audio owner.
+
+The application does not ship credentials. SoundCloud application registration and API terms remain the operator's responsibility. The UI exposes creator/title attribution and an OPEN ON SOUNDCLOUD action for the current resolved work.
+
+Blocked or otherwise non-streamable tracks are rejected. Playlist URLs currently select the first non-blocked track returned by the resolve resource; full playlist queue navigation is a later gate.
+>>>>>>> 41fd3f0895bc0ea78d28d958775e3b82973854b2
