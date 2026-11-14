@@ -55,6 +55,8 @@ export async function freezeTrackToAudio(trackId: string): Promise<void> {
           project.bpm,
           (track.synthPreset ?? 'piano') as SynthPreset,
           project.totalDuration,
+          undefined,
+          track.instrument?.kind === 'soundfont' ? track.instrument : undefined,
         );
       }
     }

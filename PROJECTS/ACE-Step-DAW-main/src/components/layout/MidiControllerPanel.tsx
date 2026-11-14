@@ -221,7 +221,7 @@ export function MidiControllerPanel() {
               key={t}
               className={`rounded-full px-2.5 py-1 text-[10px] transition-colors ${
                 isActive
-                  ? 'bg-daw-accent text-white'
+                  ? 'bg-daw-accent text-zinc-900'
                   : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200'
               }`}
               onClick={() => setTab(t)}

@@ -152,13 +152,14 @@ export function EditorShell() {
   useMidiController();
 
   return (
+    <div className="h-screen overflow-auto">
     <div
       className="flex flex-col h-screen min-w-[900px] overflow-hidden bg-daw-bg text-zinc-300"
       role="application"
       aria-label="ACE-Step DAW"
       tabIndex={-1}
     >
-      <SkipLinks />
+      <SkipLinks workspace={workspace} />
       <Toolbar />
 
       <nav className="flex gap-2 border-b border-daw-border-strong bg-daw-surface-2 px-3 py-1" aria-label="Workspaces">
@@ -255,6 +256,7 @@ export function EditorShell() {
       </Suspense>
       {!hasBlockingDialog && <Suspense fallback={null}><CommandPalette /></Suspense>}
       {!hasBlockingDialog && <Suspense fallback={null}><ClaudeTerminal /></Suspense>}
+    </div>
     </div>
   );
 }

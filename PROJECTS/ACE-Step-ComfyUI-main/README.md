@@ -21,13 +21,18 @@ Restart ComfyUI after installation.
 
 ## Setup
 
-### Cloud Mode (default)
+### Cloud Mode (explicit consent required)
 
 1. Get your API key from [acemusic.ai/api-key](https://acemusic.ai/api-key)
-2. In the **Text2music Server** node, set **mode** → `cloud` and paste your key into **api_key**
+2. In the **Text2music Server** node, set **mode** → `cloud`, enable **cloud_consent**, and paste your key into **api_key**
 3. Or set the environment variable `ACESTEP_API_KEY`
 
 > The key is auto-saved locally (in `.config/` under the node directory) and displayed as `●●●●` for security. It is **not** stored in workflow JSON.
+>
+> Cloud mode is not the default. The consent checkbox must be enabled before
+> generation; the prompt and connected audio are sent to the selected HTTPS
+> server. Local mode always uses `127.0.0.1:8002`, even if a workflow contains
+> a different server URL.
 
 ### Local Mode
 
@@ -54,29 +59,36 @@ pip install -e .
 
 ```bash
 # Using uv
-uv run acestep-openrouter --host 0.0.0.0 --port 8002
+uv run acestep-openrouter --host 127.0.0.1 --port 8002
 
 # Or if installed via pip
-acestep-openrouter --host 0.0.0.0 --port 8002
+acestep-openrouter --host 127.0.0.1 --port 8002
 ```
 
 The server will download model weights on first launch and then listen on `http://127.0.0.1:8002`.
 
 **3. Configure ComfyUI**
 
-In the **Text2music Server** node, set **mode** → `local`. The URL auto-fills to `http://127.0.0.1:8002` and the **api_key** field is hidden since no key is needed locally.
+In the **Text2music Server** node, set **mode** → `local`. The URL is fixed to
+`http://127.0.0.1:8002` and the **api_key** input is hidden. If the local server
+requires authentication, set `ACESTEP_LOCAL_API_KEY` in the ComfyUI process
+environment. This local-only key is kept separate from remote cloud credentials.
 
 ### Shared local queue
 
 The **ACE-Step Shared Local Server** node is an alternative to the server above.
 Connect the existing Gen Params and Settings nodes to it and start the DAW's
-ACE-Step 1.5 REST server separately on `127.0.0.1:8001`. Both applications
-then submit jobs to that one server instead of loading a second inference model.
+ACE-Step 1.5 REST server separately on `127.0.0.1:8001`. If that server
+requires an API key, set `ACESTEP_API_KEY` for the server and the same value
+as `ACESTEP_LOCAL_API_KEY` in the ComfyUI process environment.
+The node sends it as a bearer token and does not store it in the workflow. Both
+applications then submit jobs to that one server instead of loading a second
+inference model.
 The node returns audio and result information; it does not return audio codes.
 Sample mode, audio-code input, and `top_p` outside the open interval (0, 1)
 are not supported by this adapter. Auto metadata also requires another
-language-model option to be enabled. The REST server must not require an API
-key. A timed-out job may continue running on the server.
+language-model option to be enabled. A timed-out job may continue running on
+the server.
 
 ## Usage Guide
 

@@ -88,9 +88,10 @@ export default defineConfig(async ({ command }) => {
             }
             // Audio engine layer — force into dedicated chunks
             // Shared by many lazy components; prevent Rollup from promoting to entry chunk
-            // Effects engine — largest engine module, separate chunk
+            // Keep the effects and core engines together to prevent a cyclic
+            // app-engine ↔ app-engine-fx chunk dependency.
             if ((id.includes('/src/engine/EffectsEngine') || id.includes('/src/engine/dsp/')) && !id.includes('__tests__')) {
-              return 'app-engine-fx';
+              return 'app-engine';
             }
             // Export/offline rendering — only needed for bounce/export operations
             if ((id.includes('/src/engine/exportMix') || id.includes('/src/engine/offlineRender')) && !id.includes('__tests__')) {

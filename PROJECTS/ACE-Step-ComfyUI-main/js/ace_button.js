@@ -56,6 +56,7 @@ function setupServerNode(node) {
     const modeW = node.widgets.find(w => w.name === "mode");
     const urlW = node.widgets.find(w => w.name === "server_url");
     const keyW = node.widgets.find(w => w.name === "api_key");
+    const consentW = node.widgets.find(w => w.name === "cloud_consent");
     if (!modeW || !urlW) return;
 
     const btnW = node.addWidget("button", "🔑 Get API Key", null, () => {
@@ -68,9 +69,8 @@ function setupServerNode(node) {
 
     function update() {
         const isLocal = modeW.value === "local";
-        if (urlW.value === CLOUD || urlW.value === LOCAL || !urlW.value.trim()) {
-            urlW.value = isLocal ? LOCAL : CLOUD;
-        }
+        urlW.value = isLocal ? LOCAL : (urlW.value === LOCAL || !urlW.value.trim() ? CLOUD : urlW.value);
+        if (consentW) { isLocal ? hideWidget(node, consentW) : showWidget(node, consentW); }
         if (keyW) { isLocal ? hideWidget(node, keyW) : showWidget(node, keyW); }
         isLocal ? hideWidget(node, btnW) : showWidget(node, btnW);
         recalcSize(node);

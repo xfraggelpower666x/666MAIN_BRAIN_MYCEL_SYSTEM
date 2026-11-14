@@ -12,17 +12,17 @@ export function ComfyExchange({ frameRef, unavailable }: {
   const project = useProjectStore((state) => state.project);
   const [outputs, setOutputs] = useState<ComfyAudioOutput[]>([]);
   const [selected, setSelected] = useState('');
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const active = useRef<AbortController | null>(null);
 
   useEffect(() => () => { active.current?.abort(); }, []);
 
-  async function run(action: (signal: AbortSignal) => Promise<void>) {
+  async function run(label: string, action: (signal: AbortSignal) => Promise<void>) {
     const controller = new AbortController();
     active.current = controller;
-    setBusy(true);
+    setBusy(label);
     setError('');
     setMessage('');
     try {
@@ -32,7 +32,7 @@ export function ComfyExchange({ frameRef, unavailable }: {
     } finally {
       if (active.current === controller) {
         active.current = null;
-        if (!controller.signal.aborted) setBusy(false);
+        if (!controller.signal.aborted) setBusy('');
       }
     }
   }
@@ -65,7 +65,7 @@ export function ComfyExchange({ frameRef, unavailable }: {
   return (
     <div className="border-b border-daw-border-strong bg-daw-surface-2 px-4 py-2 text-sm text-zinc-300">
       <div className="flex flex-wrap items-center gap-2">
-        <Button size="sm" disabled={busy || unavailable || !project} onClick={() => void run(saveWorkflow)}>
+        <Button size="sm" disabled={!!busy || unavailable || !project} onClick={() => void run('Saving workflow...', saveWorkflow)}>
           Save workflow to project
         </Button>
         <Button size="sm" disabled={!project?.comfyWorkflow} onClick={() => {
@@ -73,18 +73,18 @@ export function ComfyExchange({ frameRef, unavailable }: {
         }}>
           Download saved workflow
         </Button>
-        <Button size="sm" disabled={busy || unavailable} onClick={() => void run(findAudio)}>Find output audio</Button>
+        <Button size="sm" disabled={!!busy || unavailable} onClick={() => void run('Finding output audio...', findAudio)}>Find output audio</Button>
         {outputs.length > 0 && (
           <>
             <label htmlFor="comfy-audio-output">Audio</label>
             <select id="comfy-audio-output" className="max-w-64 bg-daw-bg text-zinc-100" value={selected} onChange={(event) => setSelected(event.target.value)}>
               {outputs.map((output) => <option key={output.id} value={output.id}>{output.filename} ({output.type})</option>)}
             </select>
-            <Button size="sm" disabled={busy || unavailable || !project || !selected} onClick={() => void run(importAudio)}>Import to DAW</Button>
+            <Button size="sm" disabled={!!busy || unavailable || !project || !selected} onClick={() => void run('Importing audio...', importAudio)}>Import to DAW</Button>
           </>
         )}
       </div>
-      {message && <p className="mt-2" role="status">{message}</p>}
+      <p className="mt-2" role="status">{busy || message}</p>
       {error && <p className="mt-2 text-red-300" role="alert">{error}</p>}
     </div>
   );

@@ -1,13 +1,52 @@
 """Use the DAW's local ACE-Step queue without loading a second model."""
 
 import json
+import os
 import time
+import ipaddress
 from urllib.parse import parse_qs, urlsplit
 
 
 LOCAL_API = "http://127.0.0.1:8001"
 JOB_TIMEOUT_SECONDS = 3600
 REQUEST_TIMEOUT_SECONDS = 30
+
+
+def local_api_headers(*, json_body=False):
+    headers = {"User-Agent": "AceMusic-ComfyUI/2.0"}
+    if json_body:
+        headers["Content-Type"] = "application/json"
+    api_key = os.environ.get("ACESTEP_LOCAL_API_KEY", "").strip()
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+    return headers
+
+
+def resolve_api_url(mode, server_url, cloud_consent):
+    if mode == "local":
+        return "http://127.0.0.1:8002"
+    if mode != "cloud":
+        raise ValueError(f"Unsupported server mode: {mode}")
+    if cloud_consent is not True:
+        raise ValueError("Cloud generation requires explicit consent in the node.")
+
+    url = (server_url or "").strip() or "https://api.acemusic.ai"
+    try:
+        parsed = urlsplit(url)
+        hostname = parsed.hostname
+        parsed.port
+    except ValueError as exc:
+        raise ValueError("Invalid ACE-Step server URL.") from exc
+    if not hostname or parsed.username or parsed.password or parsed.fragment:
+        raise ValueError("Invalid ACE-Step server URL.")
+    is_loopback = hostname == "localhost"
+    try:
+        is_loopback = is_loopback or ipaddress.ip_address(hostname).is_loopback
+    except ValueError:
+        pass
+    if parsed.scheme != "https" and not (parsed.scheme == "http" and is_loopback):
+        raise ValueError("Remote ACE-Step servers must use HTTPS.")
+    return url
 
 
 def build_request(params, settings):
@@ -95,6 +134,7 @@ def _audio_path(value):
 
 def generate(params, settings, encode_audio, http, *, sleep=time.sleep, clock=time.monotonic):
     request = build_request(params, settings)
+    headers = local_api_headers()
     files = {}
     for key, field in (("src_audio", "src_audio"), ("refer_audio", "reference_audio")):
         if params.get(key) is not None:
@@ -102,15 +142,17 @@ def generate(params, settings, encode_audio, http, *, sleep=time.sleep, clock=ti
     form = {key: str(value).lower() if isinstance(value, bool) else str(value)
             for key, value in request.items()}
     if files:
-        response = http.post(f"{LOCAL_API}/release_task", data=form, files=files, timeout=REQUEST_TIMEOUT_SECONDS)
+        response = http.post(f"{LOCAL_API}/release_task", data=form, files=files,
+                             headers=headers, timeout=REQUEST_TIMEOUT_SECONDS)
     else:
-        response = http.post(f"{LOCAL_API}/release_task", json=request, timeout=REQUEST_TIMEOUT_SECONDS)
+        response = http.post(f"{LOCAL_API}/release_task", json=request, headers=headers,
+                             timeout=REQUEST_TIMEOUT_SECONDS)
     task_id = _data(response)["task_id"]
     deadline = clock() + JOB_TIMEOUT_SECONDS
     while clock() < deadline:
         result = _data(http.post(
             f"{LOCAL_API}/query_result", json={"task_id_list": [task_id]},
-            timeout=REQUEST_TIMEOUT_SECONDS,
+            headers=headers, timeout=REQUEST_TIMEOUT_SECONDS,
         ))
         if not isinstance(result, list) or len(result) != 1 or result[0].get("task_id") != task_id:
             raise RuntimeError("ACE-Step returned an invalid task result.")
@@ -125,7 +167,8 @@ def generate(params, settings, encode_audio, http, *, sleep=time.sleep, clock=ti
         if not items or not isinstance(items[0], dict):
             raise RuntimeError("ACE-Step returned no audio result.")
         path = _audio_path(items[0].get("file", ""))
-        audio = http.get(f"{LOCAL_API}/v1/audio", params={"path": path}, timeout=REQUEST_TIMEOUT_SECONDS)
+        audio = http.get(f"{LOCAL_API}/v1/audio", params={"path": path},
+                         headers=headers, timeout=REQUEST_TIMEOUT_SECONDS)
         audio.raise_for_status()
         return audio.content, json.dumps(items[0], ensure_ascii=False)
     raise TimeoutError("ACE-Step task timed out; generation may still be running on the server.")

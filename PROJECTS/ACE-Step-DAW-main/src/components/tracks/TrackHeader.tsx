@@ -523,7 +523,7 @@ export const TrackHeader = React.memo(function TrackHeader({
             >
               <button
                 onClick={() => track.isGroup ? setGroupMuted(track.id, !track.muted) : updateTrack(track.id, { muted: !track.muted })}
-                className={`w-[18px] h-[18px] rounded-full text-[9px] font-bold leading-none flex items-center justify-center transition-colors duration-150 focus:outline-none focus-visible:outline-none focus-visible:ring-0 ${
+                className={`w-6 h-6 shrink-0 rounded-full text-[9px] font-bold leading-none flex items-center justify-center transition-colors duration-150 ${
                   track.muted ? 'text-red-400' : 'text-zinc-500 hover:text-zinc-200'
                 }`}
                 title="Mute (M)"
@@ -531,7 +531,7 @@ export const TrackHeader = React.memo(function TrackHeader({
               >M</button>
               <button
                 onClick={() => track.isGroup ? setGroupSoloed(track.id, !track.soloed) : updateTrack(track.id, { soloed: !track.soloed })}
-                className={`w-[18px] h-[18px] rounded-full text-[9px] font-bold leading-none flex items-center justify-center transition-colors duration-150 focus:outline-none focus-visible:outline-none focus-visible:ring-0 ${
+                className={`w-6 h-6 shrink-0 rounded-full text-[9px] font-bold leading-none flex items-center justify-center transition-colors duration-150 ${
                   track.soloed ? 'text-amber-400' : 'text-zinc-500 hover:text-zinc-200'
                 }`}
                 title="Solo (S)"
@@ -540,7 +540,7 @@ export const TrackHeader = React.memo(function TrackHeader({
               {!track.isGroup && (
                 <button
                   onClick={() => setOpenEffectChainTrackId(isFxPanelOpen ? null : track.id)}
-                  className={`w-[18px] h-[18px] rounded-full text-[9px] font-bold leading-none flex items-center justify-center transition-colors duration-150 focus:outline-none focus-visible:outline-none focus-visible:ring-0 ${
+                  className={`w-6 h-6 shrink-0 rounded-full text-[9px] font-bold leading-none flex items-center justify-center transition-colors duration-150 ${
                     track.frozen
                       ? 'text-zinc-600 cursor-not-allowed'
                       : isFxPanelOpen
@@ -556,7 +556,7 @@ export const TrackHeader = React.memo(function TrackHeader({
               {!track.isGroup && (
                 <button
                   onClick={(e) => { e.stopPropagation(); toggleArmTrack(track.id); }}
-                  className={`w-[18px] h-[18px] rounded-full text-[9px] font-bold leading-none flex items-center justify-center transition-colors duration-150`}
+                  className="w-6 h-6 shrink-0 rounded-full text-[9px] font-bold leading-none flex items-center justify-center transition-colors duration-150"
                   title="Record Arm"
                   aria-label={`Record arm ${track.displayName}`}
                 >

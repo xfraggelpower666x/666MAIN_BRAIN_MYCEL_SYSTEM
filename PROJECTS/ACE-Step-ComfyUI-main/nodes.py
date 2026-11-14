@@ -678,8 +678,14 @@ class AceStepText2MusicServer:
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "mode": (["cloud", "local"], {"default": "cloud"}),
+                "mode": (["local", "cloud"], {"default": "local"}),
                 "server_url": ("STRING", {"default": "https://api.acemusic.ai"}),
+                "cloud_consent": ("BOOLEAN", {
+                    "default": False,
+                    "label_on": "Consent to remote generation",
+                    "label_off": "Remote generation disabled",
+                    "tooltip": "When enabled in cloud mode, this node sends the prompt and connected audio to the selected remote server.",
+                }),
                 "gen_params": ("ACESTEP_GEN_PARAMS", {}),
                 "settings": ("ACESTEP_SETTINGS", {}),
             },
@@ -692,12 +698,10 @@ class AceStepText2MusicServer:
     def IS_CHANGED(cls, **kwargs):
         return float("NaN")
 
-    def generate(self, mode, server_url, gen_params, settings, api_key=""):
-        url = server_url.strip()
-        if not url:
-            url = "http://127.0.0.1:8002" if mode == "local" else "https://api.acemusic.ai"
+    def generate(self, mode, server_url, cloud_consent, gen_params, settings, api_key=""):
+        url = local_queue.resolve_api_url(mode, server_url, cloud_consent)
         base = url.rstrip("/")
-        headers = _make_headers(api_key)
+        headers = local_queue.local_api_headers(json_body=True) if mode == "local" else _make_headers(api_key)
 
         body = _build_request_body(gen_params, settings)
         result = _post_json(f"{base}/v1/chat/completions", body, headers)

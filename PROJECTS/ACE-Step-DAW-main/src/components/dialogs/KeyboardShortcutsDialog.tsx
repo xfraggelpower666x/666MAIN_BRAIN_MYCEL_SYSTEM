@@ -95,7 +95,7 @@ export function KeyboardShortcutsDialog() {
               setShow(false);
               useUIStore.getState().setShowShortcutEditorDialog(true);
             }}
-            className="ml-3 px-3 py-1 text-[10px] rounded bg-daw-accent text-white hover:brightness-110 transition-colors whitespace-nowrap flex-shrink-0"
+            className="ml-3 px-3 py-1 text-[10px] rounded bg-daw-accent text-zinc-900 hover:brightness-110 transition-colors whitespace-nowrap flex-shrink-0"
           >
             Customize…
           </button>

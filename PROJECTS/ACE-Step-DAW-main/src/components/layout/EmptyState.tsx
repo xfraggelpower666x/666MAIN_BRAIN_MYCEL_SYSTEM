@@ -77,7 +77,7 @@ export function EmptyState() {
         <div className="flex gap-2 justify-center mb-6">
           <button
             onClick={() => createProject()}
-            className="px-4 py-2 rounded-md bg-daw-accent hover:bg-daw-accent/90 text-white text-xs font-medium transition-colors"
+            className="px-4 py-2 rounded-md bg-daw-accent hover:bg-daw-accent/90 text-zinc-900 text-xs font-medium transition-colors"
           >
             New Project
           </button>

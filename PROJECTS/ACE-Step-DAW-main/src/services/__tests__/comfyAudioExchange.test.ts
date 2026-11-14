@@ -43,6 +43,14 @@ describe('ComfyUI audio exchange', () => {
     vi.unstubAllGlobals();
   });
 
+  it('reports actionable gateway failures when listing audio', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: false, status: 502, text: async () => 'ComfyUI CORS mode is unsafe; restart without --enable-cors-header.',
+    }));
+    await expect(listComfyAudio()).rejects.toThrow('restart without --enable-cors-header');
+    vi.unstubAllGlobals();
+  });
+
   it('copies the original blob into the selected project', async () => {
     const blob = new Blob(['original'], { type: 'audio/wav' });
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, blob: async () => blob }));

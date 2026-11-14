@@ -66,7 +66,7 @@ export function UndoHistoryPanel() {
               key={scope}
               aria-label={`Show ${label} history`}
               className={`rounded-full px-2.5 py-1 text-[10px] transition-colors ${
-                isActive ? 'bg-daw-accent text-white' : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200'
+                isActive ? 'bg-daw-accent text-zinc-900' : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200'
               }`}
               onClick={() => {
                 setSelectedScope(scope as HistoryScope);

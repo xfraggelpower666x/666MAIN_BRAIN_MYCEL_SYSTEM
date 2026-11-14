@@ -876,7 +876,7 @@ export function Toolbar() {
           onClick={() => void (isPlaying ? pause() : play())}
           className={`flex h-10 w-11 items-center justify-center rounded-xl transition-[color,background-color,transform] duration-150 active:scale-95 ${
             isPlaying
-              ? 'bg-daw-accent text-white'
+              ? 'bg-daw-accent text-zinc-900'
               : 'bg-transparent text-white/90 hover:bg-transparent hover:text-white'
           }`}
           aria-label={isPlaying ? 'Pause' : 'Play'}
