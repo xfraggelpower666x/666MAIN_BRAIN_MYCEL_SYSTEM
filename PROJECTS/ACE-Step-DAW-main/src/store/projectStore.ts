@@ -3876,6 +3876,7 @@ export const useProjectStore = create<ProjectState>()(
             ? {
                 ...t,
                 ...syncTrackInstrumentFields(t, { instrument }),
+                ...(instrument.kind === 'soundfont' ? { synthPresetDefinitionId: undefined } : {}),
               }
             : t,
         ),

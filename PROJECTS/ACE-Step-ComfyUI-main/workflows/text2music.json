@@ -106,7 +106,7 @@
       ],
       "title": "Text2music Server",
       "properties": { "Node name for S&R": "AceStepText2MusicServer" },
-      "widgets_values": ["cloud", "https://api.acemusic.ai"]
+      "widgets_values": ["local", "http://127.0.0.1:8002", false]
     },
     {
       "id": 8,

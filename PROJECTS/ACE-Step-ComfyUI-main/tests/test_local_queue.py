@@ -1,7 +1,9 @@
 import importlib.util
 import json
+import os
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 spec = importlib.util.spec_from_file_location(
@@ -40,6 +42,40 @@ class Http:
 
 
 class LocalQueueTests(unittest.TestCase):
+    def test_server_mode_requires_cloud_consent_and_forces_local_endpoint(self):
+        self.assertEqual(
+            local_queue.resolve_api_url("local", "https://remote.example", False),
+            "http://127.0.0.1:8002",
+        )
+        with self.assertRaisesRegex(ValueError, "explicit consent"):
+            local_queue.resolve_api_url("cloud", "https://api.acemusic.ai", False)
+        self.assertEqual(
+            local_queue.resolve_api_url("cloud", "", True),
+            "https://api.acemusic.ai",
+        )
+        self.assertEqual(
+            local_queue.resolve_api_url("cloud", "https://music.example/api", True),
+            "https://music.example/api",
+        )
+        for url in ("http://music.example", "https://user:pass@music.example", "ftp://music.example"):
+            with self.subTest(url=url), self.assertRaises(ValueError):
+                local_queue.resolve_api_url("cloud", url, True)
+
+    def test_local_api_key_is_separate_from_remote_cloud_credentials(self):
+        with patch.dict(os.environ, {"ACESTEP_API_KEY": "cloud-secret"}, clear=True):
+            headers = local_queue.local_api_headers()
+            self.assertNotIn("Authorization", headers)
+            self.assertNotIn("Content-Type", headers)
+            self.assertEqual(local_queue.local_api_headers(json_body=True)["Content-Type"], "application/json")
+        with patch.dict(os.environ, {
+            "ACESTEP_API_KEY": "cloud-secret",
+            "ACESTEP_LOCAL_API_KEY": "local-secret",
+        }, clear=True):
+            self.assertEqual(
+                local_queue.local_api_headers()["Authorization"],
+                "Bearer local-secret",
+            )
+
     def test_text_to_music_polls_and_fetches_only_the_local_audio_route(self):
         http = Http([
             {"status": 0, "result": "[]"},
@@ -66,11 +102,23 @@ class LocalQueueTests(unittest.TestCase):
         }
         local_queue.generate(params, {}, lambda audio: audio.encode(), http)
         submitted = http.calls[0][1]
+        self.assertNotIn("Content-Type", submitted["headers"])
         self.assertEqual(submitted["files"]["src_audio"][1], b"source")
         self.assertEqual(submitted["files"]["reference_audio"][1], b"reference")
         self.assertEqual(submitted["data"]["audio_cover_strength"], "0.4")
         self.assertEqual(submitted["data"]["cover_noise_strength"], "0.2")
         self.assertEqual(submitted["data"]["thinking"], "false")
+
+    def test_shared_local_queue_uses_the_configured_api_key_for_every_request(self):
+        http = Http([{"status": 1, "result": '[{"file":"C:\\\\out.wav"}]'}])
+        with patch.dict(os.environ, {"ACESTEP_LOCAL_API_KEY": "local-secret"}, clear=True):
+            local_queue.generate({}, {}, lambda _: b"", http)
+        self.assertEqual(len(http.calls), 3)
+        for _, kwargs in http.calls:
+            self.assertEqual(kwargs["headers"], {
+                "User-Agent": "AceMusic-ComfyUI/2.0",
+                "Authorization": "Bearer local-secret",
+            })
 
     def test_rejects_unsupported_and_invalid_requests(self):
         for params in (

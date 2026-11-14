@@ -80,6 +80,34 @@ class GatewayTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.status, 502)
         self.assertNotIn("POST", [item[0] for item in self.requests])
 
+    async def test_gateway_errors_are_readable_only_for_authorized_parent_reads(self):
+        self.cors = True
+        for path in ("/system_stats", "/history", "/view"):
+            for origin in gateway.APP_ORIGINS:
+                with self.subTest(path=path, origin=origin):
+                    response = await self.request("GET", path, headers={"Origin": origin})
+                    self.assertEqual(response.status, 502)
+                    self.assertEqual(response.headers.get("Access-Control-Allow-Origin"), origin)
+                    self.assertIn("restart without --enable-cors-header", await response.text())
+        for method, path, headers in (
+            ("GET", "/history", {"Origin": "https://evil.example"}),
+            ("GET", "/history", {"Origin": "http://tauri.localhost", "Host": "evil.example"}),
+            ("GET", "/internal/sensitive", {"Origin": "http://tauri.localhost"}),
+            ("POST", "/prompt", {"Origin": "http://tauri.localhost"}),
+        ):
+            with self.subTest(method=method, path=path, headers=headers):
+                response = await self.request(method, path, headers=headers)
+                self.assertIn(response.status, (403, 404))
+                self.assertNotIn("Access-Control-Allow-Origin", response.headers)
+        self.assertNotIn("POST", [item[0] for item in self.requests])
+
+    async def test_unreachable_upstream_error_is_readable_by_parent(self):
+        await self.upstream.close()
+        response = await self.request("GET", "/system_stats", headers={"Origin": "http://tauri.localhost"})
+        self.assertEqual(response.status, 502)
+        self.assertEqual(response.headers.get("Access-Control-Allow-Origin"), "http://tauri.localhost")
+        self.assertIn("Cannot connect to local ComfyUI", await response.text())
+
     async def test_upstream_redirects_are_not_followed(self):
         self.redirect = True
         response = await self.request("GET", "/history")

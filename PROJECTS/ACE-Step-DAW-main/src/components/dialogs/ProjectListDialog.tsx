@@ -144,7 +144,7 @@ function VersionHistoryPanel({
         <p className="text-[10px] text-zinc-400">{versions.length} version{versions.length !== 1 ? 's' : ''}</p>
         <button
           onClick={handleSaveNow}
-          className="px-2 py-1 text-[10px] font-medium bg-daw-accent hover:bg-daw-accent-hover text-white rounded transition-colors"
+          className="px-2 py-1 text-[10px] font-medium bg-daw-accent hover:bg-daw-accent-hover text-zinc-900 rounded transition-colors"
         >
           Save Version Now
         </button>
@@ -686,7 +686,7 @@ export function ProjectListDialog() {
             <button
               onClick={handleSaveAsTemplate}
               disabled={!templateName.trim()}
-              className="px-2 py-1 text-[10px] font-medium bg-daw-accent hover:bg-daw-accent-hover text-white rounded transition-colors disabled:opacity-50"
+              className="px-2 py-1 text-[10px] font-medium bg-daw-accent hover:bg-daw-accent-hover text-zinc-900 rounded transition-colors disabled:opacity-50"
             >
               Save
             </button>

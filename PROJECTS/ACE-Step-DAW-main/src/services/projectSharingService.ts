@@ -71,6 +71,8 @@ async function renderTrackClips(project: Project, track: Track): Promise<ExportC
           project.bpm,
           track.synthPreset ?? 'piano',
           project.totalDuration,
+          undefined,
+          track.instrument?.kind === 'soundfont' ? track.instrument : undefined,
         );
       }
 

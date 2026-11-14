@@ -198,7 +198,7 @@ export interface SampleZone {
 }
 
 export type LegacySynthVoicePreset = Exclude<SynthPreset, 'sampler'>;
-export type InstrumentKind = 'subtractive' | 'sampler' | 'fm' | 'wavetable' | 'granular' | 'additive' | 'physical';
+export type InstrumentKind = 'subtractive' | 'sampler' | 'fm' | 'wavetable' | 'granular' | 'additive' | 'physical' | 'soundfont';
 export type InstrumentWaveform = 'sine' | 'triangle' | 'square' | 'sawtooth';
 export type InstrumentLfoTarget = 'off' | 'pitch' | 'filterCutoff' | 'amp' | 'pan';
 
@@ -497,6 +497,20 @@ export interface PhysicalTrackInstrument {
   settings: PhysicalModelSettings;
 }
 
+export interface SoundfontTrackInstrument {
+  kind: 'soundfont';
+  preset: 'soundfont';
+  name: string;
+  settings: {
+    soundBankId: string;
+    soundBankName: string;
+    bankOffset: number;
+    bank: number;
+    bankLsb: number;
+    program: number;
+  };
+}
+
 export type TrackInstrument =
   | SubtractiveTrackInstrument
   | SamplerTrackInstrument
@@ -504,7 +518,8 @@ export type TrackInstrument =
   | WavetableTrackInstrument
   | GranularTrackInstrument
   | AdditiveTrackInstrument
-  | PhysicalTrackInstrument;
+  | PhysicalTrackInstrument
+  | SoundfontTrackInstrument;
 
 export interface SamplerSettings {
   audioKey?: string;
