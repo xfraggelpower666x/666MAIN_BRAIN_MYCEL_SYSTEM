@@ -95,3 +95,19 @@ Die Kandidatenprüfung meldet im Feld `patch_path_coverage`, welche geänderten 
 Ergänze den Aufruf aus R06 um `--require-patch-coverage`, wenn der Beleg jeden geänderten Kandidatenpfad enthalten muss. Falls der übrige Review konsistent ist und Pfade fehlen, liefert die CLI Exit 1 und `PATCH_PATH_COVERAGE_INCOMPLETE`. Ohne Flag bleibt der bisherige Exit-Vertrag erhalten.
 
 Die Abdeckung bezieht sich auf deklarierte Pfade. Eine fachliche Testabdeckung, der Umgang mit Löschungen und die Herkunft des tatsächlichen Runs werden unabhängig geprüft.
+
+## 666CF v1.2.0 · Repo-Karten und Wiederaufnahme
+
+Die Systemsicherung wurde anhand aller 25 archivinternen SHA-256-Einträge verifiziert. SHA-256 des gelieferten ZIPs: `2cd0bb70c1a711d9e1081b2d89c7dd3b7b0363df4beb9e8f2677236b98979684`. Eingangsklasse: Freeze-Referenz. Der exportierte Quellpointer weist einen geteilten Abschlussmarker auf. Sein Live-Readback bleibt offen.
+
+1. **Repo-Karten isolieren.** Beim Fortsetzen eines Programmier- oder Systemprojekts Karten nach Repository-ID und Branch trennen. 30 Tage als aktives Referenzfenster verwenden. Ältere Karten und relevante Prüfbelege als Historie behalten. Nur den letzten verifizierten Stand als Vergleichsbasis verwenden.
+2. **Delta prüfen.** Aktuellen Branch-HEAD direkt aus GitHub bestätigen. Beide vollständigen Commit-IDs in demselben, zur Repository-ID verifizierten Checkout vergleichen. Fehlende Objekte oder unbekannte Abstammung offen ausweisen. Bei Divergenz betroffene Belege neu auflösen und ausstehende Writes pausieren.
+3. **Fortsetzen.** Den letzten bestätigten Schritt, den letzten abgeschlossenen Write und die zuletzt unbestätigte Aktion getrennt lesen. Bei ungewissem Write direkt Zielzustand prüfen und zwischen abgeschlossen, ausstehend, teilweise und Konflikt unterscheiden. Aus dem Vergleich nur betroffene Kartenbelege aktualisieren und den nächsten Schritt an Scope und Return-Anchor binden. Der Beobachtungsschritt läuft im nativen LiveCircle und liefert Befunde zur Entscheidung.
+4. **Release belegen.** Relevante Defekte vor Reparatur reproduzieren, nach Reparatur erneut prüfen und angeforderten Freeze und Systembackup an Quellrevision und Hashmanifest binden. History und Handoff vor den ggf. autorisierten Pointer-Write legen. Danach nur Readback.
+
+```sh
+python3 INTEGRATIONS/CODEFORGE/compare_repo_card.py \
+  --checkout REPO --previous LAST_VERIFIED_SHA --current VERIFIED_GITHUB_SHA
+```
+
+Das Werkzeug liest Git-Objekte und meldet einen Netto-Dateidiff mit Umbenennungen sowie den Stand der Abstammung. Exit 0 gilt für gleiche oder nachweisbar vorwärts entwickelte Commits. Exit 1 meldet eine umgeschriebene oder nicht nachweisbare Abstammung. Exit 2 meldet ungültige oder fehlende Eingaben. Das Werkzeug führt keinen Remote-Readback aus. Der Workflow bindet diesen Nachweis vor dem Aufruf. Roharchive, fremde Pointer und Child-Sync gehören zur ursprünglichen 666CF-/PFS-Authority.

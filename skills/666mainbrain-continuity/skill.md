@@ -34,3 +34,7 @@ DO_NOT_REPEAT_VERIFIED_WORK=TRUE
 STALE_STATE_PROMOTION=FORBIDDEN
 NEWER_VALID_EVOLUTION_PRESERVED=TRUE
 GLOBAL_LATEST_HANDOFF=FORBIDDEN
+
+## CodeForge-Projektkontext
+
+Für ein aktives Programmier- oder Systemprojekt mit vorhandener Repo-Karte den [Repo-Karten-Abgleich](../../INTEGRATIONS/CODEFORGE/HANDOFF_INTAKE_R01.md#666cf-v120--repo-karten-und-wiederaufnahme) beim Revalidieren von HEAD und Return-Anchor anwenden. Unbestätigte Writes zuerst direkt am Ziel prüfen. Der ermittelte Delta-Befund geht in den bestehenden Lineage-Handoff.
