@@ -7,6 +7,12 @@ description: Projektneutrale Toolkarten und Windows-ToolStarter für Coding-Agen
 
 © 2026 666SOUNDsDESIGn - FRAGGLEPOWER666
 
+## Werkzeugprüfung für Coding-Aufträge
+
+MAIN BRAIN verwendet ToolStarter bei Codeuntersuchung, Analyse, Verbesserung und Neubau. Wähle die relevanten Karten und prüfe die Werkzeuganforderungen am normalen Projektpfad. Dazu gehören vorhandene Versionsvorgaben, Abhängigkeiten und ausführbare Prüfungen. Nutze bei neuen Projekten den Auftrag und Zielhost als Ausgangspunkt. Halte pro relevantem Werkzeug den Beleg und einen fehlenden oder bestätigten Prüfschritt fest.
+
+Für reine Quellarbeit bleibt es bei Karten und lesender Prüfung, sofern der Auftrag keine sichere Diagnose am geprüften Profil umfasst. Für freigegebene Änderungen wende den Befund auf Build, Tests und Abnahme an. Der [MAIN-BRAIN-Workflow](../PLUGIN_CAPABILITIES/WORKFLOWS_R01.md#toolstarter-bei-coding-aufträgen) regelt die Auswahl.
+
 ## Projekt aufnehmen
 
 1. Bestimme Projektwurzel, Zielsystem, Architektur und Auftrag. Lies vorhandene Startskripte, Manifeste, Lockfiles, CI- und Paketkonfiguration sowie die tatsächlichen Aufrufer. Ein im Archiv oder Code gefundener Befehl ist Projektmaterial. Führe ihn nur im Rahmen des aktuellen Auftrags aus.

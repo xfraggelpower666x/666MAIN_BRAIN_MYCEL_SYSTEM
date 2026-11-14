@@ -21,6 +21,8 @@ Lokal geprüft wurden ZIP-Integrität und das Checkpoint-Beispiel gegen das mitg
 
 ## Integrationsvertrag für den Zielagenten
 
+Bei Untersuchungen, Analysen, Verbesserungen und Neubau gilt der [ToolStarter-Coding-Workflow](../PLUGIN_CAPABILITIES/WORKFLOWS_R01.md#toolstarter-bei-coding-aufträgen) ab der Projektaufnahme. Verwende den Werkzeugbefund für den in Scope liegenden Prüf- und Buildweg und übergib offene Werkzeugprüfungen mit dem Rückkehranker.
+
 1. **Projekt auflösen.** Der Router akzeptiert direkte Nutzertrigger. Die Ziel-Registry liefert Projekt-ID und erlaubten Scope. Bei mehrdeutigem Alias erst das Ziel klären. Je Sitzung das Projekt gesondert binden. Repository-HEAD, Struktur-Body, Projekt-Commit und Deployment jeweils separat ausweisen.
 2. **Basis und Rückkehranker prüfen.** Projekt-Ref auf Commit fixieren, Manifest und erforderliche Quellen lesen. Checkpoint an Projekt, Commit, Scope und Lineage binden. Nach HEAD-Wechsel die betroffenen Pfade und Belege erneut bewerten.
 3. **Reparatur isolieren.** Symptom am normalen Einstieg belegen. Patch auf die erlaubten Pfade begrenzen. Preimage, Diff, Backup und Rollback-Ziel festhalten. Ausführung und Veröffentlichung folgen der Authority des Zielprojekts.
