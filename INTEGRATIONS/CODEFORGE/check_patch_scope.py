@@ -20,6 +20,15 @@ def scope_entry(value):
     return value
 
 
+def changed_paths(checkout, base, candidate, *, deletions_only=False):
+    filters = ("--diff-filter=D",) if deletions_only else ()
+    raw = git(
+        checkout, "diff", "--no-ext-diff", "--no-renames", "--ignore-submodules=none",
+        "--name-only", "-z", *filters, base, candidate, "--",
+    )
+    return [path.decode("utf-8", "surrogateescape") for path in raw.split(b"\0") if path]
+
+
 def check_scope(checkout, base, candidate, allowed):
     for commit in (base, candidate):
         if not re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", commit):
@@ -28,11 +37,7 @@ def check_scope(checkout, base, candidate, allowed):
             raise ValueError("Both IDs must name commits directly")
     git(checkout, "merge-base", "--is-ancestor", base, candidate)
     allowed = tuple(scope_entry(value) for value in allowed)
-    raw = git(
-        checkout, "diff", "--no-ext-diff", "--no-renames", "--ignore-submodules=none",
-        "--name-only", "-z", base, candidate, "--",
-    )
-    changed = [path.decode("utf-8", "surrogateescape") for path in raw.split(b"\0") if path]
+    changed = changed_paths(checkout, base, candidate)
     outside = [
         path for path in changed
         if not any(path == entry or path.startswith(entry + "/") for entry in allowed)

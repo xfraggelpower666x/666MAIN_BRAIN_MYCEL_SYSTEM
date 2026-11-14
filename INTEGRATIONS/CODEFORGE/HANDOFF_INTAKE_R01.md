@@ -87,3 +87,11 @@ Mit `--snapshot-from-candidate` berechnet die Kandidatenprüfung den erwarteten 
 Der Modus verwendet das Digest-Format von PyGate 0.3.2 für reguläre Dateien. Er liest die exakten `checked_paths` des Belegs im Kandidatencommit. Fehlende Pfade, Verzeichnisse, Symlinks und Submodule sind in diesem Modus ungültig. Checkout-Transformationen wie Zeilenenden oder Filter können einen anderen Dateidigest ergeben. Für unabhängig ermittelte Arbeitsbaum-Digests bleibt der explizite Modus verfügbar.
 
 Ein Digest-Treffer bindet die deklarierten Eingabebytes an den Commit. Der Prüfumfang bleibt auf die deklarierten Pfade begrenzt. Vollständige Patch-Abdeckung, Runner-Herkunft und Host-Abnahme benötigen eigene Belege.
+
+## Patch-Pfadabdeckung R07
+
+Die Kandidatenprüfung meldet im Feld `patch_path_coverage`, welche geänderten und im Kandidaten noch vorhandenen Pfade der QuickGate-Beleg auslässt. Der Vergleich verwendet exakte Git-Pfade. Bei einer Umbenennung prüft der Scope-Check beide Seiten. Für die Abdeckung zählt der Zielpfad. Löschungen werden als eigene Liste ausgegeben.
+
+Ergänze den Aufruf aus R06 um `--require-patch-coverage`, wenn der Beleg jeden geänderten Kandidatenpfad enthalten muss. Falls der übrige Review konsistent ist und Pfade fehlen, liefert die CLI Exit 1 und `PATCH_PATH_COVERAGE_INCOMPLETE`. Ohne Flag bleibt der bisherige Exit-Vertrag erhalten.
+
+Die Abdeckung bezieht sich auf deklarierte Pfade. Eine fachliche Testabdeckung, der Umgang mit Löschungen und die Herkunft des tatsächlichen Runs werden unabhängig geprüft.
