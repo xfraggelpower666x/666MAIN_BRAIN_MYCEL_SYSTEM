@@ -98,6 +98,14 @@ class LocalQueueTests(unittest.TestCase):
             with self.subTest(entry=entry), self.assertRaises(RuntimeError):
                 local_queue.generate({}, {}, lambda _: b"", Http([entry]))
 
+    def test_non_string_audio_path_reports_a_queue_error_without_fetching_audio(self):
+        for value in (None, 42, []):
+            with self.subTest(value=value):
+                http = Http([{"status": 1, "result": json.dumps([{"file": value}])}])
+                with self.assertRaisesRegex(RuntimeError, "invalid audio path"):
+                    local_queue.generate({}, {}, lambda _: b"", http)
+                self.assertEqual(len(http.calls), 2)
+
     def test_timeout_warns_that_server_can_continue(self):
         with self.assertRaisesRegex(TimeoutError, "still be running"):
             local_queue.generate({}, {}, lambda _: b"", Http([]), clock=iter([0, 3600]).__next__)

@@ -83,12 +83,14 @@ def _data(response):
 
 
 def _audio_path(value):
+    if not isinstance(value, str) or not value:
+        raise RuntimeError("ACE-Step returned an invalid audio path.")
     if value.startswith("/v1/audio?"):
         values = parse_qs(urlsplit(value).query).get("path", [])
         if len(values) != 1:
             raise RuntimeError("ACE-Step returned an invalid audio URL.")
         return values[0]
-    if "://" in value or not value:
+    if "://" in value:
         raise RuntimeError("ACE-Step returned an invalid audio path.")
     return value
 
