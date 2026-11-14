@@ -1,15 +1,33 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '../ui/Button';
+import { ComfyExchange } from './ComfyExchange';
 
-const COMFY_URL = 'http://127.0.0.1:8188';
+const COMFY_URL = 'http://127.0.0.1:8189';
 const CHECK_TIMEOUT_MS = 5000;
+const HEALTH_INTERVAL_MS = 10000;
 
 type ConnectionState = 'disconnected' | 'checking' | 'connected' | 'error';
+
+async function checkService(signal: AbortSignal) {
+  const response = await fetch(`${COMFY_URL}/system_stats`, {
+    signal,
+    redirect: 'error',
+    credentials: 'omit',
+    cache: 'no-store',
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const data: unknown = await response.json();
+  if (!data || typeof data !== 'object' || !('system' in data) || !('devices' in data)) {
+    throw new Error('The local service did not return ComfyUI system information.');
+  }
+}
 
 export function ComfyWorkspace() {
   const [status, setStatus] = useState<ConnectionState>('disconnected');
   const [error, setError] = useState('');
+  const [serviceUnavailable, setServiceUnavailable] = useState(false);
   const activeCheck = useRef<AbortController | null>(null);
+  const frameRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => () => {
     const controller = activeCheck.current;
@@ -17,30 +35,49 @@ export function ComfyWorkspace() {
     controller?.abort();
   }, []);
 
+  useEffect(() => {
+    if (status !== 'connected') return;
+    let active = true;
+    let controller: AbortController | null = null;
+    let timeout: number | undefined;
+    const interval = window.setInterval(async () => {
+      if (controller) return;
+      controller = new AbortController();
+      const current = controller;
+      timeout = window.setTimeout(() => current.abort(), CHECK_TIMEOUT_MS);
+      try {
+        await checkService(current.signal);
+        if (active) setServiceUnavailable(false);
+      } catch {
+        if (active) setServiceUnavailable(true);
+      } finally {
+        window.clearTimeout(timeout);
+        controller = null;
+      }
+    }, HEALTH_INTERVAL_MS);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      window.clearTimeout(timeout);
+      controller?.abort();
+    };
+  }, [status]);
+
   async function connect() {
     activeCheck.current?.abort();
     const controller = new AbortController();
     activeCheck.current = controller;
     setStatus('checking');
     setError('');
+    setServiceUnavailable(false);
     const timeout = window.setTimeout(() => controller.abort(), CHECK_TIMEOUT_MS);
     try {
-      const response = await fetch(`${COMFY_URL}/system_stats`, {
-        signal: controller.signal,
-        redirect: 'error',
-        credentials: 'omit',
-        cache: 'no-store',
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data: unknown = await response.json();
-      if (!data || typeof data !== 'object' || !('system' in data) || !('devices' in data)) {
-        throw new Error('The local service did not return ComfyUI system information.');
-      }
+      await checkService(controller.signal);
       if (activeCheck.current === controller) setStatus('connected');
     } catch (reason) {
       if (activeCheck.current === controller) {
         const detail = reason instanceof Error ? reason.message : String(reason);
-        setError(`Cannot connect to ComfyUI: ${detail}. Check that it is running on 127.0.0.1:8188 and allows this app's origin.`);
+        setError(`Cannot connect to ComfyUI: ${detail}. Check that ComfyUI and its local gateway are running.`);
         setStatus('error');
       }
     } finally {
@@ -55,6 +92,7 @@ export function ComfyWorkspace() {
     controller?.abort();
     setStatus('disconnected');
     setError('');
+    setServiceUnavailable(false);
   }
 
   return (
@@ -62,7 +100,7 @@ export function ComfyWorkspace() {
       <div className="flex flex-wrap items-center gap-3 border-b border-daw-border-strong bg-daw-surface-2 px-4 py-2">
         <h2 className="text-sm font-medium text-zinc-100">ComfyUI</h2>
         <span className="text-xs text-zinc-300" role="status">
-          {status === 'connected' ? 'Local service responded' : status === 'checking' ? 'Checking local service...' : 'Not connected'}
+          {status === 'connected' ? (serviceUnavailable ? 'Local service unavailable' : 'Local service responded') : status === 'checking' ? 'Checking local service...' : 'Not connected'}
         </span>
         {status === 'connected' || status === 'checking' ? (
           <Button size="sm" onClick={disconnect}>Disconnect</Button>
@@ -70,8 +108,15 @@ export function ComfyWorkspace() {
           <Button size="sm" onClick={() => void connect()}>{status === 'error' ? 'Retry connection' : 'Connect'}</Button>
         )}
       </div>
+      {status === 'connected' && serviceUnavailable && (
+        <p className="bg-daw-surface-2 px-4 py-2 text-sm text-red-300" role="alert">
+          The local service stopped responding. The editor remains open; restart the service and gateway to reconnect.
+        </p>
+      )}
+      {status === 'connected' && <ComfyExchange frameRef={frameRef} unavailable={serviceUnavailable} />}
       {status === 'connected' ? (
         <iframe
+          ref={frameRef}
           title="ComfyUI workflow editor"
           src={COMFY_URL}
           sandbox="allow-scripts allow-same-origin allow-forms allow-downloads"
@@ -79,8 +124,8 @@ export function ComfyWorkspace() {
         />
       ) : (
         <div className="max-w-2xl px-6 py-6 text-sm text-zinc-300">
-          <p>Start your trusted local ComfyUI service separately, then connect to open its workflow editor here.</p>
-          <p className="mt-2">Connecting does not start or stop the service. Only the local address 127.0.0.1:8188 is supported.</p>
+          <p>Start your trusted local ComfyUI service and its gateway separately, then connect to open its workflow editor here.</p>
+          <p className="mt-2">Connecting does not start or stop either service. The gateway listens on 127.0.0.1:8189.</p>
           {error && <p className="mt-4 text-red-300" role="alert">{error}</p>}
         </div>
       )}

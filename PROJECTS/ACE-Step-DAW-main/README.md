@@ -65,15 +65,35 @@ Opens at [http://localhost:5174](http://localhost:5174). The dev server proxies 
 
 **Cloud API:** Configure the backend URL in Settings → API URL: `https://api.acemusic.ai`
 
-**ComfyUI workspace:** Start a trusted ComfyUI installation separately on
-`127.0.0.1:8188`, then select ComfyUI and Connect in the DAW. ComfyUI must
-allow the desktop app's origin (`http://tauri.localhost` on Windows) for the
-`/system_stats` connection check. The app does not start or stop ComfyUI.
-The editor is embedded from that local service; installing ComfyUI and its
-ACE-Step nodes, sharing audio with the DAW, and configuring a shared inference
-backend are not yet automated. A successful connection check does not verify
-that the editor can be embedded: browser security headers can still block it.
-Only connect to an installation and custom nodes you trust.
+**ComfyUI workspace:** Install the included `ACE-Step-ComfyUI-main` directory
+as a ComfyUI custom node (including its dependencies), then start trusted
+ComfyUI on `127.0.0.1:8188` **without** `--enable-cors-header`. For example:
+
+```powershell
+# In the ComfyUI directory, using its existing Python environment:
+.\.venv\Scripts\python.exe main.py --listen 127.0.0.1 --port 8188
+# In a second terminal, from this DAW directory:
+& 'C:\path\to\ComfyUI\.venv\Scripts\python.exe' integration\comfy_gateway.py
+```
+
+Select ComfyUI and Connect in the DAW. The gateway needs `aiohttp`, binds only
+to `127.0.0.1:8189`, checks host and origin, and exposes selected editor routes.
+It rejects ComfyUI's CORS mode because it disables ComfyUI's origin protection.
+Keep both services local and use only trusted custom nodes; their APIs are not
+generally exposed by the gateway. The development DAW origin must be
+`http://127.0.0.1:5174`.
+
+Connecting and disconnecting do not start or stop services. If either service
+becomes unavailable, the editor stays mounted and the DAW reports the loss.
+Save workflow to project captures a snapshot via the installed custom-node
+bridge; download it to restore manually in ComfyUI without replacing the active
+graph automatically. Find output audio lists ComfyUI history; importing copies
+the selected audio to a new undoable track without changing the source. The
+project and its `.acedaw` archive retain the workflow and copied audio. Preview
+outputs may disappear from ComfyUI before import. The Windows Tauri editor,
+workflow capture, and model-free audio import were exercised with local
+ComfyUI; GPU inference and the shared queue against a live ACE-Step server
+remain unverified. Service process management is not automated.
 
 **Production build:**
 
