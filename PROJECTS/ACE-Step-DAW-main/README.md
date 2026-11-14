@@ -90,8 +90,10 @@ bridge; download it to restore manually in ComfyUI without replacing the active
 graph automatically. Find output audio lists ComfyUI history; importing copies
 the selected audio to a new undoable track without changing the source. The
 project and its `.acedaw` archive retain the workflow and copied audio. Preview
-outputs may disappear from ComfyUI before import. Native Tauri embedding and
-GPU inference remain unverified; service process management is not automated.
+outputs may disappear from ComfyUI before import. The Windows Tauri editor,
+workflow capture, and model-free audio import were exercised with local
+ComfyUI; GPU inference and the shared queue against a live ACE-Step server
+remain unverified. Service process management is not automated.
 
 **Production build:**
 
