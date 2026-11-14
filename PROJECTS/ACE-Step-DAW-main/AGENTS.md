@@ -1,0 +1,172 @@
+# AGENTS.md — ACE-Step DAW Development Rules
+
+> All AI agents MUST follow this file AND `CLAUDE.md`.
+> Quality gates, TDD cycle, and git basics are in CLAUDE.md (single source of truth).
+> This file covers: development process, competitive research, design resources, and red lines.
+
+---
+
+## Git Workflow (PR-driven, no exceptions)
+
+### Branches
+- `main` — Stable. **Only updated via PR merge.** Never push directly.
+- **Manual branches**: `feat/v0.0.X-xxx`, `fix/v0.0.X-xxx`, `test/v0.0.X-system-test`
+- **Automated branches**: `fix/issue-NUMBER` (created by `launch-dev.sh` per issue)
+
+### Per-Version Workflow
+```
+git fetch origin && git checkout main && git pull --ff-only origin main
+git checkout -b feat/v0.0.X-feature-name
+→ Develop + test + fix → push → Create PR → review → merge
+→ git tag -a v0.0.X -m "release notes" && git push origin main --tags
+→ Create GitHub Release (with deep-tested GIF demos)
+```
+
+**Hotfix exception**: `fix/` branches may skip competitive research, but code review + testing are mandatory.
+
+### Release Standards
+- Detailed changelog (every feature + fix)
+- Deep-tested GIF demos (full user workflows)
+- Test coverage report
+- Known issues list + next steps
+
+---
+
+## 9-Step Development Process
+
+### Step 1: Competitive Deep Research
+- Read competitor docs at **interaction-detail level** (parameter ranges, edge cases, shortcuts, error handling)
+- Bad: "Ableton has Group Tracks"
+- Good: "Ableton Group Track: nestable, shows sub-clip overview when folded, Cmd+Click for multi-select, color applies to all sub-tracks"
+- Output: file findings as GitHub Issues with detailed competitive references
+
+### Step 2: Agile Planning
+- Write dev tasks with competitive references
+- Decide: copy / improve / skip per feature
+
+### Step 3: UI/UX Design Audit
+- Design UI before coding. Check colors, spacing, hierarchy, density
+- Follow `.claude/references/interaction-design.md`
+
+### Step 4: Coding (Three-Model Parallel)
+| Model | Role |
+|-------|------|
+| Claude Opus (1M) | Planning, review, test analysis |
+| Claude Code CLI | Precise coding, adaptation, refactoring |
+| Codex | Bulk coding, PR review, testing |
+
+### Step 5: Code Review (Cross-Validated)
+
+**Two independent reviewers, both mandatory:**
+
+1. **GitHub Copilot**: Automatically reviews PRs — check via `gh pr view <num> --json reviews`
+2. **Codex review**: Run `/codex review` for independent structural analysis
+3. **Post Codex results**: `gh pr comment <num> --body "<codex findings>"` for visibility
+4. **Cross-reference**: Both reviewers' feedback must be addressed before merge
+
+**Manual checks** (in addition to automated review):
+- Quality gates (see CLAUDE.md) + scan for: unused imports, console.log, untyped `any`
+
+### Step 6: Browser Testing
+- Full user workflows (not just clicking around). Compare against competitors.
+
+### Step 7: Color Validation
+- Dark theme consistency, WCAG contrast, DAW color conventions
+
+### Step 8: PR + Review + Merge + Tag
+- Push → PR → Copilot reviews → Codex review → post findings → address both → merge → tag → GitHub Release → Discord
+
+### Step 9: Full System Test (every 5 versions)
+- v0.0.15, v0.0.20, v0.0.25...
+- Cold start, full user journey, edge cases, visual audit, audio stability
+
+---
+
+## Design & UX Resources
+
+- **Interaction Design**: `.claude/references/interaction-design.md`
+- **Design Guide**: `docs/design/INTERACTION_DESIGN_GUIDE.md`
+- **UX Checklist**: `docs/design/UX_IMPROVEMENT_CHECKLIST.md`
+- **Research Notes**: filed as GitHub Issues with competitive references
+
+---
+
+## Competitive Research Index
+
+### Ableton Live 12
+- [Mixing](https://www.ableton.com/en/live-manual/12/mixing/) | [MIDI](https://www.ableton.com/en/live-manual/12/editing-midi/) | [Effects](https://www.ableton.com/en/live-manual/12/live-audio-effect-reference/)
+- [Automation](https://www.ableton.com/en/live-manual/12/automation-and-editing-envelopes/) | [Recording](https://www.ableton.com/en/live-manual/12/recording-new-clips/) | [Browser](https://www.ableton.com/en/live-manual/12/working-with-the-browser/) | [Routing](https://www.ableton.com/en/live-manual/12/routing-and-i-o/)
+
+### ACE-Step
+- [DAW Repo](https://github.com/ace-step/ACE-Step-DAW) | [API Repo](https://github.com/ace-step/ACE-Step-1.5)
+
+---
+
+## User Story Driven Development
+
+### Format
+```
+As a [human user / AI agent], I want to [action], so that [outcome].
+```
+
+### Plans Must Be Executable
+Every plan must contain: Problem → Root Cause → Solution → Verification → Files to Touch. Write plans as GitHub Issue bodies, not as separate files.
+
+---
+
+## Language Policy
+
+- All project files MUST be in English (source, comments, docs, commits, PRs, releases)
+- Exception: research notes in `.llm/research/` (session-local) may contain bilingual content
+- Conversations may be in Chinese; all repo output must be English
+
+---
+
+## Proactive Research & Exploration
+
+### Principle: Precision + Breadth = Global Optimum
+
+Deep focus alone finds local maxima. Exploration alone finds nothing. Agents must combine both:
+- **Research before coding**: When facing unfamiliar APIs, patterns, or competitor behavior, search first
+- **Explore multiple approaches**: For architecture decisions, generate 2-3 options before committing
+- **Verify assumptions**: Don't code based on guesses — a 30-second search beats a 30-minute debug
+
+### Research Triggers (any agent)
+
+| Trigger | Action |
+|---------|--------|
+| Unfamiliar API or library | `/quick-research` — search docs + examples |
+| 2+ viable approaches | `/brainstorm` — score and select |
+| Competitor behavior needed | WebSearch for interaction-detail level info |
+| Error after 2 failed attempts | Stop guessing, search the error |
+| New UI pattern | Search for best practices + competitor screenshots |
+
+### Skills
+
+- **`/quick-research`**: Lightweight inline research (2-3 searches, extract key insight, move on)
+- **`/brainstorm`**: Multi-approach exploration (generate options, score, select, document decision)
+- **`@researcher`**: Full competitive research cycle (for epics and new feature areas)
+
+### Anti-Patterns
+
+- **Coding blind**: Implementing an unfamiliar API without reading docs first
+- **First-solution lock**: Committing to the first approach without considering alternatives
+- **Research rabbit hole**: Spending 20 minutes researching a 5-minute task
+- **Confirmation bias**: Searching only for evidence that supports your current approach
+
+---
+
+## Red Lines (absolute prohibitions)
+
+- Never push directly to main
+- Never merge a PR before CI passes
+- Never publish a release without deep-tested GIF demos
+- Never code without competitive research (except hotfixes)
+- Never skip browser testing before release
+- Never push to personal fork (org repo only)
+- Never use wrong git identity (ChuxiJ / junmin@acestudio.ai)
+- Always check Copilot review feedback before merge
+
+---
+
+_This document is the law. Violating any rule requires stopping and correcting._

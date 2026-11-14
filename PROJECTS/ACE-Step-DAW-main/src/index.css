@@ -1,0 +1,777 @@
+@import "tailwindcss";
+@import "./styles/effect-colors.css";
+
+@theme {
+  /* ── Fonts ── */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+
+  /* ── Type Scale (DAW-optimized: compact, readable at small sizes) ── */
+  /* Namespaced with --daw- prefix to avoid overriding Tailwind v4 built-in text-* utilities */
+  --daw-text-xs: 10px;
+  --daw-text-sm: 11px;
+  --daw-text-base: 12px;
+  --daw-text-lg: 13px;
+  --daw-text-xl: 16px;
+  --daw-text-2xl: 20px;
+  --daw-text-display: 28px;
+
+  /* ── Font Weights ── */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+
+  /* ── Spacing Scale (4px grid) ── */
+  --space-0: 0px;
+  --space-0-5: 2px;
+  --space-1: 4px;
+  --space-1-5: 6px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* ── Animation Durations ── */
+  --duration-fast: 100ms;
+  --duration-normal: 200ms;
+  --duration-slow: 350ms;
+
+  /* ── Easing Curves ── */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ── Colors ── */
+  --color-daw-bg: #22242a;
+  --color-daw-surface: #1d1f23;
+  --color-daw-surface-2: #2f3138;
+  --color-daw-surface-3: #3e4045;
+  --color-daw-border: #3f4446;
+  --color-daw-border-strong: #141414;
+  --color-daw-hover: #40434b;
+  --color-daw-hover-subtle: #373a41;
+  --color-daw-text-muted: #a0a0a0;
+  --color-daw-accent: #f7a738;
+  --color-daw-accent-hover: #faca88;
+  --color-daw-playhead: #e6e6e6;
+  --color-daw-arrangement-header-bg: #373a41;
+  --color-daw-arrangement-group-bg: #40434b;
+  --color-daw-arrangement-empty-lane-bg: #1d1f23;
+  --color-daw-arrangement-separator: #3f4446;
+  --color-daw-grid-bar: #484b52;
+  --color-daw-grid-beat: #33363d;
+  --color-daw-grid-eighth: #292c32;
+  --color-daw-grid-sub: #262930;
+  --color-daw-grid-bar-shading: rgba(0, 0, 0, 0.03);
+  --color-daw-track-selected: #545a5d;
+  --color-daw-region-audio: #5a9fd4;
+  --color-daw-region-midi: #87d65a;
+  --color-daw-region-drummer: #ffb532;
+  --color-daw-region-sample: #6dd7ff;
+  --color-daw-scrollbar: #828282;
+  --color-daw-scrollbar-hover: #757575;
+  --color-daw-slider-thumb: #f9cd90;
+  --color-daw-slider-thumb-hover: #f7a738;
+  --color-daw-focus-ring: rgba(247, 167, 56, 0.5);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-daw-scrollbar) transparent;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: var(--color-daw-scrollbar);
+  border-radius: 2px;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-daw-slider-thumb);
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  background: var(--color-daw-slider-thumb-hover);
+}
+
+/* #548 — Focus-visible indicators for keyboard accessibility */
+/* Enhanced with glow spread for better visibility (#1124) */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-daw-focus-ring);
+  outline-offset: 1px;
+  box-shadow:
+    var(--tw-ring-offset-shadow, 0 0 #0000),
+    var(--tw-ring-shadow, 0 0 #0000),
+    var(--tw-shadow, 0 0 #0000),
+    0 0 0 4px var(--color-daw-focus-ring);
+}
+
+/* #556 — Webkit/Chromium scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-daw-scrollbar);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-daw-scrollbar-hover);
+}
+
+/* ── Tabular Nums: consistent width for all numeric displays ── */
+.gb-lcd,
+.daw-numeric {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Surface Depth & Layering — theme-aware shadows and glass effects ── */
+/* Shadow utilities: use var() from theme tokens applied by applyTheme() */
+.daw-shadow-sm { box-shadow: var(--daw-shadow-sm); }
+.daw-shadow-md { box-shadow: var(--daw-shadow-md); }
+.daw-shadow-lg { box-shadow: var(--daw-shadow-lg); }
+.daw-shadow-xl { box-shadow: var(--daw-shadow-xl); }
+.daw-shadow-inset { box-shadow: var(--daw-shadow-inset); }
+
+/* Glass panel effect: frosted background + backdrop blur + themed border */
+.daw-glass {
+  background: var(--daw-glass-bg);
+  border: 1px solid var(--daw-glass-border);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+/* Lighter glass variant for subtle overlays */
+.daw-glass-subtle {
+  background: var(--daw-glass-bg);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+/* Reduced motion: disable backdrop blur (performance-heavy) */
+@media (prefers-reduced-motion: reduce) {
+  .daw-glass,
+  .daw-glass-subtle {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* ── Micro-interactions — hover, active, drag state feedback (#1124) ── */
+
+/* Interactive button: smooth hover + press feedback */
+.daw-btn-interactive {
+  transition: box-shadow var(--duration-normal) var(--ease-out), transform var(--duration-fast) var(--ease-out);
+}
+.daw-btn-interactive:hover {
+  box-shadow: var(--daw-shadow-sm);
+}
+.daw-btn-interactive:active {
+  transform: scale(0.97);
+  box-shadow: var(--daw-shadow-inset);
+}
+
+/* Clip block hover: subtle brightness lift (border handled per-clip via inline styles) */
+.daw-clip-interactive {
+  transition: filter var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
+}
+.daw-clip-interactive:hover {
+  filter: brightness(1.08);
+}
+
+/* Drag lift: element elevates when being dragged */
+.daw-drag-lift {
+  transition: transform var(--duration-normal) var(--ease-spring), box-shadow var(--duration-normal) var(--ease-out), opacity var(--duration-normal) var(--ease-out);
+}
+.daw-drag-lift[data-dragging="true"] {
+  transform: scale(1.02);
+  box-shadow: var(--daw-shadow-lg);
+  opacity: 0.9;
+}
+
+/* Scroll edge fades — horizontal and vertical */
+.daw-scroll-fade-x {
+  -webkit-mask-image: linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent);
+  mask-image: linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent);
+}
+.daw-scroll-fade-y {
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 8px, black calc(100% - 8px), transparent);
+  mask-image: linear-gradient(to bottom, transparent, black 8px, black calc(100% - 8px), transparent);
+}
+
+/* Reduced motion: simplify micro-interactions */
+@media (prefers-reduced-motion: reduce) {
+  .daw-btn-interactive,
+  .daw-clip-interactive,
+  .daw-drag-lift {
+    transition: none;
+  }
+  .daw-btn-interactive:active {
+    transform: none;
+  }
+  .daw-drag-lift[data-dragging="true"] {
+    transform: none;
+  }
+  .clip-mount-animation,
+  .recording-lane-pulse {
+    animation: none !important;
+  }
+}
+
+.arrangement-scrollbar-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.arrangement-scrollbar-hidden::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+/* Playhead blink animation (ACE Studio style — smooth gradient) */
+@keyframes playhead-blink-line {
+  0%, 30% { background-color: #ffffff; }
+  50%, 80% { background-color: var(--color-daw-playhead); }
+  100% { background-color: #ffffff; }
+}
+@keyframes playhead-blink-triangle {
+  0%, 30% { border-top-color: #000000; }
+  50%, 80% { border-top-color: var(--color-daw-playhead); }
+  100% { border-top-color: #000000; }
+}
+@keyframes playhead-blink-fill {
+  0%, 30% { fill: #000000; }
+  50%, 80% { fill: var(--color-daw-playhead); }
+  100% { fill: #000000; }
+}
+.playhead-triangle-blink polygon {
+  animation: playhead-blink-fill 1.2s ease-in-out infinite;
+}
+/* Session view: queued clip blink */
+@keyframes session-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+/* Session view: recording clip slot pulse */
+@keyframes session-record-pulse {
+  0%, 100% { box-shadow: inset 0 0 0 2px rgba(239, 68, 68, 0.8); }
+  50% { box-shadow: inset 0 0 0 2px rgba(239, 68, 68, 0.3); }
+}
+/* Micro-animations for DAW interactions */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ripple {
+  0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; }
+}
+
+@keyframes knob-reset-pulse {
+  0% { opacity: 0.6; }
+  100% { opacity: 0; }
+}
+
+/* ── State Communication System (#1133) ── */
+
+/* Recording state: pulsing red glow for armed tracks */
+@keyframes record-arm-pulse {
+  0%, 100% { box-shadow: inset 4px 0 0 0 rgba(239, 68, 68, 0.8); }
+  50% { box-shadow: inset 4px 0 0 0 rgba(239, 68, 68, 0.4); }
+}
+
+/* Solo glow: golden left border shimmer */
+@keyframes solo-glow {
+  0%, 100% { box-shadow: inset 4px 0 0 0 rgba(16, 185, 129, 0.7); }
+  50% { box-shadow: inset 4px 0 0 0 rgba(16, 185, 129, 0.4); }
+}
+
+/* Mute stripe pattern: diagonal lines overlay */
+.daw-mute-stripes {
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 4px,
+    rgba(0, 0, 0, 0.12) 4px,
+    rgba(0, 0, 0, 0.12) 5px
+  );
+}
+
+/* Clip mute overlay: diagonal stripes + darkening */
+.daw-clip-mute-overlay {
+  background:
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 3px,
+      rgba(0, 0, 0, 0.18) 3px,
+      rgba(0, 0, 0, 0.18) 4px
+    ),
+    rgba(0, 0, 0, 0.35);
+}
+
+/* Non-soloed track dimming: desaturate + reduce opacity */
+.daw-implied-mute {
+  opacity: 0.4;
+  filter: saturate(0.35);
+  transition: opacity var(--duration-normal) var(--ease-out),
+              filter var(--duration-normal) var(--ease-out);
+}
+
+/* Soloed track: restore full saturation + subtle glow */
+.daw-soloed {
+  opacity: 1;
+  filter: saturate(1);
+  transition: opacity var(--duration-normal) var(--ease-out),
+              filter var(--duration-normal) var(--ease-out);
+}
+
+/* Status bar auto-hide: numeric max-height in both states for reliable animation */
+.status-bar {
+  max-height: 512px;
+  transition: max-height var(--duration-normal) var(--ease-out),
+              opacity var(--duration-normal) var(--ease-out);
+}
+.status-bar-collapsed {
+  max-height: 8px;
+  opacity: 0.5;
+}
+
+/* Playhead glow — subtle glow for visibility during playback */
+.playhead-glow {
+  box-shadow: 0 0 2px rgba(255, 255, 255, 0.28);
+}
+
+/* Clip mount fade-in animation */
+@keyframes clip-mount-fade {
+  from { opacity: 0; transform: scaleX(0.97); }
+  to { opacity: 1; transform: scaleX(1); }
+}
+
+/* Recording track lane pulse */
+@keyframes recording-lane-pulse {
+  0%, 100% { box-shadow: inset 0 0 0 2px rgba(239, 68, 68, 0.6); }
+  50% { box-shadow: inset 0 0 0 2px rgba(239, 68, 68, 0.2); }
+}
+
+/* Generation complete flash */
+@keyframes generation-complete-flash {
+  0% { box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.6); }
+  100% { box-shadow: 0 0 0 2px rgba(52, 211, 153, 0); }
+}
+
+/* Loop region highlight */
+.daw-loop-region {
+  background: linear-gradient(
+    180deg,
+    rgba(74, 122, 255, 0.06) 0%,
+    rgba(123, 94, 255, 0.04) 100%
+  );
+  border-left: 1px dashed rgba(74, 122, 255, 0.4);
+  border-right: 1px dashed rgba(74, 122, 255, 0.4);
+}
+
+/* Reduced motion: disable state communication animations */
+@media (prefers-reduced-motion: reduce) {
+  .daw-implied-mute {
+    filter: none;
+    transition: opacity var(--duration-fast) var(--ease-out);
+  }
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes toast-progress {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+@keyframes fx-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Reduced Motion: disable all non-essential animations ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  /* Preserve functional loading spinners under reduced-motion */
+  .animate-spin {
+    animation-duration: 1.5s !important;
+    animation-iteration-count: infinite !important;
+  }
+  @keyframes fx-card-enter {
+    from { opacity: 1; transform: none; }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes knob-reset-pulse {
+    from { opacity: 0; }
+    to { opacity: 0; }
+  }
+}
+
+/* ── High Contrast: boost borders, text, and focus indicators ── */
+@media (prefers-contrast: more) {
+  :root {
+    --color-daw-border: #666;
+    --color-daw-border-strong: #555;
+    --color-daw-text-muted: #bbb;
+  }
+
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  [tabindex]:focus-visible {
+    outline-width: 3px;
+    box-shadow: 0 0 0 5px var(--color-daw-focus-ring);
+  }
+
+  /* Ensure muted/disabled states remain distinguishable */
+  .daw-implied-mute {
+    opacity: 0.5;
+  }
+}
+
+/* ── Screen reader only utility ── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   THEME STRUCTURAL OVERRIDES
+   Each DAW theme changes: border-radius, shadows, borders,
+   toolbar density, playhead style, track header feel, scrollbars.
+   Applied via data-theme attribute on <html>.
+   ═══════════════════════════════════════════════════════════════ */
+
+
+/* ══════════════════════════════════════════════════════════════
+   ABLETON LIVE — Brutalist flat
+   Zero radius. Zero shadows. Thin borders. Everything same plane.
+   Compact, no-nonsense. The signature Ableton "grid" feel.
+   ══════════════════════════════════════════════════════════════ */
+
+/* Shape: all corners sharp */
+[data-theme="ableton"] button,
+[data-theme="ableton"] input,
+[data-theme="ableton"] select,
+[data-theme="ableton"] textarea,
+[data-theme="ableton"] [class*="rounded"] {
+  border-radius: 0 !important;
+}
+[data-theme="ableton"] [class*="rounded-full"] {
+  border-radius: 9999px !important;
+}
+/* Depth: completely flat — no shadows anywhere */
+[data-theme="ableton"] [class*="shadow"] {
+  box-shadow: none !important;
+}
+/* Slider thumb: square, not round */
+[data-theme="ableton"] input[type="range"]::-webkit-slider-thumb {
+  border-radius: 2px;
+  width: 8px;
+  height: 12px;
+}
+/* Toolbar separators: even thinner and more subtle */
+[data-theme="ableton"] .bg-white\/8 {
+  opacity: 0.04;
+}
+/* Borders: thinner, more subtle */
+[data-theme="ableton"] .border-b,
+[data-theme="ableton"] .border-t,
+[data-theme="ableton"] .border-r,
+[data-theme="ableton"] .border-l {
+  border-width: 1px;
+}
+/* Track color strip: narrower (Ableton clips are flat rectangles) */
+[data-theme="ableton"] .rounded-r-sm {
+  border-radius: 0 !important;
+}
+/* Scrollbar: thinner, more minimal */
+[data-theme="ableton"] ::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+[data-theme="ableton"] ::-webkit-scrollbar-thumb {
+  border-radius: 0;
+}
+/* Focus ring: sharp, not rounded */
+[data-theme="ableton"] button:focus-visible,
+[data-theme="ableton"] input:focus-visible,
+[data-theme="ableton"] select:focus-visible,
+[data-theme="ableton"] [tabindex]:focus-visible {
+  outline-offset: 0;
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   LOGIC PRO — Apple refined
+   Generous radius (Apple HIG). Subtle depth via warm shadows.
+   Polished borders with 1px inset glow. Premium feel.
+   ══════════════════════════════════════════════════════════════ */
+
+/* Shape: slightly MORE rounded than default (Apple generosity) */
+[data-theme="logic-pro"] [class*="rounded-md"] {
+  border-radius: 8px !important;
+}
+[data-theme="logic-pro"] [class*="rounded-lg"] {
+  border-radius: 10px !important;
+}
+[data-theme="logic-pro"] [class*="rounded-xl"],
+[data-theme="logic-pro"] [class*="rounded-2xl"] {
+  border-radius: 12px !important;
+}
+[data-theme="logic-pro"] button,
+[data-theme="logic-pro"] input,
+[data-theme="logic-pro"] select,
+[data-theme="logic-pro"] textarea {
+  border-radius: 6px !important;
+}
+[data-theme="logic-pro"] [class*="rounded-full"] {
+  border-radius: 9999px !important;
+}
+[data-theme="logic-pro"] [class*="rounded-sm"] {
+  border-radius: 4px !important;
+}
+/* Depth: Apple-refined shadows with subtle 1px border glow */
+[data-theme="logic-pro"] [class*="shadow-2xl"] {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.06) !important;
+}
+[data-theme="logic-pro"] [class*="shadow-xl"] {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+}
+[data-theme="logic-pro"] [class*="shadow-lg"] {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+/* Slider thumb: perfectly round, Apple style */
+[data-theme="logic-pro"] input[type="range"]::-webkit-slider-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+/* Scrollbar: round, Apple style */
+[data-theme="logic-pro"] ::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+}
+/* Track color strip: slightly rounded */
+[data-theme="logic-pro"] .rounded-r-sm {
+  border-radius: 0 3px 3px 0 !important;
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   FL STUDIO — Dense technical
+   Minimal radius (1-2px). Shadows minimal. High contrast borders.
+   Tighter spacing feel. "Hacker" aesthetic.
+   ══════════════════════════════════════════════════════════════ */
+
+/* Shape: very small radius, not zero (FL has slight rounding) */
+[data-theme="fl-studio"] button,
+[data-theme="fl-studio"] input,
+[data-theme="fl-studio"] select,
+[data-theme="fl-studio"] textarea {
+  border-radius: 2px !important;
+}
+[data-theme="fl-studio"] [class*="rounded-lg"],
+[data-theme="fl-studio"] [class*="rounded-xl"],
+[data-theme="fl-studio"] [class*="rounded-2xl"] {
+  border-radius: 3px !important;
+}
+[data-theme="fl-studio"] [class*="rounded-md"] {
+  border-radius: 2px !important;
+}
+[data-theme="fl-studio"] [class*="rounded-sm"] {
+  border-radius: 1px !important;
+}
+[data-theme="fl-studio"] [class*="rounded-full"] {
+  border-radius: 9999px !important;
+}
+/* Depth: very dark shadows (FL has deep blacks) */
+[data-theme="fl-studio"] [class*="shadow-2xl"],
+[data-theme="fl-studio"] [class*="shadow-xl"] {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7) !important;
+}
+[data-theme="fl-studio"] [class*="shadow-lg"] {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6) !important;
+}
+/* Slider thumb: small, square-ish */
+[data-theme="fl-studio"] input[type="range"]::-webkit-slider-thumb {
+  width: 8px;
+  height: 14px;
+  border-radius: 2px;
+}
+/* Borders: slightly thicker, higher contrast */
+[data-theme="fl-studio"] .border-b,
+[data-theme="fl-studio"] .border-t {
+  border-width: 1px;
+}
+/* Scrollbar: thin, technical */
+[data-theme="fl-studio"] ::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+[data-theme="fl-studio"] ::-webkit-scrollbar-thumb {
+  border-radius: 1px;
+}
+/* Track color strip: sharp */
+[data-theme="fl-studio"] .rounded-r-sm {
+  border-radius: 0 !important;
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   PRO TOOLS — Conservative professional
+   Small radius (2-3px). Warm subtle shadows. Traditional look.
+   Studio console feel — broadcast-grade, warm tones.
+   ══════════════════════════════════════════════════════════════ */
+
+/* Shape: small, traditional radius */
+[data-theme="pro-tools"] button,
+[data-theme="pro-tools"] input,
+[data-theme="pro-tools"] select,
+[data-theme="pro-tools"] textarea {
+  border-radius: 3px !important;
+}
+[data-theme="pro-tools"] [class*="rounded-lg"],
+[data-theme="pro-tools"] [class*="rounded-xl"],
+[data-theme="pro-tools"] [class*="rounded-2xl"] {
+  border-radius: 4px !important;
+}
+[data-theme="pro-tools"] [class*="rounded-md"] {
+  border-radius: 3px !important;
+}
+[data-theme="pro-tools"] [class*="rounded-sm"] {
+  border-radius: 2px !important;
+}
+[data-theme="pro-tools"] [class*="rounded-full"] {
+  border-radius: 9999px !important;
+}
+/* Depth: warm-tinted shadows */
+[data-theme="pro-tools"] [class*="shadow-2xl"] {
+  box-shadow: 0 8px 24px rgba(20, 18, 10, 0.5) !important;
+}
+[data-theme="pro-tools"] [class*="shadow-xl"],
+[data-theme="pro-tools"] [class*="shadow-lg"] {
+  box-shadow: 0 4px 12px rgba(20, 18, 10, 0.4) !important;
+}
+/* Slider thumb: traditional round knob */
+[data-theme="pro-tools"] input[type="range"]::-webkit-slider-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+/* Track color strip: small radius */
+[data-theme="pro-tools"] .rounded-r-sm {
+  border-radius: 0 2px 2px 0 !important;
+}
+/* Scrollbar: traditional */
+[data-theme="pro-tools"] ::-webkit-scrollbar-thumb {
+  border-radius: 2px;
+}
+
+/* ── Accessibility: Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+/* Manual reduced-motion opt-in via data attribute */
+[data-reduced-motion="true"] *, [data-reduced-motion="true"] *::before, [data-reduced-motion="true"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* ── Accessibility: High Contrast Mode ── */
+[data-high-contrast="true"] {
+  --color-daw-bg: #000000;
+  --color-daw-surface: #0a0a0a;
+  --color-daw-surface-2: #1a1a1a;
+  --color-daw-surface-3: #2a2a2a;
+  --color-daw-border: #ffffff;
+  --color-daw-border-strong: #ffffff;
+  --color-daw-text-muted: #d0d0d0;
+  --color-daw-accent: #ffcc00;
+  --color-daw-accent-hover: #ffe066;
+  --color-daw-focus-ring: rgba(255, 204, 0, 0.7);
+}
+[data-high-contrast="true"] button:focus-visible,
+[data-high-contrast="true"] input:focus-visible,
+[data-high-contrast="true"] select:focus-visible,
+[data-high-contrast="true"] [tabindex]:focus-visible {
+  outline: 3px solid #ffcc00;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px rgba(255, 204, 0, 0.5);
+}
+
+/* ── Accessibility: Color Blind Mode ── */
+/* Add patterned borders to color-dependent interactive elements */
+[data-color-blind="true"] .daw-btn-interactive:focus-visible {
+  outline-style: dashed;
+}
+[data-color-blind="true"] [aria-pressed="true"] {
+  border-bottom: 3px double currentColor;
+}
+[data-color-blind="true"] [role="slider"]:focus-visible {
+  outline-style: dotted;
+  outline-width: 3px;
+}

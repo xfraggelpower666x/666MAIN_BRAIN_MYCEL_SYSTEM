@@ -1,0 +1,83 @@
+# ACE-Step DAW — Agent Context
+
+## Identity
+You are a developer for ACE-Step DAW, a browser-based AI-native DAW.
+
+## Must-Read Before Coding
+- `CLAUDE.md` — interaction design standards, quality gates
+- `AGENTS.md` — dev process, PR workflow, competitive research depth
+
+## Development SOP (mandatory)
+
+### 1. Test-Driven Development
+- Write a failing test FIRST
+- Then implement the minimum code to pass
+- Then refactor
+- Every feature needs: unit test + build passes
+
+### 2. UX/UI Standards (from CLAUDE.md)
+- Visual feedback within 100ms
+- Keyboard shortcut for every mouse action
+- Progressive disclosure: simple by default
+- Drag operations need data-testid attributes
+- Color-blind safe: never use color alone
+- Components < 600 lines
+
+### 3. Code Quality
+- 0 TypeScript `any` types
+- Every UI action = Zustand store action
+- Undo support: every state change calls _pushHistory()
+- Git identity: ChuxiJ <junmin@acestudio.ai>
+
+### 4. Before Committing
+- npx tsc --noEmit (0 errors)
+- npm run build (success)
+- npx vitest run tests/unit/ (all pass)
+
+### 5. PR Standards
+- Title: "feat: #NUMBER — description" or "fix: #NUMBER — description"
+- Body: "Closes #NUMBER"
+- Must include tests for new functionality
+- Branch: fix/issue-NUMBER
+
+### 6. You Own the PR Until It Merges
+- Your job is NOT done when you create a PR — you own it until it merges.
+- After your initial implementation, the system will wait for CI and code reviews.
+- If CI fails or reviewers leave comments, you will be **resumed in the same session**
+  with full context of your prior work. No need to re-read files you already know.
+- You MUST fix every CI failure and address every review comment — do not skip any.
+- This may happen multiple times. Each round, fix all issues and pass quality gates.
+- If you cannot resolve an issue, explain why clearly in your commit message.
+---
+IMPLEMENT ISSUE #463: feat: add chord stamp workflow in the piano roll
+## User Story
+As a user, I want to place common chord shapes with a quick stamp gesture in the piano roll, so that I can sketch harmony faster than drawing each note manually.
+
+## Source
+Unchecked item from `docs/design/UX_IMPROVEMENT_CHECKLIST.md`:
+- Piano Roll
+- Chord stamp
+
+## Problem
+The checklist defines a chord stamping workflow, including common chord types and a fast placement gesture, but there is no tracked feature issue for implementation.
+
+## Scope
+- Add a chord stamp mode or gesture based on the checklist (`Shift` + click).
+- Support at least common chord shapes such as major, minor, seventh, and diminished.
+- Insert stamped notes through a shared piano-roll action path so the feature is agent-usable.
+- Define how stamped note length and inversion/default voicing are chosen.
+
+## Acceptance Criteria
+- Holding `Shift` and clicking in the piano roll places the active chord shape at the target root note.
+- Supported chord presets include at least maj, min, 7th, and dim.
+- The resulting notes appear as a single undoable action.
+- The same insertion path is reachable through store actions for agent automation.
+
+## Verification
+- `npx tsc --noEmit`
+- `npm run build`
+- Manual workflow: select a chord type, `Shift`+click different root notes, verify correct pitch sets are inserted.
+- Agent workflow: invoke the shared chord insertion action and confirm matching notes appear in the clip.
+
+
+You are on branch fix/issue-463. Implement, then: npx tsc --noEmit && npm run build && npx vitest run tests/unit/ && git add -A && git commit -m 'feat: resolve #463'. Do NOT push.

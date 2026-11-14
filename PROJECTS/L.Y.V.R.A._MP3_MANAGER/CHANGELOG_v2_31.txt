@@ -1,0 +1,10 @@
+L.Y.V.R.A. - MP3 MANAGER v2.31 — QUALITY PRESETS / PORTABLE AUDIO TOOLS
+- Drei Audio-Presets: maximum (default), balanced, original
+- FFmpeg libmp3lame compression_level 0; 48 kHz / 320 kbps / fltp / stereo
+- Nur Balanced aktiviert 2-Pass Loudnorm. Original Preserve kodiert ohne Lautheitskorrektur.
+- FFmpeg/FFprobe-Suche: neben App, tools-Ordner, PATH; libmp3lame Diagnose.
+- Externer EXE-Builder legt gefundene Windows-FFmpeg-Binaries in dist/tools ab.
+- REPARATUR_AUDIO_TOOLS.bat: Diagnose + optionale, explizit bestaetigte winget-Installation.
+- Keine automatische Installation bei einfachem App-Start; keine globalen Python-Aenderungen.
+- Hinweis: Presets sind beim Klick wirksam, manuelle Einstellungen bleiben moeglich.
+- OFFEN: nativer Windows-EXE-Test und Windows-DPI-Abnahme.

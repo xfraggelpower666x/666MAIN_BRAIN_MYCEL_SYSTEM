@@ -1,0 +1,11 @@
+=== Restoration Lab START === 
+[START] 13.11.2026 13:09:39,27 
+[PYTHON] Erstelle .venv-gui mit py -3.13
+[PASS] Python 3.13.17, Tk OK
+[FEHLT] numpy (ModuleNotFoundError: No module named 'numpy')
+[FEHLT] scipy (ModuleNotFoundError: No module named 'scipy')
+[FEHLT] soundfile (ModuleNotFoundError: No module named 'soundfile')
+[FEHLT] PyWavelets (ModuleNotFoundError: No module named 'pywt')
+[FEHLT] sounddevice (ModuleNotFoundError: No module named 'sounddevice')
+[FEHLT] Pillow (ModuleNotFoundError: No module named 'PIL')
+[FEHLT] pyloudnorm (ModuleNotFoundError: No module named 'pyloudnorm')

@@ -1,0 +1,302 @@
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import { Knob } from '../Knob';
+
+describe('Knob component', () => {
+  const defaultProps = {
+    value: 50,
+    min: 0,
+    max: 100,
+    defaultValue: 50,
+    onChange: vi.fn(),
+  };
+
+  describe('rendering', () => {
+    it('renders with aria-label', () => {
+      render(<Knob {...defaultProps} label="Volume" />);
+      screen.getByLabelText('Volume knob'); // getBy* throws if not found
+    });
+
+    it('renders label text', () => {
+      render(<Knob {...defaultProps} label="Volume" />);
+      screen.getByText('Volume'); // getBy* throws if not found
+    });
+
+    it('renders value display', () => {
+      render(<Knob {...defaultProps} value={42} step={1} />);
+      screen.getByText('42'); // getBy* throws if not found
+    });
+
+    it('renders SVG with layered elements', () => {
+      const { container } = render(<Knob {...defaultProps} />);
+      const svg = container.querySelector('svg');
+      expect(svg).not.toBeNull();
+      // Should have defs with filters/gradients
+      expect(svg?.querySelector('defs')).not.toBeNull();
+      // Should have the knob body circle with gradient fill
+      const circles = svg?.querySelectorAll('circle');
+      expect(circles!.length).toBeGreaterThanOrEqual(1);
+      // Should have track and fill arcs
+      const paths = svg?.querySelectorAll('path');
+      expect(paths!.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('renders with default size of 32px', () => {
+      const { container } = render(<Knob {...defaultProps} />);
+      const svg = container.querySelector('svg');
+      expect(svg?.getAttribute('width')).toBe('32');
+      expect(svg?.getAttribute('height')).toBe('32');
+    });
+  });
+
+  describe('size variants', () => {
+    it('renders sm variant at 24px', () => {
+      const { container } = render(<Knob {...defaultProps} variant="sm" />);
+      const svg = container.querySelector('svg');
+      expect(svg?.getAttribute('width')).toBe('24');
+    });
+
+    it('renders md variant at 32px', () => {
+      const { container } = render(<Knob {...defaultProps} variant="md" />);
+      const svg = container.querySelector('svg');
+      expect(svg?.getAttribute('width')).toBe('32');
+    });
+
+    it('renders lg variant at 48px', () => {
+      const { container } = render(<Knob {...defaultProps} variant="lg" />);
+      const svg = container.querySelector('svg');
+      expect(svg?.getAttribute('width')).toBe('48');
+    });
+
+    it('variant overrides size prop', () => {
+      const { container } = render(<Knob {...defaultProps} size={100} variant="sm" />);
+      const svg = container.querySelector('svg');
+      expect(svg?.getAttribute('width')).toBe('24');
+    });
+  });
+
+  describe('color prop', () => {
+    it('uses default color when not specified', () => {
+      const { container } = render(<Knob {...defaultProps} />);
+      const svg = container.querySelector('svg');
+      // The fill arc should use default blue color
+      const paths = svg?.querySelectorAll('path');
+      const fillArc = paths?.[1]; // second path is the fill arc
+      expect(fillArc?.getAttribute('stroke')).toBe('#4A5FFF');
+    });
+
+    it('uses custom color for value arc', () => {
+      const { container } = render(<Knob {...defaultProps} color="#f59e0b" />);
+      const svg = container.querySelector('svg');
+      const paths = svg?.querySelectorAll('path');
+      const fillArc = paths?.[1];
+      expect(fillArc?.getAttribute('stroke')).toBe('#f59e0b');
+    });
+  });
+
+  describe('interactions', () => {
+    it('calls onChange on double-click to reset', () => {
+      const onChange = vi.fn();
+      render(<Knob {...defaultProps} value={75} defaultValue={50} onChange={onChange} />);
+      const knob = screen.getByLabelText('Control knob');
+      fireEvent.doubleClick(knob);
+      expect(onChange).toHaveBeenCalledWith(50);
+    });
+
+    it('does not respond when disabled', () => {
+      const onChange = vi.fn();
+      render(<Knob {...defaultProps} disabled onChange={onChange} />);
+      const knob = screen.getByLabelText('Control knob');
+      fireEvent.doubleClick(knob);
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('opens precision input on right-click', () => {
+      render(<Knob {...defaultProps} />);
+      const knob = screen.getByLabelText('Control knob');
+      fireEvent.contextMenu(knob);
+      // PrecisionInput should appear
+      screen.getByLabelText('Control exact value'); // getBy* throws if not found
+    });
+
+    it('reduces opacity when disabled', () => {
+      const { container } = render(<Knob {...defaultProps} disabled />);
+      const wrapper = container.firstElementChild as HTMLElement;
+      expect(wrapper.className).toContain('opacity-40');
+    });
+  });
+
+  describe('keyboard navigation', () => {
+    it('increases value on ArrowUp', () => {
+      const onChange = vi.fn();
+      render(<Knob {...defaultProps} value={50} onChange={onChange} />);
+      const knob = screen.getByRole('slider');
+      fireEvent.keyDown(knob, { key: 'ArrowUp' });
+      expect(onChange).toHaveBeenCalled();
+      expect(onChange.mock.calls[0][0]).toBeGreaterThan(50);
+    });
+
+    it('decreases value on ArrowDown', () => {
+      const onChange = vi.fn();
+      render(<Knob {...defaultProps} value={50} onChange={onChange} />);
+      const knob = screen.getByRole('slider');
+      fireEvent.keyDown(knob, { key: 'ArrowDown' });
+      expect(onChange).toHaveBeenCalled();
+      expect(onChange.mock.calls[0][0]).toBeLessThan(50);
+    });
+
+    it('jumps to min on Home', () => {
+      const onChange = vi.fn();
+      render(<Knob {...defaultProps} value={50} onChange={onChange} />);
+      const knob = screen.getByRole('slider');
+      fireEvent.keyDown(knob, { key: 'Home' });
+      expect(onChange).toHaveBeenCalledWith(0);
+    });
+
+    it('jumps to max on End', () => {
+      const onChange = vi.fn();
+      render(<Knob {...defaultProps} value={50} onChange={onChange} />);
+      const knob = screen.getByRole('slider');
+      fireEvent.keyDown(knob, { key: 'End' });
+      expect(onChange).toHaveBeenCalledWith(100);
+    });
+
+    it('has proper ARIA attributes', () => {
+      render(<Knob {...defaultProps} value={50} />);
+      const knob = screen.getByRole('slider');
+      expect(knob.getAttribute('aria-valuenow')).toBe('50');
+      expect(knob.getAttribute('aria-valuemin')).toBe('0');
+      expect(knob.getAttribute('aria-valuemax')).toBe('100');
+    });
+
+    it('is focusable via Tab', () => {
+      render(<Knob {...defaultProps} />);
+      const knob = screen.getByRole('slider');
+      expect(knob.getAttribute('tabindex')).toBe('0');
+    });
+
+    it('is not focusable when disabled', () => {
+      render(<Knob {...defaultProps} disabled />);
+      const knob = screen.getByLabelText('Control knob');
+      expect(knob.getAttribute('tabindex')).toBe('-1');
+    });
+  });
+
+  describe('micro-interactions', () => {
+    it('shows fine mode indicator when Alt is held during drag', () => {
+      const onChange = vi.fn();
+      render(<Knob {...defaultProps} onChange={onChange} />);
+      const knob = screen.getByLabelText('Control knob');
+
+      // Start drag
+      fireEvent.mouseDown(knob, { clientY: 100 });
+
+      // Simulate Alt+move
+      fireEvent(window, new MouseEvent('mousemove', {
+        clientY: 90,
+        movementY: -10,
+        altKey: true,
+        bubbles: true,
+      }));
+
+      // Should show fine mode indicator
+      screen.getByText('Fine'); // getBy* throws if not found
+
+      // Release
+      fireEvent(window, new MouseEvent('mouseup', { bubbles: true }));
+    });
+
+    it('applies data-dragging attribute during drag', () => {
+      render(<Knob {...defaultProps} />);
+      const knob = screen.getByLabelText('Control knob');
+
+      // Before drag
+      expect(knob.getAttribute('data-dragging')).toBeNull();
+
+      // Start drag
+      fireEvent.mouseDown(knob, { clientY: 100 });
+      expect(knob.getAttribute('data-dragging')).toBe('true');
+
+      // Release
+      fireEvent(window, new MouseEvent('mouseup', { bubbles: true }));
+      expect(knob.getAttribute('data-dragging')).toBeNull();
+    });
+
+    it('animates reset on double-click by setting data-resetting', () => {
+      vi.useFakeTimers();
+      const onChange = vi.fn();
+      render(<Knob {...defaultProps} value={75} defaultValue={50} onChange={onChange} />);
+      const knob = screen.getByLabelText('Control knob');
+
+      fireEvent.doubleClick(knob);
+      expect(onChange).toHaveBeenCalledWith(50);
+
+      // data-resetting should be set during animation
+      expect(knob.getAttribute('data-resetting')).toBe('true');
+
+      // After animation duration (200ms), data-resetting should clear
+      act(() => { vi.advanceTimersByTime(250); });
+      expect(knob.getAttribute('data-resetting')).toBeNull();
+
+      vi.useRealTimers();
+    });
+  });
+
+  describe('value formatting', () => {
+    it('formats integer values when step >= 1', () => {
+      render(<Knob {...defaultProps} value={42.7} step={1} />);
+      screen.getByText('43'); // getBy* throws if not found
+    });
+
+    it('formats decimal values when step < 1', () => {
+      render(<Knob {...defaultProps} value={0.75} min={0} max={1} step={0.01} />);
+      screen.getByText('0.8'); // getBy* throws if not found
+    });
+
+    it('uses custom formatValue function when provided', () => {
+      render(
+        <Knob
+          {...defaultProps}
+          value={0.5}
+          min={0}
+          max={1}
+          formatValue={(v) => `${Math.round(v * 100)}%`}
+        />,
+      );
+      screen.getByText('50%'); // getBy* throws if not found
+    });
+
+    it('displays unit suffix', () => {
+      render(<Knob {...defaultProps} value={440} min={20} max={20000} unit=" Hz" step={1} />);
+      screen.getByText('440 Hz'); // getBy* throws if not found
+    });
+  });
+
+  describe('hover parameter highlighting', () => {
+    it('calls onHoverChange with paramId on mouse enter/leave', () => {
+      const onHoverChange = vi.fn();
+      render(
+        <Knob {...defaultProps} paramId="frequency" onHoverChange={onHoverChange} />,
+      );
+      const wrapper = screen.getByLabelText('Control knob').closest('[data-param-id]')!;
+      fireEvent.mouseEnter(wrapper);
+      expect(onHoverChange).toHaveBeenCalledWith('frequency', true);
+      fireEvent.mouseLeave(wrapper);
+      expect(onHoverChange).toHaveBeenCalledWith('frequency', false);
+    });
+
+    it('sets data-param-id attribute when paramId is provided', () => {
+      render(<Knob {...defaultProps} paramId="threshold" />);
+      const wrapper = screen.getByLabelText('Control knob').closest('[data-param-id]');
+      expect(wrapper?.getAttribute('data-param-id')).toBe('threshold');
+    });
+
+    it('does not call onHoverChange when paramId is not set', () => {
+      const onHoverChange = vi.fn();
+      render(<Knob {...defaultProps} onHoverChange={onHoverChange} />);
+      const knob = screen.getByLabelText('Control knob');
+      fireEvent.mouseEnter(knob.parentElement!.parentElement!);
+      expect(onHoverChange).not.toHaveBeenCalled();
+    });
+  });
+});

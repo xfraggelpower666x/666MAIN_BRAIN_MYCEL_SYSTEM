@@ -1,0 +1,178 @@
+#!/bin/bash
+# Project Manager — persistent session, resumes each tick with full context
+set -e
+cd "$(dirname "$0")/../.."
+REPO="ace-step/ACE-Step-DAW"
+PM_DIR="$(cd "$(dirname "$0")/../.." && pwd)/.pm"
+mkdir -p "$PM_DIR"
+SESSION_FILE="$PM_DIR/session-id"
+DECISION_LOG="$PM_DIR/decisions.log"
+LOG="$PM_DIR/activity.log"
+
+log() { echo "[$(date)] [PM] $*" >> "$LOG"; }
+
+# ── Mutex: skip if previous tick still running (macOS-compatible) ──
+LOCKFILE="/tmp/pm-tick.lock"
+if command -v flock &>/dev/null; then
+  exec 200>"$LOCKFILE"
+  flock -n 200 || { log "PM tick skipped — previous tick still running"; exit 0; }
+else
+  # macOS fallback: use mkdir as atomic lock
+  if ! mkdir "$LOCKFILE.d" 2>/dev/null; then
+    # Check if stale (older than 10 min)
+    if [ -d "$LOCKFILE.d" ]; then
+      LOCK_AGE=$(( $(date +%s) - $(stat -f %m "$LOCKFILE.d" 2>/dev/null || echo 0) ))
+      if [ "$LOCK_AGE" -gt 600 ]; then
+        rm -rf "$LOCKFILE.d"
+        mkdir "$LOCKFILE.d" 2>/dev/null || { log "PM tick skipped — previous tick still running"; exit 0; }
+      else
+        log "PM tick skipped — previous tick still running"
+        exit 0
+      fi
+    fi
+  fi
+  trap 'rm -rf "$LOCKFILE.d"' EXIT
+fi
+
+# ── Gather FULL team status ──
+
+GH_ERRORS=0
+
+ISSUES=$(gh issue list --repo $REPO --state open --limit 30 \
+  --json number,title,labels,assignees \
+  --jq '[.[] | {num:.number, title:.title[:50], labels:[.labels[].name], assignees:[.assignees[].login]}]' 2>&1) || { log "WARN: gh issue list failed"; GH_ERRORS=$((GH_ERRORS+1)); ISSUES="[]"; }
+
+PRS=$(gh pr list --repo $REPO --state open --limit 20 \
+  --json number,title,isDraft,mergeable,headRefName,statusCheckRollup,reviewDecision \
+  --jq '[.[] | {num:.number, title:.title[:40], draft:.isDraft, merge:.mergeable, branch:.headRefName, review:.reviewDecision, checks:[.statusCheckRollup[] | "\(.name):\(.conclusion // "pending")"]}]' 2>&1) || { log "WARN: gh pr list (open) failed"; GH_ERRORS=$((GH_ERRORS+1)); PRS="[]"; }
+
+# PRs with failed CI — dev agents should be fixing these
+FAILED_PRS=$(gh pr list --repo $REPO --state open --limit 20 \
+  --json number,headRefName,statusCheckRollup \
+  --jq '[.[] | select(.statusCheckRollup[]?.conclusion == "FAILURE") | {num:.number, branch:.headRefName}]' 2>&1) || { log "WARN: gh pr list (failed CI) failed"; GH_ERRORS=$((GH_ERRORS+1)); FAILED_PRS="[]"; }
+
+# PRs with unresolved review comments
+REVIEW_BLOCKED_PRS=$(gh pr list --repo $REPO --state open --limit 20 \
+  --json number,reviewDecision \
+  --jq '[.[] | select(.reviewDecision == "CHANGES_REQUESTED") | .number]' 2>&1) || { log "WARN: gh pr list (review blocked) failed"; GH_ERRORS=$((GH_ERRORS+1)); REVIEW_BLOCKED_PRS="[]"; }
+
+# If all gh commands failed, GitHub is likely unreachable — skip tick
+if [ "$GH_ERRORS" -ge 3 ]; then
+  log "ERROR: GitHub unreachable ($GH_ERRORS failures), skipping tick"
+  exit 0
+fi
+
+# Running agents — WHO is doing WHAT
+CC_DETAIL=$(ps aux | grep -E 'claude.*(--print|bypassPermissions|dangerously)' | grep -v grep | awk '{for(i=11;i<=NF;i++) printf "%s ",$i; print ""}' | grep -oE 'issue.#[0-9]+|Issue #[0-9]+|#[0-9]+|issue-[0-9]+' | sort -u | tr '\n' ',' | sed 's/,$//')
+CX_DETAIL=$(ps aux | grep 'codex exec' | grep -v grep | awk '{for(i=11;i<=NF;i++) printf "%s ",$i; print ""}' | grep -oE 'issue-[0-9]+|#[0-9]+' | sort -u | tr '\n' ',' | sed 's/,$//')
+CC_COUNT=$(ps aux | grep -E 'claude.*(--print|bypassPermissions|dangerously)' | grep -v grep | wc -l | tr -d ' ')
+CX_COUNT=$(ps aux | grep 'codex exec' | grep -v grep | wc -l | tr -d ' ')
+
+# Dev agent worktrees — ground truth of what's being worked on
+ACTIVE_WORKTREES=$(ls -d /tmp/daw-worktrees/agent-* 2>/dev/null | sed 's|.*/agent-||' | tr '\n' ',' | sed 's/,$//')
+
+# Recent merges
+RECENT=$(gh pr list --repo $REPO --state merged --limit 5 \
+  --json number,title,mergedAt --jq '[.[] | "\(.number): \(.title[:40])"]' 2>&1) || { log "WARN: gh pr list (merged) failed"; GH_ERRORS=$((GH_ERRORS+1)); RECENT="[]"; }
+
+# Own recent decisions (external memory — survives session loss)
+PREV_DECISIONS=""
+if [ -f "$DECISION_LOG" ]; then
+  PREV_DECISIONS=$(tail -30 "$DECISION_LOG")
+fi
+
+# ── Build status payload ──
+STATUS_PAYLOAD="═══ TEAM STATUS ($(date '+%H:%M')) ═══
+
+OPEN ISSUES (backlog):
+$ISSUES
+
+OPEN PRs (pipeline):
+$PRS
+
+CI-FAILED PRs (dev agents are fixing these — do NOT re-assign):
+$FAILED_PRS
+
+REVIEW-BLOCKED PRs (dev agents are addressing reviews — do NOT re-assign):
+$REVIEW_BLOCKED_PRS
+
+RUNNING AGENTS:
+- Claude Code CLI: $CC_COUNT running → working on: $CC_DETAIL
+- Codex CLI: $CX_COUNT running → working on: $CX_DETAIL
+- Active worktrees (issues being worked): $ACTIVE_WORKTREES
+- Max capacity: Claude Code 3, Codex 10
+
+RECENTLY MERGED:
+$RECENT
+
+YOUR PREVIOUS DECISIONS (from prior ticks — use this to stay consistent):
+$PREV_DECISIONS
+
+═══ YOUR DECISIONS ═══
+
+1. MERGE: For each non-draft PR where ALL checks pass and mergeable=MERGEABLE:
+   gh pr merge NUMBER --squash --admin --repo $REPO
+
+2. REBASE: For CONFLICTING PRs, checkout branch, rebase, push.
+
+3. RECOVER STALE: Check for dead agents with open PRs:
+   bash scripts/agents/registry.sh stale
+   For each stale agent, RE-LAUNCH with the same issue number:
+   bash scripts/agents/launch-dev.sh ISSUE_NUM codex
+   (launch-dev.sh auto-detects takeover: existing worktree + open PR = resume, not restart)
+
+4. STAFF: Dispatch dev agents for NEW unworked issues via launch-dev.sh:
+   bash scripts/agents/launch-dev.sh ISSUE_NUM codex|claude
+   CRITICAL RULES:
+   - Do NOT assign issues that have a running agent (check RUNNING AGENTS)
+   - P0 issues → use Claude Code (deeper reasoning): launch-dev.sh ISSUE_NUM claude
+   - P1/P2 issues → use Codex (faster/cheaper): launch-dev.sh ISSUE_NUM codex
+   - Always use launch-dev.sh, never raw codex exec for dev work
+
+5. BALANCE: Claude Code max 3, Codex max 10. Fill BOTH pools in parallel — not sequentially.
+
+5. After all decisions, write a concise summary of EACH action you took.
+   This will be saved as memory for your next tick."
+
+# Detect stale session — if file is older than 30 min, session is likely dead
+if [ -f "$SESSION_FILE" ]; then
+  SESSION_AGE=$(( $(date +%s) - $(stat -f %m "$SESSION_FILE" 2>/dev/null || echo 0) ))
+  if [ "$SESSION_AGE" -gt 1800 ]; then
+    log "Session file is ${SESSION_AGE}s old (>30min), starting fresh"
+    rm -f "$SESSION_FILE"
+  fi
+fi
+
+# ── Resume or start PM session ──
+if [ -f "$SESSION_FILE" ]; then
+  SESSION_ID=$(cat "$SESSION_FILE")
+  log "Resuming PM session $SESSION_ID"
+  codex exec resume --dangerously-bypass-approvals-and-sandbox "$SESSION_ID" "$STATUS_PAYLOAD" \
+    -o $PM_DIR/last-output.txt 2>&1 || true
+else
+  SESSION_ID=$(uuidgen | tr '[:upper:]' '[:lower:]')
+  echo "$SESSION_ID" > "$SESSION_FILE"
+  log "Starting new PM session $SESSION_ID"
+  codex exec -C "$(pwd)" --dangerously-bypass-approvals-and-sandbox \
+    -o $PM_DIR/last-output.txt \
+    "You are the Project Manager for ACE-Step DAW. You will be resumed every 5 minutes with fresh team status. Your session persists — you remember prior decisions. Be consistent. Avoid contradicting yourself. Check YOUR PREVIOUS DECISIONS to stay aligned.
+
+$STATUS_PAYLOAD" 2>&1 || true
+fi
+
+# ── Save decisions to external memory ──
+if [ -f $PM_DIR/last-output.txt ]; then
+  {
+    echo "--- $(date '+%Y-%m-%d %H:%M') ---"
+    tail -20 $PM_DIR/last-output.txt
+  } >> "$DECISION_LOG"
+  # Trim to last 200 lines to prevent unbounded growth
+  tail -200 "$DECISION_LOG" > "$DECISION_LOG.tmp" && mv "$DECISION_LOG.tmp" "$DECISION_LOG"
+fi
+
+log "PM tick complete"
+
+# Trim activity log to prevent disk fillup
+if [ -f "$LOG" ]; then
+  tail -500 "$LOG" > "$LOG.tmp" && mv "$LOG.tmp" "$LOG"
+fi

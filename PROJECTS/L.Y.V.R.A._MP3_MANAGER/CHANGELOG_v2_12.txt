@@ -1,0 +1,7 @@
+L.Y.V.R.A. - MP3 MANAGER v2.12
+
+- Offizieller Toolname auf L.Y.V.R.A. - MP3 MANAGER umgestellt
+- Fenstertitel angepasst
+- Statusmonitor-Titel angepasst
+- Sichtbare Branding-Beschriftungen angepasst
+- Vorhandene Funktionen und Layout aus v2.11 beibehalten

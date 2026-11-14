@@ -1,0 +1,4 @@
+L.Y.V.R.A. - MP3 MANAGER v2.26
+Audio-Reiter: integrierter WAV/MP3-Dateibrowser mit Mehrfachauswahl, Alle auswählen, Auswahl aufheben, Filter, Drag & Drop und Metadaten-Detailreiter.
+Konvertierung verarbeitet nur explizit markierte Einträge, separate Track-/Auftragsfortschrittsanzeigen erhalten.
+Bestehende Funktionen bewahrt; Windows-Host-Abnahme offen.

@@ -1,0 +1,24 @@
+L.Y.V.R.A. - MP3 MANAGER v2.35 — AUDIO & PROGRESS GOVERNANCE REPAIR
+Datum: 2026-11-06
+
+Grundlage: v2.34 vollständig übernommen. Keine PFS-Writes.
+
+1) BALANCED RADIO: Die zwei EBU-R128-Messläufe werden nur dann zu einer
+   linearen Normalisierung freigegeben, wenn die Eingabewerte endlich und
+   vollständig sind, die Ziel-LRA erreichbar ist und die notwendige
+   Gain-Erhöhung die True-Peak-Grenze nicht überschreitet. Andernfalls
+   Abbruch dieser Datei mit Ursache, statt eines stillen Dynamic-Fallbacks.
+   Maximum Quality und Original Preserve: Normalisierung weiterhin AUS.
+2) PROZESSANZEIGE: Fortschritt ist bearbeiteter Anteil, nicht automatisch
+   Erfolgsquote. Fehlversuche werden nun gesondert und eindeutig angezeigt,
+   abgebrochene Aufträge zeigen einen Teilstand statt 100 %.
+3) REGRESSION: test_v235_regressions.py ergänzt (Loudnorm-Guard,
+   defekte Quelle, korrekte Ergebnisanzeige).
+4) ALLE übrigen Quell-, GUI-, Metadaten-, Cover-, Build- und Tests-Dateien
+   aus v2.34 ohne absichtliche strukturelle Eingriffe übernommen.
+
+Abnahme: 6/6 Python-Regressionstestdateien bestanden unter Linux/Xvfb,
+einschließlich 8-s-Ausschnitt einer vorhandenen realen Suno-WAV.
+Grenzen: Keine native Windows-/DPI-/Mehrmonitor-/Portable-EXE-Abnahme,
+kein A/B-Hörvergleich eines vollständigen problematischen WAV+MP3-Paars,
+keine psychoakustische Artefaktfreiheit behauptet.

@@ -1,0 +1,29 @@
+name: Build Windows
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          architecture: x64
+
+      - name: Build and verify
+        shell: pwsh
+        run: ./Build-Windows.ps1
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Restoration-Lab-1.5-Windows-x64
+          path: Restoration-Lab-1.5-Windows-x64.zip
+          if-no-files-found: error

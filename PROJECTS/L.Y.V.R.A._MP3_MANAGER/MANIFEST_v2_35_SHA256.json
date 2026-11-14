@@ -1,0 +1,276 @@
+{
+  "version": "2.35",
+  "base": "2.34",
+  "files": [
+    {
+      "path": "AUDIO_REPAIR_ANLEITUNG_DE.md",
+      "bytes": 1713,
+      "sha256": "551465c2550646ff1627ffa2f8233b23143b02e929c6d80372e9aba532cec858"
+    },
+    {
+      "path": "AUDIO_REPAIR_GUIDE_EN.md",
+      "bytes": 684,
+      "sha256": "ef72108f1a17d34902644174ae95938348121dbc8e32036fbd00d7cb7ce9ee54"
+    },
+    {
+      "path": "BEDIENUNGSANLEITUNG_DE.md",
+      "bytes": 4063,
+      "sha256": "176b659cf432d1a954e910de779f8eea97de2957cbe7c10cbbd27bc1a8c4de2d"
+    },
+    {
+      "path": "BUILD_PORTABLE_EXE.bat",
+      "bytes": 874,
+      "sha256": "b880556ee0ac597943807e906bbcab3816141010aac4ed0e1edcf2b6d5b27351"
+    },
+    {
+      "path": "CHANGELOG_v2_10.txt",
+      "bytes": 163,
+      "sha256": "a045d9b18c529ac902bf3de0d80c3e69df4ba80b1191b3e058a2d0f095b6f5fb"
+    },
+    {
+      "path": "CHANGELOG_v2_11.txt",
+      "bytes": 361,
+      "sha256": "79c7d6c23d0595737819218bffbc08a8b9184a94833388b0942461b4f0162d54"
+    },
+    {
+      "path": "CHANGELOG_v2_12.txt",
+      "bytes": 255,
+      "sha256": "c694f71c05438ec08067ea0f0e20685b63f1bb4b5930d83d8d47f7fd41fbd1e0"
+    },
+    {
+      "path": "CHANGELOG_v2_13.txt",
+      "bytes": 446,
+      "sha256": "9f4d68f1a965eb182b25ded69fc6fad381ec7453de02cf5301717f97d94c0c4d"
+    },
+    {
+      "path": "CHANGELOG_v2_14.txt",
+      "bytes": 598,
+      "sha256": "72b87fecd22c29b83b5a9c540f2eb938ec25629dee2e92c94a6b9ad7aca413a3"
+    },
+    {
+      "path": "CHANGELOG_v2_15.txt",
+      "bytes": 491,
+      "sha256": "37f47ce7886a0a4978bb08cde33b32b52c9ebd69189ff64cdd2a71f50eca9ddc"
+    },
+    {
+      "path": "CHANGELOG_v2_16.txt",
+      "bytes": 303,
+      "sha256": "d356f0c64f19c0b6133cace73b2bfbaa1eb52662cca0b315f1e0c9b01adb8f2d"
+    },
+    {
+      "path": "CHANGELOG_v2_17.txt",
+      "bytes": 664,
+      "sha256": "b4939388797ecc6268f55e93190eadd67ed99f0c0ec3b3bd7b2a0f4b495d2946"
+    },
+    {
+      "path": "CHANGELOG_v2_19.txt",
+      "bytes": 795,
+      "sha256": "0a12b546b8ca43d24846948d693825ae392a4cc8043c7c5da472ba40b6a0ae25"
+    },
+    {
+      "path": "CHANGELOG_v2_20.txt",
+      "bytes": 414,
+      "sha256": "91e5033f31c8a18d562af8ebc528da6b519a1eec1a580c8e082689462c152e8e"
+    },
+    {
+      "path": "CHANGELOG_v2_21.txt",
+      "bytes": 327,
+      "sha256": "f4b1c8ee8bd11bb3663d211725a73b7ed3f1e203e0d269b597bd39a833c659d2"
+    },
+    {
+      "path": "CHANGELOG_v2_22.txt",
+      "bytes": 301,
+      "sha256": "bb08c53119c8c16a83dd6f418e62b63e8a98ce13c2a605f58999d59d7a739445"
+    },
+    {
+      "path": "CHANGELOG_v2_23.txt",
+      "bytes": 434,
+      "sha256": "daa9646e910b4ff2d04b5df8edbfc13306b60246ea1e9a26e8470c35c46510d9"
+    },
+    {
+      "path": "CHANGELOG_v2_24.txt",
+      "bytes": 512,
+      "sha256": "8859c8156f3285777266bf552af24df23d1c6a06a4e0325ec62146a46276a178"
+    },
+    {
+      "path": "CHANGELOG_v2_25.txt",
+      "bytes": 505,
+      "sha256": "d7db948cd080bb5210bb7ea28e0b358efa17cd702166bb0194dce8455ed4c8a9"
+    },
+    {
+      "path": "CHANGELOG_v2_26.txt",
+      "bytes": 357,
+      "sha256": "3e53d1fb4e71f6308be7345bceb3334d6fc511d521d70a5ed6546c03fef57e07"
+    },
+    {
+      "path": "CHANGELOG_v2_27.txt",
+      "bytes": 436,
+      "sha256": "6e037a4554b2c2f3f046a186224bccfe3bdd40aa7de8918c71b28bd1ab703a42"
+    },
+    {
+      "path": "CHANGELOG_v2_28.txt",
+      "bytes": 688,
+      "sha256": "deef82b6ecf0f02ae514e3ace1721350156eb311667533d02ff3f7622e7bb9f5"
+    },
+    {
+      "path": "CHANGELOG_v2_29.txt",
+      "bytes": 915,
+      "sha256": "10da60f707d8890118e6dfd9533c08e60bb1cbf95b0a77fdf93df0b5d263c8dd"
+    },
+    {
+      "path": "CHANGELOG_v2_30.txt",
+      "bytes": 832,
+      "sha256": "a812d6b6a20cf87ada1666845d5c2161cc23c217196d531fa33456997053ab5f"
+    },
+    {
+      "path": "CHANGELOG_v2_31.txt",
+      "bytes": 789,
+      "sha256": "363acf2ba27e3f9b15ccbbaa52ba089f69c4fd6c8b0e8c7382c687487edf530b"
+    },
+    {
+      "path": "CHANGELOG_v2_32.txt",
+      "bytes": 359,
+      "sha256": "fa3e0e551e9a54994d7f26ef5641b262fa05d5e3ea92bfeb0a63740090cba29b"
+    },
+    {
+      "path": "CHANGELOG_v2_33.txt",
+      "bytes": 1433,
+      "sha256": "f6937123c04fe443e3822aecceb131605fcf5ac6df86bf0ea723b992c7eddb27"
+    },
+    {
+      "path": "CHANGELOG_v2_34.txt",
+      "bytes": 1977,
+      "sha256": "d1fbc41c458d3394551e39575e210e04e211c862042dae9a15ee5110e6d462a8"
+    },
+    {
+      "path": "CHANGELOG_v2_35.txt",
+      "bytes": 1390,
+      "sha256": "d4cb1f6ec1d31bfcd703d6e95cbe05865127f64e696af62c945d76504a509176"
+    },
+    {
+      "path": "CHANGELOG_v2_7_3.txt",
+      "bytes": 266,
+      "sha256": "0640f6c5e1aa61880870b4257453f44538072da46d5a8140d59d83b114c19bf4"
+    },
+    {
+      "path": "CHANGELOG_v2_8.txt",
+      "bytes": 887,
+      "sha256": "9ea3e7e310c7449e6db504a617734cd316e68439b57540dbcec1a9840967551f"
+    },
+    {
+      "path": "CHANGELOG_v2_9.txt",
+      "bytes": 247,
+      "sha256": "2ad7afc7835c3df6809636b0d992b39701e7aedce3e685e894f45c4b5a894a0d"
+    },
+    {
+      "path": "MANIFEST_v2_34_SHA256.json",
+      "bytes": 7760,
+      "sha256": "9c8733ba5b68e0f037d6be7fbbabfb10c6d29d08b3010b254fbc87b905c46fd7"
+    },
+    {
+      "path": "MANUAL_EN.md",
+      "bytes": 3320,
+      "sha256": "02c86829e8557ae0cb1b256aad942d035cbf6d485acfd2807e0a9d962a3a5bce"
+    },
+    {
+      "path": "MP3_Manager.pyw",
+      "bytes": 112940,
+      "sha256": "4115074a51b1b4413be59025910dca1ddbc0ce95d8b2cd853cab8dc8d6db188a"
+    },
+    {
+      "path": "PORTABLE_ORDNERSTRUKTUR_DE.md",
+      "bytes": 1107,
+      "sha256": "1bce196895d38761daeb3efffd00d77fbb54bdc5d74f73022f5f16c4d6ef6736"
+    },
+    {
+      "path": "PYTHON_STABLE.bat",
+      "bytes": 1824,
+      "sha256": "3ea118ba1a973582ac2b1fc3453ee7de925c2559441e83a5bede0a870950f829"
+    },
+    {
+      "path": "README.txt",
+      "bytes": 3819,
+      "sha256": "fded0ec8a69f8f40a9bc82bc8fe9f2ae45fabdf1a2bee805511ad7d30f21de9d"
+    },
+    {
+      "path": "REPARATUR_AUDIO_TOOLS.bat",
+      "bytes": 1086,
+      "sha256": "3ce250dcf47d0661203de85a10d51773c11c585e62837e21ddb19419411b8e49"
+    },
+    {
+      "path": "STARTEN.bat",
+      "bytes": 1210,
+      "sha256": "86c75552847e9f84084176717b777f3784a2b010f3780adae3424442165fca0c"
+    },
+    {
+      "path": "SYSTEM_CHECK.py",
+      "bytes": 7044,
+      "sha256": "34d72e6ae422b7c9d0d55e58e70e4f19d12404f8ffa5074441856f969dd12d5e"
+    },
+    {
+      "path": "TEST_REPORT_v2_34.md",
+      "bytes": 1060,
+      "sha256": "6c191daecc3d67b6227401ab4dabf20daccdf3997e2cac1e12701d0cb2d4c53d"
+    },
+    {
+      "path": "TEST_REPORT_v2_35.md",
+      "bytes": 1344,
+      "sha256": "18189d64b954ff71b80b85b05ea5a1d9734420679a2925968773adf58ff26c68"
+    },
+    {
+      "path": "assets/app.ico",
+      "bytes": 198382,
+      "sha256": "7a061c05ba2ef2aeb5544290bd12dffb8fac9a5d596c85d99da141ea7cfe879c"
+    },
+    {
+      "path": "assets/banner.png",
+      "bytes": 309421,
+      "sha256": "72379307948bb4ef5a2f74dbc165d51ff7b9524eec078ea2f736a362f6d400cf"
+    },
+    {
+      "path": "assets/logo.png",
+      "bytes": 2731139,
+      "sha256": "40b7085fbc049c5de3ec41b43f1afde944110352c0c59e8ff5e65a14e2f426ac"
+    },
+    {
+      "path": "requirements-build.txt",
+      "bytes": 74,
+      "sha256": "68976cfebf6eff804e3e60dbdb57f4fe2b9382e27294bbf04e29cec032b857c6"
+    },
+    {
+      "path": "requirements.txt",
+      "bytes": 54,
+      "sha256": "6ad1c25558f1252276e86093b62826b0226dbe81dc70d4489318bbf3ee1a4b30"
+    },
+    {
+      "path": "tests/test_audio_qc.py",
+      "bytes": 1760,
+      "sha256": "6735da44b7c3b401e6796371afb8eaeb577f92405760c194acedf80307696770"
+    },
+    {
+      "path": "tests/test_convert_integrated.py",
+      "bytes": 2255,
+      "sha256": "d5c867bb6242181b47cfd868fd7a5c4ef5e199704d6f3d9c259fedab8e6a1ed2"
+    },
+    {
+      "path": "tests/test_gui_repair_smoke.py",
+      "bytes": 943,
+      "sha256": "ed5eca9c9305ab32ec0a151ac50fc4885c9b2f70c59ecfda47b7a8310ebff775"
+    },
+    {
+      "path": "tests/test_real_wav_excerpt.py",
+      "bytes": 2102,
+      "sha256": "da34cca5e7423ff49e29ffc97f0627c422473491a4f005bef7b5889f99bdcfb9"
+    },
+    {
+      "path": "tests/test_repair_from_wav.py",
+      "bytes": 2762,
+      "sha256": "31edeb2d81062bc61a63df79c930b38acc97b6753b1308be343a5cd556bb44da"
+    },
+    {
+      "path": "tests/test_v235_regressions.py",
+      "bytes": 2190,
+      "sha256": "ef3c2fe776ea879aff92bae677b5dab6441510a3dec4ce5181155a71af46cfbb"
+    }
+  ]
+}

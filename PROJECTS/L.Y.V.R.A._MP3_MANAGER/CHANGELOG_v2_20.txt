@@ -1,0 +1,7 @@
+L.Y.V.R.A. - MP3 MANAGER v2.20
+- Cover: 512 x 512 JPG, third mode Stretch (Windows desktop stretch), quality 1-100
+- MP3 metadata action separate from filename rename
+- GUI has no EXE-build button; source-only external batch retained
+- Persistent DE / EN selector and bilingual manuals / help popup
+- No changes intended to DSP, conversion or binary dependencies
+- Native Windows GUI and EXE runtime tests pending

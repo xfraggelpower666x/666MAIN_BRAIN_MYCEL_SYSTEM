@@ -1,0 +1,35 @@
+{
+  "schema": "LYVRA_REAL_WAV_MP3_OBJECTIVE_AB_V1",
+  "source_wav": "YOU ARE MY EMOTIONAL DYNAMITE [0m00s-5m55s].wav",
+  "source_sha256": "00b5a0752fb0e431d696ed1fd051a6a5ccb94bc4bbcf626a5239c4f8b40f08e2",
+  "source_unmodified": true,
+  "test_segment_seconds": 12,
+  "test_segment_from_seconds": 100,
+  "mp3_bitrate_kbps": 320,
+  "sample_rate": 48000,
+  "normalization": false,
+  "decoded_mp3": "PASS",
+  "alignment_lag_samples": 0,
+  "signal_error_rms": 0.003298,
+  "frequency_band_energy_comparison": [
+    {
+      "hz": "0-4000",
+      "energy_delta_db": -0.001
+    },
+    {
+      "hz": "4000-10000",
+      "energy_delta_db": -0.001
+    },
+    {
+      "hz": "10000-16000",
+      "energy_delta_db": 0.009
+    },
+    {
+      "hz": "16000-22000",
+      "energy_delta_db": 0.007
+    }
+  ],
+  "interpretation": "NUMERIC_DIFFERENCES_ONLY_NOT_PROOF_OF_NO_AUDIBLE_ARTIFACTS",
+  "paired_user_bad_mp3": "NOT_AVAILABLE",
+  "subjective_listening": "NOT_TESTED"
+}

@@ -1,0 +1,7 @@
+666SOUNDsDESIGn MP3-Manager v2.11
+
+- Header/Banner durch neues LYVRA-Bild ersetzt
+- Kopfbereich kompakter gestaltet, damit mehr Arbeitsfläche auf einen Bildschirm passt
+- Start im maximierten Fenster (Windows: zoomed)
+- Arbeitsbereich und Tabellenhöhe leicht komprimiert
+- Bestehende Umbenennungs-, Metadaten-, Audio- und Statusmonitor-Funktionen beibehalten

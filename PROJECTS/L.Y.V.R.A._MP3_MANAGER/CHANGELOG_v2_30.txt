@@ -1,0 +1,11 @@
+L.Y.V.R.A. - MP3 MANAGER v2.30 — Adaptive Workspace
+
+- Bestehenden v2.29-Ablauf erhalten: endgültiger Dateiname vor MP3-ID3-Schritt; TIT2=Dateiname ohne .mp3, separat pro Track.
+- Alle drei Hauptreiter besitzen eigenständig scrollbar zugängliche Arbeitsflächen.
+- Fortschritts- und Fußleiste bleiben auch bei veränderter Fensterhöhe fixiert.
+- Banner passt seine Maximalhöhe dynamisch an die Fensterhöhe an, ohne verzerrt zu werden.
+- Audio-PanedWindow wird bei Fensteränderungen sinnvoll neu positioniert.
+- Bestehende Audioqualität 48000 Hz, 320 kbit/s, fltp, Stereo bleibt erhalten.
+- Getestet: Python-Syntax; Xvfb-Reiterlayout 1024x680, 1450x900, 1920x1080; ID3-TIT2 + andere Standardtags; ZIP CRC.
+- OFFEN: echter Windows-DPI-/Mehrmonitor- und vollständiger Audio-Dauertest.
+- Keine PFS- oder Fremdsystem-Writes.

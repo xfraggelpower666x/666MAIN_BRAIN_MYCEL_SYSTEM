@@ -1,0 +1,1 @@
+v2.7.3 - SYSTEM_CHECK.py: Pillow-Obergrenze fuer stabile Python 3.11-3.14 mit requirements.txt synchronisiert (<14 statt <13). Keine Aenderung am Audio-, GUI- oder Build-Code. Die bestehende .venv_stable kann weiterverwendet werden. Windows-Laufzeittest ausstehend.

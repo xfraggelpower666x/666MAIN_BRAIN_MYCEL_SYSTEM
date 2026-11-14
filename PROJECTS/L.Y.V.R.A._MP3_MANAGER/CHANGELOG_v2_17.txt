@@ -1,0 +1,9 @@
+L.Y.V.R.A. - MP3 MANAGER v2.17 · STOPP-VORGÄNGE
+
+- STOPP-VORGANG im Datei-Reiter und Metadaten-Reiter: Abbruch nach aktueller Datei.
+- STOPP-VORGANG im Audio-Reiter: laufender FFmpeg-Prozess wird beendet, nur unvollständige .partial.mp3 wird entfernt.
+- STOPP-VORGANG im System-&-EXE-Reiter: laufender PyInstaller-Prozess kann beendet werden.
+- Bereits erfolgreich verarbeitete Dateien bleiben erhalten.
+- Originaldateien werden niemals aufgrund eines Stopps gelöscht.
+- Für EXE-Build-Abbruch werden eventuell bereits entstandene Build-Artefakte NICHT als fertige EXE freigegeben.
+- Kein Windows-Nativtest durchgeführt; GUI-Smoke-Test unter Linux/Xvfb PASS.

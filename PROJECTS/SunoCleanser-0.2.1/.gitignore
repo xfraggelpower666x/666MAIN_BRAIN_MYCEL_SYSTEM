@@ -1,0 +1,26 @@
+# Config local (Cursor, reglas personales) — NUNCA al remoto
+.cursor/
+.cursorrules
+
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.wav
+!tests/fixtures/*.wav
+# Salidas locales (WAV + informes); la carpeta sí está en el repo
+out/*
+!out/.gitkeep
+
+.pytest_cache/
+build/
+dist/
+out/*
+!out/.gitkeep

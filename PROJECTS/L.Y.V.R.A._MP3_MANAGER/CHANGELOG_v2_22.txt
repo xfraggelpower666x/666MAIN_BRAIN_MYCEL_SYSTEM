@@ -1,0 +1,6 @@
+L.Y.V.R.A. - MP3 MANAGER v2.22
+- Eigenständige, sichtbare MP3-Dateiauswahl im Metadaten-Reiter
+- Exakte Cover-Zielanzahl, C2PA-Schutz und Zielnamen
+- Cover-Vorabprüfung 512x512 JPEG und APIC-Readback
+- ID3-TIT2-Sammelüberschreibung verhindert: Feldhaken initial AUS
+- Funktionen aus v2.21 erhalten

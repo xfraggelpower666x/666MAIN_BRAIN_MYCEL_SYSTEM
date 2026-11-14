@@ -1,0 +1,11 @@
+L.Y.V.R.A. - MP3 MANAGER v2.28 — Audio Standardprofil
+
+- PCM-Zwischenformat bei neuem Programmstart standardmäßig fltp (32-Bit-Float planar).
+- Beibehalten: 48.000 Hz, 320 kbit/s CBR, Stereo.
+- Beibehalten: optionale 2-Pass EBU-R128-Normalisierung, werkseitig aktiv, -14 LUFS / -2 dBTP.
+- Auswahl anderer PCM-Zwischenformate bleibt erhalten.
+- Encoderformat wird weiterhin von FFmpeg/libmp3lame automatisch ausgehandelt.
+- Kein zwangsweises -sample_fmt fltp am MP3-Encoder.
+- Originale bleiben erhalten, keine PFS-Änderungen.
+
+Hinweis: float32 bietet internen Berechnungs-Headroom, verbessert vorhandene MP3-Quellen nicht und garantiert nicht automatisch höhere hörbare Qualität.

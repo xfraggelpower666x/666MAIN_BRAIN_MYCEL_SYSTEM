@@ -1,0 +1,8 @@
+L.Y.V.R.A. - MP3 MANAGER v2.29 — AUTO-ID3 ON MP3 EXPORT
+- WAV→MP3 und MP3→MP3: Zeitblock und abschließende Nummernklammern im Ausgabedateinamen entfernen.
+- Jeder exportierte Track erhält seinen eigenen bereinigten Dateinamen als ID3-TIT2.
+- ID3-Standardfelder aus der Metadaten-Maske automatisch auf jeden exportierten MP3 anwenden, einschließlich Künstler, Albuminterpret, Genre, Komponist, Jahr, Track/Disc 666, Kommentar und Webquelle.
+- Album leer in Maske bedeutet Album leer in Ausgabe (kein unbeabsichtigtes Übernehmen).
+- Ausgabe wird zunächst mit bereinigtem endgültigem Namen angelegt, danach ID3-v2.3 geschrieben und rückgelesen.
+- Fehler: temporäre bzw. gerade neu angelegte Ausgabe entfernen; Originale nicht verändern; bestehende Zielnamen nicht überschreiben.
+- Bestehende GUI, EXE-Build außerhalb der App, Statusmonitor, Stop-Logik und FFmpeg-Qualitätsvorgaben bleiben erhalten.

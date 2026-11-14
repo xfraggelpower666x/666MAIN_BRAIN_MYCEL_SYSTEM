@@ -1,0 +1,10 @@
+L.Y.V.R.A. - MP3 MANAGER v2.19
+
+- Aus v2.17 übernommen; Cover- und Titelübernahme-Funktionen aus unterbrochener v2.18-Arbeit fertiggestellt.
+- 512×512-JPEG-Cover mit Qualitätsstufe 1–100, Contain/Crop, Einzel-/Sammelzuweisung, Vorschau.
+- Dateiname → ID3-Titel und ID3-Titel → Dateiname (einzeln pro MP3; Vorschau/Sicherung).
+- In allen vier Reitern Dateimanager-Öffnung und Drag-and-Drop-Ziele.
+- Separater Dateimanager als verschiebbares zweites Fenster mit Ordnernavigation, Mehrfachauswahl und Dateigrößen.
+- Drag-and-Drop benötigt tkinterdnd2, wird im projektlokalen Dependency-Check geprüft.
+- Bestehende Originaldateien, C2PA-Sperre, WAV/MP3-Verarbeitung, Statusmonitor und Stopps bewahrt.
+- Windows-EXE-Build schließt TkinterDnD2-Daten ein (Windows-Readback ausstehend).

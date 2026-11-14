@@ -1,0 +1,7 @@
+v2.15 – WAV + MP3 im Umbenennen-Reiter
+- Ordner-Scan zählt Gesamt-, MP3- und WAV-Dateien separat.
+- Anzahl aktuell ausgewählter Dateien wird angezeigt.
+- WAV und MP3 werden gemeinsam in der Umbenennungs-Tabelle angezeigt.
+- Zeitblockentfernung und Versionsnummernregeln gelten für beide Dateitypen.
+- ID3-Editor und Schreiblogik ausschließlich für MP3; WAV wird nur umbenannt.
+- Alle bestehenden Sicherheitskopien, Kollisionsprüfungen, FFmpeg- und Statusmonitor-Funktionen erhalten.

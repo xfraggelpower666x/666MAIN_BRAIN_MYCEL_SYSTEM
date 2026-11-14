@@ -1,0 +1,7 @@
+L.Y.V.R.A. - MP3 MANAGER v2.23 — DEPENDENCY REPAIR
+
+- Reparatur: requirements-build.txt enthaelt jetzt tkinterdnd2>=0.4.3,<1.
+- Der bestehende Build-Check benoetigt tkinterdnd2 und installiert es jetzt bei Zustimmung mit.
+- Keine Aenderungen an GUI, Audio, Metadaten, C2PA, Cover oder Dateiinhalten.
+- Python 3.13/.venv_stable bleibt erhalten; keine globale Python-Mutation.
+- Fuer reinen GUI-Start weiterhin STARTEN.bat verwenden.

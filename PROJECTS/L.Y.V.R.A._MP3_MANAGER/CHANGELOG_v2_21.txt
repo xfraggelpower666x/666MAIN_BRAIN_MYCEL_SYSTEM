@@ -1,0 +1,6 @@
+L.Y.V.R.A. - MP3 MANAGER v2.21
+- Metadatenfortschritt als vierter eigenstaendiger Balken im Hauptfenster und Statusmonitor.
+- Anzeige pro MP3: Index/Gesamt, Name, Fortschritt, Erfolge und Fehler.
+- Sichtbar auch im Metadaten-Reiter.
+- Bestehende C2PA-Pruefung, Backup und STOPP respektiert.
+- Kein Audioalgorithmus veraendert.

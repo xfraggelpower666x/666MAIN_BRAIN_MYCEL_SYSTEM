@@ -1,0 +1,6 @@
+L.Y.V.R.A. - MP3 MANAGER v2.16
+- Dateizähler oberhalb der Reiter dauerhaft sichtbar
+- Gemischte WAV + MP3-Konvertierung zu einem MP3-Profil
+- Getrennte Quellzähler WAV/MP3 im Audio-Reiter
+- Gemeinsamer Fortschritt über alle Eingabedateien
+- Originaldateien bleiben erhalten; Export in eigenem Ordner

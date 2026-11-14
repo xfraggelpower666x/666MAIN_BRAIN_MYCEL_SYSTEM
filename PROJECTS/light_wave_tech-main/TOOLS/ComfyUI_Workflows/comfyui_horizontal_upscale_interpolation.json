@@ -1,0 +1,457 @@
+{
+  "id": "1200da1d-e286-4805-b13d-e0239d8fb5c1",
+  "revision": 0,
+  "last_node_id": 60,
+  "last_link_id": 118,
+  "nodes": [
+    {
+      "id": 16,
+      "type": "Note",
+      "pos": [
+        -1023.4523718868577,
+        85.86309297171444
+      ],
+      "size": [
+        620,
+        320
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "Tested on a 4090 with 24GB VRAM, 64GB of System RAM with videos of 32 seconds length at 30fps.\n\nThis workflow is really only meant for short clips so don't even think about putting a feature-length video into this! ☠️. \n\nLarge and longer video clips will use up a lot of system RAM, so take this as a guide.\n\nDepending on video resolution, it is recommended to downscale the frames for the depth maps, they are low freq. images so detail isn't important.  Best to keep videos as 1080p or lower.\n\n720p : keep at 1.0 or downscale to 0.5\n1080p : downscale to 0.5\n1440p : downscale to 0.25-0.3\n\nBatch Size:\nNumber of frames to process at once. Adjust according to your hardware. Default is 32.  If you run out of RAM, set to a lower value. \n\nWhen converting videos, a temp_file is created and is removed when processing is done.  This works under Linux, but under Windows, the file may still linger in C:\\Users\\username\\AppData\\Local\\Temp.  You may wish to clear this out manually. \n\n"
+      ],
+      "color": "#222",
+      "bgcolor": "#000"
+    },
+    {
+      "id": 13,
+      "type": "MarkdownNote",
+      "pos": [
+        -1109.5761555864365,
+        -83.31455284718238
+      ],
+      "size": [
+        240,
+        120
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "Custom Nodes",
+      "properties": {},
+      "widgets_values": [
+        "[Y7 2DTo3D SBS](https://github.com/yushan777/ComfyUI-Y7-SBS) \n\n[Video Helper Suite (VHS)](https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite) \n\n[Depth Anything V2](https://github.com/kijai/ComfyUI-DepthAnythingV2) \n\n\n"
+      ],
+      "color": "#222",
+      "bgcolor": "#000"
+    },
+    {
+      "id": 8,
+      "type": "VHS_VideoCombine",
+      "pos": [
+        520.0396538386971,
+        -501.44643916872315
+      ],
+      "size": [
+        490,
+        603.2317880794702
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 103
+        },
+        {
+          "name": "audio",
+          "shape": 7,
+          "type": "AUDIO",
+          "link": null
+        },
+        {
+          "name": "meta_batch",
+          "shape": 7,
+          "type": "VHS_BatchManager",
+          "link": null
+        },
+        {
+          "name": "vae",
+          "shape": 7,
+          "type": "VAE",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Filenames",
+          "type": "VHS_FILENAMES",
+          "links": []
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-videohelpersuite",
+        "ver": "df55f01d1df2f7bf5cc772294bc2e6d8bab22d66",
+        "Node name for S&R": "VHS_VideoCombine"
+      },
+      "widgets_values": {
+        "frame_rate": 24,
+        "loop_count": 0,
+        "filename_prefix": "g-video/g-video",
+        "format": "video/h264-mp4",
+        "pix_fmt": "yuv420p",
+        "crf": 15,
+        "save_metadata": false,
+        "trim_to_audio": false,
+        "pingpong": false,
+        "save_output": true,
+        "videopreview": {
+          "hidden": false,
+          "paused": false,
+          "params": {
+            "filename": "g-video_00703.mp4",
+            "subfolder": "g-video",
+            "type": "output",
+            "format": "video/h264-mp4",
+            "frame_rate": 24,
+            "workflow": "g-video_00703.png",
+            "fullpath": "D:\\ComfyUI_windows_portable\\ComfyUI\\output\\g-video\\g-video_00703.mp4"
+          }
+        }
+      }
+    },
+    {
+      "id": 44,
+      "type": "VHS_LoadVideoPath",
+      "pos": [
+        -480.7740837489304,
+        -288.19258849154863
+      ],
+      "size": [
+        238.14453125,
+        286
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "meta_batch",
+          "shape": 7,
+          "type": "VHS_BatchManager",
+          "link": null
+        },
+        {
+          "name": "vae",
+          "shape": 7,
+          "type": "VAE",
+          "link": null
+        },
+        {
+          "name": "video",
+          "type": "STRING",
+          "widget": {
+            "name": "video"
+          },
+          "link": 89
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            110
+          ]
+        },
+        {
+          "name": "frame_count",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "links": null
+        },
+        {
+          "name": "video_info",
+          "type": "VHS_VIDEOINFO",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-videohelpersuite",
+        "ver": "1.7.9",
+        "Node name for S&R": "VHS_LoadVideoPath"
+      },
+      "widgets_values": {
+        "video": "",
+        "force_rate": 0,
+        "custom_width": 0,
+        "custom_height": 0,
+        "frame_load_cap": 0,
+        "skip_first_frames": 0,
+        "select_every_nth": 1,
+        "format": "AnimateDiff",
+        "videopreview": {
+          "hidden": false,
+          "paused": false,
+          "params": {
+            "filename": "",
+            "type": "path",
+            "format": "video/",
+            "force_rate": 0,
+            "custom_width": 0,
+            "custom_height": 0,
+            "frame_load_cap": 0,
+            "skip_first_frames": 0,
+            "select_every_nth": 1
+          }
+        }
+      }
+    },
+    {
+      "id": 56,
+      "type": "RIFE VFI",
+      "pos": [
+        125.65253393195154,
+        -228.29898411885546
+      ],
+      "size": [
+        362.91953125,
+        198
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "frames",
+          "type": "IMAGE",
+          "link": 118
+        },
+        {
+          "name": "optional_interpolation_states",
+          "shape": 7,
+          "type": "INTERPOLATION_STATES",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            103
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-frame-interpolation",
+        "ver": "1.0.7",
+        "Node name for S&R": "RIFE VFI"
+      },
+      "widgets_values": [
+        "rife49.pth",
+        10,
+        2,
+        false,
+        true,
+        1
+      ]
+    },
+    {
+      "id": 54,
+      "type": "PrimitiveNode",
+      "pos": [
+        -800.9618555232355,
+        -284.2226438868316
+      ],
+      "size": [
+        292.2354181103153,
+        82
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "INT",
+          "type": "INT",
+          "widget": {
+            "name": "index"
+          },
+          "links": [
+            90
+          ]
+        }
+      ],
+      "properties": {
+        "Run widget replace on values": false
+      },
+      "widgets_values": [
+        263,
+        "increment"
+      ]
+    },
+    {
+      "id": 15,
+      "type": "ImageScaleBy",
+      "pos": [
+        -211.41750773872403,
+        -355.3785696621516
+      ],
+      "size": [
+        230,
+        82
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 110
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            118
+          ]
+        }
+      ],
+      "title": "Up/Downscale Image By",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.28",
+        "Node name for S&R": "ImageScaleBy"
+      },
+      "widgets_values": [
+        "lanczos",
+        2.05
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 51,
+      "type": "VideoFolderIterator",
+      "pos": [
+        -791.8384913836024,
+        -129.27800617280576
+      ],
+      "size": [
+        283.964453125,
+        102
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "index",
+          "type": "INT",
+          "widget": {
+            "name": "index"
+          },
+          "link": 90
+        }
+      ],
+      "outputs": [
+        {
+          "name": "video_path",
+          "type": "STRING",
+          "links": [
+            89
+          ]
+        },
+        {
+          "name": "total_files",
+          "type": "INT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VideoFolderIterator"
+      },
+      "widgets_values": [
+        "D:\\OK_TO_UPSCALE_INTERPOLATE\\NEW_horizontal\\006",
+        263
+      ]
+    }
+  ],
+  "links": [
+    [
+      89,
+      51,
+      0,
+      44,
+      2,
+      "STRING"
+    ],
+    [
+      90,
+      54,
+      0,
+      51,
+      0,
+      "INT"
+    ],
+    [
+      103,
+      56,
+      0,
+      8,
+      0,
+      "IMAGE"
+    ],
+    [
+      110,
+      44,
+      0,
+      15,
+      0,
+      "IMAGE"
+    ],
+    [
+      118,
+      15,
+      0,
+      56,
+      0,
+      "IMAGE"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.8390545288824275,
+      "offset": [
+        1085.9680270750623,
+        611.3190882210898
+      ]
+    },
+    "frontendVersion": "1.35.9",
+    "workflowRendererVersion": "LG",
+    "VHS_latentpreview": false,
+    "VHS_latentpreviewrate": 0,
+    "VHS_MetadataImage": true,
+    "VHS_KeepIntermediate": true
+  },
+  "version": 0.4
+}

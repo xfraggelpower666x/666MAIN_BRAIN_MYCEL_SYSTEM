@@ -1,0 +1,116 @@
+# Push a tag like v0.1.0 to build and attach binaries to a GitHub release.
+name: release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+env:
+  GH_TOKEN: ${{ github.token }}
+  TAG: ${{ github.ref_name }}
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: gh release create "$TAG" --generate-notes
+
+  build:
+    needs: release
+    strategy:
+      matrix:
+        include:
+          - { os: macos-14, target: aarch64-apple-darwin }
+          - { os: macos-14, target: x86_64-apple-darwin }
+          - { os: ubuntu-22.04, target: x86_64-unknown-linux-gnu }
+          - { os: ubuntu-22.04-arm, target: aarch64-unknown-linux-gnu }
+          - { os: windows-latest, target: x86_64-pc-windows-msvc }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: rustup target add ${{ matrix.target }}
+      - run: cargo test --release
+      - run: cargo build --release --target ${{ matrix.target }}
+      - name: package and upload
+        shell: bash
+        run: |
+          name="sunscreen-$TAG-${{ matrix.target }}"
+          mkdir "$name"
+          cp README.md LICENSE "$name/"
+          if [[ "${{ runner.os }}" == Windows ]]; then
+            cp target/${{ matrix.target }}/release/sunscreen.exe "$name/"
+            7z a "$name.zip" "$name" && file="$name.zip"
+          else
+            cp target/${{ matrix.target }}/release/sunscreen "$name/"
+            tar czf "$name.tar.gz" "$name" && file="$name.tar.gz"
+          fi
+          gh release upload "$TAG" "$file"
+
+  # Drag-and-drop macOS app wrapping a universal binary.
+  app:
+    needs: build
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          gh release download "$TAG" -p '*apple-darwin.tar.gz'
+          for f in *.tar.gz; do tar xzf "$f"; done
+          osacompile -o Sunscreen.app macos/droplet.applescript
+          lipo -create sunscreen-*-apple-darwin/sunscreen -output Sunscreen.app/Contents/Resources/sunscreen
+          codesign --force --deep -s - Sunscreen.app
+          ditto -c -k --keepParent Sunscreen.app "Sunscreen-$TAG-macos.zip"
+          gh release upload "$TAG" "Sunscreen-$TAG-macos.zip"
+
+  # Regenerate the formula in abradburne/homebrew-tap (push via deploy key secret).
+  tap:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          TAP_KEY: ${{ secrets.TAP_DEPLOY_KEY }}
+        run: |
+          gh release download "$TAG" -R "$GITHUB_REPOSITORY" -p '*.tar.gz'
+          base="https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG"
+          pkg() { f="sunscreen-$TAG-$1.tar.gz"; printf '      url "%s/%s"\n      sha256 "%s"\n' "$base" "$f" "$(sha256sum "$f" | cut -d' ' -f1)"; }
+          mkdir -p ~/.ssh && echo "$TAP_KEY" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          git clone git@github.com:abradburne/homebrew-tap.git tap
+          mkdir -p tap/Formula
+          cat > tap/Formula/sunscreen.rb <<RUBY
+          class Sunscreen < Formula
+            desc "Protection from Suno haze: cleans up tracks downloaded from Suno"
+            homepage "https://github.com/$GITHUB_REPOSITORY"
+            version "${TAG#v}"
+            license "MIT"
+
+            on_macos do
+              on_arm do
+          $(pkg aarch64-apple-darwin)
+              end
+              on_intel do
+          $(pkg x86_64-apple-darwin)
+              end
+            end
+            on_linux do
+              on_arm do
+          $(pkg aarch64-unknown-linux-gnu)
+              end
+              on_intel do
+          $(pkg x86_64-unknown-linux-gnu)
+              end
+            end
+
+            def install
+              bin.install "sunscreen"
+            end
+
+            test do
+              assert_match "usage", shell_output("#{bin}/sunscreen 2>&1", 2)
+            end
+          end
+          RUBY
+          cd tap
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Formula/sunscreen.rb && git commit -m "sunscreen $TAG" && git push

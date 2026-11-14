@@ -1,0 +1,6 @@
+v2.32: Portable Ordner statt Onefile EXE
+- PyInstaller --onedir mit _internal-Laufzeitordner.
+- dist/L.Y.V.R.A._MP3_MANAGER/ als einziger Kopierordner.
+- assets/, tools/, Handbücher und Reparaturstarter neben EXE.
+- Fehlende FFmpeg-Werkzeuge verhindern einen falschen Portabilitaets-PASS.
+- Kein Eingriff in Audio-, Metadaten-, Umbenennungs- oder PFS-Logik.

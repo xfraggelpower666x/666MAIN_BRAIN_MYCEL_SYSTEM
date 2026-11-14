@@ -1,0 +1,29 @@
+{
+  "neural_indices_path": {
+    "neural_indices_json": "C:/1/light_wave_tech/DATA/neural_json_batches"
+  },
+  "shader_path": {
+    "shader_path_glsl": "C:/1/light_wave_tech/DATA/shaders/music_video/v2"
+  },
+  "image_filepaths": {
+    "mask_layer_folder": "C:/1/light_wave_tech/DATA/mask_layer_img"
+  },
+  "video_filepaths": {
+    "video_folder_matrix_code": "C:/1/light_wave_tech/DATA/bg_videos",
+    "video_folder_all_vertical_1": "H:/grok_elara_video_combined/g_vertical_1",
+    "video_folder_all_vertical_2": "H:/grok_elara_video_combined/g_vertical_2",
+    "video_folder_all_vertical_nsfw": "G:/NUDE_grok-video-glitch_elara_WAN_VIDEO",
+    "video_folder_all_horizontal": "H:/grok_elara_video_combined/g_horizontal",
+    "video_folder_all_horizontal_static": "G:/grok_elara_video_combined/g_horizontal_static",
+    "video_folder_all_horizontal_static_nsfw": "F:/NUDE__TO_1920_1080/JPG/MP4_TMP_DELETE_WHEN_FINAL_IS_DONE",
+    "video_folder_all_segments": "H:/grok_elara_video_combined/segments",
+    "video_folder_all_square_1": "G:/grok_elara_video_combined/g_square/SRC_NORMAL_1",
+    "video_folder_all_square_2": "G:/grok_elara_video_combined/g_square/SRC_NORMAL_2",
+    "video_folder_all_square_3": "G:/grok_elara_video_combined/g_square/SRC_NORMAL_3",
+    "video_folder_all_square_g_video": "H:/grok_elara_video_combined/g-video"
+  },
+  "audio_filepaths": {
+    "music_folder": "C:/1/light_wave_tech/DATA/SUNO_HIGHEST_QUALITY",
+    "sync_folder": "C:/1/light_wave_tech/DATA/audio_sync_data"
+  }
+}

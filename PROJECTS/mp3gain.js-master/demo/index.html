@@ -1,0 +1,416 @@
+<doctype html>
+<html>
+  <head>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="../dist/mp3gain-wrapper.js"></script>
+    <style>
+      .original:after {
+        content: "MP3";
+      }
+      .processed:after {
+        content: "Processed MP3";
+      }
+      .console:after {
+        content: "MP3GAIN output";
+      }
+
+      .bordered-container {
+        position: relative;
+        margin: 20px 0;
+        padding: 30px 10px 10px 10px;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        -webkit-border-radius: 4px;
+        -moz-border-radius: 4px;
+        border-radius: 4px;
+        font-family: Menlo, Monaco, "Courier New", monospace;
+        font-size: 12px;
+        min-height: 180px;
+        max-height: 180px;
+        overflow: hidden;
+      }
+
+      .bordered-container:after {
+        position: absolute;
+        top: -1px;
+        left: -1px;
+        padding: 3px 7px;
+        font-size: 12px;
+        font-weight: bold;
+        background-color: #f5f5f5;
+        border: 1px solid #ddd;
+        color: #9da0a4;
+        -webkit-border-radius: 4px 0 4px 0;
+        -moz-border-radius: 4px 0 4px 0;
+        border-radius: 4px 0 4px 0;
+      }
+
+      .bordered-container ul {
+        margin-top: 0;
+        margin-bottom: 0;
+        -webkit-padding-start: 0;
+        max-height: 140px;
+        overflow: scroll;
+      }
+
+      .bordered-container li {
+        list-style-type: none;
+      }
+
+      .bordered-container .clear-button {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+      }
+
+      .processing {
+        display: none;
+      }
+
+      .bordered-container .options {
+        position: absolute;
+        top: 2px;
+        left: 150px;
+      }
+
+      #console {
+        overflow: scroll;
+        max-height: 140px;
+      }
+
+      #console .error {
+        color: red;
+      }
+
+      .glyphicon-download {
+        margin-left: 4px;
+        margin-right: 8px;
+      }
+
+      /* loading animation on submitButton */
+      .glyphicon-refresh {
+        -animation: spin .7s infinite linear;
+        -ms-animation: spin .7s infinite linear;
+        -webkit-animation: spinw .7s infinite linear;
+        -moz-animation: spinm .7s infinite linear;
+        margin-right: 10px;
+      }
+
+      .glyphicon-remove-circle {
+        color:#999999;
+        cursor: pointer;
+      }
+      .glyphicon-remove-circle:hover {
+        color: black;
+      }
+
+      @keyframes spin {
+        from { transform: scale(1) rotate(0deg);}
+        to { transform: scale(1) rotate(360deg);}
+      }
+
+      @-webkit-keyframes spinw {
+        from { -webkit-transform: rotate(0deg);}
+        to { -webkit-transform: rotate(360deg);}
+      }
+
+      @-moz-keyframes spinm {
+        from { -moz-transform: rotate(0deg);}
+        to { -moz-transform: rotate(360deg);}
+      }
+
+      button:focus,
+      .btn:focus,
+      .btn:active:focus,.btn.active:focus,
+      .btn.focus
+      .btn:active.focus,.btn.active.focus {
+          outline: none;
+      }
+    </style>
+    <script>
+      function formatDate(num) {
+        return (num < 10 ? "0" : "") + num;
+      }
+
+      function clearContainer(container) {
+        Array.from(container.children).forEach(function(child) {
+          container.removeChild(child)
+        })
+      }
+
+      function addEmpty(content, container) {
+        var empty = document.createElement('li')
+        empty.className = 'empty'
+        empty.innerHTML = content
+
+        container.appendChild(empty)
+      }
+
+      $(document).ready(function() {
+        var addBtn = document.getElementById('add-file-button')
+        var runBtn = document.getElementById('run-button')
+        var runGlyphicon = runBtn.getElementsByClassName('glyphicon-play')[0]
+
+        var reuseNormalizedFilesInput = document.getElementById('reuse-normalized-files')
+
+        // holds normalized files after run call
+        var normalizedFiles = []
+
+        // holds added files
+        var files = []
+
+        var consoleCnt = document.getElementById('console')
+        var showStderrInput = document.getElementById('show-stderr')
+        var showStdoutInput = document.getElementById('show-stdout')
+        var showRawInput = document.getElementById('show-raw')
+
+        function logToConsole(name, container, error) {
+          var date = new Date();
+
+          var element = document.createElement('div')
+          element.innerHTML = '<span class="date" style="display:' + (showRawInput.checked ? 'none': 'inline') + ';">' + formatDate(date.getHours()) + ':' + formatDate(date.getMinutes()) + ':' + formatDate(date.getSeconds()) + '</span> <span class="value">' + name + '</span>'
+          element.className = (error ? 'error' : '')
+          element.style.display = (error && showStderrInput.checked === true) || (!error && showStdoutInput.checked === true) ? 'block' : 'none'
+
+          container.appendChild(element)
+        }
+
+        var inputFile = document.getElementById('input-file')
+        var originalContainer = document.getElementById('original-container')
+        var processedContainer = document.getElementById('processed-container')
+
+        var audio = document.createElement('audio')
+
+        // worker binary, the most optimized, and also easiest for debugging, as you don't need to rebuild all when debugging
+        var encoder = new mp3gain.MP3GainWrapper('../dist/mp3gain-worker.js')
+
+        encoder.on(mp3gain.ON_STDOUT, function(txt) {
+          logToConsole(txt, consoleCnt)
+        })
+        encoder.on(mp3gain.ON_STDERROR, function(txt) {
+          logToConsole(txt, consoleCnt, true)
+        })
+
+        function addFile(file) {
+          return (new Promise(function(resolve, reject) {
+            var reader = new FileReader()
+
+            reader.addEventListener("loadend", function(evt) {
+              var data = {
+                name: file.name,
+                data: new Uint8Array(reader.result)
+              }
+
+              files.push(data)
+              addFileLine(data, originalContainer)
+
+              resolve(data)
+            })
+
+            reader.onerror = reject
+            reader.readAsArrayBuffer(file)
+          })).catch(function(error) {
+            console.error(error)
+            addEmpty('<span class="error">Error, unable to readfile ' + (file ? file.name : '') + '</span>', originalContainer)
+          })
+        }
+
+        function addFileLine(file, container) {
+          if (container.firstChild && container.firstChild.className === 'empty') {
+            container.removeChild(container.firstChild)
+          }
+
+          var url = window.URL.createObjectURL(new Blob([file.data], {
+            type: 'application/force-download'
+          }))
+
+          var li = document.createElement('li')
+          li.innerHTML = '<div><button class="glyphicon glyphicon-play" /><button class="glyphicon glyphicon-download" href="' + url + '" target="_blank"></button><span class="filename">' + file.name + '</span><span class="glyphicon glyphicon-remove-circle pull-right"/><div>'
+
+          // handle audio play
+          var playButton = li.getElementsByClassName('glyphicon-play')[0]
+          playButton.addEventListener('click', function(evt) {
+            evt.preventDefault()
+            if (evt.target.className.indexOf('glyphicon-play') > -1) {
+              if (audio.src !== url) {
+                audio.src = url
+              }
+              audio.play()
+            } else {
+              audio.pause()
+            }
+          })
+
+          // handle audio event, and change play/pause button icon
+          var onEvent = function(evt) {
+            switch (evt.type) {
+              case 'playing':
+              case 'pause':
+                playButton.className = 'glyphicon ' + (audio.src === url && evt.type === 'playing' ? 'glyphicon-pause' : 'glyphicon-play')
+                break
+            }
+          }
+          audio.addEventListener('playing', onEvent)
+          audio.addEventListener('pause', onEvent)
+
+          // handle download button click
+          li.getElementsByClassName('glyphicon-download')[0].addEventListener('click', function(evt) {
+            evt.preventDefault()
+            window.open(url)
+          })
+
+          // handle remove
+          li.getElementsByClassName('glyphicon-remove-circle')[0].addEventListener('click', function(evt) {
+            // only main originalcontainer have files registered inside mp3gain
+            if (container === originalContainer) {
+              files.splice(files.indexOf(file), 1)
+            }
+            container.removeChild(li)
+          })
+
+          // finally append element to container
+          container.appendChild(li)
+        }
+
+        function run() {
+          // disable run btn
+          runGlyphicon.className = runGlyphicon.className.replace('glyphicon-play', 'glyphicon-refresh')
+          runBtn.disabled = true
+
+          // clean encoder files on each run, to choose between previously encoded and non encoded file
+          encoder.removeFiles()
+          encoder.addFiles(reuseNormalizedFilesInput.checked && normalizedFiles.length > 0 ? normalizedFiles : files)
+
+          var args = document.getElementById('arguments').value
+
+          clearContainer(processedContainer)
+          addEmpty('<span class="glyphicon glyphicon-refresh"></span> Processing ' + encoder.getFiles().length + ' MP3, with argument "' + args + '"', processedContainer)
+
+          encoder.run(args).then(function(files) {
+            clearContainer(processedContainer)
+
+            normalizedFiles = files
+
+            files.forEach(function(file) {
+              addFileLine(file, processedContainer)
+            })
+
+            if (files.length === 0) {
+              addEmpty('No file processed by encoder', processedContainer)
+            }
+
+            // enable run btn
+            runGlyphicon.className = runGlyphicon.className.replace('glyphicon-refresh', 'glyphicon-play')
+            runBtn.disabled = false
+          }).catch(function(error) {
+            addEmpty('Error ' + error, processedContainer)
+          })
+        }
+        // for easy trigger inside demo
+        window.run = run
+
+        // handle upload file
+        inputFile.onchange = function(evt) {
+          Array.from(evt.target.files).forEach(function(file) {
+            addFile(file)
+          })
+        }
+
+        addBtn.addEventListener('click', inputFile.click.bind(inputFile))
+        runBtn.addEventListener('click', run)
+
+        // show hide errors
+        var showHideStd = function(stderr, evt) {
+          Array.from(consoleCnt.children).forEach(function(child) {
+            if ((stderr && child.className === 'error') || (!stderr && child.className !== 'error')) {
+              child.style.display = evt.target.checked ? 'block' : 'none'
+            }
+          })
+        }
+        showStdoutInput.addEventListener('change', showHideStd.bind(null, false))
+        showStderrInput.addEventListener('change', showHideStd.bind(null, true))
+        showRawInput.addEventListener('change', function(evt) {
+          Array.from(consoleCnt.children).forEach(function(child) {
+            child.getElementsByClassName('date')[0].style.display = evt.target.checked === true ? 'none' : 'inline'
+          })
+        })
+
+        // clear buttons
+        document.getElementById('clear-console').addEventListener('click', function(evt) {
+          clearContainer(consoleCnt)
+        })
+        document.getElementById('clear-original').addEventListener('click', function(evt) {
+          files = []
+          clearContainer(originalContainer)
+          addEmpty('No MP3 added', originalContainer)
+        })
+        document.getElementById('clear-processed').addEventListener('click', function(evt) {
+          clearContainer(processedContainer)
+          addEmpty('No MP3 processed, add file(s) and press run !', processedContainer)
+        })
+      })
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>mp3gain.js - Demo</h1>
+      <p class="lead">Analyse and Normalize MP3 file directly into the browser.</p>
+      <p>
+        MP3Gain.js is the port of <a href="http://mp3gain.sourceforge.net/" target="_blank">mp3gain</a> in javascript via emscripten.
+        mp3gain can analyze and adjust mp3 files  so that they have the same volume.<br />
+        Display command list, use <a href='javascript:document.getElementById("arguments").value="-h";run()'>-h argument</a>.
+        Original mp3gain documentation available <a href="https://github.com/ybootin/mp3gain.js#run-arguments" target="_blank">here</a>.<br />
+      </p>
+      <div clas="row">
+        <div class="form-inline">
+          <button type="button" id="add-file-button" class="btn btn-default">
+            <span class="glyphicon glyphicon-plus"></span>
+            <span class="text">Add MP3 files</span>
+          </button>
+          <button id="run-button" type="button" class="btn btn-default">
+            <span class="glyphicon glyphicon-play"></span>
+            <span class="text">Run with arguments</span>
+          </button>
+          <input id="arguments" type="text" class="form-control" value="-a">
+        </div>
+        <form>
+          <div class="bordered-container original">
+            <ul id="original-container"><li class="empty">No MP3 added</li></ul>
+            <div class="clear-button"><div id="clear-original" class="glyphicon glyphicon-remove-circle" title="clear"></div></div>
+          </div>
+          <div class="bordered-container processed">
+            <ul id="processed-container"><li class="empty">No MP3 processed, add file(s) and press run !</li></ul>
+            <div class="clear-button"><div id="clear-processed" class="glyphicon glyphicon-remove-circle"></div></div>
+            <div class="options">
+              <input type="checkbox" id="reuse-normalized-files" value="1">
+              <label for="reuse-normalized-files">re-use previous normalized files</label>
+            </div>
+          </div>
+          <input type="file" multiple accept="audio/mp3" id="input-file" style="display:none">
+          <div class="bordered-container console">
+            <div id="console"></div>
+            <div class="clear-button"><div id="clear-console" class="glyphicon glyphicon-remove-circle"></div></div>
+            <div class="options">
+              <input type="checkbox" id="show-raw" value="1">
+              <label for="show-raw">raw</label>
+              <input type="checkbox" id="show-stdout" value="1" checked>
+              <label for="show-stdout">stdout</label>
+              <input type="checkbox" id="show-stderr" value="1" checked>
+              <label for="show-stderr">stderr</label>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+    <a href="https://github.com/ybootin/mp3gain.js"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
+  </body>
+</html>
+</doctype>

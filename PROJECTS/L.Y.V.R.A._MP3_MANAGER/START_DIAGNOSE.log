@@ -1,0 +1,22 @@
+=== 666SOUNDsDESIGn STARTDIAGNOSE === 
+[START] 11.11.2026 15:39:14,11 
+[PYTHON] Bestehende stabile Umgebung gefunden. 
+Python: 3.13.17 - B:\Desktop\L.Y.V.R.A._MP3_MANAGER\.venv_stable\Scripts\python.exe
+mutagen 1.48.1: OK
+Pillow 13.0.0: OK
+tkinterdnd2 0.7.0: OK
+Tkinter: OK
+ffmpeg: OK - ffmpeg version 9.0.2-full_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers
+ffprobe: OK - ffprobe version 9.0.2-full_build-www.gyan.dev Copyright (c) 2007-2026 the FFmpeg developers
+libmp3lame: OK (integriert in FFmpeg)
+Python: 3.13.17 - B:\Desktop\L.Y.V.R.A._MP3_MANAGER\.venv_stable\Scripts\python.exe
+mutagen 1.48.1: OK
+Pillow 13.0.0: OK
+tkinterdnd2 0.7.0: OK
+Tkinter: OK
+ffmpeg: OK - ffmpeg version 9.0.2-full_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers
+ffprobe: OK - ffprobe version 9.0.2-full_build-www.gyan.dev Copyright (c) 2007-2026 the FFmpeg developers
+libmp3lame: OK (integriert in FFmpeg)
+[GUI] Starte MP3_Manager.pyw ...
+[GUI] Ende nach 16.4 Sekunden, Rueckgabecode 0
+[ERGEBNIS] GUI-Rueckgabecode 0 
