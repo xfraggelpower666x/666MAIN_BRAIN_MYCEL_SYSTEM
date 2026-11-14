@@ -1,6 +1,6 @@
 # HOST PLUGIN CURRENT — 666MAIN BRAIN
 
-STATUS=INSTALLED_ADOPTION_PARTIAL
+STATUS=INSTALLED_ADOPTION_VERIFIED_FRESH_CHAT_ACCEPTANCE_PENDING
 PLUGIN_NAME=666mainbrain-native-runtime
 PLUGIN_ID=plugins_6aeecd97365081918f3813165617c17c
 VERSION=0.1.0
@@ -21,16 +21,16 @@ PRIVATE_HOST_METADATA_REDACTED_FROM_REPO=TRUE
 SOURCE=VERIFIED
 DELIVERY=VERIFIED
 INSTALLATION=VERIFIED
-ADOPTION=PARTIAL_SKILL_DISCOVERY_VERIFIED_FRESH_CHAT_ACCEPTANCE_PENDING
-HOST_SKILL_CATALOG=8_OF_8_LISTED_2026_11_10
-DIRECT_SKILL_READ=8_OF_8_PASS_2026_11_10
-HOST=PENDING_FRESH_CHAT_ACCEPTANCE
-HOST_OBSERVATION_SCOPE=THIS_CHAT_ONLY
+SKILL_ROUTER_ADOPTION=VERIFIED
+HOST_SKILL_CATALOG=8_OF_8_LISTED_2026_11_14
+DIRECT_SKILL_READ=8_OF_8_PASS_2026_11_14
+HOST=PENDING_TEN_CASE_FRESH_CHAT_ACCEPTANCE
+HOST_OBSERVATION_SCOPE=CURRENT_CHAT_REVALIDATION
 HOST_TEN_TRIGGER_ACCEPTANCE=NOT_YET_FULLY_TESTED
 
 PLUGIN_NE_NATIVE_AUTHORITY=TRUE
 REPOSITORY_CURRENT_WINS=TRUE
 
-## 2026-11-10 independent skill reachability observation
+## 2026-11-14 skill-router revalidation
 
-Eight of eight installed MAIN BRAIN native skills were listed and their skill.md bodies read successfully in the active chat. This supersedes the former host skill-discovery failure for this session only. It does not establish a fresh-chat end-to-end acceptance PASS for SYSTEMSTART, STATUS, HELP, WEITER, NEW CHAT, NEXT CHAT, VORNE, DASHBOARD, FUCK HORST or UPDATE. Retain previous failure as historical evidence, not live status.
+All eight installed MAIN BRAIN native skills are discoverable and directly readable in the active host session. The plugin release remains v0.1.0 / pluginrel_6aeecd98b5fc81918211f89ff71ccd0e. This promotes SKILL_ROUTER_ADOPTION to VERIFIED. It does not prove the separate ten-case fresh-chat end-to-end trigger acceptance matrix.
