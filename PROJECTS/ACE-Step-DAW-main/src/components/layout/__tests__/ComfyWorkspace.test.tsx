@@ -1,9 +1,9 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ComfyWorkspace } from '../ComfyWorkspace';
 
 describe('ComfyWorkspace', () => {
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 
   it('connects only on request and disconnects without stopping the service', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
@@ -17,10 +17,10 @@ describe('ComfyWorkspace', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Connect' }));
     await screen.findByTitle('ComfyUI workflow editor');
     expect(fetchMock).toHaveBeenCalledWith(
-      'http://127.0.0.1:8188/system_stats',
+      'http://127.0.0.1:8189/system_stats',
       expect.objectContaining({ credentials: 'omit', redirect: 'error' }),
     );
-    expect(screen.getByTitle('ComfyUI workflow editor')).toHaveAttribute('src', 'http://127.0.0.1:8188');
+    expect(screen.getByTitle('ComfyUI workflow editor')).toHaveAttribute('src', 'http://127.0.0.1:8189');
     fireEvent.click(screen.getByRole('button', { name: 'Disconnect' }));
     expect(screen.queryByTitle('ComfyUI workflow editor')).not.toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -57,5 +57,21 @@ describe('ComfyWorkspace', () => {
     resolve({ ok: true, json: async () => ({ system: {}, devices: [] }) });
     await waitFor(() => expect(screen.getByText('Not connected')).toBeInTheDocument());
     expect(screen.queryByTitle('ComfyUI workflow editor')).not.toBeInTheDocument();
+  });
+
+  it('reports a lost service and preserves the editor until the service recovers', async () => {
+    vi.useFakeTimers();
+    const ok = { ok: true, json: async () => ({ system: {}, devices: [] }) };
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(ok)
+      .mockRejectedValueOnce(new Error('offline')).mockResolvedValueOnce(ok));
+    render(<ComfyWorkspace />);
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Connect' })); });
+    const editor = screen.getByTitle('ComfyUI workflow editor');
+    await act(async () => { await vi.advanceTimersByTimeAsync(10000); });
+    expect(screen.getByRole('alert')).toHaveTextContent('stopped responding');
+    expect(screen.getByTitle('ComfyUI workflow editor')).toBe(editor);
+    await act(async () => { await vi.advanceTimersByTimeAsync(10000); });
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.getByTitle('ComfyUI workflow editor')).toBe(editor);
   });
 });

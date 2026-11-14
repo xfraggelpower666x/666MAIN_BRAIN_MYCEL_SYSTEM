@@ -57,6 +57,46 @@ describe('projectStore', () => {
       useProjectStore.getState().createProject();
     });
 
+    describe('ComfyUI exchange', () => {
+      it('saves workflow only to the project it was captured for and supports undo', () => {
+        useProjectStore.getState().createProject({ name: 'First' });
+        const firstId = useProjectStore.getState().project!.id;
+        expect(useProjectStore.getState().saveComfyWorkflow(firstId, '{"nodes":[]}')).toBe(true);
+        expect(useProjectStore.getState().project!.comfyWorkflow).toBe('{"nodes":[]}');
+        useProjectStore.getState().undo();
+        expect(useProjectStore.getState().project!.comfyWorkflow).toBeUndefined();
+        useProjectStore.getState().redo();
+        expect(useProjectStore.getState().project!.comfyWorkflow).toBe('{"nodes":[]}');
+        useProjectStore.getState().createProject({ name: 'Second' });
+        expect(useProjectStore.getState().saveComfyWorkflow(firstId, '{"nodes":[]}')).toBe(false);
+        expect(useProjectStore.getState().project!.comfyWorkflow).toBeUndefined();
+      });
+
+      it('adds audio as one undoable track without changing the existing project', () => {
+        useProjectStore.getState().createProject();
+        const id = useProjectStore.getState().project!.id;
+        const input = {
+          projectId: id, clipId: 'comfy-audio', audioKey: `audio:${id}:comfy-audio:isolated:1`,
+          name: 'result.wav', duration: 12, peaks: [1, -1, 1, -1],
+        };
+        expect(useProjectStore.getState().addComfyAudio(input)).toBe(true);
+        const project = useProjectStore.getState().project!;
+        expect(project.id).toBe(id);
+        expect(project.tracks).toHaveLength(1);
+        expect(project.tracks[0].clips[0]).toMatchObject({
+          isolatedAudioKey: input.audioKey, generationStatus: 'ready', duration: 12,
+        });
+        expect(project.assets).toHaveLength(1);
+        useProjectStore.getState().undo();
+        expect(useProjectStore.getState().project!.tracks).toHaveLength(0);
+        useProjectStore.getState().redo();
+        expect(useProjectStore.getState().project!.tracks[0].clips[0].isolatedAudioKey).toBe(input.audioKey);
+        useProjectStore.getState().createProject();
+        expect(useProjectStore.getState().addComfyAudio(input)).toBe(false);
+        expect(useProjectStore.getState().project!.tracks).toHaveLength(0);
+      });
+    });
+
     it('updates BPM', () => {
       useProjectStore.getState().updateProject({ bpm: 140 });
       expect(useProjectStore.getState().project!.bpm).toBe(140);

@@ -1637,6 +1637,8 @@ export interface Project {
   generationDefaults: GenerationDefaults;
   /** Project-level global song description used as fallback when a clip's globalCaption is empty. */
   globalCaption?: string;
+  /** Explicitly captured ComfyUI workflow JSON; loading it is always user initiated. */
+  comfyWorkflow?: string;
   /** Master output fader level (0–1), default 1.0 */
   masterVolume?: number;
   /** AI mastering state for the master bus. */
