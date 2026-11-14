@@ -81,3 +81,9 @@ Der Leser klassifiziert vorhandene `gate-result/v1`-Belege. Verwende einen separ
 | `jni-readiness` | Java-Build, JNI-Symbole und native Bibliotheken getrennt prüfen. Für JSyphon die zum Zielcommit gehörenden Submodule, macOS/Xcode und die CPU-Architektur verifizieren. Java-Archiv, native Bibliothek und Frame-Übertragung benötigen eigene Belege. |
 
 Für den Ablauf von Issue und Kontext bis zu Patch, Review, Handoff und Host-Abnahme gilt die [CodeForge-Ergänzung R04](../CODEFORGE/HANDOFF_INTAKE_R01.md#arbeitsverfahren-r04).
+
+## Current-Bindung R15
+
+Im Checkout-Modus gleicht der Resolver sowohl den Katalogpfad als auch den Workflow-Pfad zwischen Current-Pointer und Runtime-Registry ab. Beide Pfade müssen eindeutig angegeben sein und auf vorhandene Dateien innerhalb des Checkouts zeigen. Bei einer Abweichung beendet sich die Abfrage mit Exit 2 und einer Fehlermeldung. Die eigenständige Katalogabfrage ohne `--checkout` bleibt verfügbar.
+
+Lokal geprüft wurden die vollständige Abfrage mit 202 Einträgen, die exakte ID der Sprachfacette in beiden Modi sowie fünf fehlerhafte Workflow-Bindungen. Der Check verifiziert Pfad und Zuordnung. Die Ausführung eines Workflows im Plugin-Host und Provider-Aufrufe haben eigene Abnahmen.
