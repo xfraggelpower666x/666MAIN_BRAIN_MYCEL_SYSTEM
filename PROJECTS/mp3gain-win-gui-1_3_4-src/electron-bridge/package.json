@@ -1,0 +1,54 @@
+{
+  "name": "mp3gain-vb6-electron-bridge",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Electron CLI bridge between the MP3Gain VB6 GUI and mp3gain.js",
+  "main": "main.cjs",
+  "scripts": {
+    "test": "node --test",
+    "build:win": "electron-builder --win --dir"
+  },
+  "dependencies": {
+    "mp3gain.js": "1.1.0"
+  },
+  "devDependencies": {
+    "electron": "^45.3.2",
+    "electron-builder": "^26.18.0"
+  },
+  "build": {
+    "appId": "org.mp3gain.vb6bridge",
+    "productName": "MP3Gain",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "renderer.js",
+      "bridge.html",
+      "cli.cjs"
+    ],
+    "extraResources": [
+      {
+        "from": "node_modules/mp3gain.js/dist/mp3gain-worker.js",
+        "to": "engine/mp3gain-worker.js"
+      },
+      {
+        "from": "../lgpl.txt",
+        "to": "licenses/lgpl.txt"
+      },
+      {
+        "from": "node_modules/mp3gain.js/package.json",
+        "to": "licenses/mp3gain.js-package.json"
+      }
+    ],
+    "win": {
+      "executableName": "mp3gain",
+      "target": "dir"
+    },
+    "asar": true
+  },
+  "allowScripts": {
+    "electron@45.3.2": true
+  }
+}
