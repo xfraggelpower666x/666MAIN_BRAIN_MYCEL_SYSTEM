@@ -3,6 +3,7 @@ from pathlib import Path
 import runpy
 import tempfile
 import unittest
+from unittest.mock import patch
 
 
 MODULE = runpy.run_path(
@@ -10,6 +11,7 @@ MODULE = runpy.run_path(
     run_name='audio_lab_launch_test',
 )
 audio_lab_launch_spec = MODULE['audio_lab_launch_spec']
+sunscreen_run_command = MODULE['sunscreen_run_command']
 
 
 class AudioLabLaunchTests(unittest.TestCase):
@@ -105,6 +107,66 @@ class AudioLabLaunchTests(unittest.TestCase):
 
             self.assertEqual(command, ['bash', str(launcher)])
             self.assertEqual(working_directory, project)
+
+    def test_mp3gain_requires_gui_and_complete_bridge_bundle(self):
+        with tempfile.TemporaryDirectory() as temp:
+            project = Path(temp) / 'mp3gain-win-gui-1_3_4-src'
+            project.mkdir()
+            (project / 'MP3GainGUI.exe').touch()
+            (project / 'mp3gain.exe').touch()
+            (project / 'resources' / 'app.asar').parent.mkdir(parents=True)
+            (project / 'resources' / 'app.asar').touch()
+            (project / 'resources' / 'engine' / 'mp3gain-worker.js').parent.mkdir(parents=True)
+            (project / 'resources' / 'engine' / 'mp3gain-worker.js').touch()
+
+            command, working_directory = audio_lab_launch_spec('mp3gain', [Path(temp)], 'win32')
+
+            self.assertEqual(command, [str(project / 'MP3GainGUI.exe')])
+            self.assertEqual(working_directory, project)
+
+    def test_mp3gain_reports_missing_bridge_and_non_windows(self):
+        with tempfile.TemporaryDirectory() as temp:
+            project = Path(temp) / 'mp3gain-win-gui-1_3_4-src'
+            project.mkdir()
+            (project / 'MP3GainGUI.exe').touch()
+            with self.assertRaisesRegex(RuntimeError, 'mp3gain.js-Brücke fehlt'):
+                audio_lab_launch_spec('mp3gain', [Path(temp)], 'win32')
+            with self.assertRaisesRegex(RuntimeError, 'nur unter Windows'):
+                audio_lab_launch_spec('mp3gain', [Path(temp)], 'linux')
+
+    def test_sunscreen_resolves_project_binary_and_system_path(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            project = root / 'sunscreen-main'
+            binary = project / 'target' / 'release' / 'sunscreen'
+            binary.parent.mkdir(parents=True)
+            binary.touch()
+
+            command, working_directory = audio_lab_launch_spec('sunscreen', [root], 'linux')
+
+            self.assertEqual(command, [str(binary)])
+            self.assertEqual(working_directory, project)
+
+        with tempfile.TemporaryDirectory() as temp, patch(
+            'shutil.which', return_value='/usr/local/bin/sunscreen'
+        ):
+            command, working_directory = audio_lab_launch_spec('sunscreen', [Path(temp)], 'linux')
+            self.assertEqual(command, ['/usr/local/bin/sunscreen'])
+            self.assertEqual(working_directory, Path('/usr/local/bin'))
+
+    def test_sunscreen_command_uses_safe_argument_list_and_supported_inputs(self):
+        with tempfile.TemporaryDirectory() as temp:
+            source = Path(temp) / 'My Track.mp3'
+            source.touch()
+
+            command = sunscreen_run_command('/tools/sunscreen', source)
+
+            self.assertEqual(command, [
+                '/tools/sunscreen', str(source), str(source.parent / 'sunscreen'),
+                'My Track', '--smooth', '--widen', '--excite', '--match', '--master',
+            ])
+            with self.assertRaisesRegex(ValueError, 'unterstützt MP3, WAV, FLAC und M4A'):
+                sunscreen_run_command('/tools/sunscreen', source.with_suffix('.ogg'))
 
     def test_missing_installation_and_unknown_tool_fail_explicitly(self):
         with tempfile.TemporaryDirectory() as temp:

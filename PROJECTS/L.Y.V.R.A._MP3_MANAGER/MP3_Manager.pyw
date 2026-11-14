@@ -212,6 +212,8 @@ def audio_lab_launch_spec(tool, project_roots, platform=None):
         'suno': 'Suno-Song-Remaster-main',
         'restoration': 'Restoration-Lab-main',
         'sunocleanser': 'SunoCleanser-0.2.1',
+        'mp3gain': 'mp3gain-win-gui-1_3_4-src',
+        'sunscreen': 'sunscreen-main',
     }.get(tool)
     if project_name is None:
         raise ValueError(f'Unbekanntes Audio-Tool: {tool}')
@@ -251,19 +253,75 @@ def audio_lab_launch_spec(tool, project_roots, platform=None):
                 'Unter Windows bitte STARTEN.bat im Projektordner verwenden.'
             )
 
-        launcher = project / ('sunocleanser-gui.bat' if host == 'win32' else 'sunocleanser-gui.sh')
-        if launcher.is_file():
-            if host == 'win32':
-                return ['cmd.exe', '/c', str(launcher)], project
-            return ['bash', str(launcher)], project
+        if tool == 'sunocleanser':
+            launcher = project / ('sunocleanser-gui.bat' if host == 'win32' else 'sunocleanser-gui.sh')
+            if launcher.is_file():
+                if host == 'win32':
+                    return ['cmd.exe', '/c', str(launcher)], project
+                return ['bash', str(launcher)], project
+            raise RuntimeError(
+                'SunoCleanser-Launcher fehlt. Bitte das Projekt mit der '
+                'Conda-Umgebung "sunocleanser" einrichten.'
+            )
+
+        if tool == 'mp3gain':
+            if host != 'win32':
+                raise RuntimeError('Die MP3Gain-VB6-GUI ist nur unter Windows verfügbar.')
+            gui = project / 'MP3GainGUI.exe'
+            bridge = project / 'mp3gain.exe'
+            app_archive = project / 'resources' / 'app.asar'
+            worker = project / 'resources' / 'engine' / 'mp3gain-worker.js'
+            if not gui.is_file():
+                raise RuntimeError(
+                    'MP3GainGUI.exe fehlt. MP3Gain.vbp mit VB6 kompilieren und '
+                    'die EXE in den Projektordner legen.'
+                )
+            if not all(path.is_file() for path in (bridge, app_archive, worker)):
+                raise RuntimeError(
+                    'Die mp3gain.js-Brücke fehlt. In electron-bridge npm ci und '
+                    'npm run build:win ausführen und win-unpacked neben MP3GainGUI.exe kopieren.'
+                )
+            return [str(gui)], project
+
+        if tool == 'sunscreen':
+            binary_name = 'sunscreen.exe' if host == 'win32' else 'sunscreen'
+            binaries = (
+                project / binary_name,
+                project / 'target' / 'release' / binary_name,
+            )
+            binary = next((path for path in binaries if path.is_file()), None)
+            if binary is None:
+                binary = shutil.which('sunscreen')
+            if binary:
+                return [str(binary)], project
+            raise RuntimeError(
+                'Sunscreen ist nicht gebaut oder installiert. Im Projekt '
+                'cargo build --release ausführen oder Sunscreen laut README installieren.'
+            )
+
+    if tool == 'sunscreen':
+        binary = shutil.which('sunscreen')
+        if binary:
+            return [binary], Path(binary).resolve().parent
         raise RuntimeError(
-            'SunoCleanser-Launcher fehlt. Bitte das Projekt mit der '
-            'Conda-Umgebung "sunocleanser" einrichten.'
+            'Sunscreen ist nicht gebaut oder installiert. Im Projekt '
+            'cargo build --release ausführen oder Sunscreen laut README installieren.'
         )
 
     raise FileNotFoundError(
         f'{project_name} wurde nicht neben dem Manager oder unter external-tools gefunden.'
     )
+
+
+def sunscreen_run_command(executable, input_path):
+    source = Path(input_path)
+    if source.suffix.lower() not in {'.mp3', '.wav', '.flac', '.m4a'}:
+        raise ValueError('Sunscreen unterstützt MP3, WAV, FLAC und M4A.')
+    source = source.resolve()
+    return [
+        str(executable), str(source), str(source.parent / 'sunscreen'), source.stem,
+        '--smooth', '--widen', '--excite', '--match', '--master',
+    ]
 
 
 class NeonUI:
@@ -1203,7 +1261,7 @@ class App:
         return shutil.which(name) or str(local)
 
     def build_audio_labs(self,parent):
-        ttk.Label(parent,text='AUDIO LABS · REMASTER, RESTAURATION & CLEANUP',
+        ttk.Label(parent,text='AUDIO LABS · REMASTER, RESTORE & CLEAN',
                   foreground=NeonUI.CYAN,font=('Segoe UI Semibold',15)).pack(anchor='w',pady=(8,2))
         ttk.Label(parent,text='Spezialisierte Audio-Werkzeuge aus dem Manager starten. Jedes Werkzeug öffnet ein eigenes Fenster.',
                   wraplength=1040,foreground=NeonUI.TEXT).pack(anchor='w',pady=(0,8))
@@ -1232,6 +1290,23 @@ class App:
                    command=lambda:self.launch_audio_lab('sunocleanser'),
                    style='Secondary.TButton').pack(side='right',padx=(10,0))
 
+        mp3gain=ttk.LabelFrame(parent,text='MP3Gain · Legacy VB6',
+                               padding=12)
+        mp3gain.pack(fill='x',pady=(0,8))
+        ttk.Label(mp3gain,text='ReplayGain-Analyse und Gain-Bearbeitung mit der mp3gain.js-Brücke.',
+                  wraplength=760).pack(side='left',fill='x',expand=True)
+        ttk.Button(mp3gain,text='▶ MP3GAIN STARTEN',
+                   command=lambda:self.launch_audio_lab('mp3gain'),
+                   style='Secondary.TButton').pack(side='right',padx=(10,0))
+
+        sunscreen=ttk.LabelFrame(parent,text='Sunscreen',padding=12)
+        sunscreen.pack(fill='x',pady=(0,8))
+        ttk.Label(sunscreen,text='MP3, WAV, FLAC oder M4A bereinigen; erzeugt gestufte 24-Bit-WAVs ohne Quelldateien zu überschreiben.',
+                  wraplength=760).pack(side='left',fill='x',expand=True)
+        ttk.Button(sunscreen,text='▶ AUSWAHL BEREINIGEN',
+                   command=lambda:self.launch_audio_lab('sunscreen'),
+                   style='Secondary.TButton').pack(side='right',padx=(10,0))
+
         ttk.Label(parent,
                   text='Die Werkzeuge bleiben getrennte Anwendungen. Fehlende Pakete oder Programme werden nicht automatisch installiert.',
                   wraplength=1040,foreground=NeonUI.PINK).pack(anchor='w',pady=(2,6))
@@ -1245,8 +1320,36 @@ class App:
         roots=(source_dir.parent,executable_dir,executable_dir/'external-tools')
         try:
             command,working_directory=audio_lab_launch_spec(tool,roots)
+            if tool=='sunscreen':
+                selected=[]
+                if hasattr(self,'audio_tree'):
+                    selected=[
+                        self.audio_paths[row]
+                        for row in self.audio_tree.selection()
+                        if row in self.audio_paths
+                    ]
+                input_path=selected[0] if len(selected)==1 else None
+                if input_path is None:
+                    chosen=filedialog.askopenfilename(
+                        parent=self.root,
+                        title='Audiodatei für Sunscreen auswählen',
+                        filetypes=[('Audio','*.mp3 *.wav *.flac *.m4a')],
+                    )
+                    if not chosen:return
+                    input_path=Path(chosen)
+                if not input_path.is_file():
+                    raise FileNotFoundError(f'Die Audiodatei wurde nicht gefunden: {input_path}')
+                command=sunscreen_run_command(command[0],input_path)
+                popen_options={'cwd':str(working_directory)}
+                if sys.platform=='win32':
+                    popen_options['creationflags']=subprocess.CREATE_NEW_CONSOLE
+                subprocess.Popen(command,**popen_options)
+                self.audio_lab_status.set(
+                    f'Sunscreen gestartet · {input_path.name} · Ausgabe: {input_path.parent / "sunscreen"}'
+                )
+                return
             subprocess.Popen(command,cwd=str(working_directory))
-        except (FileNotFoundError,RuntimeError,OSError) as exc:
+        except (FileNotFoundError,RuntimeError,OSError,ValueError) as exc:
             self.audio_lab_status.set(f'{tool}: {exc}')
             messagebox.showerror('Audio Labs',str(exc),parent=self.root)
             return
@@ -1254,6 +1357,8 @@ class App:
             'suno':'Suno Song Remaster',
             'restoration':'Restoration Lab',
             'sunocleanser':'SunoCleanser',
+            'mp3gain':'MP3Gain',
+            'sunscreen':'Sunscreen',
         }.get(tool,tool)
         self.audio_lab_status.set(f'{label} gestartet · eigenes Fenster')
 

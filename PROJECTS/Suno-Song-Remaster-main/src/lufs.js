@@ -3,9 +3,6 @@
  * Pure JavaScript implementation with K-weighting filters
  * Supports both 44.1kHz and 48kHz sample rates with proper coefficients
  */
-import { calculateRelativeThreshold } from './lufsGate.mjs';
-export { calculateRelativeThreshold } from './lufsGate.mjs';
-
 // K-weighting filter coefficients per sample rate
 const K_WEIGHTING_COEFFS = {
   48000: {
@@ -78,6 +75,22 @@ function meanSquare(samples) {
   return sum / samples.length;
 }
 
+export function calculateIntegratedLoudness(blockEnergies) {
+  const absoluteThresholdEnergy = Math.pow(10, (-70 + 0.691) / 10);
+  const absoluteGated = blockEnergies.filter(energy =>
+    Number.isFinite(energy) && energy > absoluteThresholdEnergy
+  );
+  if (absoluteGated.length === 0) return -Infinity;
+
+  const meanAbsoluteEnergy =
+    absoluteGated.reduce((sum, energy) => sum + energy, 0) / absoluteGated.length;
+  const relativeThresholdEnergy = meanAbsoluteEnergy * Math.pow(10, -10 / 10);
+  const relativeGated = absoluteGated.filter(energy => energy > relativeThresholdEnergy);
+  const meanGatedEnergy =
+    relativeGated.reduce((sum, energy) => sum + energy, 0) / relativeGated.length;
+  return -0.691 + 10 * Math.log10(meanGatedEnergy);
+}
+
 /**
  * Measure integrated LUFS using ITU-R BS.1770-4 algorithm
  * @param {AudioBuffer} audioBuffer - The audio buffer to analyze
@@ -100,7 +113,7 @@ export function measureLUFS(audioBuffer) {
   }
 
   // Calculate loudness for each block
-  const blocks = [];
+  const blockEnergies = [];
 
   for (let start = 0; start + blockSize <= length; start += hopSize) {
     let sumSquare = 0;
@@ -113,42 +126,14 @@ export function measureLUFS(audioBuffer) {
       sumSquare += weight * meanSquare(block);
     }
 
-    // Convert to LUFS
-    if (sumSquare > 0 && isFinite(sumSquare)) {
-      blocks.push({
-        energy: sumSquare,
-        loudness: -0.691 + 10 * Math.log10(sumSquare)
-      });
-    }
+    if (Number.isFinite(sumSquare) && sumSquare > 0) blockEnergies.push(sumSquare);
   }
 
-  if (blocks.length === 0) {
+  if (blockEnergies.length === 0) {
     return { integratedLUFS: -Infinity, truePeak: 0, truePeakDB: -Infinity, shortTermMax: -Infinity };
   }
 
-  // Absolute threshold: -70 LUFS
-  const absoluteThreshold = -70;
-  const absoluteThresholdEnergy = Math.pow(10, (absoluteThreshold + 0.691) / 10);
-  const blocksAboveAbsolute = blocks.filter(block => block.energy > absoluteThresholdEnergy);
-
-  if (blocksAboveAbsolute.length === 0) {
-    return { integratedLUFS: -Infinity, truePeak: 0, truePeakDB: -Infinity, shortTermMax: -Infinity };
-  }
-
-  // The relative gate is 10 LU below the mean energy of absolute-gated blocks.
-  const relativeThreshold = calculateRelativeThreshold(blocks.map(block => block.energy), absoluteThreshold);
-
-  // Final gated measurement
-  const gatedBlocks = blocks.filter(block =>
-    block.energy > absoluteThresholdEnergy && block.loudness > relativeThreshold
-  );
-
-  let integratedLUFS = -Infinity;
-  if (gatedBlocks.length > 0) {
-    const linearSum = gatedBlocks.reduce((sum, block) => sum + block.energy, 0);
-    const linearAvg = linearSum / gatedBlocks.length;
-    integratedLUFS = -0.691 + 10 * Math.log10(linearAvg);
-  }
+  const integratedLUFS = calculateIntegratedLoudness(blockEnergies);
 
   // Calculate true peak (sample peak)
   let truePeak = 0;

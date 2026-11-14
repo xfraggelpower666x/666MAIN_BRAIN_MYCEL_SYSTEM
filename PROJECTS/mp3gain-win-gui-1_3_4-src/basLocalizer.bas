@@ -67,6 +67,42 @@ Private Declare Function GetUserDefaultLCID Lib "kernel32" () As Long
 Private userDefaultLCID As Long
 
 Public strDefaultFont As String
+Public Const LYVRA_BG As Long = &H00130908&
+Public Const LYVRA_PANEL As Long = &H002A1312&
+Public Const LYVRA_FIELD As Long = &H00381D19&
+Public Const LYVRA_CYAN As Long = &H00FFEA31&
+Public Const LYVRA_PINK As Long = &H00D137FF&
+Public Const LYVRA_VIOLET As Long = &H00FF76A4&
+Public Const LYVRA_TEXT As Long = &H00FFEFF3&
+
+Public Sub ApplyLyvraTheme(afrmForm As Form)
+    Dim ctrlItem As Object
+
+    afrmForm.BackColor = LYVRA_BG
+    afrmForm.ForeColor = LYVRA_TEXT
+
+    For Each ctrlItem In afrmForm.Controls
+        On Error Resume Next
+        Select Case TypeName(ctrlItem)
+        Case "TextBox", "ComboBox", "ListBox", "ListView"
+            ctrlItem.BackColor = LYVRA_FIELD
+            ctrlItem.ForeColor = LYVRA_TEXT
+        Case "Frame"
+            ctrlItem.BackColor = LYVRA_PANEL
+            ctrlItem.ForeColor = LYVRA_CYAN
+        Case "CommandButton"
+            ctrlItem.Style = 1
+            ctrlItem.BackColor = LYVRA_PANEL
+            ctrlItem.ForeColor = LYVRA_CYAN
+        Case "Toolbar"
+            ctrlItem.BackColor = LYVRA_PANEL
+            ctrlItem.ForeColor = LYVRA_TEXT
+        Case Else
+            ctrlItem.ForeColor = LYVRA_TEXT
+        End Select
+        On Error GoTo 0
+    Next ctrlItem
+End Sub
 
 Public Sub SetDefaultControlFontName()
     Dim i As Integer
@@ -336,6 +372,8 @@ Public Sub fillCaptions(afrmForm As Form)
     Dim lsFormName As String
     Dim ctrlItem
     
+    ApplyLyvraTheme afrmForm
+
     If mbLoaded Then
         lsFormName = afrmForm.Name
         On Error Resume Next
