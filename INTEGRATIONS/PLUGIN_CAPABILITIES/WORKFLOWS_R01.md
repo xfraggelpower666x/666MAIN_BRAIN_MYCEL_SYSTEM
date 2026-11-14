@@ -113,3 +113,13 @@ python3 INTEGRATIONS/CODEFORGE/verify_freeze.py FREEZE.zip
 ```
 
 Für abweichende Layouts gib `--manifest` und `--checksums` mit den Pfaden ab ZIP-Wurzel an. Mit `--checksum-base` kannst du Prüfsummenpfade an ein explizites Archivverzeichnis binden. Der Prüfer verlangt vollständige Abdeckung. Exit 0 bestätigt Dateiinventar, CRC und SHA-256 der gelisteten Dateien. Exit 1 meldet Abweichungen im Inventar oder in Dateihashes. Exit 2 meldet ungültige oder unlesbare Archive. Restore, semantische Vollständigkeit und Readback vom Lieferziel werden separat belegt.
+
+### Modulregister gegen Master prüfen
+
+Bei Markdown-Mastern mit `MOD-ID:`, `LEGACY-MOD-ID:` und nummeriertem Modulregister prüfe beide Quelldateien direkt.
+
+```sh
+python3 INTEGRATIONS/CODEFORGE/verify_module_registry.py MASTER.md MODULE_REGISTRY.md
+```
+
+Exit 0 bestätigt die Übereinstimmung der aktiven IDs. Exit 1 meldet fehlende, zusätzliche oder doppelte IDs sowie alleinstehende, unregistrierte Moduldeklarationen. Exit 2 meldet unlesbare Eingaben oder fehlende Deklarationen. Historische `LEGACY-MOD-ID:`-Einträge zählen separat. Prüfe Regelkonflikte, Gate-Entscheidungen und beobachtetes Host-Verhalten mit eigenen Nachweisen.
