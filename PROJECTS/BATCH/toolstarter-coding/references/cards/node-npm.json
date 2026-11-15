@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "id": "node-npm",
+  "name": "Node.js, npm, pnpm und Yarn",
+  "evidence": [
+    "package.json",
+    "package-lock.json",
+    "pnpm-lock.yaml",
+    "yarn.lock",
+    "packageManager"
+  ],
+  "roles": [
+    "development",
+    "build",
+    "target"
+  ],
+  "check": "Deklarierte Node-Version, Manager, Lockfile, Workspace-Wurzel und vorhandene Skripte prüfen.",
+  "repair": "mit dem deklarierten Manager und dessen Lockfile installieren. npm ci nur für ein passendes npm-Lockfile einsetzen und berücksichtigen, dass es node_modules ersetzt.",
+  "delivery": "Node nur als Ziel-Runtime liefern, wenn die Anwendung eigenständig Node braucht. Bei einer Electron-App die eingebaute Node-Laufzeit berücksichtigen.",
+  "acceptance": "Normales Test-, Build- oder Startskript läuft und Lockfiles ändern sich bei einer Reproduktion nicht."
+}
