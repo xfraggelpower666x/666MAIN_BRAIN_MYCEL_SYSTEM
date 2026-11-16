@@ -73,3 +73,13 @@ Der aktuelle private Release `0.2.6` / `pluginrel_6af8c3ed5b408191b69c88d94e735f
 - Die frühere Freeze-ZIP-Gegenprobe bleibt `PASS_WITH_FOLLOWUP` ohne belegte Release-Zuordnung. Für 0.2.6 stehen der Erstaufruf in einem frischen Chat und die Host-Ausführung des Coding-, App- und UI-Workflows aus.
 
 Recovery: Preimage dieser Matrix `926e991e940bbdbf77142ef577fd026c60ad454f` und des Current Pointers `66fed8364a87ef10774bcc07bcbee78196db2501`, beide wiederherstellbar am genannten Basiscommit.
+
+## Release 0.2.7 · Ausführungskontrolle im Coding-Paket
+
+Privates Account-Release `0.2.7` / `pluginrel_6afb018c03a88191a84790ba36989e8f`. Der gespeicherte Release-Stand und die veröffentlichte Paketquelle sind verifiziert. Der vollständige Archivvergleich gegen 0.2.6 plus das freigegebene Update ergab 196 übereinstimmende Dateien und 112 Skills. Neun Update-Dateien wurden zusätzlich direkt zurückgelesen.
+
+- `references/coding-ausfuehrungskontrolle.md` bindet die aus dem SYSTEM_BUILD_CONTROL_KERNEL v10.2 übernommenen Regeln für Auftragsentscheidung, Sicherung, Gegenprobe und begrenzte Fehlerbehebung an PSYLLOs Coding-Ablauf.
+- Die Routing-Anbindung an Coding, LiveCircle, Engineering-Zyklus und Daemon ist in der Paketquelle belegt. Projektstatus, Schreibberechtigungen und kanonischer Current werden weiterhin über die bestehenden Verträge aufgelöst.
+- Die praktische Ausführung in einem frischen Chat bleibt offen. Insbesondere sind lesendes Audit mit eingebettetem Trigger, begrenzte Reparatur, Ziel-Readback nach unterbrochenem Write und blockierte Freigabe bei fehlender Pflichtprüfung als Host-Fälle nachzuweisen. Hierfür liegt kein Ausführungsbeleg vor.
+
+Recovery: unveränderter Basiscommit `a4572e65744d7d1795f95cb6e0b301ebc8434e56`, Preimage der Matrix `2f4270dae36d0fca1994f603220ef2c48f9cb722` und des Current Pointers `483e30cd5163f32cf351ecf74ce1414bccf4e8d6`. Der Paketnachweis ändert den Migrations-Gate-Status nicht.
