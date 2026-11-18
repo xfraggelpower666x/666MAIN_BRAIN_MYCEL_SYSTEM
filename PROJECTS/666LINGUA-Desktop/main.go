@@ -21,7 +21,7 @@ import (
 //go:embed app/*
 var web embed.FS
 
-const version = "1.5.1"
+const version = "1.5.2"
 
 type app struct {
 	lex     Lexicon

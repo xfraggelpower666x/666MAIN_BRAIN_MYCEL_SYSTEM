@@ -149,12 +149,12 @@ func readManifest(dir string) (map[string]string, error) {
 	}
 	return result, nil
 }
-func verify(dir string, complete bool) error {
+func verify(dir string, complete bool, buildArchitectures []string) error {
 	files, err := readManifest(dir)
 	if err != nil {
 		return err
 	}
-	for _, arch := range architectures {
+	for _, arch := range buildArchitectures {
 		for _, file := range []string{appName(arch), setupName(arch)} {
 			if _, ok := files[file]; !ok && file == setupName(arch) && !complete {
 				continue
@@ -211,7 +211,7 @@ func verify(dir string, complete bool) error {
 	}
 	return nil
 }
-func configure(target string) error {
+func configure(target string, buildArchitectures []string) error {
 	if err := preflight(); err != nil {
 		return err
 	}
@@ -226,13 +226,13 @@ func configure(target string) error {
 	}
 	defer os.RemoveAll(stage)
 	names := []string{}
-	for _, arch := range architectures {
+	for _, arch := range buildArchitectures {
 		out := filepath.Join(stage, appName(arch))
 		if err = build(arch, out, "."); err != nil {
 			return err
 		}
 		names = append(names, appName(arch))
-		if target == "build" || target == "package" {
+		if target == "build" || target == "package" || target == "dev" {
 			continue
 		}
 		raw, err := os.ReadFile(out)
@@ -248,7 +248,7 @@ func configure(target string) error {
 		}
 		names = append(names, setupName(arch))
 	}
-	if target != "build" && target != "setup" {
+	if target != "build" && target != "setup" && target != "dev" {
 		if err := portableZip(stage); err != nil {
 			return err
 		}
@@ -266,7 +266,7 @@ func configure(target string) error {
 		return err
 	}
 	full := target == "all" || target == "repair"
-	if err = verify(stage, full); err != nil {
+	if err = verify(stage, full, buildArchitectures); err != nil {
 		return err
 	}
 	if !full {
@@ -322,7 +322,7 @@ func run(action string) error {
 		if err := preflight(); err != nil {
 			return err
 		}
-		if err := verify(release, true); err != nil {
+		if err := verify(release, true, architectures); err != nil {
 			return err
 		}
 		fmt.Println("RELEASE OK: SHA-256, Windows-PE, x64/ARM64 und Portable ZIP")
@@ -333,9 +333,11 @@ func run(action string) error {
 		if err := run("test"); err != nil {
 			return err
 		}
-		return configure(action)
+		return configure(action, architectures)
 	case "build", "package", "setup":
-		return configure(action)
+		return configure(action, architectures)
+	case "dev-amd64", "dev-arm64":
+		return configure("dev", []string{strings.TrimPrefix(action, "dev-")})
 	}
 	return fmt.Errorf("Unbekannte Build-Aktion: %s", action)
 }

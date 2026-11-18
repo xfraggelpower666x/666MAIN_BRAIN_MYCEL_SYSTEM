@@ -1,12 +1,14 @@
 @echo off
 setlocal EnableExtensions DisableDelayedExpansion
 pushd "%~dp0" || exit /b 1
+set "DEV_ARCH=amd64"
+if /i "%PROCESSOR_ARCHITECTURE%"=="ARM64" set "DEV_ARCH=arm64"
+if /i "%PROCESSOR_ARCHITEW6432%"=="ARM64" set "DEV_ARCH=arm64"
 set "EXE=666LINGUA-x64.exe"
-if /i "%PROCESSOR_ARCHITECTURE%"=="ARM64" set "EXE=666LINGUA-ARM64.exe"
-if /i "%PROCESSOR_ARCHITEW6432%"=="ARM64" set "EXE=666LINGUA-ARM64.exe"
+if /i "%DEV_ARCH%"=="arm64" set "EXE=666LINGUA-ARM64.exe"
 if "%~1"=="" goto menu
 if not "%~2"=="" goto invalid
-for %%A in (start browser diagnose repair build test package toolstarter setup all help) do if /i "%~1"=="--%%A" (
+for %%A in (start browser dev diagnose repair build test package toolstarter setup all help) do if /i "%~1"=="--%%A" (
   set "ACTION=%%A"
   goto run
 )
@@ -20,7 +22,7 @@ echo   1  Windows-App starten
 echo   2  Im Standardbrowser starten
 echo   3  Diagnose und Paketpruefung
 echo   4  Release-Dateien lokal reparieren
-echo   5  Windows-EXE neu bauen
+echo   5  Entwicklungsbuild erstellen und direkt starten (dieser PC)
 echo   6  Entwicklertests ausfuehren
 echo   7  Portables ZIP erstellen
 echo   8  Toolstarter-Projektcheck
@@ -36,7 +38,7 @@ if errorlevel 9 (set "ACTION=setup" & goto run)
 if errorlevel 8 (set "ACTION=toolstarter" & goto run)
 if errorlevel 7 (set "ACTION=package" & goto run)
 if errorlevel 6 (set "ACTION=test" & goto run)
-if errorlevel 5 (set "ACTION=build" & goto run)
+if errorlevel 5 (set "ACTION=dev" & goto run)
 if errorlevel 4 (set "ACTION=repair" & goto run)
 if errorlevel 3 (set "ACTION=diagnose" & goto run)
 if errorlevel 2 (set "ACTION=browser" & goto run)
@@ -81,6 +83,11 @@ exit /b %ERRORLEVEL%
 :action_repair
 call :developer repair
 exit /b %ERRORLEVEL%
+:action_dev
+call :developer dev-%DEV_ARCH%
+if errorlevel 1 exit /b %ERRORLEVEL%
+start /wait "" "%CD%\build-output\dev\%EXE%"
+exit /b %ERRORLEVEL%
 :action_build
 call :developer build
 exit /b %ERRORLEVEL%
@@ -111,7 +118,7 @@ if not exist "%LINGUA_PS%" (
 exit /b %ERRORLEVEL%
 
 :action_help
-echo Optionen: --start --browser --diagnose --repair --build --test --package --toolstarter --setup --all --help
+echo Optionen: --start --browser --dev --diagnose --repair --build --test --package --toolstarter --setup --all --help
 exit /b 0
 
 :invalid

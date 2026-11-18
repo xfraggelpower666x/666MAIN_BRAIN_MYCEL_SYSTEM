@@ -1,4 +1,4 @@
-# 666LINGUA Desktop 1.5.1
+# 666LINGUA Desktop 1.5.2
 
 ## Windows starten
 
@@ -70,6 +70,7 @@ Fehlt eine passende Toolchain, laden Setup, Build, Paketierung, Tests, Reparatur
 | `--browser` | Öffnet denselben lokalen Kern im Standardbrowser. |
 | `--diagnose` | Vergleicht Quellarchiv-Hashes, Release-Hashes, PE-Architektur und Portable-Inhalt. |
 | `--repair` | Prüft die Quellen, führt Tests aus, erzeugt ein vollständiges Release und sichert die alte Ausgabe separat. |
+| `--dev` / Menüpunkt **5** | Baut nur die EXE für diesen PC in `build-output/dev` und startet genau diesen Build. Kein Setup oder Portable-ZIP. |
 | `--build` | Kompiliert beide Programm-EXEs nach `build-output/build`. |
 | `--test` | Startet Entwickler- und Regressionstests. |
 | `--package` | Baut die portablen Dateien nach `build-output/package`. |

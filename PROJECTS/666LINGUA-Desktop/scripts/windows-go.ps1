@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet('diagnose', 'repair', 'build', 'test', 'package', 'toolstarter', 'setup', 'all')]
+    [ValidateSet('diagnose', 'repair', 'build', 'test', 'package', 'toolstarter', 'setup', 'all', 'dev-amd64', 'dev-arm64')]
     [string]$Action
 )
 
