@@ -101,8 +101,13 @@ call :developer all
 exit /b %ERRORLEVEL%
 
 :developer
-where go.exe >nul 2>nul || (echo Go 1.22 oder neuer wird fuer Entwickleraktionen benoetigt. & exit /b 1)
-go.exe run -buildvcs=false ./cmd/build "%~1"
+set "LINGUA_PS=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
+if exist "%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\powershell.exe" set "LINGUA_PS=%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\powershell.exe"
+if not exist "%LINGUA_PS%" (
+  >&2 echo Windows PowerShell is required for Go verification and installation.
+  exit /b 1
+)
+"%LINGUA_PS%" -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "scripts\windows-go.ps1" "%~1"
 exit /b %ERRORLEVEL%
 
 :action_help

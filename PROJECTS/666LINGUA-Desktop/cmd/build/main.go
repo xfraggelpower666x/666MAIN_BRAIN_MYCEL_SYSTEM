@@ -66,7 +66,7 @@ func hash(path string) (string, error) {
 	return hex.EncodeToString(h.Sum(nil)), nil
 }
 func preflight() error {
-	for _, path := range []string{"go.mod", "STARTEN.bat", "app/index.html", "data/phrases.tsv", "data/r19.json", "cmd/setup/setup_windows.go"} {
+	for _, path := range []string{"go.mod", "STARTEN.bat", "scripts/windows-go.ps1", "app/index.html", "data/phrases.tsv", "data/r19.json", "cmd/setup/setup_windows.go"} {
 		if _, err := os.Stat(path); err != nil {
 			return err
 		}

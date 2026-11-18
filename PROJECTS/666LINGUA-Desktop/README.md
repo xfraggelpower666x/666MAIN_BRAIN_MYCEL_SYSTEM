@@ -59,7 +59,9 @@ Der normale Windows-Start verwendet den Edge-Vollbildmodus. Die alternative Brow
 
 ## Bauen und prüfen
 
-`STARTEN.bat` ist der einzige Batch-Einstieg. Go 1.22 oder neuer wird für Entwickleraktionen benötigt.
+`STARTEN.bat` ist der einzige Batch-Einstieg. Der Starter prüft die Mindestversion aus `go.mod` (derzeit Go 1.22), die tatsächliche Version und den Compiler. Er verwendet eine funktionierende Installation aus dem Suchpfad, den üblichen Windows-Ordnern oder dem lokalen Projektcache.
+
+Fehlt eine passende Toolchain, laden Setup, Build, Paketierung, Tests, Reparatur und Komplettlauf ein passendes stabiles Go-Archiv für Windows x64 oder ARM64 von `go.dev`. Der Starter prüft SHA-256, richtet Go in `.toolchain/go` ein und setzt die gewählte Aktion nach der erneuten Compilerprüfung fort. Dafür braucht der erste Download Internet und der Projektordner Schreibrechte. Die lokale Installation benötigt keine Administratorrechte und verändert den systemweiten PATH nicht. Diagnose, Toolstarter-Projektcheck und normaler EXE-Start laden keine Tools herunter.
 
 | Aktion | Ergebnis |
 | --- | --- |
