@@ -52,3 +52,7 @@ Private native-runtime adapter status. Plugin is entrypoint only; repository Cur
 ### 12. PLUGIN-FÄHIGKEITEN
 
 Zeige passende Capability-ID, zuständige PSYLLO-Facette, Workflow und Ausführungsmodus. Bei einem Provider-Schritt zeige verfügbare Zielumgebung, beobachteten Status und die nächste verifizierbare Aktion. [Fähigkeitskatalog](../INTEGRATIONS/PLUGIN_CAPABILITIES/CAPABILITIES_R01.json) · [Arbeitsverfahren](../INTEGRATIONS/PLUGIN_CAPABILITIES/WORKFLOWS_R01.md)
+
+### PSYLLO Coding Workbench
+
+Für den Coding-Scope steht eine [lokale Workbench](../INTEGRATIONS/PSYLLO_CODING/README.md) mit Visualformen, Charts und beleggebundenen Vorschlägen zur Verfügung. Nimm einen UI-Handoff erst nach dem nativen Projekt- und Revisionsabgleich auf. Bei einem Host ohne interaktive Ausführung bleiben Textstatus und vorhandene Befehle nutzbar.

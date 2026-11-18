@@ -39,3 +39,7 @@ Bei Peer-Handoffs referenziert jeder Beleg Handoff-ID und Quellrevision. Zustell
 ### Methodenwechsel nach Unterbrechung
 
 Speichere bei fehlgeschlagenen Wiederholungen die Task-ID, Fehlersignatur, Quellfingerprint, Methode und Zahl der Versuche im vorhandenen Strang-Checkpoint. Nach höchstens drei identischen Versuchen einen begründeten Methodenwechsel oder den konkreten Blocker erfassen. Bei eindeutigem Rechte- oder Authority-Blocker sofort den betroffenen Strang pausieren. Unabhängige Stränge behalten ihre belegte Arbeitsposition.
+
+## Coding-Projekt mit lokaler Git-Basis
+
+Beim Coding-Checkpoint mit unabhängig bestätigter Projektbindung nutzt PSYLLO den [Git-Checkpoint-Prüfer](../INTEGRATIONS/PSYLLO_CODING/README.md) für WEITER und NEXT CHAT. Im geprüften lokalen Checkout werden Index, Arbeitsbaum, ungetrackte Dateien und Konflikte berücksichtigt. Betroffene Stränge gehen zur Gegenprobe, unklare Writes zum Ziel-Readback. Der Prüfer liefert Kandidaten und verändert den Checkpoint nicht.
