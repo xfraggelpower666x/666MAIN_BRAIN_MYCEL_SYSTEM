@@ -1,0 +1,10 @@
+{
+  "system_id": "SCC-12001",
+  "return_anchor": "SCC_NATIVE_V1_3_2_DEVICE_RUNTIME_ACCEPTANCE",
+  "state": "OFFEN",
+  "current_source_version": "1.3.2",
+  "last_verified_device_version": "1.3.1",
+  "next_step": "v1.3.2 aus dem SCC-Repo materialisieren, in Scriptable auf dem iPhone ausführen und Geräte-/Live-API-Evidenz getrennt zurückmelden.",
+  "legacy_pfs_entry": "SCC-12001",
+  "pfs_detachment_is_separate_native_task": true
+}
