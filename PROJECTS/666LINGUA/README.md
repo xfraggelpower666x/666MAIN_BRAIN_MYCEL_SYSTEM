@@ -14,6 +14,8 @@ Für die Übersetzung ist ChatGPT selbst die Sprachlaufzeit. Ein installiertes P
 
 Der Pointer lädt den originalen R18-Bootstrap, die native Triggerliste, den LiveCircle, die Facetten und die Rehydrations- und Fortsetzungsverträge direkt. Der Chat-Adapter bindet deren Current- und Zustandszugriffe an GitHub und den privaten Handoff. Die zusätzlichen Chat-Befehle rufen die jeweilige native Funktion auf oder bedienen eine Windows-Funktionsentsprechung.
 
+Google Drive ist ausschließlich Historie. Bei Live-Änderungen prüft der [LiveCircle](runtime/LIVECIRCLE.md), ob die Windows-App angepasst werden muss.
+
 ## Bedienung
 
 | Funktion | Befehl |

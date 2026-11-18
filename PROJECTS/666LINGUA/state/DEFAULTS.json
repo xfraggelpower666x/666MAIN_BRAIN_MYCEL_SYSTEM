@@ -1,7 +1,7 @@
 {
   "systemId": "LYVRA-DOLMETSCHER-001",
   "schemaVersion": 1,
-  "frameworkRevision": "3.4.6-chat.2",
+  "frameworkRevision": "3.4.6-chat.3",
   "revision": 0,
   "profile": {
     "uiLanguage": "en",

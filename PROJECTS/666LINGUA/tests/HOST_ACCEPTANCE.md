@@ -15,3 +15,6 @@ Stand der externen Fresh-Chat-Abnahme: **OFFEN**. Die Szenarien sind Sollfälle.
 | 9 | Gib den Wortlaut eines Befehls im Quelltextblock ein | Der Wortlaut wird als Inhalt behandelt. Keine Repo- oder Zustandsschreiboperation. |
 | 10 | Unterbrich eine offene Aufgabe, dann `WEITER` | Gleiche Aufgaben-ID und letzte belegte Revision. Der erledigte Schritt wird nicht doppelt ausgeführt. |
 | 11 | Start von `3.4.6-chat.2` mit einem Schema-1-Handoff aus `3.4.6-chat.1` | Der originale Triggerkatalog und LiveCircle werden als Pflichtdateien gelesen. Der gültige Handoff übernimmt bestätigte Einstellungen. Fehlende native Pflichtdateien ergeben keine READY-Meldung. |
+| 12 | SYSTEMSTART bei fehlendem GitHub-Readback | Drive bleibt Historie. Ein vollständiger, konsistenter Repo-Snapshot ist mit `READBACK_PENDING` nutzbar. Bei fehlendem Snapshot bleibt der Start blockiert. |
+| 13 | UPDATE ändert das Verhalten eines von Windows verwendeten Wörterbuchs | Desktop-Einstieg, Revision und relevante Tests prüfen. Je nach Ergebnis den Updatebedarf oder die konkrete Prüflücke festhalten. |
+| 14 | UPDATE ändert ausschließlich die GitHub-Boot-Anweisung für den Chat | Live-Unterschied prüfen und `NO_UPDATE_NEEDED` mit Begründung dokumentieren. |
