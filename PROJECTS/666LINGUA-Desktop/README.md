@@ -1,4 +1,4 @@
-# 666LINGUA Desktop 1.6.0
+# 666LINGUA Desktop 1.6.1
 
 ## Windows starten
 
@@ -13,7 +13,7 @@ Für den portablen Betrieb `release/666LINGUA-Portable-Windows.zip` entpacken un
 
 ## Startintro
 
-Vor der Arbeitsfläche erscheint das 666LINGUA-Intro mit dem mitgelieferten Platinenhintergrund und dem transparenten Logo. Der Ablauf orientiert sich an der Vorlage `PROJECTS/Anwendungsintro_Python`: Er führt vom Laden der Oberfläche zur tatsächlichen Bereitschaft des Übersetzers. Für die Desktop-App ist er in der bestehenden lokalen Oberfläche eingebaut. Über **Intro überspringen** oder **Esc** kannst du sofort weiter. Die Bilder sind in der App enthalten.
+Vor der Arbeitsfläche erscheint das 666LINGUA-Intro mit dem mitgelieferten Platinenhintergrund und dem transparenten Logo. Der Ablauf orientiert sich an der Vorlage `PROJECTS/Anwendungsintro_Python`: Die vier Boot-Stufen **666LINGUA BOOTING**, **GERMAN INJECTED**, **AMERICA INJECTED** und **SEMANTIC BOOST** laufen über rund sieben Sekunden. **666LINGUA READY** erscheint bei tatsächlicher Bereitschaft und bleibt 2,5 Sekunden sichtbar, bevor die Arbeitsfläche übernimmt. Für die Desktop-App ist er in der bestehenden lokalen Oberfläche eingebaut. Über **Intro überspringen** oder **Esc** kannst du sofort weiter. Die Bilder sind in der App enthalten.
 
 ## Vollbild-Arbeitsfläche
 

@@ -7,11 +7,26 @@ document.addEventListener('DOMContentLoaded', () => {
   const status = document.getElementById('startup-status');
   const progress = document.getElementById('startup-progress');
   const skip = document.getElementById('startup-skip');
-  const started = performance.now();
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const bootDuration = 7000;
+  const readyHold = 2500;
+  const stages = [
+    {at: 0, text: '666LINGUA BOOTING', progress: 12},
+    {at: 1750, text: 'GERMAN INJECTED', progress: 34},
+    {at: 3500, text: 'AMERICA INJECTED', progress: 57},
+    {at: 5250, text: 'SEMANTIC BOOST', progress: 82}
+  ];
+  const timers = [];
+  let bootFinished = false;
+  let startupReady;
+
+  const later = (task, delay) => timers.push(window.setTimeout(task, delay));
+  const show = (text, value) => {
+    status.textContent = text;
+    progress.value = value;
+  };
   const close = () => {
     if (intro.hidden) return;
-    clearTimeout(timeout);
+    for (const timer of timers) clearTimeout(timer);
     delete document.documentElement.dataset.starting;
     intro.hidden = true;
     document.removeEventListener('keydown', onKey);
@@ -25,33 +40,34 @@ document.addEventListener('DOMContentLoaded', () => {
       close();
     }
   };
-  const timeout = setTimeout(close, 8000);
+  const finishWhenReady = () => {
+    if (intro.hidden || !bootFinished || startupReady === undefined) return;
+    clearTimeout(deadline);
+    if (startupReady) {
+      show('666LINGUA READY', 100);
+    } else {
+      status.textContent = typeof t === 'function' ? t('Startprüfung unvollständig.') : 'Startup check incomplete.';
+    }
+    later(close, readyHold);
+  };
+
+  const deadline = window.setTimeout(close, 15000);
+  timers.push(deadline);
   skip.addEventListener('click', close);
   document.addEventListener('keydown', onKey);
-  const label = (key) => typeof t === 'function' ? t(key) : key;
+  show(stages[0].text, stages[0].progress);
+  for (const stage of stages.slice(1)) later(() => show(stage.text, stage.progress), stage.at);
+  later(() => {
+    bootFinished = true;
+    finishWhenReady();
+  }, bootDuration);
+
   const tasks = [
-    Promise.allSettled(Array.from(intro.querySelectorAll('img'), image => image.decode())),
     typeof startupInfo !== 'undefined' ? startupInfo : false,
     typeof startupSettings !== 'undefined' ? startupSettings : false
   ];
-  let completed = 0;
-  for (const [index, task] of tasks.entries()) {
-    tasks[index] = Promise.resolve(task).finally(() => {
-      if (intro.hidden) return;
-      completed++;
-      progress.value = 15 + completed * 25;
-      status.textContent = label('Oberfläche lädt …');
-    });
-  }
-  progress.value = 15;
-  status.textContent = label('666LINGUA startet …');
-  Promise.allSettled(tasks).then(([, info, settings]) => {
-    if (intro.hidden) return;
-    if (info.value === true && settings.value === true) {
-      progress.value = 100;
-      status.textContent = label('Bereit');
-    }
-    const minimum = reducedMotion ? 350 : 1000;
-    setTimeout(close, Math.max(0, minimum - (performance.now() - started)));
+  Promise.allSettled(tasks).then(results => {
+    startupReady = results.every(result => result.status === 'fulfilled' && result.value === true);
+    finishWhenReady();
   });
 }, {once:true});
