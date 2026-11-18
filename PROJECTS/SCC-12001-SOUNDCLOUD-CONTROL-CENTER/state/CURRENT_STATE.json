@@ -28,5 +28,5 @@
     "active_registered_after_detach": 29
   },
   "migration_status": "COMPLETE_REPO_NATIVE_PFS_DETACHED",
-  "status": "REPO_NATIVE_SOURCE_READY_DEVICE_ACCEPTANCE_OPEN"
+  "status": "REPO_NATIVE_MIGRATION_COMPLETE_DEVICE_ACCEPTANCE_OPEN"
 }
