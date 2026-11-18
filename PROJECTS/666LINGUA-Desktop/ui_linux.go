@@ -7,8 +7,8 @@ import (
 )
 
 func showError(message string) { fmt.Fprintln(os.Stderr, message) }
-func openUI(url string, _ bool) (<-chan struct{}, func(), error) {
-	return nil, nil, openExternal(url)
+func runDesktop(_ *app, _ bool) error {
+	return fmt.Errorf("Die Desktop-Ausgabe ist für Windows. Für lokale Linux-Entwicklung steht --serve zur Verfügung.")
 }
 
 func openExternal(url string) error {

@@ -10,11 +10,12 @@ if "%~1"=="" goto menu
 if not "%~3"=="" goto invalid
 if not "%~2"=="" if /i not "%~2"=="/nopause" goto invalid
 set "ACTION="
-for %%A in (start browser dev check diagnose repair build test package toolstarter setup all help installer portable) do (
+for %%A in (start browser windowed dev check diagnose repair build test package toolstarter setup all help installer portable) do (
   if /i "%~1"=="%%A" set "ACTION=%%A"
   if /i "%~1"=="--%%A" set "ACTION=%%A"
 )
 if not defined ACTION goto invalid
+if /i "%ACTION%"=="windowed" set "ACTION=browser"
 if /i "%ACTION%"=="installer" set "ACTION=setup"
 if /i "%ACTION%"=="portable" set "ACTION=package"
 call :run
@@ -26,7 +27,7 @@ goto done
 echo.
 echo 666LINGUA Desktop - 666SOUNDsDESIGn
 echo   1  Fertige Windows-App starten
-echo   2  Im Standardbrowser starten
+echo   2  Im Fenstermodus starten
 echo   3  Release und Pruefsummen kontrollieren
 echo   4  Release lokal reparieren
 echo   5  Entwicklungsbuild erstellen und direkt starten
@@ -80,8 +81,8 @@ exit /b %ERRORLEVEL%
 :action_browser
 call :choose_exe
 if errorlevel 1 exit /b 1
-echo [START] "%APP_PATH%" im Standardbrowser
-start /wait "" "%CD%\%APP_PATH%" --browser
+echo [START] "%APP_PATH%" im Fenstermodus
+start /wait "" "%CD%\%APP_PATH%" --windowed
 exit /b %ERRORLEVEL%
 
 :choose_exe
@@ -161,7 +162,7 @@ exit /b %ERRORLEVEL%
 
 :action_help
 echo Nutzung: STARTEN.bat [start^|dev^|check^|installer^|portable] [/nopause]
-echo Weitere Optionen: --browser --diagnose --repair --build --test --toolstarter --all --help
+echo Weitere Optionen: --windowed --diagnose --repair --build --test --toolstarter --all --help
 echo --setup und installer sind gleich. --package und portable sind gleich.
 exit /b 0
 

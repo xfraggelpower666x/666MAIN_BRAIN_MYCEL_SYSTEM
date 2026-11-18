@@ -1,10 +1,15 @@
 package main
 
 import (
-	"fmt"
+	"io/fs"
 	"os"
-	"os/exec"
 	"path/filepath"
+	"strings"
+
+	"github.com/wailsapp/wails/v2"
+	"github.com/wailsapp/wails/v2/pkg/options"
+	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
+	"github.com/wailsapp/wails/v2/pkg/options/windows"
 
 	"lingua666/internal/win"
 )
@@ -13,46 +18,38 @@ func showError(message string) { win.Message("666LINGUA", message, 0x10) }
 
 func openExternal(url string) error { return win.Open(url) }
 
-func openUI(url string, browser bool) (<-chan struct{}, func(), error) {
-	if browser {
-		return nil, nil, openExternal(url)
+func openDesktopShare(address string) error {
+	if text, ok := strings.CutPrefix(address, "https://wa.me/?text="); ok {
+		return win.Open("whatsapp://send?text=" + text)
 	}
-	for _, key := range []string{"ProgramFiles(x86)", "ProgramFiles", "ProgramW6432", "LOCALAPPDATA"} {
-		root := os.Getenv(key)
-		if root == "" {
-			continue
-		}
-		edge := filepath.Join(root, "Microsoft", "Edge", "Application", "msedge.exe")
-		if _, err := os.Stat(edge); err != nil {
-			continue
-		}
-		profile, err := os.MkdirTemp("", "666LINGUA-window-")
-		if err != nil {
-			return nil, nil, err
-		}
-		cmd := exec.Command(edge, "--user-data-dir="+profile, "--no-first-run", "--no-default-browser-check", "--disable-background-mode", "--disable-background-networking", "--disable-sync", "--disable-features=Translate,msEdgeTranslate", "--kiosk", url, "--edge-kiosk-type=fullscreen")
-		if err = cmd.Start(); err != nil {
-			_ = os.RemoveAll(profile)
-			continue
-		}
-		done := make(chan struct{})
-		go func() { _ = cmd.Wait(); close(done) }()
-		cleanup := func() {
-			select {
-			case <-done:
-			default:
-				_ = cmd.Process.Kill()
-				<-done
-			}
-			if err := os.RemoveAll(profile); err != nil {
-				// Ist ein Edge-Unterprozess noch aktiv, kann Windows Dateien kurz sperren.
-				fmt.Fprintln(os.Stderr, err)
-			}
-		}
-		return done, cleanup, nil
+	return openExternal(address)
+}
+
+func runDesktop(a *app, windowed bool) error {
+	assets, err := fs.Sub(web, "app")
+	if err != nil {
+		return err
 	}
-	if win.Message("666LINGUA", "Microsoft Edge wurde für das App-Fenster nicht gefunden. Im Standardbrowser öffnen?", 0x24) != 6 {
-		return nil, nil, fmt.Errorf("App-Fenster benötigt Microsoft Edge. Der Browser-Modus ist über STARTEN.bat verfügbar.")
+	cache, err := os.UserCacheDir()
+	if err != nil {
+		return err
 	}
-	return nil, nil, openExternal(url)
+	messages := windows.DefaultMessages()
+	messages.MissingRequirements = "666LINGUA · WebView2"
+	messages.InstallationRequired = "Die Windows-Komponente WebView2 fehlt. "
+	messages.UpdateRequired = "Die Windows-Komponente WebView2 ist zu alt. "
+	messages.PressOKToInstall = "Mit OK startet der Microsoft-Installer. Der Download benötigt Internet."
+	messages.Webview2NotInstalled = "Die WebView2-Runtime ist nicht installiert."
+	return wails.Run(&options.App{
+		Title: "666LINGUA",
+		Width: 1280, Height: 800, MinWidth: 480, MinHeight: 480,
+		Fullscreen:       !windowed,
+		BackgroundColour: options.NewRGB(5, 11, 27),
+		AssetServer:      &assetserver.Options{Assets: assets, Middleware: a.desktopMiddleware(openDesktopShare)},
+		Windows: &windows.Options{
+			Theme:               windows.Dark,
+			WebviewUserDataPath: filepath.Join(cache, "666SOUNDsDESIGn", "666LINGUA", "window"),
+			Messages:            messages,
+		},
+	})
 }

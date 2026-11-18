@@ -1,4 +1,4 @@
-# 666LINGUA Desktop 1.6.1
+# 666LINGUA Desktop 1.7.0
 
 ## Windows starten
 
@@ -9,7 +9,7 @@ Dieser Checkout enthält den vollständigen Desktop-Quellcode. Die fertigen Wind
 2. In `release` **666LINGUA-Setup-x64.exe** für Intel/AMD oder **666LINGUA-Setup-ARM64.exe** für Windows auf ARM öffnen.
 3. Nach der Installation „666LINGUA“ im Startmenü öffnen. Im Setup kannst du den Zielordner eingeben oder per Ordnerdialog auswählen. Standard ist `%LOCALAPPDATA%\Programs\666LINGUA`. Startmenü- und Desktop-Verknüpfung sowie der direkte Start sind separat wählbar. Updates schlagen den zuletzt registrierten Ordner vor. Die Deinstallation ist in den Windows-Einstellungen verfügbar.
 
-Für den portablen Betrieb `release/666LINGUA-Portable-Windows.zip` entpacken und die passende Programm-EXE starten. Die lauffähigen Dateien liegen auch direkt in `release`. App und Setup benötigen weder Go noch Python. Die EXEs sind nicht signiert. Das Anwendungsfenster nutzt Microsoft Edge im Vollbild-Kioskmodus mit eigenem temporärem Browserprofil. Bei fehlendem Edge steht der Standardbrowser zur Verfügung. Im Browser-Modus beendet die Schaltfläche **Beenden** auch den lokalen Prozess.
+Für den portablen Betrieb `release/666LINGUA-Portable-Windows.zip` entpacken und die passende Programm-EXE starten. Die lauffähigen Dateien liegen auch direkt in `release`. App und Setup benötigen weder Go noch Python. Die EXEs sind nicht signiert. Die App startet ein eigenes Windows-Fenster mit eingebetteter WebView2-Anzeige. Der normale Start benötigt keinen separaten Browser und öffnet keinen lokalen HTTP-Server. Fehlt die passende WebView2-Runtime, kann die App nach Bestätigung den mitgelieferten Microsoft-Bootstrapper ausführen. Die Installation der Runtime benötigt dann Internet.
 
 ## Startintro
 
@@ -19,7 +19,7 @@ Vor der Arbeitsfläche erscheint das 666LINGUA-Intro mit dem mitgelieferten Plat
 
 Die Hauptansicht hält Quelltext und Hauptübersetzung in derselben Ansicht. Lange Texte scrollen im jeweiligen Textfeld. Bei geringer Fensterhöhe lassen sich die Bereiche intern scrollen.
 
-**Wörterbücher**, **Lernen**, **Zeit umrechnen**, **Systemnachweis**, **Entscheidung & Belege** und **Weitere Fassungen** öffnen als Overlays in demselben App-Fenster. Schließe ein Overlay über **Schließen**. Im normalen Browserfenster schließt auch **Esc** das aktive Overlay. Das Belegfenster öffnet auf Klick, während der Status am Knopf anzeigt, ob die Ausgabe blockiert ist.
+**Wörterbücher**, **Lernen**, **Zeit umrechnen**, **Systemnachweis**, **Entscheidung & Belege** und **Weitere Fassungen** öffnen als Overlays in demselben App-Fenster. Schließe ein Overlay über **Schließen**. Mit **Esc** schließt du das aktive Overlay. Das Belegfenster öffnet auf Klick, während der Status am Knopf anzeigt, ob die Ausgabe blockiert ist.
 
 ## Übersetzen
 
@@ -45,7 +45,7 @@ Die Kontextregeln decken die dokumentierten Lesarten ab. Unbekannte Kontexte und
 ## Kopieren, Teilen und eigene Wörterbücher
 
 - **Quelltext kopieren** übernimmt das gesamte Eingabefeld. **Übersetzung kopieren** übernimmt die sichtbare Hauptfassung. Alternative Fassungen haben ihre eigenen Kopierbuttons.
-- **Teilen** steht unmittelbar neben **Kopieren**. Es übergibt nur den gewählten Quell- oder Zieltext. **WhatsApp** öffnet die Empfängerauswahl mit vorbereitetem Text. **E-Mail** öffnet einen Entwurf im Standard-Mailprogramm. **Weitere Apps** erscheint, wenn der Browser die Systemfreigabe für Text anbietet. Empfänger und Versand wählst du im Zielprogramm. Bei zu langen Freigabelinks kannst du den vollständigen Text kopieren oder die Systemfreigabe nutzen.
+- **Teilen** steht unmittelbar neben **Kopieren**. Es übergibt nur den gewählten Quell- oder Zieltext. **WhatsApp** übergibt den vorbereiteten Text an die installierte WhatsApp-App, sofern sie unter Windows als Protokollhandler verfügbar ist. Ist sie nicht verfügbar, kannst du den Text kopieren. **E-Mail** öffnet einen Entwurf im Standard-Mailprogramm. **Weitere Apps** erscheint, wenn die verwendete Oberfläche die Systemfreigabe für Text anbietet. Empfänger und Versand wählst du im Zielprogramm. Bei zu langen Freigabelinks kannst du den vollständigen Text kopieren oder die Systemfreigabe nutzen.
 - Unter **Wörterbücher** gibt es getrennte Einträge für **Deutsch → Englisch** und **Englisch → Deutsch**. Gib Quellbegriff und Zielbegriff ein und speichere sie. Die Suche findet beide Seiten. Zum Ändern der Übersetzung nutze **Bearbeiten**. Namen können mit identischer Schreibung gespeichert werden.
 - Beim Übersetzen greift der Kern auf das Wörterbuch der gewählten Richtung zurück. Er verwendet exakte Begriffe, unterstützte Satzmuster und eindeutige Wortzuordnungen in hinterlegten Satzübersetzungen. Die englischen Varianten teilen sich pro Richtung ein Wörterbuch. Bestätigte vollständige Übersetzungen haben weiterhin Vorrang.
 - Beispiel für **Deutsch → Englisch**. Speichere `Neonspule` als `a neon coil`. Die Eingabe `Ich brauche Neonspule.` wird zu `I need a neon coil.`. Der Beleg nennt den verwendeten Eintrag. Gewünschte Artikel kannst du mit dem Zielbegriff speichern. Unbekannte Satzstrukturen bleiben offen.
@@ -60,18 +60,18 @@ Die Kontextregeln decken die dokumentierten Lesarten ab. Unbekannte Kontexte und
 - **Insert emoji / Emoji einfügen** öffnet das Offline-Verzeichnis mit 3.998 Sequenzen, Suchfunktion und Kategorien. Die Auswahl setzt das Emoji an der Cursorposition ein oder ersetzt die markierte Stelle. Semantische Emoji-Verstärkung lässt sich separat schalten.
 - Name, Geburtsdatum, Sternzeichen, Wohnort, Zeitzone, optionaler Partner und Einstellungen liegen in `%APPDATA%\666SOUNDsDESIGn\666LINGUA\desktop-settings.json`. Das Profil kann in der App gelöscht werden. Die Oberfläche benötigt dafür kein Online-Konto.
 
-Der normale Windows-Start verwendet den Edge-Vollbildmodus. Die alternative Browser-Ansicht kann per **Full screen / Vollbild** in den Vollbildmodus wechseln. Details zum Vergleich mit dem direkt gelesenen Live-Stand stehen in [LIVE-ABGLEICH.md](LIVE-ABGLEICH.md).
+Die Windows-App startet im Vollbild. **Full screen / Vollbild** wechselt zwischen Vollbild und Fenstermodus. Menüpunkt **2** startet direkt im Fenstermodus. Details zum Vergleich mit dem direkt gelesenen Live-Stand stehen in [LIVE-ABGLEICH.md](LIVE-ABGLEICH.md).
 
 ## Bauen und prüfen
 
-`STARTEN.bat` ist der einzige Batch-Einstieg. Der Starter prüft die Mindestversion aus `go.mod` (derzeit Go 1.22), die tatsächliche Version und den Compiler. Er verwendet eine funktionierende Installation aus dem Suchpfad, den üblichen Windows-Ordnern oder dem lokalen Projektcache.
+`STARTEN.bat` ist der einzige Batch-Einstieg. Der Starter prüft die Mindestversion aus `go.mod` (derzeit Go 1.25), die tatsächliche Version und den Compiler. Er verwendet eine funktionierende Installation aus dem Suchpfad, den üblichen Windows-Ordnern oder dem lokalen Projektcache.
 
 Fehlt eine passende Toolchain, laden Setup, Build, Paketierung, Tests, Reparatur und Komplettlauf ein passendes stabiles Go-Archiv für Windows x64 oder ARM64 von `go.dev`. Der Starter prüft SHA-256, richtet Go in `.toolchain/go` ein und setzt die gewählte Aktion nach der erneuten Compilerprüfung fort. Dafür braucht der erste Download Internet und der Projektordner Schreibrechte. Die lokale Installation benötigt keine Administratorrechte und verändert den systemweiten PATH nicht. Diagnose, Projektcheck und normaler EXE-Start laden keine Tools herunter. Ohne Argumente zeigt die Batch das Menü und kehrt nach einer Aktion dorthin zurück. Für Skripte akzeptiert sie Langoptionen und Kurzformen, z. B. `STARTEN.bat installer /nopause`. `/nopause` verhindert die Fehlerpause und lässt den Exitcode erhalten.
 
 | Aktion | Ergebnis |
 | --- | --- |
 | `--start` | App-Fenster. Nutzt `release`, oder einen Einzelbuild, wenn keine Release-EXE vorhanden ist. |
-| `--browser` | Öffnet denselben lokalen Kern im Standardbrowser. |
+| `--windowed` | Öffnet das eigene App-Fenster im Fenstermodus. `--browser` ist als alter Befehlsalias verfügbar. |
 | `--diagnose` | Vergleicht Quellarchiv-Hashes, Release-Hashes, PE-Architektur und Portable-Inhalt. |
 | `--repair` | Prüft die Quellen, führt Tests aus, erzeugt ein vollständiges Release und sichert die alte Ausgabe separat. |
 | `--dev` / Menüpunkt **5** | Baut nur die EXE für diesen PC in `build-output/dev` und startet genau diesen Build. Kein Setup oder Portable-ZIP. |

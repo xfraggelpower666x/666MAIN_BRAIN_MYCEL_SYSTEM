@@ -21,7 +21,7 @@ import (
 //go:embed app/*
 var web embed.FS
 
-const version = "1.6.1"
+const version = "1.7.0"
 
 type app struct {
 	lex     Lexicon
@@ -60,14 +60,37 @@ func readJSON(w http.ResponseWriter, r *http.Request, v any) error {
 	return nil
 }
 
+func localResponseHeaders(w http.ResponseWriter) {
+	w.Header().Set("Cache-Control", "no-store")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Referrer-Policy", "no-referrer")
+	w.Header().Set("Content-Security-Policy", "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'")
+}
+
+func (a *app) desktopMiddleware(external func(string) error) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			localResponseHeaders(w)
+			path := strings.TrimPrefix(r.URL.Path, "/")
+			if !strings.HasPrefix(path, "api/") {
+				next.ServeHTTP(w, r)
+				return
+			}
+			if origin := r.Header.Get("Origin"); r.Header.Get("X-Lingua-Session") != "desktop" ||
+				(origin != "" && origin != "http://wails.localhost") {
+				fail(w, http.StatusForbidden, errors.New("Ungültiger lokaler Sitzungskontext."))
+				return
+			}
+			a.handleAPI(w, r, path, external)
+		})
+	}
+}
+
 func (a *app) handler() http.Handler {
 	files, _ := fs.Sub(web, "app")
 	static := http.FileServer(http.FS(files))
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Cache-Control", "no-store")
-		w.Header().Set("X-Content-Type-Options", "nosniff")
-		w.Header().Set("Referrer-Policy", "no-referrer")
-		w.Header().Set("Content-Security-Policy", "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'")
+		localResponseHeaders(w)
 		if r.Host != a.address || !strings.HasPrefix(r.URL.Path, a.prefix) {
 			http.NotFound(w, r)
 			return
@@ -87,137 +110,141 @@ func (a *app) handler() http.Handler {
 			fail(w, http.StatusForbidden, errors.New("Ungültiger lokaler Sitzungskontext."))
 			return
 		}
-		if r.Method == http.MethodPost && path == "api/share" {
-			handleShare(w, r, openExternal)
-			return
-		}
-		a.mu.Lock()
-		defer a.mu.Unlock()
-		route := r.Method + " " + path
-		if a.handleSettings(route, w, r) {
-			return
-		}
-		switch route {
-		case "GET api/info":
-			reply(w, 200, map[string]any{"version": version, "source": "666LINGUA v3.4.7 / R19", "authority": "DESKTOP_CANDIDATE", "externalGate": "MUM_PENDING", "profiles": profiles})
-		case "POST api/translate":
-			var request Request
-			if err := readJSON(w, r, &request); err != nil {
-				fail(w, 400, err)
-				return
-			}
-			if err := request.validate(); err != nil {
-				fail(w, 400, err)
-				return
-			}
-			rules, err := a.memory.read()
-			if err != nil {
-				fail(w, 500, fmt.Errorf("Lokales Regelwerk konnte nicht gelesen werden. %w", err))
-				return
-			}
-			lex := a.lex
-			if dictionaryPair(base(request.From), base(request.To)) {
-				lex.dictionary, err = a.memory.dictionaries().readEntries(validateTerm)
-				if err != nil {
-					fail(w, 500, err)
-					return
-				}
-			}
-			reply(w, 200, lex.translate(request, rules))
-		case "GET api/dictionary":
-			entries, err := a.memory.dictionaries().readEntries(validateTerm)
-			if err != nil {
-				fail(w, 500, err)
-				return
-			}
-			list := make([]Rule, 0, len(entries))
-			for _, entry := range entries {
-				list = append(list, entry)
-			}
-			reply(w, 200, list)
-		case "POST api/dictionary":
-			var request struct {
-				Request
-				Target   string `json:"target"`
-				Previous string `json:"previous"`
-			}
-			if err := readJSON(w, r, &request); err != nil {
-				fail(w, 400, err)
-				return
-			}
-			entry, err := a.memory.dictionaries().confirmEntry(request.Request, request.Target, request.Previous, validateTerm)
-			if err != nil {
-				fail(w, 409, err)
-				return
-			}
-			reply(w, 200, entry)
-		case "POST api/dictionary/delete":
-			var request struct {
-				ID       string `json:"id"`
-				Previous string `json:"previous"`
-			}
-			if err := readJSON(w, r, &request); err != nil {
-				fail(w, 400, err)
-				return
-			}
-			if err := a.memory.dictionaries().forgetEntry(request.ID, request.Previous, validateTerm); err != nil {
-				fail(w, 409, err)
-				return
-			}
-			reply(w, 200, true)
-		case "GET api/memory":
-			m, err := a.memory.read()
-			if err != nil {
-				fail(w, 500, err)
-				return
-			}
-			list := make([]Rule, 0, len(m))
-			for _, rule := range m {
-				list = append(list, rule)
-			}
-			slices.SortFunc(list, func(x, y Rule) int { return strings.Compare(y.Created, x.Created) })
-			reply(w, 200, list)
-		case "POST api/confirm":
-			var request struct {
-				Request
-				Target   string `json:"target"`
-				Previous string `json:"previous"`
-			}
-			if err := readJSON(w, r, &request); err != nil {
-				fail(w, 400, err)
-				return
-			}
-			rule, err := a.memory.confirm(request.Request, request.Target, request.Previous)
-			if err != nil {
-				fail(w, 409, err)
-				return
-			}
-			reply(w, 200, rule)
-		case "POST api/forget":
-			var request struct {
-				ID       string `json:"id"`
-				Previous string `json:"previous"`
-			}
-			if err := readJSON(w, r, &request); err != nil {
-				fail(w, 400, err)
-				return
-			}
-			if err := a.memory.forget(request.ID, request.Previous); err != nil {
-				fail(w, 409, err)
-				return
-			}
-			reply(w, 200, true)
-		case "POST api/quit":
-			reply(w, 200, true)
-			select {
-			case <-a.stop:
-			default:
-				close(a.stop)
-			}
-		default:
-			http.NotFound(w, r)
-		}
+		a.handleAPI(w, r, path, openExternal)
 	})
+}
+
+func (a *app) handleAPI(w http.ResponseWriter, r *http.Request, path string, external func(string) error) {
+	if r.Method == http.MethodPost && path == "api/share" {
+		handleShare(w, r, external)
+		return
+	}
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	route := r.Method + " " + path
+	if a.handleSettings(route, w, r) {
+		return
+	}
+	switch route {
+	case "GET api/info":
+		reply(w, 200, map[string]any{"version": version, "source": "666LINGUA v3.4.7 / R19", "authority": "DESKTOP_CANDIDATE", "externalGate": "MUM_PENDING", "profiles": profiles})
+	case "POST api/translate":
+		var request Request
+		if err := readJSON(w, r, &request); err != nil {
+			fail(w, 400, err)
+			return
+		}
+		if err := request.validate(); err != nil {
+			fail(w, 400, err)
+			return
+		}
+		rules, err := a.memory.read()
+		if err != nil {
+			fail(w, 500, fmt.Errorf("Lokales Regelwerk konnte nicht gelesen werden. %w", err))
+			return
+		}
+		lex := a.lex
+		if dictionaryPair(base(request.From), base(request.To)) {
+			lex.dictionary, err = a.memory.dictionaries().readEntries(validateTerm)
+			if err != nil {
+				fail(w, 500, err)
+				return
+			}
+		}
+		reply(w, 200, lex.translate(request, rules))
+	case "GET api/dictionary":
+		entries, err := a.memory.dictionaries().readEntries(validateTerm)
+		if err != nil {
+			fail(w, 500, err)
+			return
+		}
+		list := make([]Rule, 0, len(entries))
+		for _, entry := range entries {
+			list = append(list, entry)
+		}
+		reply(w, 200, list)
+	case "POST api/dictionary":
+		var request struct {
+			Request
+			Target   string `json:"target"`
+			Previous string `json:"previous"`
+		}
+		if err := readJSON(w, r, &request); err != nil {
+			fail(w, 400, err)
+			return
+		}
+		entry, err := a.memory.dictionaries().confirmEntry(request.Request, request.Target, request.Previous, validateTerm)
+		if err != nil {
+			fail(w, 409, err)
+			return
+		}
+		reply(w, 200, entry)
+	case "POST api/dictionary/delete":
+		var request struct {
+			ID       string `json:"id"`
+			Previous string `json:"previous"`
+		}
+		if err := readJSON(w, r, &request); err != nil {
+			fail(w, 400, err)
+			return
+		}
+		if err := a.memory.dictionaries().forgetEntry(request.ID, request.Previous, validateTerm); err != nil {
+			fail(w, 409, err)
+			return
+		}
+		reply(w, 200, true)
+	case "GET api/memory":
+		m, err := a.memory.read()
+		if err != nil {
+			fail(w, 500, err)
+			return
+		}
+		list := make([]Rule, 0, len(m))
+		for _, rule := range m {
+			list = append(list, rule)
+		}
+		slices.SortFunc(list, func(x, y Rule) int { return strings.Compare(y.Created, x.Created) })
+		reply(w, 200, list)
+	case "POST api/confirm":
+		var request struct {
+			Request
+			Target   string `json:"target"`
+			Previous string `json:"previous"`
+		}
+		if err := readJSON(w, r, &request); err != nil {
+			fail(w, 400, err)
+			return
+		}
+		rule, err := a.memory.confirm(request.Request, request.Target, request.Previous)
+		if err != nil {
+			fail(w, 409, err)
+			return
+		}
+		reply(w, 200, rule)
+	case "POST api/forget":
+		var request struct {
+			ID       string `json:"id"`
+			Previous string `json:"previous"`
+		}
+		if err := readJSON(w, r, &request); err != nil {
+			fail(w, 400, err)
+			return
+		}
+		if err := a.memory.forget(request.ID, request.Previous); err != nil {
+			fail(w, 409, err)
+			return
+		}
+		reply(w, 200, true)
+	case "POST api/quit":
+		reply(w, 200, true)
+		select {
+		case <-a.stop:
+		default:
+			close(a.stop)
+		}
+	default:
+		http.NotFound(w, r)
+	}
 }
 
 func run(mode string) error {
@@ -229,6 +256,14 @@ func run(mode string) error {
 	if err != nil {
 		return err
 	}
+	a := &app{lex: lex, memory: mem, stop: make(chan struct{})}
+	if mode != "--serve" {
+		return runDesktop(a, mode == "--windowed" || mode == "--browser")
+	}
+	return serveDevelopment(a)
+}
+
+func serveDevelopment(a *app) error {
 	listener, err := net.Listen("tcp4", "127.0.0.1:0")
 	if err != nil {
 		return err
@@ -238,31 +273,17 @@ func run(mode string) error {
 	if _, err = rand.Read(bytes[:]); err != nil {
 		return err
 	}
-	appState := app{lex: lex, memory: mem, address: listener.Addr().String(), prefix: "/" + hex.EncodeToString(bytes[:]) + "/", stop: make(chan struct{})}
-	server := http.Server{Handler: appState.handler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 15 * time.Second, IdleTimeout: 30 * time.Second, MaxHeaderBytes: 16384}
+	a.address = listener.Addr().String()
+	a.prefix = "/" + hex.EncodeToString(bytes[:]) + "/"
+	server := http.Server{Handler: a.handler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 15 * time.Second, IdleTimeout: 30 * time.Second, MaxHeaderBytes: 16384}
 	defer server.Close()
 	failed := make(chan error, 1)
 	go func() { failed <- server.Serve(listener) }()
-	url := "http://" + appState.address + appState.prefix
-	var browserDone <-chan struct{}
-	var cleanup func()
-	if mode == "--serve" {
-		fmt.Println(url)
-	} else {
-		browserDone, cleanup, err = openUI(url, mode == "--browser")
-		if err != nil {
-			return err
-		}
-		if cleanup != nil {
-			defer cleanup()
-		}
-	}
+	fmt.Println("http://" + a.address + a.prefix)
 	select {
 	case err = <-failed:
 		return err
-	case <-browserDone:
-		return nil
-	case <-appState.stop:
+	case <-a.stop:
 		time.Sleep(250 * time.Millisecond)
 		return nil
 	}
@@ -273,7 +294,7 @@ func main() {
 	if len(os.Args) > 1 {
 		mode = os.Args[1]
 	}
-	if len(os.Args) > 2 || !slices.Contains([]string{"", "--browser", "--serve", "--version"}, mode) {
+	if len(os.Args) > 2 || !slices.Contains([]string{"", "--windowed", "--browser", "--serve", "--version"}, mode) {
 		showError("Unbekannter Startparameter.")
 		os.Exit(2)
 	}

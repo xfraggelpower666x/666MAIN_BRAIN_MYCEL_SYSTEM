@@ -8,7 +8,7 @@ const germanNames = {
 const englishNames = {de:'German', en:'English · International', 'en-US':'English · US', 'en-GB':'English · UK', es:'Spanish', 'pt-BR':'Portuguese · Brazil'};
 let names = englishNames;
 const targetLocales={de:'de-DE',en:'en-GB','en-US':'en-US','en-GB':'en-GB',es:'es-ES','pt-BR':'pt-BR'};
-const session = location.pathname.split('/')[1];
+const session = location.hostname === 'wails.localhost' ? 'desktop' : location.pathname.split('/')[1];
 let lastRequest = null;
 let currentResult = null;
 let reviewRule = null;
@@ -79,7 +79,11 @@ function evidence(list, blocks, hasOutput) {
 
 async function copy(value, message = 'Zielfassung kopiert.', report = status) {
   try {
-    await navigator.clipboard.writeText(value);
+    if (window.runtime?.ClipboardSetText) {
+      if (!await window.runtime.ClipboardSetText(value)) throw new Error('Clipboard unavailable');
+    } else {
+      await navigator.clipboard.writeText(value);
+    }
     report(t(message));
   } catch {
     report(t('Zwischenablage nicht verfügbar. Text markieren und mit Strg+C kopieren.'));
@@ -334,6 +338,10 @@ el('learn').addEventListener('click', () => {
 el('save').addEventListener('click', saveReview);
 el('refresh').addEventListener('click', loadMemory);
 el('quit').addEventListener('click', async () => {
+  if (window.runtime?.Quit) {
+    window.runtime.Quit();
+    return;
+  }
   try {
     await api('quit', {});
     document.querySelector('main').replaceChildren(node('p',t('666LINGUA wurde beendet. Dieses Fenster kann geschlossen werden.')));

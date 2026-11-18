@@ -228,7 +228,7 @@ func configure(target string, buildArchitectures []string) error {
 	names := []string{}
 	for _, arch := range buildArchitectures {
 		out := filepath.Join(stage, appName(arch))
-		if err = build(arch, out, "."); err != nil {
+		if err = build(arch, out, ".", "-tags=desktop,production,wv2runtime.embed"); err != nil {
 			return err
 		}
 		names = append(names, appName(arch))

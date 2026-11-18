@@ -427,8 +427,15 @@ el('emoji-grid').addEventListener('click',event=>{
 el('emoji-close').addEventListener('click',()=>el('emoji-dialog').close());
 
 el('fullscreen').addEventListener('click',async()=>{
-  if(document.fullscreenElement)return;
-  try{await document.documentElement.requestFullscreen();}
+  try{
+    if (window.runtime?.WindowIsFullscreen) {
+      if (await window.runtime.WindowIsFullscreen()) window.runtime.WindowUnfullscreen();
+      else window.runtime.WindowFullscreen();
+      return;
+    }
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await document.documentElement.requestFullscreen();
+  }
   catch{status(t('Vollbild konnte nicht aktiviert werden.'));}
 });
 const liveTimer=setInterval(refreshClocks,1000);
