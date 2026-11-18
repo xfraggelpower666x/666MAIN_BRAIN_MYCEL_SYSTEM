@@ -10,6 +10,10 @@ Eigenständiges Chat-Framework von 666SOUNDsDESIGn. Native Identität: `LYVRA-DO
 
 Für die Übersetzung ist ChatGPT selbst die Sprachlaufzeit. Ein installiertes Programm, Python, Go oder ein externer Übersetzungsdienst sind dafür nicht erforderlich. Der Start über GitHub braucht einen bestätigten Lesezugriff. Falls der Chat GitHub nicht lesen kann, lade `CURRENT_POINTER.json` sowie dessen aufgeführte Pflichtdateien aus **einem** Commit herunter und hänge sie zusammen an. Ein so gestarteter Chat kann aus der Anlage arbeiten und meldet den aktuellen Branch-Readback als offen.
 
+## Nativer LiveCircle
+
+Der Pointer lädt den originalen R18-Bootstrap, die native Triggerliste, den LiveCircle, die Facetten und die Rehydrations- und Fortsetzungsverträge direkt. Der Chat-Adapter bindet deren Current- und Zustandszugriffe an GitHub und den privaten Handoff. Die zusätzlichen Chat-Befehle rufen die jeweilige native Funktion auf oder bedienen eine Windows-Funktionsentsprechung.
+
 ## Bedienung
 
 | Funktion | Befehl |

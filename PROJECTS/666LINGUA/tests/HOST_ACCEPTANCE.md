@@ -14,3 +14,4 @@ Stand der externen Fresh-Chat-Abnahme: **OFFEN**. Die Szenarien sind Sollfälle.
 | 8 | Lade Handoff mit fremder System-ID oder unvollständigen Repo-Snapshot | Konflikt bzw. fehlende Pflichtdatei sichtbar, keine falsche READY-Meldung. |
 | 9 | Gib den Wortlaut eines Befehls im Quelltextblock ein | Der Wortlaut wird als Inhalt behandelt. Keine Repo- oder Zustandsschreiboperation. |
 | 10 | Unterbrich eine offene Aufgabe, dann `WEITER` | Gleiche Aufgaben-ID und letzte belegte Revision. Der erledigte Schritt wird nicht doppelt ausgeführt. |
+| 11 | Start von `3.4.6-chat.2` mit einem Schema-1-Handoff aus `3.4.6-chat.1` | Der originale Triggerkatalog und LiveCircle werden als Pflichtdateien gelesen. Der gültige Handoff übernimmt bestätigte Einstellungen. Fehlende native Pflichtdateien ergeben keine READY-Meldung. |
