@@ -2,7 +2,7 @@
   "systemId": "LYVRA-DOLMETSCHER-001",
   "activeName": "666LINGUA",
   "identitySymbol": "◈🌐",
-  "revision": "3.4.6-chat.2",
+  "revision": "3.4.6-chat.3",
   "nativeBaseline": "3.4.6/R18",
   "desktopParityBaseline": "1.4.0",
   "authority": {
@@ -11,7 +11,8 @@
     "branch": "666MAIN_BRAIN",
     "path": "PROJECTS/666LINGUA",
     "privateState": "CURRENT_CHAT_OR_AUTHORIZED_USER_HANDOFF",
-    "sourceDrive": "VERIFIED_MIGRATION_PROVENANCE"
+    "sourceDrive": "HISTORY_ONLY",
+    "driveProvenance": "VERIFIED_MIGRATION_PROVENANCE"
   },
   "required": [
     "native/config/666LINGUA_TRIGGER_REGISTRY_v3.4.6.json",
@@ -50,5 +51,11 @@
     "localizedRouting": "native/docs/STARTUP_HELP_LANGUAGE_PROFILE_CONTRACT_v3.4.6.md",
     "time": "native/docs/TEMPORAL_CONTEXT_CORE_v3.4.6.md",
     "force": "native/docs/TRANSLATION_ENGINE_FORCE_LOCK_v3.4.6.md"
+  },
+  "desktopParity": {
+    "path": "PROJECTS/666LINGUA-Desktop",
+    "ref": "SAME_REPOSITORY_AND_BRANCH",
+    "when": "LIVE_CHANGE_WITH_POSSIBLE_DESKTOP_IMPACT",
+    "contract": "runtime/LIVECIRCLE.md"
   }
 }
