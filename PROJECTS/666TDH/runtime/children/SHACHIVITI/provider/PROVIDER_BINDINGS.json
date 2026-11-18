@@ -1,0 +1,63 @@
+{
+  "live_folder_id": "1o44pAVq_pUkiwq2U_nbe-Eh5ampXaCN6",
+  "history_folder_id": "1pmOOeqN7AfigTLVXHAvCL3RGvE8XTDXV",
+  "backup_folder_id": "1IS77Qw-2X1b8P3FLMZFGB1RS-bE_K-z4",
+  "source_vault_folder_id": "1GTges2IIFvawe1P55ULG9TRZZSwhlHzi",
+  "source_files": [
+    {
+      "name": "PAPAEMDS_SHACHIVITI_COMPLETE_CHAIN_BACKUP_FROM_v1_0_49_TO_v1_0_76_REPAIR_v1_0_76_1.zip",
+      "drive_id": "1HRum3vUCbrhsvg8ao3dYooH7P9qwuGjP",
+      "role": "CURRENT_CHAIN_BACKUP_REPAIR",
+      "version": "v1.0.76",
+      "repair": "v1.0.76.1",
+      "size": 67493027,
+      "sha256": "b79d04594a6a06dbec895bd37797341cc4e85010ef13a789a41eed12216d8cb3",
+      "entries": 141,
+      "zip_crc": "PASS"
+    },
+    {
+      "name": "SHACHIVITI_MANTRA_TRACK_SYSTEM_v1_0_35_1_HISTORICAL_CHAIN_INTEGRITY_METADATA_REPAIR_FREEZE_BACKUP.zip",
+      "drive_id": "130EveQw2IHvq3Geo-yle52JnEksTaEW6",
+      "role": "HISTORICAL_PROVENANCE",
+      "version": "v1.0.35.1",
+      "repair": null,
+      "size": 43920329,
+      "sha256": "4211b123ee12424781cbf52dcb41184eff2adfe4d810fb726d77d671daaf4d8f",
+      "entries": 21,
+      "zip_crc": "PASS"
+    },
+    {
+      "name": "PAPAEMDS_SHACHIVITI_VISUAL_IDENTITY_COMPLETE_SYSTEM_BACKUP_v1_0_62.zip",
+      "drive_id": "1dtCrBOe1Oxeu8aKqd_qRzOw_OTe5ckCH",
+      "role": "VISUAL_IDENTITY_EVIDENCE",
+      "version": "v1.0.62",
+      "repair": null,
+      "size": 7909953,
+      "sha256": "1eb8b614ffdc937737185aafa4a735d9ed0d20db5e59b2fcdf1f8fe31044c467",
+      "entries": 21,
+      "zip_crc": "PASS"
+    },
+    {
+      "name": "PAPAEMDS_SHACHIVITI_PORTABLE_FULL_SYSTEM_MIGRATION_PACKAGE_v1_0_73.zip",
+      "drive_id": "1EpsaagyEBoICMiUP9gnE2UbNcxEhhB9Y",
+      "role": "PORTABLE_MIGRATION_EVIDENCE",
+      "version": "v1.0.73",
+      "repair": null,
+      "size": 5954203,
+      "sha256": "66f603cf56b93d4aa6f8f0ac4db54da30bc3d23530ea9a9b783ae315fbcdfb01",
+      "entries": 47,
+      "zip_crc": "PASS"
+    },
+    {
+      "name": "PAPAEMDS_SHACHIVITI_DANCE_RHYTHM_COMMANDER_ORCHESTRA_COMPLETE_BACKUP_v1_0_74.zip",
+      "drive_id": "1f48CDQVdC-T8xBQSXylwZPwGLMu94F-6",
+      "role": "DANCE_RHYTHM_EVIDENCE",
+      "version": "v1.0.74",
+      "repair": null,
+      "size": 7039139,
+      "sha256": "333079d9566b277468c1d1f0a2bf145485125490541952ce9d8113da2107202f",
+      "entries": 26,
+      "zip_crc": "PASS"
+    }
+  ]
+}

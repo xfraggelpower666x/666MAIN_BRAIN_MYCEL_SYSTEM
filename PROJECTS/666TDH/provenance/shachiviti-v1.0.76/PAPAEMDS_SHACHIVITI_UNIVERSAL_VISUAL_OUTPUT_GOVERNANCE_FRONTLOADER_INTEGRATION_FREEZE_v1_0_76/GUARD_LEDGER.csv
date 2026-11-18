@@ -1,0 +1,7 @@
+guard,purpose,status
+NoHabituationRule,prevents old rules from being treated as removable,ACTIVE_DELTA_FROZEN
+AntiSimplificationEnforcerAgent,blocks silent simplification and beautification,ACTIVE_DELTA_FROZEN
+ClaimTruthGuard,blocks fake integration/freeze/backup claims,ACTIVE_DELTA_FROZEN
+LargeSystemSafetyMode,treats Level-5 systems as large linguistic operating systems,ACTIVE_DELTA_FROZEN
+VisualOutputGovernanceGuard,"requires structured, auditable, readable significant outputs",ACTIVE_DELTA_FROZEN
+FreezeAndBackupGateAgent,requires audit/re-audit/pass before freeze and backup,ACTIVE_DELTA_FROZEN
