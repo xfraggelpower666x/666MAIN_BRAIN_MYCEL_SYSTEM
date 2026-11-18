@@ -2,7 +2,7 @@
   "systemId": "LYVRA-DOLMETSCHER-001",
   "activeName": "666LINGUA",
   "identitySymbol": "◈🌐",
-  "revision": "3.4.6-chat.1",
+  "revision": "3.4.6-chat.2",
   "nativeBaseline": "3.4.6/R18",
   "desktopParityBaseline": "1.4.0",
   "authority": {
@@ -14,6 +14,18 @@
     "sourceDrive": "VERIFIED_MIGRATION_PROVENANCE"
   },
   "required": [
+    "native/config/666LINGUA_TRIGGER_REGISTRY_v3.4.6.json",
+    "native/bootstrap/666_LINGUA_GLOBAL_BOOTSTRAP_v3.4.6.md",
+    "native/runtime/LINGUA_LIVE_CIRCLE_RUNTIME_CONTRACT_v3.4.6.md",
+    "native/runtime/MYCEL_ROUTING_RUNTIME_CONTRACT_v3.4.6.md",
+    "native/registry/LINGUA_FACET_LIVE_CIRCLE_REGISTRY_v3.4.6.json",
+    "native/docs/REHYDRATION_COMPLETENESS_AUTO_WEITER_v3.4.6.md",
+    "native/docs/STATE_MERGE_AND_REHYDRATION_CONTRACT_v3.4.6.md",
+    "native/docs/INTERRUPTION_PARALLEL_CONTINUATION_CONTRACT_v3.4.6.md",
+    "native/docs/CONTINUATION_TODO_CONTRACT_v3.4.6.md",
+    "native/docs/STARTUP_HELP_LANGUAGE_PROFILE_CONTRACT_v3.4.6.md",
+    "native/docs/TEMPORAL_CONTEXT_CORE_v3.4.6.md",
+    "native/docs/TRANSLATION_ENGINE_FORCE_LOCK_v3.4.6.md",
     "runtime/CHATGPT_INSTRUCTIONS.md",
     "runtime/LIVECIRCLE.md",
     "runtime/REHYDRATION.md",
@@ -21,9 +33,22 @@
     "config/TRIGGERS.json",
     "state/DEFAULTS.json",
     "state/HANDOFF.schema.json",
-    "provenance/NATIVE_INDEX.json",
-    "native/registry/LINGUA_FACET_LIVE_CIRCLE_REGISTRY_v3.4.6.json"
+    "provenance/NATIVE_INDEX.json"
   ],
   "minimumHandoffSchema": 1,
-  "hostAcceptance": "OPEN_FRESH_CHAT"
+  "hostAcceptance": "OPEN_FRESH_CHAT",
+  "nativeRuntime": {
+    "triggers": "native/config/666LINGUA_TRIGGER_REGISTRY_v3.4.6.json",
+    "bootstrap": "native/bootstrap/666_LINGUA_GLOBAL_BOOTSTRAP_v3.4.6.md",
+    "liveCircle": "native/runtime/LINGUA_LIVE_CIRCLE_RUNTIME_CONTRACT_v3.4.6.md",
+    "routing": "native/runtime/MYCEL_ROUTING_RUNTIME_CONTRACT_v3.4.6.md",
+    "facets": "native/registry/LINGUA_FACET_LIVE_CIRCLE_REGISTRY_v3.4.6.json",
+    "rehydration": "native/docs/REHYDRATION_COMPLETENESS_AUTO_WEITER_v3.4.6.md",
+    "stateMerge": "native/docs/STATE_MERGE_AND_REHYDRATION_CONTRACT_v3.4.6.md",
+    "interruptions": "native/docs/INTERRUPTION_PARALLEL_CONTINUATION_CONTRACT_v3.4.6.md",
+    "continuation": "native/docs/CONTINUATION_TODO_CONTRACT_v3.4.6.md",
+    "localizedRouting": "native/docs/STARTUP_HELP_LANGUAGE_PROFILE_CONTRACT_v3.4.6.md",
+    "time": "native/docs/TEMPORAL_CONTEXT_CORE_v3.4.6.md",
+    "force": "native/docs/TRANSLATION_ENGINE_FORCE_LOCK_v3.4.6.md"
+  }
 }
