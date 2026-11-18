@@ -318,6 +318,11 @@ func run(action string) error {
 	switch action {
 	case "toolstarter":
 		return preflight()
+	case "check":
+		if err := preflight(); err != nil {
+			return err
+		}
+		return run("test")
 	case "diagnose":
 		if err := preflight(); err != nil {
 			return err
@@ -329,12 +334,12 @@ func run(action string) error {
 		return nil
 	case "test":
 		return goTool([]string{"test", "-count=1", "./..."})
-	case "all", "repair":
+	case "all", "repair", "package", "setup":
 		if err := run("test"); err != nil {
 			return err
 		}
 		return configure(action, architectures)
-	case "build", "package", "setup":
+	case "build":
 		return configure(action, architectures)
 	case "dev-amd64", "dev-arm64":
 		return configure("dev", []string{strings.TrimPrefix(action, "dev-")})

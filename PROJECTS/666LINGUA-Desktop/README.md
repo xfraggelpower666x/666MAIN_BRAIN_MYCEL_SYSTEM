@@ -62,7 +62,7 @@ Der normale Windows-Start verwendet den Edge-Vollbildmodus. Die alternative Brow
 
 `STARTEN.bat` ist der einzige Batch-Einstieg. Der Starter prüft die Mindestversion aus `go.mod` (derzeit Go 1.22), die tatsächliche Version und den Compiler. Er verwendet eine funktionierende Installation aus dem Suchpfad, den üblichen Windows-Ordnern oder dem lokalen Projektcache.
 
-Fehlt eine passende Toolchain, laden Setup, Build, Paketierung, Tests, Reparatur und Komplettlauf ein passendes stabiles Go-Archiv für Windows x64 oder ARM64 von `go.dev`. Der Starter prüft SHA-256, richtet Go in `.toolchain/go` ein und setzt die gewählte Aktion nach der erneuten Compilerprüfung fort. Dafür braucht der erste Download Internet und der Projektordner Schreibrechte. Die lokale Installation benötigt keine Administratorrechte und verändert den systemweiten PATH nicht. Diagnose, Toolstarter-Projektcheck und normaler EXE-Start laden keine Tools herunter.
+Fehlt eine passende Toolchain, laden Setup, Build, Paketierung, Tests, Reparatur und Komplettlauf ein passendes stabiles Go-Archiv für Windows x64 oder ARM64 von `go.dev`. Der Starter prüft SHA-256, richtet Go in `.toolchain/go` ein und setzt die gewählte Aktion nach der erneuten Compilerprüfung fort. Dafür braucht der erste Download Internet und der Projektordner Schreibrechte. Die lokale Installation benötigt keine Administratorrechte und verändert den systemweiten PATH nicht. Diagnose, Projektcheck und normaler EXE-Start laden keine Tools herunter. Ohne Argumente zeigt die Batch das Menü und kehrt nach einer Aktion dorthin zurück. Für Skripte akzeptiert sie Langoptionen und Kurzformen, z. B. `STARTEN.bat installer /nopause`. `/nopause` verhindert die Fehlerpause und lässt den Exitcode erhalten.
 
 | Aktion | Ergebnis |
 | --- | --- |
@@ -73,9 +73,10 @@ Fehlt eine passende Toolchain, laden Setup, Build, Paketierung, Tests, Reparatur
 | `--dev` / Menüpunkt **5** | Baut nur die EXE für diesen PC in `build-output/dev` und startet genau diesen Build. Kein Setup oder Portable-ZIP. |
 | `--build` | Kompiliert beide Programm-EXEs nach `build-output/build`. |
 | `--test` | Startet Entwickler- und Regressionstests. |
-| `--package` | Baut die portablen Dateien nach `build-output/package`. |
+| `--check` / `check` | Prüft vorhandenes Go, die Projektdateien und führt die Tests aus. |
+| `--package` / `portable` | Testet und baut das portable ZIP in `build-output/package`. |
 | `--toolstarter` | Prüft die Projektstruktur sowie die beiden R19-Quellarchive bei vorhandenem Quellenordner. |
-| `--setup` | Baut beide ausführbaren Setups nach `build-output/setup`. |
+| `--setup` / `installer` | Testet und baut beide Setups und die direkt startbaren EXEs in `build-output/setup`. |
 | `--all` | Testet und erzeugt Programm-EXEs, Portable-ZIP, Setups und Prüfliste in `release`. |
 
 Das Toolstarter-ZIP lag den 666LINGUA-Anhängen nicht bei. Das Batch-Muster aus dem Auftrag dient als Vorlage für Projektcheck, Menü und CLI. Der Projektcheck läuft im Build-Werkzeug und ist kein Bestandteil der Anwendung.

@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet('diagnose', 'repair', 'build', 'test', 'package', 'toolstarter', 'setup', 'all', 'dev-amd64', 'dev-arm64')]
+    [ValidateSet('check', 'diagnose', 'repair', 'build', 'test', 'package', 'toolstarter', 'setup', 'all', 'dev-amd64', 'dev-arm64')]
     [string]$Action
 )
 
@@ -116,7 +116,7 @@ try {
     $minimum = [version]$directive.Matches[0].Groups[1].Value
     $go = Find-Go
     if (-not $go) {
-        if ($Action -in @('diagnose', 'toolstarter')) {
+        if ($Action -in @('check', 'diagnose', 'toolstarter')) {
             throw "No working Go $minimum or newer found. Run STARTEN.bat --setup or --repair for automatic installation."
         }
         Write-Host "No working Go $minimum or newer found. Installing it locally ..."
