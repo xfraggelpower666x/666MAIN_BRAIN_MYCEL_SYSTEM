@@ -11,9 +11,11 @@ import (
 
 func showError(message string) { win.Message("666LINGUA", message, 0x10) }
 
+func openExternal(url string) error { return win.Open(url) }
+
 func openUI(url string, browser bool) (<-chan struct{}, func(), error) {
 	if browser {
-		return nil, nil, win.Open(url)
+		return nil, nil, openExternal(url)
 	}
 	for _, key := range []string{"ProgramFiles(x86)", "ProgramFiles", "ProgramW6432", "LOCALAPPDATA"} {
 		root := os.Getenv(key)
@@ -52,5 +54,5 @@ func openUI(url string, browser bool) (<-chan struct{}, func(), error) {
 	if win.Message("666LINGUA", "Microsoft Edge wurde für das App-Fenster nicht gefunden. Im Standardbrowser öffnen?", 0x24) != 6 {
 		return nil, nil, fmt.Errorf("App-Fenster benötigt Microsoft Edge. Der Browser-Modus ist über STARTEN.bat verfügbar.")
 	}
-	return nil, nil, win.Open(url)
+	return nil, nil, openExternal(url)
 }

@@ -21,7 +21,7 @@ import (
 //go:embed app/*
 var web embed.FS
 
-const version = "1.4.0"
+const version = "1.5.0"
 
 type app struct {
 	lex     Lexicon
@@ -85,6 +85,10 @@ func (a *app) handler() http.Handler {
 		if r.Header.Get("X-Lingua-Session") != strings.Trim(a.prefix, "/") ||
 			(r.Method == http.MethodPost && r.Header.Get("Origin") != "http://"+a.address) {
 			fail(w, http.StatusForbidden, errors.New("Ungültiger lokaler Sitzungskontext."))
+			return
+		}
+		if r.Method == http.MethodPost && path == "api/share" {
+			handleShare(w, r, openExternal)
 			return
 		}
 		a.mu.Lock()

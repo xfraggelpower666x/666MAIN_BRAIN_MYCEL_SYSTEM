@@ -8,10 +8,14 @@ import (
 
 func showError(message string) { fmt.Fprintln(os.Stderr, message) }
 func openUI(url string, _ bool) (<-chan struct{}, func(), error) {
+	return nil, nil, openExternal(url)
+}
+
+func openExternal(url string) error {
 	cmd := exec.Command("xdg-open", url)
 	if err := cmd.Start(); err != nil {
-		return nil, nil, err
+		return err
 	}
 	go func() { _ = cmd.Wait() }()
-	return nil, nil, nil
+	return nil
 }

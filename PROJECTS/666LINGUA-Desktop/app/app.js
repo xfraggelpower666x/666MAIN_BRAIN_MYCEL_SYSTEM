@@ -14,6 +14,7 @@ let currentResult = null;
 let reviewRule = null;
 let reviewRequest = null;
 let busy = false;
+let sharedText = '';
 
 function node(tag, text, className) {
   const item = document.createElement(tag);
@@ -45,7 +46,7 @@ function refreshInput() {
   const count = Array.from(source.value).length;
   el('count').textContent = count.toLocaleString(locale()) + ' / '+(12000).toLocaleString(locale());
   el('pair').textContent = pair.from + ' → ' + pair.to;
-  el('copy-source').disabled = !source.value.trim();
+  el('copy-source').disabled = el('share-source').disabled = !source.value.trim();
   el('translate').disabled = busy || !source.value.trim() || count > 12000 || pair.from === pair.to;
   el('learn').disabled = busy || !source.value.trim() || count > 12000 || pair.from === pair.to;
   el('previous').disabled = busy || !lastRequest;
@@ -76,14 +77,37 @@ function evidence(list, blocks, hasOutput) {
   el('step-output').dataset.state = hasOutput ? 'ok' : 'fail';
 }
 
-async function copy(value, message = 'Zielfassung kopiert.') {
+async function copy(value, message = 'Zielfassung kopiert.', report = status) {
   try {
     await navigator.clipboard.writeText(value);
-    status(t(message));
+    report(t(message));
   } catch {
-    status(t('Zwischenablage nicht verfügbar. Text markieren und mit Strg+C kopieren.'));
+    report(t('Zwischenablage nicht verfügbar. Text markieren und mit Strg+C kopieren.'));
   }
 }
+
+function reportShare(message) { el('share-status').textContent = message; }
+
+function showShare(value) {
+  if (!value?.trim()) return;
+  sharedText = value;
+  const payload = {text: sharedText};
+  el('share-system').hidden = typeof navigator.share !== 'function' ||
+    (typeof navigator.canShare === 'function' && !navigator.canShare(payload));
+  reportShare('');
+  el('share-dialog').showModal();
+}
+
+async function shareTo(target) {
+  try {
+    await api('share', {target, text: sharedText});
+    reportShare(t('Wähle den Empfänger in der geöffneten App.'));
+  } catch (error) {
+    reportShare(error.message);
+  }
+}
+
+function primaryText() { return el('variants').querySelector('.target-text')?.value; }
 
 function render(result) {
   const container = el('variants');
@@ -111,13 +135,20 @@ function render(result) {
     const entry = node('article', undefined, 'variant');
     entry.append(node('h3', t(variant.label)), node('p', variant.text));
     if (variant.note) entry.append(node('small', t(variant.note), 'note'));
-    const button = node('button', t('Kopieren'), 'copy');
-    button.type = 'button';
-    button.addEventListener('click', () => copy(variant.text));
-    entry.append(button);
+    const actions = node('div', undefined, 'text-actions');
+    const copyButton = node('button', t('Kopieren'), 'copy');
+    copyButton.type = 'button';
+    copyButton.addEventListener('click', () => copy(variant.text));
+    const shareButton = node('button', t('Teilen'), 'copy');
+    shareButton.type = 'button';
+    shareButton.setAttribute('aria-haspopup', 'dialog');
+    shareButton.setAttribute('aria-controls', 'share-dialog');
+    shareButton.addEventListener('click', () => showShare(variant.text));
+    actions.append(copyButton, shareButton);
+    entry.append(actions);
     alternatives.append(entry);
   }
-  el('copy-target').disabled = !container.querySelector('.target-text')?.value;
+  el('copy-target').disabled = el('share-target').disabled = !primaryText();
   const blocked=result.evidence.some((proof) => proof.kind === 'OFFEN');
   evidence(result.evidence,blocked,variants.length>0);
   el('show-alternatives').disabled = variants.length < 2;
@@ -125,7 +156,7 @@ function render(result) {
 
 function clearResult() {
   currentResult = null;
-  el('copy-target').disabled = true;
+  el('copy-target').disabled = el('share-target').disabled = true;
   el('variants').replaceChildren();
   el('alternate-variants').replaceChildren();
   el('show-alternatives').disabled = true;
@@ -264,8 +295,25 @@ el('swap').addEventListener('click', () => {
 el('translate').addEventListener('click',translate);
 el('copy-source').addEventListener('click', () => copy(source.value, 'Quelltext kopiert.'));
 el('copy-target').addEventListener('click', () => {
-  const value = el('variants').querySelector('.target-text')?.value;
+  const value = primaryText();
   if (value) copy(value);
+});
+el('share-source').addEventListener('click', () => showShare(source.value));
+el('share-target').addEventListener('click', () => showShare(primaryText()));
+el('share-whatsapp').addEventListener('click', () => shareTo('whatsapp'));
+el('share-email').addEventListener('click', () => shareTo('email'));
+el('share-copy').addEventListener('click', () => copy(sharedText, 'Text kopiert.', reportShare));
+el('share-system').addEventListener('click', async () => {
+  try {
+    await navigator.share({text: sharedText});
+  } catch (error) {
+    if (error.name !== 'AbortError') {
+      reportShare(t('Systemfreigabe nicht verfügbar. Wähle ein anderes Ziel oder kopiere den Text.'));
+    }
+  }
+});
+el('share-dialog').addEventListener('close', () => {
+  if (!el('share-dialog').open) sharedText = '';
 });
 document.addEventListener('keydown',(event) => {
   if (event.ctrlKey && event.key === 'Enter' && !document.querySelector('dialog[open]')) {

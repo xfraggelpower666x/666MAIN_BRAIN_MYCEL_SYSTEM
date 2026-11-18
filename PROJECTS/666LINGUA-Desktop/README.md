@@ -1,4 +1,4 @@
-# 666LINGUA Desktop 1.4.0
+# 666LINGUA Desktop 1.5.0
 
 ## Windows starten
 
@@ -38,9 +38,10 @@ Der Kern arbeitet mit einem begrenzten Phrasenbestand, einem Uhrzeit-Satzmuster,
 
 Die Kontextregeln decken die dokumentierten Lesarten ab. Unbekannte Kontexte und nicht erfasste Freitexte bleiben offen.
 
-## Kopieren und eigene Wörterbücher
+## Kopieren, Teilen und eigene Wörterbücher
 
 - **Quelltext kopieren** übernimmt das gesamte Eingabefeld. **Übersetzung kopieren** übernimmt die sichtbare Hauptfassung. Alternative Fassungen haben ihre eigenen Kopierbuttons.
+- **Teilen** steht unmittelbar neben **Kopieren**. Es übergibt nur den gewählten Quell- oder Zieltext. **WhatsApp** öffnet die Empfängerauswahl mit vorbereitetem Text. **E-Mail** öffnet einen Entwurf im Standard-Mailprogramm. **Weitere Apps** erscheint, wenn der Browser die Systemfreigabe für Text anbietet. Empfänger und Versand wählst du im Zielprogramm. Bei zu langen Freigabelinks kannst du den vollständigen Text kopieren oder die Systemfreigabe nutzen.
 - Unter **Wörterbücher** gibt es getrennte Einträge für **Deutsch → Englisch** und **Englisch → Deutsch**. Gib Quellbegriff und Zielbegriff ein und speichere sie. Die Suche findet beide Seiten. Zum Ändern der Übersetzung nutze **Bearbeiten**. Namen können mit identischer Schreibung gespeichert werden.
 - Beim Übersetzen greift der Kern auf das Wörterbuch der gewählten Richtung zurück. Er verwendet exakte Begriffe, unterstützte Satzmuster und eindeutige Wortzuordnungen in hinterlegten Satzübersetzungen. Die englischen Varianten teilen sich pro Richtung ein Wörterbuch. Bestätigte vollständige Übersetzungen haben weiterhin Vorrang.
 - Beispiel für **Deutsch → Englisch**. Speichere `Neonspule` als `a neon coil`. Die Eingabe `Ich brauche Neonspule.` wird zu `I need a neon coil.`. Der Beleg nennt den verwendeten Eintrag. Gewünschte Artikel kannst du mit dem Zielbegriff speichern. Unbekannte Satzstrukturen bleiben offen.

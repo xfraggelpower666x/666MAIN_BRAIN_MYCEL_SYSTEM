@@ -139,6 +139,9 @@ footer{padding:11px clamp(12px,2.2vw,40px)}
 .proof-detail{margin-top:5px;color:var(--muted);overflow-wrap:anywhere}
 
 .copy-field{min-height:32px;font-size:.82rem;white-space:normal}
+.text-actions{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+#share-dialog{width:min(510px,calc(100% - 26px))}
+#share-status:empty{display:none}
 .source>.card-head,.output>.card-head{flex-wrap:wrap}
 .dictionary-card{max-width:1050px;margin:auto}
 .dictionary-filters,.dictionary-form{display:flex;align-items:end;gap:12px;flex-wrap:wrap}
