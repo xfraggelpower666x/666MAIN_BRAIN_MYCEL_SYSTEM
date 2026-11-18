@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -24,7 +25,7 @@ import (
 var program []byte
 
 const registry = `HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\666LINGUA`
-const installVersion = "1.8.0"
+const installVersion = "1.8.1"
 
 //go:embed options_windows.ps1
 var optionsScript string
@@ -137,7 +138,13 @@ func install(p locations) error {
 	if err != nil {
 		return err
 	}
-	installer, err := os.ReadFile(self)
+	file, stub, archive, err := electronruntime.OpenPayload(self)
+	if err != nil {
+		return fmt.Errorf("Setup ist unvollständig: %w", err)
+	}
+	defer file.Close()
+	// Die Deinstallation benötigt nur das Programm, nicht das eingebettete Archiv.
+	installer, err := io.ReadAll(stub)
 	if err != nil {
 		return err
 	}
@@ -152,7 +159,7 @@ func install(p locations) error {
 		}
 		original[path] = data
 	}
-	rollbackRuntime, err := installRuntime(filepath.Dir(p.app))
+	rollbackRuntime, err := installRuntime(filepath.Dir(p.app), archive)
 	if err != nil {
 		return err
 	}
@@ -184,28 +191,20 @@ func install(p locations) error {
 	return errors.Join(append([]error{err}, rollback...)...)
 }
 
-func installRuntime(root string) (func(), error) {
-	d, err := electronruntime.For(runtime.GOARCH)
-	if err != nil {
-		return nil, err
-	}
-	self, err := os.Executable()
-	if err != nil {
-		return nil, err
-	}
+func installRuntime(root string, archive io.Reader) (func(), error) {
+	d := electronruntime.WindowsX64()
 	target := filepath.Join(root, d.Name)
-	source := filepath.Join(filepath.Dir(self), d.Name)
 	removeArchive := func() {}
 	_, statErr := os.Stat(target)
 	if errors.Is(statErr, os.ErrNotExist) {
+		if err := d.Save(archive, target); err != nil {
+			return nil, err
+		}
 		removeArchive = func() { _ = os.Remove(target) }
 	} else if statErr != nil {
 		return nil, statErr
 	} else if err := d.Verify(target); err != nil {
 		return nil, fmt.Errorf("Im Zielordner liegt bereits ein abweichendes Electron-Archiv. %w", err)
-	}
-	if err := d.Copy(source, target); err != nil {
-		return nil, err
 	}
 	cache, err := electronruntime.CacheDir()
 	if err == nil {
@@ -297,10 +296,7 @@ func uninstall(p locations, registered bool) error {
 			return err
 		}
 	}
-	d, err := electronruntime.For(runtime.GOARCH)
-	if err != nil {
-		return err
-	}
+	d := electronruntime.WindowsX64()
 	archive := filepath.Join(filepath.Dir(p.app), d.Name)
 	if d.Verify(archive) == nil {
 		if err := os.Remove(archive); err != nil {

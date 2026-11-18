@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet('check', 'diagnose', 'repair', 'build', 'test', 'package', 'toolstarter', 'setup', 'all', 'dev-amd64', 'dev-arm64')]
+    [ValidateSet('check', 'diagnose', 'repair', 'build', 'test', 'package', 'toolstarter', 'setup', 'all', 'dev', 'dev-amd64')]
     [string]$Action
 )
 
@@ -18,7 +18,7 @@ function Get-GoVersion([string]$Path) {
     if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { return }
     try {
         $banner = & $Path version 2>$null
-        if ($LASTEXITCODE -ne 0 -or $banner -notmatch '^go version go([0-9]+\.[0-9]+(?:\.[0-9]+)?) windows/(amd64|arm64|386)$') { return }
+        if ($LASTEXITCODE -ne 0 -or $banner -notmatch '^go version go([0-9]+\.[0-9]+(?:\.[0-9]+)?) windows/amd64$') { return }
         $version = [version]$Matches[1]
         if ($version -lt $minimum) { return }
         $null = & $Path tool compile -V 2>$null
@@ -46,13 +46,7 @@ function Find-Go {
 }
 
 function Install-Go {
-    $processor = $env:PROCESSOR_ARCHITECTURE
-    if ($env:PROCESSOR_ARCHITEW6432) { $processor = $env:PROCESSOR_ARCHITEW6432 }
-    $arch = switch ($processor) {
-        'AMD64' { 'amd64' }
-        'ARM64' { 'arm64' }
-        default { throw "Unsupported Windows architecture for automatic Go installation: $processor" }
-    }
+    $arch = 'amd64'
 
     [void][IO.Directory]::CreateDirectory($cache)
     $lockPath = Join-Path $cache 'install.lock'
@@ -116,7 +110,7 @@ try {
     $minimum = [version]$directive.Matches[0].Groups[1].Value
     $go = Find-Go
     if (-not $go) {
-        if ($Action -in @('check', 'diagnose', 'toolstarter')) {
+        if ($Action -in @('diagnose', 'toolstarter')) {
             throw "No working Go $minimum or newer found. Run STARTEN.bat --setup or --repair for automatic installation."
         }
         Write-Host "No working Go $minimum or newer found. Installing it locally ..."

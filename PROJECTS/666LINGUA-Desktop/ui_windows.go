@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"lingua666/internal/electronruntime"
@@ -31,10 +30,7 @@ func openDesktopShare(address string) error {
 }
 
 func runDesktop(a *app, windowed bool) error {
-	distribution, err := electronruntime.For(runtime.GOARCH)
-	if err != nil {
-		return err
-	}
+	distribution := electronruntime.WindowsX64()
 	self, err := os.Executable()
 	if err != nil {
 		return err
@@ -43,7 +39,10 @@ func runDesktop(a *app, windowed bool) error {
 	if err != nil {
 		return err
 	}
-	executable, err := distribution.Prepare(filepath.Join(filepath.Dir(self), distribution.Name), cache)
+	executable, err := distribution.PrepareExecutable(self, cache)
+	if errors.Is(err, electronruntime.ErrNoPayload) {
+		executable, err = distribution.Prepare(filepath.Join(filepath.Dir(self), distribution.Name), cache)
+	}
 	if err != nil {
 		return err
 	}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"archive/zip"
+	"bytes"
 	"crypto/sha256"
 	"debug/pe"
 	"encoding/hex"
@@ -20,26 +21,18 @@ import (
 )
 
 const (
-	release = "release"
-	payload = "cmd/setup/payload/666LINGUA.exe"
+	release      = "release"
+	payload      = "cmd/setup/payload/666LINGUA.exe"
+	appName      = "666LINGUA-x64.exe"
+	setupName    = "666LINGUA-Setup.exe"
+	portableName = "666LINGUA-Portable.exe"
+	packageName  = "666LINGUA-Portable-win-x64.zip"
 )
 
-var architectures = []string{"amd64", "arm64"}
 var carrierHashes = map[string]string{
 	"666LINGUA_MAIN_v3.4.7_R19_REPAIR_CARRIER_FINAL2_NOT_PUBLISHED.zip":            "5cfe14e8c6df624873806002999d855d42740e0642d667b435fb27c7a01f052d",
 	"666LINGUA_PORTABLE_FULL_v3.4.7_R19_REPAIR_CARRIER_FINAL_NOT_PUBLISHED(1).zip": "54f61dd8641ffb151233c49ed260234110d109a9fd12bee4ecd7d0c557efc81e",
 }
-
-func architectureName(arch string) string {
-	if arch == "arm64" {
-		return "ARM64"
-	}
-	return "x64"
-}
-func appName(arch string) string   { return "666LINGUA-" + architectureName(arch) + ".exe" }
-func setupName(arch string) string { return "666LINGUA-Setup-" + architectureName(arch) + ".exe" }
-
-func packageName(arch string) string { return "666LINGUA-Windows-" + architectureName(arch) + ".zip" }
 
 func goTool(args []string, env ...string) error {
 	name := "go"
@@ -51,11 +44,11 @@ func goTool(args []string, env ...string) error {
 	command.Stdout, command.Stderr, command.Stdin = os.Stdout, os.Stderr, os.Stdin
 	return command.Run()
 }
-func build(arch, out, pkg string, tags ...string) error {
+func build(out, pkg string, tags ...string) error {
 	args := []string{"build", "-buildvcs=false", "-trimpath", "-ldflags=-H windowsgui -s -w", "-o", out}
 	args = append(args, tags...)
-	fmt.Printf("Build %s / %s\n", pkg, architectureName(arch))
-	return goTool(append(args, pkg), "GOOS=windows", "GOARCH="+arch, "CGO_ENABLED=0")
+	fmt.Printf("Build %s / Windows x64\n", pkg)
+	return goTool(append(args, pkg), "GOOS=windows", "GOARCH=amd64", "CGO_ENABLED=0")
 }
 func hash(path string) (string, error) {
 	f, err := os.Open(path)
@@ -95,43 +88,36 @@ func preflight() error {
 	}
 	return nil
 }
-func verifyPE(path, arch string) error {
-	f, err := pe.Open(path)
+func verifyPE(r io.ReaderAt, name string) error {
+	f, err := pe.NewFile(r)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s: %w", name, err)
 	}
 	defer f.Close()
-	machine := uint16(pe.IMAGE_FILE_MACHINE_AMD64)
-	if arch == "arm64" {
-		machine = pe.IMAGE_FILE_MACHINE_ARM64
-	}
 	header, is64 := f.OptionalHeader.(*pe.OptionalHeader64)
-	if !is64 || f.Machine != machine || header.Subsystem != 2 {
-		return fmt.Errorf("Falsches PE-Ziel oder fehlendes GUI-Subsystem: %s", path)
+	if !is64 || f.Machine != pe.IMAGE_FILE_MACHINE_AMD64 || header.Subsystem != 2 {
+		return fmt.Errorf("Erwartet wurde ein Windows-x64-GUI-Programm: %s", name)
 	}
 	return nil
 }
-func ensureElectron(stage, arch string) (electronruntime.Distribution, error) {
-	d, err := electronruntime.For(arch)
-	if err != nil {
-		return d, err
-	}
+
+func ensureElectron(d electronruntime.Distribution) (string, error) {
 	cache := os.Getenv("LINGUA_ELECTRON_ARCHIVES")
 	if cache == "" {
 		cache = filepath.Join("build-output", "electron-downloads")
 	}
 	if err := os.MkdirAll(cache, 0700); err != nil {
-		return d, err
+		return "", err
 	}
 	local := filepath.Join(cache, d.Name)
 	if err := d.Verify(local); err != nil {
-		fmt.Printf("[DOWNLOAD] Electron %s / %s\n", electronruntime.Version, architectureName(arch))
+		fmt.Printf("[DOWNLOAD] Electron %s / Windows x64\n", electronruntime.Version)
 		if err := downloadElectron(d, local); err != nil {
-			return d, err
+			return "", err
 		}
 	}
-	fmt.Printf("[OK] Electron %s / %s (SHA-256)\n", electronruntime.Version, architectureName(arch))
-	return d, d.Copy(local, filepath.Join(stage, d.Name))
+	fmt.Printf("[OK] Electron %s / Windows x64 (SHA-256)\n", electronruntime.Version)
+	return local, nil
 }
 
 func downloadElectron(d electronruntime.Distribution, destination string) error {
@@ -159,38 +145,34 @@ func downloadElectron(d electronruntime.Distribution, destination string) error 
 	return os.Rename(file.Name(), destination)
 }
 
-func writePackage(stage, arch, runtimeArchive string, withSetup bool) error {
-	f, err := os.Create(filepath.Join(stage, packageName(arch)))
+func writePackage(stage, app, archive, archiveName string) error {
+	file, err := os.Create(filepath.Join(stage, packageName))
 	if err != nil {
 		return err
 	}
-	w := zip.NewWriter(f)
-	names := []string{appName(arch), runtimeArchive, "PORTABLE.txt"}
-	if withSetup {
-		names = append(names, setupName(arch))
+	w := zip.NewWriter(file)
+	entries := []struct {
+		path, name string
+		method     uint16
+	}{
+		{app, appName, zip.Deflate},
+		{archive, archiveName, zip.Store},
+		{"PORTABLE.txt", "PORTABLE.txt", zip.Deflate},
 	}
-	for _, name := range names {
-		path := filepath.Join(stage, name)
-		if name == "PORTABLE.txt" {
-			path = name
-		}
-		if err = writePackageEntry(w, path, name, runtimeArchive); err != nil {
+	for _, item := range entries {
+		if err = writePackageEntry(w, item.path, item.name, item.method); err != nil {
 			break
 		}
 	}
-	return errors.Join(err, w.Close(), f.Close())
+	return errors.Join(err, w.Close(), file.Close())
 }
 
-func writePackageEntry(w *zip.Writer, path, name, runtimeArchive string) error {
+func writePackageEntry(w *zip.Writer, path, name string, method uint16) error {
 	file, err := os.Open(path)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
-	method := uint16(zip.Deflate)
-	if name == runtimeArchive {
-		method = zip.Store
-	}
 	item, err := w.CreateHeader(&zip.FileHeader{Name: name, Method: method})
 	if err != nil {
 		return err
@@ -199,23 +181,35 @@ func writePackageEntry(w *zip.Writer, path, name, runtimeArchive string) error {
 	return err
 }
 
-func verifyPackage(dir string, manifest map[string]string, arch, runtimeArchive string) error {
-	z, err := zip.OpenReader(filepath.Join(dir, packageName(arch)))
+func verifyPackage(dir string, d electronruntime.Distribution) error {
+	z, err := zip.OpenReader(filepath.Join(dir, packageName))
 	if err != nil {
 		return err
 	}
 	defer z.Close()
-	expected := map[string]string{appName(arch): manifest[appName(arch)], runtimeArchive: manifest[runtimeArchive]}
-	notice, err := hash("PORTABLE.txt")
-	if err != nil {
-		return err
-	}
-	expected["PORTABLE.txt"] = notice
-	if checksum := manifest[setupName(arch)]; checksum != "" {
-		expected[setupName(arch)] = checksum
+	expected := map[string]func(io.Reader) error{
+		appName: func(r io.Reader) error {
+			data, err := io.ReadAll(io.LimitReader(r, 32<<20))
+			if err != nil {
+				return err
+			}
+			return verifyPE(bytes.NewReader(data), appName)
+		},
+		d.Name: d.VerifyReader,
+		"PORTABLE.txt": func(r io.Reader) error {
+			data, err := io.ReadAll(io.LimitReader(r, 32<<10))
+			if err != nil {
+				return err
+			}
+			notice, err := os.ReadFile("PORTABLE.txt")
+			if err == nil && !bytes.Equal(data, notice) {
+				return errors.New("Portable-Anleitung im ZIP weicht von der Projektdatei ab.")
+			}
+			return err
+		},
 	}
 	for _, item := range z.File {
-		expectedHash, ok := expected[item.Name]
+		validate, ok := expected[item.Name]
 		if !ok {
 			return fmt.Errorf("Unerwarteter ZIP-Eintrag: %s", item.Name)
 		}
@@ -223,18 +217,13 @@ func verifyPackage(dir string, manifest map[string]string, arch, runtimeArchive 
 		if err != nil {
 			return err
 		}
-		h := sha256.New()
-		_, err = io.Copy(h, in)
-		if err = errors.Join(err, in.Close()); err != nil {
-			return err
-		}
-		if hex.EncodeToString(h.Sum(nil)) != expectedHash {
-			return fmt.Errorf("Paketinhalt stimmt nicht mit der Ausgabedatei überein: %s", item.Name)
+		if err := errors.Join(validate(in), in.Close()); err != nil {
+			return fmt.Errorf("%s: %w", item.Name, err)
 		}
 		delete(expected, item.Name)
 	}
 	if len(expected) != 0 {
-		return fmt.Errorf("Paketdateien fehlen: %v", expected)
+		return errors.New("Das portable ZIP enthält nicht alle erforderlichen Dateien.")
 	}
 	return nil
 }
@@ -253,52 +242,77 @@ func readManifest(dir string) (map[string]string, error) {
 	}
 	return result, nil
 }
-func verify(dir string, complete bool, buildArchitectures []string) error {
+func outputNames(action, archiveName string) []string {
+	switch action {
+	case "setup":
+		return []string{setupName, portableName}
+	case "package":
+		return []string{packageName}
+	case "build", "dev":
+		return []string{appName, archiveName}
+	default:
+		return []string{setupName, portableName, packageName}
+	}
+}
+
+func verify(dir, action string) error {
 	files, err := readManifest(dir)
 	if err != nil {
 		return err
 	}
-	for _, arch := range buildArchitectures {
-		for _, file := range []string{appName(arch), setupName(arch)} {
-			if _, ok := files[file]; !ok && file == setupName(arch) && !complete {
-				continue
-			}
-			if err := verifyPE(filepath.Join(dir, file), arch); err != nil {
+	d := electronruntime.WindowsX64()
+	expected := outputNames(action, d.Name)
+	if len(files) != len(expected) {
+		return errors.New("Die Release-Prüfliste enthält eine unerwartete Zahl von Ausgaben.")
+	}
+	for _, name := range expected {
+		path := filepath.Join(dir, name)
+		got, err := hash(path)
+		if err != nil {
+			return err
+		}
+		if got != files[name] {
+			return fmt.Errorf("Datei stimmt nicht mit der Prüfliste überein: %s", name)
+		}
+		switch name {
+		case packageName:
+			if err := verifyPackage(dir, d); err != nil {
 				return err
 			}
-			if _, ok := files[file]; !ok {
-				return fmt.Errorf("Prüfsumme fehlt: %s", file)
+		case setupName, portableName:
+			if err := verifyBundledExe(path, d); err != nil {
+				return err
 			}
-		}
-	}
-	for _, arch := range buildArchitectures {
-		d, err := electronruntime.For(arch)
-		if err != nil {
-			return err
-		}
-		if files[d.Name] != d.SHA256 {
-			return fmt.Errorf("Die festgelegte Electron-Prüfsumme fehlt: %s", d.Name)
-		}
-		if files[packageName(arch)] == "" {
-			if complete {
-				return fmt.Errorf("Paket fehlt: %s", packageName(arch))
+		case appName:
+			file, err := os.Open(path)
+			if err != nil {
+				return err
 			}
-		} else if err := verifyPackage(dir, files, arch, d.Name); err != nil {
-			return err
-		}
-	}
-	for name, expected := range files {
-		got, err := hash(filepath.Join(dir, name))
-		if err != nil {
-			return err
-		}
-		if got != expected {
-			return fmt.Errorf("Datei stimmt nicht mit Prüfliste überein: %s", name)
+			if err := errors.Join(verifyPE(file, name), file.Close()); err != nil {
+				return err
+			}
+		case d.Name:
+			if got != d.SHA256 {
+				return fmt.Errorf("Die festgelegte Electron-Prüfsumme fehlt: %s", d.Name)
+			}
 		}
 	}
 	return nil
 }
-func configure(target string, buildArchitectures []string) error {
+
+func verifyBundledExe(path string, d electronruntime.Distribution) error {
+	file, stub, archive, err := electronruntime.OpenPayload(path)
+	if err != nil {
+		return fmt.Errorf("%s: %w", path, err)
+	}
+	defer file.Close()
+	if err := verifyPE(stub, filepath.Base(path)); err != nil {
+		return err
+	}
+	return d.VerifyReader(archive)
+}
+
+func configure(target string) error {
 	if err := preflight(); err != nil {
 		return err
 	}
@@ -312,38 +326,14 @@ func configure(target string, buildArchitectures []string) error {
 		return err
 	}
 	defer os.RemoveAll(stage)
-	names := []string{}
-	withSetup := target == "setup" || target == "all" || target == "repair"
-	for _, arch := range buildArchitectures {
-		out := filepath.Join(stage, appName(arch))
-		if err := build(arch, out, "."); err != nil {
-			return err
-		}
-		d, err := ensureElectron(stage, arch)
-		if err != nil {
-			return err
-		}
-		names = append(names, appName(arch), d.Name)
-		if withSetup {
-			raw, err := os.ReadFile(out)
-			if err != nil {
-				return err
-			}
-			if err := os.WriteFile(payload, raw, 0600); err != nil {
-				return err
-			}
-			defer os.Remove(payload)
-			if err := build(arch, filepath.Join(stage, setupName(arch)), "./cmd/setup", "-tags=installer"); err != nil {
-				return err
-			}
-			names = append(names, setupName(arch))
-		}
-		if target != "build" && target != "dev" {
-			if err := writePackage(stage, arch, d.Name, withSetup); err != nil {
-				return err
-			}
-			names = append(names, packageName(arch))
-		}
+	d := electronruntime.WindowsX64()
+	archive, err := ensureElectron(d)
+	if err != nil {
+		return err
+	}
+	names := outputNames(target, d.Name)
+	if err := stageOutputs(stage, archive, d, names); err != nil {
+		return err
 	}
 	var list strings.Builder
 	for _, name := range names {
@@ -353,23 +343,75 @@ func configure(target string, buildArchitectures []string) error {
 		}
 		fmt.Fprintf(&list, "%s  %s\n", h, name)
 	}
-	if err = os.WriteFile(filepath.Join(stage, "SHA256SUMS.txt"), []byte(list.String()), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(stage, "SHA256SUMS.txt"), []byte(list.String()), 0644); err != nil {
 		return err
 	}
-	full := target == "all" || target == "repair"
-	if err = verify(stage, full, buildArchitectures); err != nil {
+	if err := verify(stage, target); err != nil {
 		return err
 	}
-	if !full {
-		// Einzelaktionen erhalten zuvor erzeugte Artefakte im vollständigen Release.
-		dest := filepath.Join("build-output", target)
-		if err := os.MkdirAll("build-output", 0755); err != nil {
-			return err
-		}
-		return commit(stage, dest)
+	if target == "all" || target == "repair" {
+		return commit(stage, release)
 	}
-	return commit(stage, release)
+	if err := os.MkdirAll("build-output", 0755); err != nil {
+		return err
+	}
+	return commit(stage, filepath.Join("build-output", target))
 }
+
+func stageOutputs(stage, archive string, d electronruntime.Distribution, names []string) error {
+	work, err := os.MkdirTemp(stage, "inputs-")
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(work)
+	app := filepath.Join(work, appName)
+	if err := build(app, "."); err != nil {
+		return err
+	}
+	for _, name := range names {
+		out := filepath.Join(stage, name)
+		switch name {
+		case appName:
+			if err := os.Rename(app, out); err != nil {
+				return err
+			}
+		case d.Name:
+			if err := d.Copy(archive, out); err != nil {
+				return err
+			}
+		case setupName:
+			if err := stageSetup(work, app, archive, out); err != nil {
+				return err
+			}
+		case portableName:
+			if err := electronruntime.AppendPayload(app, archive, out); err != nil {
+				return err
+			}
+		case packageName:
+			if err := writePackage(stage, app, archive, d.Name); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func stageSetup(work, app, archive, out string) error {
+	raw, err := os.ReadFile(app)
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(payload, raw, 0600); err != nil {
+		return err
+	}
+	defer os.Remove(payload)
+	stub := filepath.Join(work, setupName)
+	if err := build(stub, "./cmd/setup", "-tags=installer"); err != nil {
+		return err
+	}
+	return electronruntime.AppendPayload(stub, archive, out)
+}
+
 func commit(stage, dest string) error {
 	backup := dest + ".previous"
 	if _, err := os.Stat(backup); !errors.Is(err, os.ErrNotExist) {
@@ -413,15 +455,18 @@ func run(action string) error {
 		if err := preflight(); err != nil {
 			return err
 		}
+		if _, err := ensureElectron(electronruntime.WindowsX64()); err != nil {
+			return err
+		}
 		return run("test")
 	case "diagnose":
 		if err := preflight(); err != nil {
 			return err
 		}
-		if err := verify(release, true, architectures); err != nil {
+		if err := verify(release, "all"); err != nil {
 			return err
 		}
-		fmt.Println("RELEASE OK: SHA-256, Windows-PE, x64/ARM64 und Portable ZIP")
+		fmt.Println("RELEASE OK: SHA-256, Windows-PE, Windows x64, eingebettete Electron-Laufzeit und portables ZIP")
 		return nil
 	case "test":
 		return goTool([]string{"test", "-count=1", "./..."})
@@ -429,11 +474,11 @@ func run(action string) error {
 		if err := run("test"); err != nil {
 			return err
 		}
-		return configure(action, architectures)
+		return configure(action)
 	case "build":
-		return configure(action, architectures)
-	case "dev-amd64", "dev-arm64":
-		return configure("dev", []string{strings.TrimPrefix(action, "dev-")})
+		return configure(action)
+	case "dev", "dev-amd64":
+		return configure("dev")
 	}
 	return fmt.Errorf("Unbekannte Build-Aktion: %s", action)
 }

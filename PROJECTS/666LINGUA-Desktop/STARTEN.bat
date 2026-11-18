@@ -1,11 +1,7 @@
 @echo off
 setlocal EnableExtensions DisableDelayedExpansion
 pushd "%~dp0" || exit /b 1
-set "DEV_ARCH=amd64"
-if /i "%PROCESSOR_ARCHITECTURE%"=="ARM64" set "DEV_ARCH=arm64"
-if /i "%PROCESSOR_ARCHITEW6432%"=="ARM64" set "DEV_ARCH=arm64"
 set "EXE=666LINGUA-x64.exe"
-if /i "%DEV_ARCH%"=="arm64" set "EXE=666LINGUA-ARM64.exe"
 if "%~1"=="" goto menu
 if not "%~3"=="" goto invalid
 if not "%~2"=="" if /i not "%~2"=="/nopause" goto invalid
@@ -27,31 +23,32 @@ goto done
 echo.
 echo 666LINGUA Desktop - 666SOUNDsDESIGn
 echo   1  Fertige Windows-App starten
-echo   2  Im Fenstermodus starten
-echo   3  Release und Pruefsummen kontrollieren
-echo   4  Release lokal reparieren
+echo   2  Windows-Installer und portable EXE bauen
+echo   3  Portables ZIP bauen
+echo   4  Ende
 echo   5  Entwicklungsbuild erstellen und direkt starten
 echo   6  Entwicklertests ausfuehren
-echo   7  Portable ZIPs fuer x64 und ARM64 bauen
+echo   7  Im Fenstermodus starten
 echo   8  Projekt und Go pruefen
-echo   9  Windows-Pakete mit Setup und Portable-App bauen
+echo   9  Release und Pruefsummen kontrollieren
 echo   A  Vollstaendiges Release bauen
-echo   0  Ende
+echo   R  Release lokal reparieren
 echo.
-"%SystemRoot%\System32\choice.exe" /C 123456789A0 /N /M "Auswahl: "
+"%SystemRoot%\System32\choice.exe" /C 123456789AR0 /N /M "Auswahl: "
 set "SELECTION=%ERRORLEVEL%"
-if "%SELECTION%"=="11" (set "RC=0" & goto done)
+if "%SELECTION%"=="4" (set "RC=0" & goto done)
+if "%SELECTION%"=="12" (set "RC=0" & goto done)
 if "%SELECTION%"=="0" (set "RC=130" & goto done)
 set "ACTION="
 if "%SELECTION%"=="1" set "ACTION=start"
-if "%SELECTION%"=="2" set "ACTION=browser"
-if "%SELECTION%"=="3" set "ACTION=diagnose"
-if "%SELECTION%"=="4" set "ACTION=repair"
+if "%SELECTION%"=="2" set "ACTION=setup"
+if "%SELECTION%"=="3" set "ACTION=package"
+if "%SELECTION%"=="11" set "ACTION=repair"
 if "%SELECTION%"=="5" set "ACTION=dev"
 if "%SELECTION%"=="6" set "ACTION=test"
-if "%SELECTION%"=="7" set "ACTION=package"
+if "%SELECTION%"=="7" set "ACTION=browser"
 if "%SELECTION%"=="8" set "ACTION=check"
-if "%SELECTION%"=="9" set "ACTION=setup"
+if "%SELECTION%"=="9" set "ACTION=diagnose"
 if "%SELECTION%"=="10" set "ACTION=all"
 if not defined ACTION (
   >&2 echo FEHLER: Die Menueauswahl ist fehlgeschlagen.
@@ -73,26 +70,31 @@ exit /b %ACTION_RC%
 
 :action_start
 call :choose_exe
-if errorlevel 1 exit /b 1
+if errorlevel 1 goto action_dev
 echo [START] "%APP_PATH%"
 start /wait "" "%CD%\%APP_PATH%"
 exit /b %ERRORLEVEL%
 
 :action_browser
 call :choose_exe
-if errorlevel 1 exit /b 1
+if errorlevel 1 (
+  call :developer dev || exit /b
+  set "APP_PATH=build-output\dev\%EXE%"
+)
 echo [START] "%APP_PATH%" im Fenstermodus
 start /wait "" "%CD%\%APP_PATH%" --windowed
 exit /b %ERRORLEVEL%
 
 :choose_exe
-set "APP_PATH=release\%EXE%"
+set "APP_PATH=release\666LINGUA-Portable.exe"
+if exist "%APP_PATH%" exit /b 0
+set "APP_PATH=build-output\setup\666LINGUA-Portable.exe"
 if exist "%APP_PATH%" exit /b 0
 set "APP_PATH=build-output\build\%EXE%"
 if exist "%APP_PATH%" exit /b 0
 set "APP_PATH=build-output\dev\%EXE%"
 if exist "%APP_PATH%" exit /b 0
-echo %EXE% fehlt. Waehle Build oder Komplettlauf.
+echo [BUILD] Kein fertiger x64-Build gefunden. Erstelle Entwicklungsbuild.
 exit /b 1
 
 :action_diagnose
@@ -102,7 +104,7 @@ exit /b %ERRORLEVEL%
 call :developer repair
 exit /b %ERRORLEVEL%
 :action_dev
-call :developer dev-%DEV_ARCH%
+call :developer dev
 if not "%ERRORLEVEL%"=="0" exit /b %ERRORLEVEL%
 echo [START] "build-output\dev\%EXE%"
 start /wait "" "%CD%\build-output\dev\%EXE%"
@@ -115,10 +117,8 @@ call :developer test
 exit /b %ERRORLEVEL%
 :action_package
 call :developer package || exit /b
-for %%F in (666LINGUA-Windows-x64.zip 666LINGUA-Windows-ARM64.zip) do (
-  call :artifact "build-output\package\%%F" || exit /b
-)
-exit /b 0
+call :artifact "build-output\package\666LINGUA-Portable-win-x64.zip"
+exit /b %ERRORLEVEL%
 :action_check
 call :developer check
 exit /b %ERRORLEVEL%
@@ -127,7 +127,7 @@ call :developer toolstarter
 exit /b %ERRORLEVEL%
 :action_setup
 call :developer setup || exit /b
-for %%F in (666LINGUA-Setup-x64.exe 666LINGUA-Setup-ARM64.exe 666LINGUA-Windows-x64.zip 666LINGUA-Windows-ARM64.zip) do (
+for %%F in (666LINGUA-Setup.exe 666LINGUA-Portable.exe) do (
   call :artifact "build-output\setup\%%F" || exit /b
 )
 exit /b 0

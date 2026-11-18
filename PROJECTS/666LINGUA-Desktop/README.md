@@ -1,13 +1,14 @@
-# 666LINGUA Desktop 1.8.0
+# 666LINGUA Desktop 1.8.1
 
-## Windows starten
+## Windows x64 starten
 
-Wähle das ZIP für deinen PC: `666LINGUA-Windows-x64.zip` für Intel/AMD oder `666LINGUA-Windows-ARM64.zip` für Windows auf ARM. Entpacke das ganze ZIP, damit die Electron-Laufzeitdatei beim Start neben der EXE liegt.
+| Ausgabe | Start |
+| --- | --- |
+| `666LINGUA-Setup.exe` | Installiert die App offline. Der Standardordner ist `%LOCALAPPDATA%\Programs\666LINGUA`. Zielordner, Startmenü, Desktop-Verknüpfung und anschließender Start sind wählbar. |
+| `666LINGUA-Portable.exe` | Direkt öffnen. Die EXE enthält Electron und benötigt keine weiteren Dateien im Ordner. |
+| `666LINGUA-Portable-win-x64.zip` | Vollständig entpacken und `666LINGUA-x64.exe` öffnen. Das Electron-Archiv liegt daneben. |
 
-- **Installieren:** Starte `666LINGUA-Setup-x64.exe` bzw. `666LINGUA-Setup-ARM64.exe`. Du kannst das Ziel eingeben oder im Ordnerdialog auswählen. Der Standard ist `%LOCALAPPDATA%\Programs\666LINGUA`. Startmenü, Desktop-Verknüpfung und anschließender Start sind einzeln wählbar. Windows bietet die Deinstallation in den Einstellungen an.
-- **Direkt starten:** Öffne `666LINGUA-x64.exe` bzw. `666LINGUA-ARM64.exe`. Beim ersten Start entpackt die App die mitgelieferte Electron-Laufzeit in den lokalen Benutzer-Cache. Weitere Starts verwenden die bereits entpackte Version.
-
-Das App-Fenster läuft mit der mitgelieferten **Electron-Version 45.3.2**. Die normale App-Nutzung und das Setup funktionieren offline. Der Go-Übersetzungskern tauscht Daten per Prozesspipe mit Electron aus. Go wird nur zum Entwickeln und Bauen benötigt. Die 666LINGUA-EXEs sind nicht signiert.
+Alle Ausgaben sind für Windows x64 auf Intel/AMD. Die App verwendet **Electron 45.3.2**. Beim ersten portablen Start entpackt sie die Laufzeit in den Benutzer-Cache. Folgestarts nutzen den Cache. Die Windows-Anwendung benötigt weder Node.js noch Go. Der Go-Übersetzungskern kommuniziert mit Electron über Prozesspipes. Die 666LINGUA-EXEs sind nicht signiert.
 
 ## Startintro
 
@@ -58,32 +59,32 @@ Die Kontextregeln decken die dokumentierten Lesarten ab. Unbekannte Kontexte und
 - **Insert emoji / Emoji einfügen** öffnet das Offline-Verzeichnis mit 3.998 Sequenzen, Suchfunktion und Kategorien. Die Auswahl setzt das Emoji an der Cursorposition ein oder ersetzt die markierte Stelle. Semantische Emoji-Verstärkung lässt sich separat schalten.
 - Name, Geburtsdatum, Sternzeichen, Wohnort, Zeitzone, optionaler Partner und Einstellungen liegen in `%APPDATA%\666SOUNDsDESIGn\666LINGUA\desktop-settings.json`. Das Profil kann in der App gelöscht werden. Die Oberfläche benötigt dafür kein Online-Konto.
 
-Die Windows-App startet im Vollbild. **Full screen / Vollbild** wechselt zwischen Vollbild und Fenstermodus. Menüpunkt **2** startet direkt im Fenstermodus. Details zum Vergleich mit dem direkt gelesenen Live-Stand stehen in [LIVE-ABGLEICH.md](LIVE-ABGLEICH.md).
+Die Windows-App startet im Vollbild. **Full screen / Vollbild** wechselt zwischen Vollbild und Fenstermodus. Menüpunkt **7** startet direkt im Fenstermodus. Details zum Vergleich mit dem direkt gelesenen Live-Stand stehen in [LIVE-ABGLEICH.md](LIVE-ABGLEICH.md).
 
 ## Bauen und prüfen
 
 `STARTEN.bat` ist der einzige Batch-Einstieg. Der Starter prüft die Mindestversion aus `go.mod` (derzeit Go 1.25), die tatsächliche Version und den Compiler. Er verwendet eine funktionierende Installation aus dem Suchpfad, den üblichen Windows-Ordnern oder dem lokalen Projektcache.
 
-Fehlt eine passende Toolchain, laden Setup, Build, Paketierung, Tests, Reparatur und Komplettlauf ein passendes stabiles Go-Archiv für Windows x64 oder ARM64 von `go.dev`. Der Starter prüft SHA-256, richtet Go in `.toolchain/go` ein und setzt die gewählte Aktion nach der erneuten Compilerprüfung fort. Dafür braucht der erste Download Internet und der Projektordner Schreibrechte. Die lokale Installation benötigt keine Administratorrechte und verändert den systemweiten PATH nicht. Diagnose, Projektcheck und normaler EXE-Start laden keine Tools herunter. Windows-Builds laden bei Bedarf die festgelegten offiziellen Electron-Archive herunter und prüfen SHA-256. Die Archive bleiben in `build-output/electron-downloads`. Über `LINGUA_ELECTRON_ARCHIVES` kann ein vorhandener Archivordner verwendet werden. Ohne Argumente zeigt die Batch das Menü und kehrt nach einer Aktion dorthin zurück. Für Skripte akzeptiert sie Langoptionen und Kurzformen, z. B. `STARTEN.bat installer /nopause`. `/nopause` verhindert die Fehlerpause und lässt den Exitcode erhalten.
+Fehlt eine passende Toolchain, laden Setup, Build, Paketierung, Tests, Reparatur und Komplettlauf ein passendes stabiles Go-Archiv für Windows x64 von `go.dev`. Der Starter prüft SHA-256, richtet Go in `.toolchain/go` ein und setzt die gewählte Aktion nach der erneuten Compilerprüfung fort. Dafür braucht der erste Download Internet und der Projektordner Schreibrechte. Die lokale Installation benötigt keine Administratorrechte und verändert den systemweiten PATH nicht. Diagnose und der Start einer fertigen EXE laden keine Tools herunter. Windows-Builds laden bei Bedarf die festgelegten offiziellen Electron-Archive herunter und prüfen SHA-256. Die Archive bleiben in `build-output/electron-downloads`. Über `LINGUA_ELECTRON_ARCHIVES` kann ein vorhandener Archivordner verwendet werden. Ohne Argumente zeigt die Batch das Menü und kehrt nach einer Aktion dorthin zurück. Für Skripte akzeptiert sie Langoptionen und Kurzformen, z. B. `STARTEN.bat installer /nopause`. `/nopause` verhindert die Fehlerpause und lässt den Exitcode erhalten.
 
 | Aktion | Ergebnis |
 | --- | --- |
-| `--start` | App-Fenster. Nutzt `release`, oder einen Einzelbuild, wenn keine Release-EXE vorhanden ist. |
+| `--start` / Menü **1** | Startet einen vorhandenen x64-Build oder baut die App direkt aus den Quellen. |
 | `--windowed` | Öffnet das eigene App-Fenster im Fenstermodus. `--browser` ist als alter Befehlsalias verfügbar. |
 | `--diagnose` | Vergleicht Quellarchiv-Hashes, Release-Hashes, PE-Architektur und Portable-Inhalt. |
 | `--repair` | Prüft die Quellen, führt Tests aus, erzeugt ein vollständiges Release und sichert die alte Ausgabe separat. |
 | `--dev` / Menüpunkt **5** | Baut die EXE für diesen PC in `build-output/dev`, stellt die zugehörige Electron-Laufzeit bereit und startet den Entwicklungsbuild direkt. |
-| `--build` | Kompiliert beide Programm-EXEs und legt die Electron-Archive in `build-output/build` daneben. |
+| `--build` | Kompiliert die x64-Programm-EXE und legt das Electron-Archiv in `build-output/build` daneben. |
 | `--test` | Startet Entwickler- und Regressionstests. |
-| `--check` / `check` | Prüft vorhandenes Go, die Projektdateien und führt die Tests aus. |
-| `--package` / `portable` | Testet und baut ein portables ZIP pro Architektur in `build-output/package`. |
+| `--check` / `check` | Prüft Go, die Projektdateien und SHA-256 der Electron-Laufzeit. Richtet fehlende Werkzeuge bei Bedarf ein und führt die Tests aus. |
+| `--package` / `portable` / Menü **3** | Testet und baut das portable x64-ZIP in `build-output/package`. |
 | `--toolstarter` | Prüft die Projektstruktur sowie die beiden R19-Quellarchive bei vorhandenem Quellenordner. |
-| `--setup` / `installer` | Testet und baut beide Windows-ZIPs mit Setup und direkt startbarer App in `build-output/setup`. |
-| `--all` | Testet und erzeugt die vollständigen Windows-Pakete für x64 und ARM64 samt Prüfliste in `release`. |
+| `--setup` / `installer` / Menü **2** | Baut die eigenständige Setup-EXE und Portable-EXE in `build-output/setup`. |
+| `--all` | Testet und erzeugt Setup, Portable-EXE und portables x64-ZIP samt Prüfliste in `release`. |
 
-Das Toolstarter-ZIP lag den 666LINGUA-Anhängen nicht bei. Das Batch-Muster aus dem Auftrag dient als Vorlage für Projektcheck, Menü und CLI. Der Projektcheck läuft im Build-Werkzeug und ist kein Bestandteil der Anwendung.
+Die Menüpunkte 1 bis 4 folgen RADIO WAVE v6.66. Weitere Menüpunkte stehen für Entwicklung und Diagnose bereit. Das 666LINGUA-Setup nutzt seine vorhandene Installationsoberfläche mit individuellen Verknüpfungsoptionen.
 
-Auf Linux können die beiden Windows-Architekturen mit `go run -buildvcs=false ./cmd/build all` gebaut werden. Quellarchive und nachvollziehbare Übernahmen stehen in [QUELLEN.md](QUELLEN.md).
+Auf Linux kann das Windows-x64-Release mit `go run -buildvcs=false ./cmd/build all` gebaut werden. Quellarchive und nachvollziehbare Übernahmen stehen in [QUELLEN.md](QUELLEN.md).
 
 ## Öffentlicher Projekt-Checkout
 
