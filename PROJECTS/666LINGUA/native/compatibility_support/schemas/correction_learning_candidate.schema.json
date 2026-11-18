@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:lyvra:dolmetscher:correction-learning-candidate:1.5.0",
+  "title": "Correction Learning Candidate",
+  "type": "object",
+  "required": [
+    "candidate_id",
+    "source_profile",
+    "target_profile",
+    "original_source_hash",
+    "corrected_source_hash",
+    "original_output_hash",
+    "corrected_output_hash",
+    "correction_type",
+    "semantic_delta",
+    "confidence",
+    "scope",
+    "status",
+    "provenance"
+  ],
+  "properties": {
+    "candidate_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_profile": {
+      "type": "string"
+    },
+    "target_profile": {
+      "type": "string"
+    },
+    "original_source_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "corrected_source_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "original_output_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "corrected_output_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "correction_type": {
+      "enum": [
+        "MEANING",
+        "TONE",
+        "RELATIONSHIP",
+        "REGISTER",
+        "CULTURAL",
+        "GRAMMAR",
+        "NATURALNESS",
+        "FORMAT",
+        "EMOJI",
+        "TYPOGRAPHY",
+        "DICTATION"
+      ]
+    },
+    "semantic_delta": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "relationship_delta": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "register_delta": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "scope": {
+      "enum": [
+        "SESSION_ONLY",
+        "PROJECT_CANDIDATE",
+        "HUMAN_CONFIRMED",
+        "CANONICAL_PENDING"
+      ]
+    },
+    "status": {
+      "enum": [
+        "PROPOSED",
+        "VALIDATED_LOCAL",
+        "CONFLICT_QUARANTINE",
+        "REJECTED",
+        "READY_FOR_NEXT_CYCLE_ANALYSIS"
+      ]
+    },
+    "provenance": {
+      "type": "object"
+    },
+    "raw_text_included": {
+      "type": "boolean"
+    },
+    "created_at_utc": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

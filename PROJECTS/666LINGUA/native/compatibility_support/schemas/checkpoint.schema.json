@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:lyvra:dolmetscher:checkpoint:1.5.0",
+  "title": "LYVRA DOLMETSCHER Checkpoint",
+  "type": "object",
+  "required": [
+    "system_id",
+    "version",
+    "checkpoint_id",
+    "created_at",
+    "last_verified_checkpoint",
+    "task_stack"
+  ],
+  "properties": {
+    "system_id": {
+      "const": "LYVRA-DOLMETSCHER-001"
+    },
+    "version": {
+      "type": "string"
+    },
+    "checkpoint_id": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "system_language": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "active_mode": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "target_profile": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "interpreter_pair": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "registry_hashes": {
+      "type": "object"
+    },
+    "hold_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "queue_pointers": {
+      "type": "object"
+    },
+    "task_stack": {
+      "type": "array"
+    },
+    "last_verified_checkpoint": {
+      "type": "string"
+    },
+    "message_relation": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "correction_target_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "dictation_state": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "intent_role": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "processing_holds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "confidence_evidence": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "companion_mode": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "learning_candidate_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "context_ledger_message_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "human_review_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evolution_proposal_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "next_cycle_stage": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

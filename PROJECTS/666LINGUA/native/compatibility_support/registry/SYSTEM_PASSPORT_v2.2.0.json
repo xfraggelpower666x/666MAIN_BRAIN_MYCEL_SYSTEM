@@ -1,0 +1,38 @@
+{
+  "schema": "lyvra-dolmetscher-system-passport-v2",
+  "Identity": {
+    "system_id": "LYVRA-DOLMETSCHER-001",
+    "entry_id": "LYVRA-DOLMETSCHER-13001",
+    "name": "LYVRA DOLMETSCHER"
+  },
+  "System": {
+    "type": "STANDALONE_TRANSLATION_AND_INTERPRETER_FRAMEWORK"
+  },
+  "Version": "2.2.0",
+  "Registry": "EXTERNAL_666PFS_NOT_WRITTEN_IN_THIS_CHAT",
+  "Pointer": "NOT_WRITTEN",
+  "Backup Pointer": "NOT_WRITTEN",
+  "Lifecycle": "CYCLE03_STAGE02_LOCAL_FROZEN",
+  "Current Stage": "CYCLE03_STAGE02_CAUSAL_ORCHESTRATION_CONSOLIDATION",
+  "Current Status": "LOCAL_FROZEN_STRUCTURAL_PASS",
+  "Last Audit": "STAGE02_LOCAL_STRUCTURAL_AUDIT",
+  "Last Freeze": "v2.2.0_LOCAL_FREEZE",
+  "Last Package": "LYVRA_DOLMETSCHER_v2.2.0_CYCLE03_STAGE02_FULL_SYSTEM_FROZEN.zip",
+  "Next Stage": "CYCLE03_STAGE03_RUNTIME_AND_EXTERNAL_SHARE_VALIDATION",
+  "Dependencies": [
+    "HOST_LLM_TRANSLATION_RUNTIME",
+    "OPTIONAL_HOST_WRITING_BLOCK_OR_SHARE_SURFACE"
+  ],
+  "Compatibility": {
+    "language_profiles": [
+      "GERMAN_STANDARD",
+      "INTERNATIONAL_ENGLISH",
+      "AMERICAN_ENGLISH",
+      "BRITISH_ENGLISH",
+      "SPANISH_NEUTRAL",
+      "BRAZILIAN_PORTUGUESE"
+    ],
+    "portable_derivative": true,
+    "legacy_2_1_x_preserved_inert": true
+  }
+}

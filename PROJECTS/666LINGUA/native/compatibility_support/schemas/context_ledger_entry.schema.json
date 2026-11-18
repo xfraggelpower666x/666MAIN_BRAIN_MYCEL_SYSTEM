@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:lyvra:dolmetscher:context-ledger-entry:1.5.0",
+  "title": "Context Continuity Ledger Entry",
+  "type": "object",
+  "required": [
+    "message_id",
+    "thread_id",
+    "source_profile",
+    "target_profile",
+    "message_relation",
+    "topic_fingerprint",
+    "semantic_anchor_hashes",
+    "emotion_labels",
+    "relationship_labels",
+    "correction_lineage",
+    "created_at_utc",
+    "retention_scope",
+    "raw_text_stored"
+  ],
+  "properties": {
+    "message_id": {
+      "type": "string"
+    },
+    "parent_message_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "thread_id": {
+      "type": "string"
+    },
+    "source_profile": {
+      "type": "string"
+    },
+    "target_profile": {
+      "type": "string"
+    },
+    "message_relation": {
+      "type": "string"
+    },
+    "topic_fingerprint": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "semantic_anchor_hashes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    },
+    "emotion_labels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "relationship_labels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "correction_lineage": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "created_at_utc": {
+      "type": "string"
+    },
+    "retention_scope": {
+      "enum": [
+        "SESSION_ONLY",
+        "EXPLICIT_EXPORT"
+      ]
+    },
+    "raw_text_stored": {
+      "const": false
+    }
+  },
+  "additionalProperties": false
+}

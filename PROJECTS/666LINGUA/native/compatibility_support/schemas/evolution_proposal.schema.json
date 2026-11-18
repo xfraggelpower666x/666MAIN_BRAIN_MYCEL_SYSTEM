@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:lyvra:dolmetscher:evolution-proposal:1.5.0",
+  "title": "Evolution Proposal",
+  "type": "object",
+  "required": [
+    "proposal_id",
+    "title",
+    "benefit",
+    "risks",
+    "affected_components",
+    "migration_required",
+    "test_strategy",
+    "status",
+    "automatic_activation"
+  ],
+  "properties": {
+    "proposal_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "benefit": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "affected_components": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "migration_required": {
+      "type": "boolean"
+    },
+    "test_strategy": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "enum": [
+        "PROPOSED",
+        "ANALYSIS_PENDING",
+        "ACCEPTED_FOR_NEXT_CYCLE",
+        "REJECTED",
+        "CONFLICT_QUARANTINE"
+      ]
+    },
+    "automatic_activation": {
+      "const": false
+    }
+  },
+  "additionalProperties": false
+}

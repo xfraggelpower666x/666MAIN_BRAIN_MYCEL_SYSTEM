@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "release": "v3.4.6",
+  "portable_revision": "R17",
+  "integrator": "WHOLE_666LINGUA",
+  "voting": false,
+  "facets": [
+    "SOURCE_PERCEPTION",
+    "MEANING_INTENT",
+    "RELATIONSHIP",
+    "CULTURE_LOCALIZATION",
+    "TEMPORAL_CONTEXT",
+    "TARGET_NATIVE_EXPRESSION",
+    "VARIANT_EXPRESSION",
+    "SEMANTIC_EMOJI",
+    "FIDELITY_REVERSE_SEMANTIC",
+    "LEARNING_CONTINUITY",
+    "PORTABLE_CONTINUITY"
+  ],
+  "live_circle_nodes": [
+    "UNDERSTAND",
+    "EXPRESS",
+    "VERIFY",
+    "EXPERIENCE",
+    "LEARN",
+    "REUNDERSTAND"
+  ],
+  "routing": "MYCEL_NONLINEAR_RECURSIVE",
+  "foreign_authority": "NONE"
+}

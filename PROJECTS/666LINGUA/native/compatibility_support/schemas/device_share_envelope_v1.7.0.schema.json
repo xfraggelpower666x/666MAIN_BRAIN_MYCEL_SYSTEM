@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Device Share Envelope",
+  "type": "object",
+  "required": [
+    "output_id",
+    "output_hash",
+    "language_profile",
+    "format_profile",
+    "share_target_class",
+    "copy_mode",
+    "created_at"
+  ],
+  "properties": {
+    "output_id": {
+      "type": "string"
+    },
+    "output_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "language_profile": {
+      "type": "string"
+    },
+    "format_profile": {
+      "type": "string"
+    },
+    "share_target_class": {
+      "enum": [
+        "ios_share",
+        "android_share",
+        "whatsapp",
+        "clipboard",
+        "other"
+      ]
+    },
+    "copy_mode": {
+      "enum": [
+        "final_output_only",
+        "explicit_source_and_output"
+      ]
+    },
+    "created_at": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}
