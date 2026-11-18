@@ -1,0 +1,186 @@
+--- source.js
++++ source.js
+@@ -1,6 +1,6 @@
+ // ============================================================
+ // SOUNDCLOUD CONTROL CENTER FÜR SCRIPTABLE
+-// Version: 1.3.0
++// Version: 1.3.2
+ //
+ // EIN SCRIPT FÜR:
+ // 1) Token Manager
+@@ -19,7 +19,7 @@
+ // https://example.com/callback
+ // ============================================================
+ 
+-const VERSION = "1.3.1";
++const VERSION = "1.3.2";
+ 
+ const AUTH_URL = "https://secure.soundcloud.com/authorize";
+ const TOKEN_URL = "https://secure.soundcloud.com/oauth/token";
+@@ -6166,6 +6166,95 @@
+ 
+ 
+ // ============================================================
++// R11 DISCOVERY OWNER EVIDENCE (READ-ONLY)
++// Urheber-ID nur von offiziellen Track-Antworten übernehmen.
++// Pro Export maximal 120 zusätzliche Metadaten-GETs, damit Limits
++// respektiert werden. Cache enthält ausschließlich geprüfte API-IDs.
++// UNKNOWN ist kein eigener Track und bleibt von Publikation ausgeschlossen.
++// ============================================================
++const OWNER_DETAIL_LOOKUP_MAX = 120;
++const OWNER_CACHE_FILE = "soundcloud_track_owner_evidence_cache.json";
++
++function ownerIdentityFromApi(track, ownAccountId) {
++  const nested = track && track.user && track.user.id != null ? String(track.user.id) : null;
++  const flat = track && track.user_id != null ? String(track.user_id) : null;
++  if (nested && flat && nested !== flat) {
++    return { owner_user_id: null, ownership_status: "UNKNOWN_REVIEW_REQUIRED",
++      owner_evidence: "CONFLICTING_API_USER_IDS" };
++  }
++  const id = nested || flat;
++  if (!id) return { owner_user_id: null, ownership_status: "UNKNOWN_REVIEW_REQUIRED",
++    owner_evidence: "NO_API_TRACK_USER_ID" };
++  return { owner_user_id: id,
++    ownership_status: id === String(ownAccountId) ? "OWNED" : "EXTERNAL",
++    owner_evidence: "SOUNDCLOUD_TRACK_API_USER_ID" };
++}
++
++function ownerCacheLocation(fm) {
++  return fm.joinPath(fm.joinPath(fm.documentsDirectory(), "SoundCloud_Album_Track_Exports"), OWNER_CACHE_FILE);
++}
++
++function readOwnerCache(fm) {
++  const path = ownerCacheLocation(fm);
++  if (!fm.fileExists(path)) return {};
++  try {
++    const c = JSON.parse(fm.readString(path));
++    if (!c || typeof c !== "object" || Array.isArray(c)) return {};
++    return c;
++  } catch (e) { console.warn("R11 Owner-Cache unlesbar; UNKNOWN bleibt gesperrt: " + String(e)); return {}; }
++}
++
++async function enrichAlbumOwnership(token, accountId, albums, uniqueTracks, fm) {
++  const cache = readOwnerCache(fm);
++  let lookedUp = 0;
++  let errors = 0;
++  for (const [key, item] of uniqueTracks.entries()) {
++    const tid = item.id == null ? null : String(item.id);
++    let evidence = ownerIdentityFromApi(item, accountId);
++    if (evidence.owner_evidence === "NO_API_TRACK_USER_ID" && tid && cache[tid] &&
++        cache[tid].owner_user_id != null && cache[tid].source === "SOUNDCLOUD_TRACK_DETAIL_GET") {
++      evidence = ownerIdentityFromApi({ user_id: cache[tid].owner_user_id }, accountId);
++      evidence.owner_evidence = "SOUNDCLOUD_TRACK_DETAIL_GET_CACHED";
++    }
++    if (evidence.owner_evidence === "NO_API_TRACK_USER_ID" && tid && lookedUp < OWNER_DETAIL_LOOKUP_MAX) {
++      lookedUp++;
++      try {
++        const full = await apiRequest("GET", `${API_BASE}/tracks/${encodeURIComponent(tid)}`, token);
++        if (full && full.id != null && String(full.id) === tid) {
++          evidence = ownerIdentityFromApi(full, accountId);
++          if (evidence.owner_user_id && evidence.owner_evidence === "SOUNDCLOUD_TRACK_API_USER_ID") {
++            cache[tid] = { owner_user_id: evidence.owner_user_id, source: "SOUNDCLOUD_TRACK_DETAIL_GET" };
++          }
++        } else evidence = { owner_user_id:null, ownership_status:"UNKNOWN_REVIEW_REQUIRED",
++          owner_evidence:"API_TRACK_ID_MISMATCH" };
++      } catch (e) {
++        errors++;
++        evidence = { owner_user_id:null, ownership_status:"UNKNOWN_REVIEW_REQUIRED",
++          owner_evidence:"API_LOOKUP_FAILED" };
++      }
++      await sleep(REQUEST_DELAY_SECONDS);
++    }
++    Object.assign(item, evidence);
++    uniqueTracks.set(key, item);
++  }
++  // Cache nur für valide Autor-ID-Belege; niemals Tokens speichern.
++  fm.writeString(ownerCacheLocation(fm), JSON.stringify(cache, null, 2));
++  const byId = new Map();
++  for (const item of uniqueTracks.values()) if (item.id != null) byId.set(String(item.id), item);
++  for (const album of albums) for (const track of album.tracks) {
++    const original = track.id == null ? null : byId.get(String(track.id));
++    if (original) Object.assign(track, {
++      owner_user_id: original.owner_user_id,
++      ownership_status: original.ownership_status,
++      owner_evidence: original.owner_evidence
++    });
++    else Object.assign(track, { owner_user_id:null, ownership_status:"UNKNOWN_REVIEW_REQUIRED",
++      owner_evidence:"TRACK_ID_NOT_IN_UNIQUE_INDEX" });
++  }
++  return { looked_up:lookedUp, api_errors:errors, cache_size:Object.keys(cache).length };
++}
++
++// ============================================================
+ // ALBUM + TRACK EXPORT (READ-ONLY / FREE_FIRST) · 1.3.1
+ // Nutzt den vorhandenen OAuth-Keychain-Token. Kein DELETE/PUT/POST.
+ // Pagination strikt bis next_href=null; Unvollständigkeit = kein PASS.
+@@ -6211,7 +6300,9 @@
+     duration_ms: track.duration || 0,
+     created_at: track.created_at || null,
+     sharing: track.sharing || null,
+-    state: track.state || null
++    state: track.state || null,
++    user_id: track.user_id == null ? null : track.user_id,
++    user: track.user && track.user.id != null ? { id: track.user.id } : null
+   };
+ }
+ 
+@@ -6274,11 +6365,19 @@
+     console.log(`Album ${albums.length}/${uniqueAlbums.size}: ${album.title}, ${album.tracks.length} Tracks, ${album.status}`);
+     await sleep(REQUEST_DELAY_SECONDS);
+   }
++  const fm = FileManager.iCloud();
++  const root = fm.documentsDirectory();
++  const folder = fm.joinPath(root, "SoundCloud_Album_Track_Exports");
++  if (!fm.fileExists(folder)) fm.createDirectory(folder, true);
++  const ownerLookup = await enrichAlbumOwnership(token, account.id, albums, uniqueTracks, fm);
++  const ownershipCounts = { OWNED:0, EXTERNAL:0, UNKNOWN_REVIEW_REQUIRED:0 };
++  for (const t of uniqueTracks.values()) ownershipCounts[t.ownership_status]++;
+   const complete = errors.length === 0 && albums.every(a => a.status === "COMPLETE");
+   const report = {
+     schema_version: "1.0", module: "soundcloud_album_track_export",
+     control_center_version: VERSION, generated_at: new Date().toISOString(),
+     started_at: startedAt, read_only: true, complete,
++    ownership_validation: { policy: "PUBLISH_ONLY_API_OWNER_ID_MATCH", counts: ownershipCounts, ...ownerLookup },
+     account: { id: account.id || null, username: account.username || null,
+       permalink_url: account.permalink_url || null },
+     statistics: { albums_and_sets: albums.length,
+@@ -6290,16 +6389,21 @@
+     albums, unique_tracks: [...uniqueTracks.values()], memberships, errors
+   };
+   // Auch bei Teilfehlern wird eine klar als unvollständig markierte Datei gesichert.
+-  const fm = FileManager.iCloud();
+-  const root = fm.documentsDirectory();
+-  const folder = fm.joinPath(root, "SoundCloud_Album_Track_Exports");
+-  if (!fm.fileExists(folder)) fm.createDirectory(folder, true);
+   const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+   const basename = `soundcloud_albums_tracks_${stamp}`;
+   const jsonPath = fm.joinPath(folder, basename + ".json");
+   const csvPath = fm.joinPath(folder, basename + "_memberships.csv");
+   const txtPath = fm.joinPath(folder, basename + "_summary.txt");
+   fm.writeString(jsonPath, JSON.stringify(report, null, 2));
++  // Nur abgeleitet: veröffentlichbare Tracks ausschließlich mit echter API-Eigentümer-ID.
++  const owned = [...uniqueTracks.values()].filter(t => t.ownership_status === "OWNED");
++  const review = [...uniqueTracks.values()].filter(t => t.ownership_status !== "OWNED");
++  const ownedPath = fm.joinPath(folder, basename + "_owned_catalog.json");
++  const reviewPath = fm.joinPath(folder, basename + "_ownership_review.json");
++  fm.writeString(ownedPath, JSON.stringify({ schema:"LYVRA_OWNED_CATALOG_R11", read_only:true,
++    source_file: basename + ".json", owner_account_id:String(account.id), tracks:owned }, null, 2));
++  fm.writeString(reviewPath, JSON.stringify({ schema:"LYVRA_OWNER_REVIEW_R11", read_only:true,
++    source_file: basename + ".json", owner_account_id:String(account.id), tracks:review }, null, 2));
+   const rows = ["Album;Album-URL;Position;Track-ID;Tracktitel;Track-URL"];
+   for (const album of albums) for (const t of album.tracks) {
+     rows.push([album.title, album.permalink_url, t.position, t.id, t.title, t.permalink_url]
+@@ -6311,7 +6415,12 @@
+     `Alben und Sets: ${albums.length}`, `Davon als Album markiert: ${report.statistics.albums_marked_as_album}`,
+     `Album-Track-Zuordnungen: ${memberships.length}`,
+     `Eindeutige Track-IDs/URLs: ${uniqueTracks.size}`,
+-    `Unvollständige Alben: ${errors.length}`, "", "Dateien:", jsonPath, csvPath].join("\n");
++    `Unvollständige Alben: ${errors.length}`,
++    `OWNED (API-ID): ${ownershipCounts.OWNED}`,
++    `EXTERNAL (API-ID): ${ownershipCounts.EXTERNAL}`,
++    `UNKNOWN (gesperrt): ${ownershipCounts.UNKNOWN_REVIEW_REQUIRED}`,
++    `Detailabfragen (max. ${OWNER_DETAIL_LOOKUP_MAX}): ${ownerLookup.looked_up}`,
++    "", "Dateien:", jsonPath, csvPath, ownedPath, reviewPath].join("\n");
+   fm.writeString(txtPath, summary);
+   await showMessage(complete ? "Albumexport abgeschlossen" : "Albumexport mit offenen Punkten",
+     summary + "\n\n" + (complete ? "Alle API-Seiten vollständig gelesen." : "Fehlerdetails stehen in der JSON-Datei."));
