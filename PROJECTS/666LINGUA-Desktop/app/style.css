@@ -140,6 +140,13 @@ footer{padding:11px clamp(12px,2.2vw,40px)}
 
 .copy-field{min-height:32px;font-size:.82rem;white-space:normal}
 .text-actions{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.copy-short-label{display:none}
+@media(max-width:1100px){
+  .workspace .text-actions{gap:4px}
+  .workspace .text-actions .copy-field{padding-inline:8px}
+  .workspace .copy-full-label{display:none}
+  .workspace .copy-short-label{display:inline}
+}
 #share-dialog{width:min(510px,calc(100% - 26px))}
 #share-status:empty{display:none}
 .source>.card-head,.output>.card-head{flex-wrap:wrap}

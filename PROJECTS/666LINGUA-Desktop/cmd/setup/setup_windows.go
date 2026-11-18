@@ -18,7 +18,7 @@ import (
 var program []byte
 
 const registry = `HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\666LINGUA`
-const installVersion = "1.5.0"
+const installVersion = "1.5.1"
 
 type locations struct{ app, setup, link string }
 

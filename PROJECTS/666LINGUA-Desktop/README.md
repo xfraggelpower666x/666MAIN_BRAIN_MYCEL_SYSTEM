@@ -1,4 +1,4 @@
-# 666LINGUA Desktop 1.5.0
+# 666LINGUA Desktop 1.5.1
 
 ## Windows starten
 
