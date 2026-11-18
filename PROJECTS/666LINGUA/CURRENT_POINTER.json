@@ -1,0 +1,29 @@
+{
+  "systemId": "LYVRA-DOLMETSCHER-001",
+  "activeName": "666LINGUA",
+  "identitySymbol": "◈🌐",
+  "revision": "3.4.6-chat.1",
+  "nativeBaseline": "3.4.6/R18",
+  "desktopParityBaseline": "1.4.0",
+  "authority": {
+    "scope": "PUBLIC_CHAT_FRAMEWORK",
+    "repository": "xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM",
+    "branch": "666MAIN_BRAIN",
+    "path": "PROJECTS/666LINGUA",
+    "privateState": "CURRENT_CHAT_OR_AUTHORIZED_USER_HANDOFF",
+    "sourceDrive": "VERIFIED_MIGRATION_PROVENANCE"
+  },
+  "required": [
+    "runtime/CHATGPT_INSTRUCTIONS.md",
+    "runtime/LIVECIRCLE.md",
+    "runtime/REHYDRATION.md",
+    "runtime/FUNCTIONS.md",
+    "config/TRIGGERS.json",
+    "state/DEFAULTS.json",
+    "state/HANDOFF.schema.json",
+    "provenance/NATIVE_INDEX.json",
+    "native/registry/LINGUA_FACET_LIVE_CIRCLE_REGISTRY_v3.4.6.json"
+  ],
+  "minimumHandoffSchema": 1,
+  "hostAcceptance": "OPEN_FRESH_CHAT"
+}
