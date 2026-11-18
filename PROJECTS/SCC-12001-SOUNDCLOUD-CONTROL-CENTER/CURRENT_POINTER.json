@@ -1,0 +1,67 @@
+{
+  "system_id": "SCC-12001",
+  "namespace": "SCC-12001",
+  "display_name": "SOUNDCLOUD CONTROL CENTER",
+  "release": "1.0.0",
+  "branch": "666MAIN_BRAIN",
+  "project_root": "PROJECTS/SCC-12001-SOUNDCLOUD-CONTROL-CENTER",
+  "state": "REPO_NATIVE_SOURCE_READY_DEVICE_ACCEPTANCE_OPEN",
+  "system_role": "INDEPENDENT_REPO_NATIVE_LIVE_SYSTEM",
+  "live_owner": "SCC-12001",
+  "pfs_runtime_dependency": false,
+  "functional_source": {
+    "surface": "SCRIPTABLE",
+    "version": "1.3.2",
+    "sha256": "06cc504566071f247c79c1d22ac2988c3620750d0b5a5f705279a1b913bc5b7c",
+    "size_bytes": 184168,
+    "materialization": "VERIFIED_BYTE_EQUAL",
+    "last_device_runtime_accepted_version": "1.3.1",
+    "current_device_runtime": "PENDING_USER_DEVICE"
+  },
+  "bootstrap_order": [
+    "runtime/IDENTITY.md",
+    "runtime/REHYDRATION.md",
+    "runtime/TRIGGERS.json",
+    "runtime/FRAMEWORK.md",
+    "runtime/LIVECIRCLE.md",
+    "state/CURRENT_STATE.json",
+    "source/CURRENT_SOURCE.json",
+    "continuity/CURRENT_HANDOFF.json"
+  ],
+  "required_git_blobs": {
+    "README.md": "13999e3b9dd4a9a0c6af828857a0baa6ee4c9c5a",
+    "runtime/IDENTITY.md": "c025461a9f67738e7ebe3d9a552ce9e3ce2023be",
+    "runtime/FRAMEWORK.md": "d2aa47be671662dafb7927857dac9b4ceb9d3d8f",
+    "runtime/LIVECIRCLE.md": "8669c5bcade9991baa5e6b5cc89cbd47dbb79ca5",
+    "runtime/REHYDRATION.md": "181d49bceb9e39ebd6592a1d414b807c43039660",
+    "runtime/TRIGGERS.json": "25096c3ac0d003bf8cbf51dc507b4518b9d11a1a",
+    "state/CURRENT_STATE.json": "211161499a5b8720ca1b6fbc0bea85a40feaabad",
+    "continuity/CURRENT_HANDOFF.json": "70f31dc981c693a257a14004f5a7e58869e45f66",
+    "source/CURRENT_SOURCE.json": "54591afbec5309a24913e196333e28510f4ddf5e",
+    "tools/materialize_source.py": "c9e185dcd6eea979b37c972d2d27dbf392df1cca",
+    "scc.py": "b9d359a618f19a43255c0aeb71e5bdaa0371fc65",
+    "tests/test_scc_runtime.py": "8c770cceff993b083a8afd87b0c0610202d76615",
+    "skills/scc-12001/SKILL.md": "2f022d7385699557f9ad63902a4cf114b5c67dcb",
+    "provenance/FREEZE.md": "ca5f7c3f14f7c6364ae825a8b29b2ccb7bb01250",
+    "provenance/PFS_CHILD_FILE_INDEX.json": "2e351f0341a629bdd09dcb7d29c9c3f72c3f1a46"
+  },
+  "provenance": {
+    "pfs_source_repository": "xfraggelpower666x/666PFS_CSM",
+    "pfs_source_commit": "c23ee20ed2028da27284c9852265e78094d6f864",
+    "pfs_child_history_files": 20,
+    "pfs_child_history_byte_identity": "20_OF_20_PASS",
+    "historical_pfs_runtime": "INERT_PROVENANCE_ONLY"
+  },
+  "detachment": {
+    "requested": true,
+    "pfs_child_mutation_performed": false,
+    "status": "PENDING_NATIVE_666PFS_UPDATE"
+  },
+  "prechange": {
+    "branch": "backup/pre-scc-live-migration-20261118",
+    "head": "8aa2c53e7169f15d6c0ac3a2e45474b6c0109db7"
+  },
+  "body_head_before_pointer": "4ad7f852bd5b28dfd32952997139da2ee15beced",
+  "pointer_publication": "LAST_SCC_MUTATION",
+  "no_mutation_after_pointer": true
+}
