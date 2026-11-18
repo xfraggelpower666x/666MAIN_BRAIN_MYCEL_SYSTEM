@@ -1,0 +1,7 @@
+666LINGUA Desktop 1.4.0 · R19
+Dateien gemeinsam oder einzeln lokal entpacken.
+Windows-PC mit Intel/AMD: 666LINGUA-x64.exe
+Windows-PC mit ARM-Prozessor: 666LINGUA-ARM64.exe
+Das Hauptfenster nutzt den App-Modus von Microsoft Edge.
+Bei fehlendem Edge kann der Standardbrowser verwendet werden.
+Bestätigte Regeln werden im Windows-Benutzerprofil gespeichert.
