@@ -1,7 +1,7 @@
-666LINGUA Desktop 1.7.0 · R19
-Dateien gemeinsam oder einzeln lokal entpacken.
+666LINGUA Desktop 1.8.0 · R19
+Das ZIP vollständig entpacken und die Electron-ZIP-Datei neben der EXE lassen.
 Windows-PC mit Intel/AMD: 666LINGUA-x64.exe
 Windows-PC mit ARM-Prozessor: 666LINGUA-ARM64.exe
-666LINGUA öffnet sein eigenes Windows-Fenster.
-Die eingebettete Anzeige nutzt Microsoft WebView2.
-Bestätigte Regeln werden im Windows-Benutzerprofil gespeichert.
+Die App startet in einem eigenen Electron-Fenster (Version 45.3.2).
+Beim ersten Start wird die beiliegende Laufzeit lokal entpackt.
+Bestätigte Regeln und Einstellungen bleiben im Windows-Benutzerprofil.

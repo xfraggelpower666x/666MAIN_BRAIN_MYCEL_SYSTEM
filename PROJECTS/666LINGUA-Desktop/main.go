@@ -21,7 +21,7 @@ import (
 //go:embed app/*
 var web embed.FS
 
-const version = "1.7.0"
+const version = "1.8.0"
 
 type app struct {
 	lex     Lexicon
@@ -77,7 +77,7 @@ func (a *app) desktopMiddleware(external func(string) error) func(http.Handler) 
 				return
 			}
 			if origin := r.Header.Get("Origin"); r.Header.Get("X-Lingua-Session") != "desktop" ||
-				(origin != "" && origin != "http://wails.localhost") {
+				(origin != "" && origin != desktopOrigin) {
 				fail(w, http.StatusForbidden, errors.New("Ungültiger lokaler Sitzungskontext."))
 				return
 			}

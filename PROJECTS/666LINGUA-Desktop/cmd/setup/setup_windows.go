@@ -16,6 +16,7 @@ import (
 	"strings"
 	"unicode/utf16"
 
+	"lingua666/internal/electronruntime"
 	"lingua666/internal/win"
 )
 
@@ -23,7 +24,7 @@ import (
 var program []byte
 
 const registry = `HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\666LINGUA`
-const installVersion = "1.7.0"
+const installVersion = "1.8.0"
 
 //go:embed options_windows.ps1
 var optionsScript string
@@ -151,10 +152,15 @@ func install(p locations) error {
 		}
 		original[path] = data
 	}
+	rollbackRuntime, err := installRuntime(filepath.Dir(p.app))
+	if err != nil {
+		return err
+	}
 	err = writeInstall(p, installer)
 	if err == nil {
 		return nil
 	}
+	rollbackRuntime()
 	// Bestehende Dateien nach einem fehlgeschlagenen Update zurückholen.
 	var rollback []error
 	for _, path := range []string{p.app, p.setup, p.link, p.desktop} {
@@ -176,6 +182,40 @@ func install(p locations) error {
 		}
 	}
 	return errors.Join(append([]error{err}, rollback...)...)
+}
+
+func installRuntime(root string) (func(), error) {
+	d, err := electronruntime.For(runtime.GOARCH)
+	if err != nil {
+		return nil, err
+	}
+	self, err := os.Executable()
+	if err != nil {
+		return nil, err
+	}
+	target := filepath.Join(root, d.Name)
+	source := filepath.Join(filepath.Dir(self), d.Name)
+	removeArchive := func() {}
+	_, statErr := os.Stat(target)
+	if errors.Is(statErr, os.ErrNotExist) {
+		removeArchive = func() { _ = os.Remove(target) }
+	} else if statErr != nil {
+		return nil, statErr
+	} else if err := d.Verify(target); err != nil {
+		return nil, fmt.Errorf("Im Zielordner liegt bereits ein abweichendes Electron-Archiv. %w", err)
+	}
+	if err := d.Copy(source, target); err != nil {
+		return nil, err
+	}
+	cache, err := electronruntime.CacheDir()
+	if err == nil {
+		_, err = d.Prepare(target, cache)
+	}
+	if err != nil {
+		removeArchive()
+		return nil, err
+	}
+	return removeArchive, nil
 }
 
 func writeInstall(p locations, installer []byte) error {
@@ -254,6 +294,16 @@ func uninstall(p locations, registered bool) error {
 			}
 		}
 		if err := reg("delete", registry, "/f"); err != nil {
+			return err
+		}
+	}
+	d, err := electronruntime.For(runtime.GOARCH)
+	if err != nil {
+		return err
+	}
+	archive := filepath.Join(filepath.Dir(p.app), d.Name)
+	if d.Verify(archive) == nil {
+		if err := os.Remove(archive); err != nil {
 			return err
 		}
 	}

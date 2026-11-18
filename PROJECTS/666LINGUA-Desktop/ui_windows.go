@@ -1,18 +1,23 @@
 package main
 
 import (
+	"embed"
+	"errors"
+	"fmt"
 	"io/fs"
+	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 
-	"github.com/wailsapp/wails/v2"
-	"github.com/wailsapp/wails/v2/pkg/options"
-	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
-	"github.com/wailsapp/wails/v2/pkg/options/windows"
-
+	"lingua666/internal/electronruntime"
 	"lingua666/internal/win"
 )
+
+//go:embed electron/*.cjs electron/package.json
+var electronApp embed.FS
 
 func showError(message string) { win.Message("666LINGUA", message, 0x10) }
 
@@ -26,30 +31,76 @@ func openDesktopShare(address string) error {
 }
 
 func runDesktop(a *app, windowed bool) error {
+	distribution, err := electronruntime.For(runtime.GOARCH)
+	if err != nil {
+		return err
+	}
+	self, err := os.Executable()
+	if err != nil {
+		return err
+	}
+	cache, err := electronruntime.CacheDir()
+	if err != nil {
+		return err
+	}
+	executable, err := distribution.Prepare(filepath.Join(filepath.Dir(self), distribution.Name), cache)
+	if err != nil {
+		return err
+	}
+	profile := filepath.Join(cache, "profile")
+	if err := os.MkdirAll(profile, 0700); err != nil {
+		return err
+	}
+	stage, err := os.MkdirTemp(cache, ".app-")
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(stage)
+	appFiles, err := fs.Sub(electronApp, "electron")
+	if err != nil {
+		return err
+	}
+	if err := os.CopyFS(stage, appFiles); err != nil {
+		return err
+	}
 	assets, err := fs.Sub(web, "app")
 	if err != nil {
 		return err
 	}
-	cache, err := os.UserCacheDir()
+	args := []string{stage, "--lingua-profile", profile}
+	if windowed {
+		args = append(args, "--lingua-windowed")
+	}
+	command := exec.Command(executable, args...)
+	command.Dir = stage
+	// Eine fremde Node-/Electron-Konfiguration darf den Desktopstart nicht umleiten.
+	for _, entry := range os.Environ() {
+		key, _, _ := strings.Cut(entry, "=")
+		key = strings.ToUpper(key)
+		if !strings.HasPrefix(key, "ELECTRON_") && !strings.HasPrefix(key, "NODE_") {
+			command.Env = append(command.Env, entry)
+		}
+	}
+	output, err := command.StdoutPipe()
 	if err != nil {
 		return err
 	}
-	messages := windows.DefaultMessages()
-	messages.MissingRequirements = "666LINGUA · WebView2"
-	messages.InstallationRequired = "Die Windows-Komponente WebView2 fehlt. "
-	messages.UpdateRequired = "Die Windows-Komponente WebView2 ist zu alt. "
-	messages.PressOKToInstall = "Mit OK startet der Microsoft-Installer. Der Download benötigt Internet."
-	messages.Webview2NotInstalled = "Die WebView2-Runtime ist nicht installiert."
-	return wails.Run(&options.App{
-		Title: "666LINGUA",
-		Width: 1280, Height: 800, MinWidth: 480, MinHeight: 480,
-		Fullscreen:       !windowed,
-		BackgroundColour: options.NewRGB(5, 11, 27),
-		AssetServer:      &assetserver.Options{Assets: assets, Middleware: a.desktopMiddleware(openDesktopShare)},
-		Windows: &windows.Options{
-			Theme:               windows.Dark,
-			WebviewUserDataPath: filepath.Join(cache, "666SOUNDsDESIGn", "666LINGUA", "window"),
-			Messages:            messages,
-		},
-	})
+	input, err := command.StdinPipe()
+	if err != nil {
+		return err
+	}
+	defer input.Close()
+	if err := command.Start(); err != nil {
+		return fmt.Errorf("Electron %s konnte nicht gestartet werden: %w", electronruntime.Version, err)
+	}
+	handler := a.desktopMiddleware(openDesktopShare)(http.FileServer(http.FS(assets)))
+	pipeErr := serveDesktopPipe(output, input, handler)
+	_ = input.Close()
+	if pipeErr != nil {
+		_ = command.Process.Kill()
+	}
+	if err := errors.Join(pipeErr, command.Wait()); err != nil {
+		return fmt.Errorf("Das 666LINGUA-Fenster wurde mit einem Fehler beendet: %w", err)
+	}
+	return nil
 }

@@ -32,9 +32,9 @@ echo   3  Release und Pruefsummen kontrollieren
 echo   4  Release lokal reparieren
 echo   5  Entwicklungsbuild erstellen und direkt starten
 echo   6  Entwicklertests ausfuehren
-echo   7  Portables ZIP bauen
+echo   7  Portable ZIPs fuer x64 und ARM64 bauen
 echo   8  Projekt und Go pruefen
-echo   9  Installer und Portable-EXEs bauen
+echo   9  Windows-Pakete mit Setup und Portable-App bauen
 echo   A  Vollstaendiges Release bauen
 echo   0  Ende
 echo.
@@ -115,8 +115,10 @@ call :developer test
 exit /b %ERRORLEVEL%
 :action_package
 call :developer package || exit /b
-call :artifact "build-output\package\666LINGUA-Portable-Windows.zip"
-exit /b %ERRORLEVEL%
+for %%F in (666LINGUA-Windows-x64.zip 666LINGUA-Windows-ARM64.zip) do (
+  call :artifact "build-output\package\%%F" || exit /b
+)
+exit /b 0
 :action_check
 call :developer check
 exit /b %ERRORLEVEL%
@@ -125,7 +127,7 @@ call :developer toolstarter
 exit /b %ERRORLEVEL%
 :action_setup
 call :developer setup || exit /b
-for %%F in (666LINGUA-Setup-x64.exe 666LINGUA-Setup-ARM64.exe 666LINGUA-x64.exe 666LINGUA-ARM64.exe) do (
+for %%F in (666LINGUA-Setup-x64.exe 666LINGUA-Setup-ARM64.exe 666LINGUA-Windows-x64.zip 666LINGUA-Windows-ARM64.zip) do (
   call :artifact "build-output\setup\%%F" || exit /b
 )
 exit /b 0

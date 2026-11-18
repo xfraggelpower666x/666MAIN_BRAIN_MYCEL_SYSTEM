@@ -428,9 +428,8 @@ el('emoji-close').addEventListener('click',()=>el('emoji-dialog').close());
 
 el('fullscreen').addEventListener('click',async()=>{
   try{
-    if (window.runtime?.WindowIsFullscreen) {
-      if (await window.runtime.WindowIsFullscreen()) window.runtime.WindowUnfullscreen();
-      else window.runtime.WindowFullscreen();
+    if (window.linguaWindow?.toggleFullscreen) {
+      await window.linguaWindow.toggleFullscreen();
       return;
     }
     if (document.fullscreenElement) await document.exitFullscreen();

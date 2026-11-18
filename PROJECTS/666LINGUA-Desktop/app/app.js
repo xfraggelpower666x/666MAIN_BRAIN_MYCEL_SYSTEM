@@ -8,7 +8,7 @@ const germanNames = {
 const englishNames = {de:'German', en:'English · International', 'en-US':'English · US', 'en-GB':'English · UK', es:'Spanish', 'pt-BR':'Portuguese · Brazil'};
 let names = englishNames;
 const targetLocales={de:'de-DE',en:'en-GB','en-US':'en-US','en-GB':'en-GB',es:'es-ES','pt-BR':'pt-BR'};
-const session = location.hostname === 'wails.localhost' ? 'desktop' : location.pathname.split('/')[1];
+const session = location.protocol === 'lingua:' ? 'desktop' : location.pathname.split('/')[1];
 let lastRequest = null;
 let currentResult = null;
 let reviewRule = null;
@@ -79,8 +79,8 @@ function evidence(list, blocks, hasOutput) {
 
 async function copy(value, message = 'Zielfassung kopiert.', report = status) {
   try {
-    if (window.runtime?.ClipboardSetText) {
-      if (!await window.runtime.ClipboardSetText(value)) throw new Error('Clipboard unavailable');
+    if (window.linguaWindow?.copy) {
+      if (!await window.linguaWindow.copy(value)) throw new Error('Clipboard unavailable');
     } else {
       await navigator.clipboard.writeText(value);
     }
@@ -338,8 +338,8 @@ el('learn').addEventListener('click', () => {
 el('save').addEventListener('click', saveReview);
 el('refresh').addEventListener('click', loadMemory);
 el('quit').addEventListener('click', async () => {
-  if (window.runtime?.Quit) {
-    window.runtime.Quit();
+  if (window.linguaWindow?.quit) {
+    await window.linguaWindow.quit();
     return;
   }
   try {

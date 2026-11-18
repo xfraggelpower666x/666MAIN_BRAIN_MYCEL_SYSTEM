@@ -1,15 +1,13 @@
-# 666LINGUA Desktop 1.7.0
+# 666LINGUA Desktop 1.8.0
 
 ## Windows starten
 
-Dieser Checkout enthält den vollständigen Desktop-Quellcode. Die fertigen Windows-Dateien liegen im separat übergebenen Gesamtpaket oder lassen sich mit `STARTEN.bat --all` aus diesem Checkout erzeugen.
+Wähle das ZIP für deinen PC: `666LINGUA-Windows-x64.zip` für Intel/AMD oder `666LINGUA-Windows-ARM64.zip` für Windows auf ARM. Entpacke das ganze ZIP, damit die Electron-Laufzeitdatei beim Start neben der EXE liegt.
 
+- **Installieren:** Starte `666LINGUA-Setup-x64.exe` bzw. `666LINGUA-Setup-ARM64.exe`. Du kannst das Ziel eingeben oder im Ordnerdialog auswählen. Der Standard ist `%LOCALAPPDATA%\Programs\666LINGUA`. Startmenü, Desktop-Verknüpfung und anschließender Start sind einzeln wählbar. Windows bietet die Deinstallation in den Einstellungen an.
+- **Direkt starten:** Öffne `666LINGUA-x64.exe` bzw. `666LINGUA-ARM64.exe`. Beim ersten Start entpackt die App die mitgelieferte Electron-Laufzeit in den lokalen Benutzer-Cache. Weitere Starts verwenden die bereits entpackte Version.
 
-1. Das Gesamt-ZIP vollständig entpacken.
-2. In `release` **666LINGUA-Setup-x64.exe** für Intel/AMD oder **666LINGUA-Setup-ARM64.exe** für Windows auf ARM öffnen.
-3. Nach der Installation „666LINGUA“ im Startmenü öffnen. Im Setup kannst du den Zielordner eingeben oder per Ordnerdialog auswählen. Standard ist `%LOCALAPPDATA%\Programs\666LINGUA`. Startmenü- und Desktop-Verknüpfung sowie der direkte Start sind separat wählbar. Updates schlagen den zuletzt registrierten Ordner vor. Die Deinstallation ist in den Windows-Einstellungen verfügbar.
-
-Für den portablen Betrieb `release/666LINGUA-Portable-Windows.zip` entpacken und die passende Programm-EXE starten. Die lauffähigen Dateien liegen auch direkt in `release`. App und Setup benötigen weder Go noch Python. Die EXEs sind nicht signiert. Die App startet ein eigenes Windows-Fenster mit eingebetteter WebView2-Anzeige. Der normale Start benötigt keinen separaten Browser und öffnet keinen lokalen HTTP-Server. Fehlt die passende WebView2-Runtime, kann die App nach Bestätigung den mitgelieferten Microsoft-Bootstrapper ausführen. Die Installation der Runtime benötigt dann Internet.
+Das App-Fenster läuft mit der mitgelieferten **Electron-Version 45.3.2**. Die normale App-Nutzung und das Setup funktionieren offline. Der Go-Übersetzungskern tauscht Daten per Prozesspipe mit Electron aus. Go wird nur zum Entwickeln und Bauen benötigt. Die 666LINGUA-EXEs sind nicht signiert.
 
 ## Startintro
 
@@ -27,7 +25,7 @@ Die Hauptansicht hält Quelltext und Hauptübersetzung in derselben Ansicht. Lan
 - Der lokale Übersetzungskern kombiniert belegte Satz- und Phrasentreffer. Der Systemnachweis nennt Quelle, Abschnitt und Entscheidungsgrund. Vollständig unbekannte oder mehrdeutige Abschnitte sperren die vollständige Ausgabe. Eine bestätigte eigene Zielfassung kann den fehlenden Treffer ergänzen.
 - Die Hauptübersetzung steht im rechten Textfeld. Die natürlichen, präzisen, emotionalen und spielerischen Varianten stehen unter **Weitere Fassungen**. Wo keine eigenständige Wortfassung belegt ist, zeigt die App die Hauptfassung mit einem entsprechenden Hinweis.
 - Semantische Emojis verstärken geeignete Aussagen im Text. Der technische Kanal erhält keine automatisch hinzugefügten Emojis. Bei identischen Symbolen innerhalb eines Texts wird die vorgeschlagene Verstärkung nur einmal gesetzt. Bereits eingegebene Emojis können erhalten bleiben.
-- Der Force Lock verwendet ausschließlich den lokalen Kern. Der HTTP-Dienst bindet an einen zufälligen Loopback-Port. Die Oberfläche verwendet keine remote geladenen Assets oder Übersetzungsdienste.
+- Der Force Lock verwendet ausschließlich den lokalen Kern. Der Entwicklungsmodus `--serve` bindet an einen zufälligen Loopback-Port. Das Desktop-Fenster verwendet den Prozesskanal. Die Oberfläche verwendet keine remote geladenen Assets oder Übersetzungsdienste.
 - Der letzte übersetzte Quelltext kann aus demselben Fenster wieder eingesetzt werden. Ein Neustart verwirft ihn.
 - Texte werden standardmäßig nicht aufgezeichnet. Explizit bestätigte Übersetzungsregeln liegen in `%APPDATA%\666SOUNDsDESIGn\666LINGUA\translations` und können im Bereich **Lernen** geprüft, bearbeitet und gelöscht werden. Beim Ersetzen verhindert ein Abgleich mit der gelesenen Revision, dass eine dazwischen bestätigte Fassung still überschrieben wird. Deinstallation erhält diese Regeln.
 
@@ -66,7 +64,7 @@ Die Windows-App startet im Vollbild. **Full screen / Vollbild** wechselt zwische
 
 `STARTEN.bat` ist der einzige Batch-Einstieg. Der Starter prüft die Mindestversion aus `go.mod` (derzeit Go 1.25), die tatsächliche Version und den Compiler. Er verwendet eine funktionierende Installation aus dem Suchpfad, den üblichen Windows-Ordnern oder dem lokalen Projektcache.
 
-Fehlt eine passende Toolchain, laden Setup, Build, Paketierung, Tests, Reparatur und Komplettlauf ein passendes stabiles Go-Archiv für Windows x64 oder ARM64 von `go.dev`. Der Starter prüft SHA-256, richtet Go in `.toolchain/go` ein und setzt die gewählte Aktion nach der erneuten Compilerprüfung fort. Dafür braucht der erste Download Internet und der Projektordner Schreibrechte. Die lokale Installation benötigt keine Administratorrechte und verändert den systemweiten PATH nicht. Diagnose, Projektcheck und normaler EXE-Start laden keine Tools herunter. Ohne Argumente zeigt die Batch das Menü und kehrt nach einer Aktion dorthin zurück. Für Skripte akzeptiert sie Langoptionen und Kurzformen, z. B. `STARTEN.bat installer /nopause`. `/nopause` verhindert die Fehlerpause und lässt den Exitcode erhalten.
+Fehlt eine passende Toolchain, laden Setup, Build, Paketierung, Tests, Reparatur und Komplettlauf ein passendes stabiles Go-Archiv für Windows x64 oder ARM64 von `go.dev`. Der Starter prüft SHA-256, richtet Go in `.toolchain/go` ein und setzt die gewählte Aktion nach der erneuten Compilerprüfung fort. Dafür braucht der erste Download Internet und der Projektordner Schreibrechte. Die lokale Installation benötigt keine Administratorrechte und verändert den systemweiten PATH nicht. Diagnose, Projektcheck und normaler EXE-Start laden keine Tools herunter. Windows-Builds laden bei Bedarf die festgelegten offiziellen Electron-Archive herunter und prüfen SHA-256. Die Archive bleiben in `build-output/electron-downloads`. Über `LINGUA_ELECTRON_ARCHIVES` kann ein vorhandener Archivordner verwendet werden. Ohne Argumente zeigt die Batch das Menü und kehrt nach einer Aktion dorthin zurück. Für Skripte akzeptiert sie Langoptionen und Kurzformen, z. B. `STARTEN.bat installer /nopause`. `/nopause` verhindert die Fehlerpause und lässt den Exitcode erhalten.
 
 | Aktion | Ergebnis |
 | --- | --- |
@@ -74,14 +72,14 @@ Fehlt eine passende Toolchain, laden Setup, Build, Paketierung, Tests, Reparatur
 | `--windowed` | Öffnet das eigene App-Fenster im Fenstermodus. `--browser` ist als alter Befehlsalias verfügbar. |
 | `--diagnose` | Vergleicht Quellarchiv-Hashes, Release-Hashes, PE-Architektur und Portable-Inhalt. |
 | `--repair` | Prüft die Quellen, führt Tests aus, erzeugt ein vollständiges Release und sichert die alte Ausgabe separat. |
-| `--dev` / Menüpunkt **5** | Baut nur die EXE für diesen PC in `build-output/dev` und startet genau diesen Build. Kein Setup oder Portable-ZIP. |
-| `--build` | Kompiliert beide Programm-EXEs nach `build-output/build`. |
+| `--dev` / Menüpunkt **5** | Baut die EXE für diesen PC in `build-output/dev`, stellt die zugehörige Electron-Laufzeit bereit und startet den Entwicklungsbuild direkt. |
+| `--build` | Kompiliert beide Programm-EXEs und legt die Electron-Archive in `build-output/build` daneben. |
 | `--test` | Startet Entwickler- und Regressionstests. |
 | `--check` / `check` | Prüft vorhandenes Go, die Projektdateien und führt die Tests aus. |
-| `--package` / `portable` | Testet und baut das portable ZIP in `build-output/package`. |
+| `--package` / `portable` | Testet und baut ein portables ZIP pro Architektur in `build-output/package`. |
 | `--toolstarter` | Prüft die Projektstruktur sowie die beiden R19-Quellarchive bei vorhandenem Quellenordner. |
-| `--setup` / `installer` | Testet und baut beide Setups und die direkt startbaren EXEs in `build-output/setup`. |
-| `--all` | Testet und erzeugt Programm-EXEs, Portable-ZIP, Setups und Prüfliste in `release`. |
+| `--setup` / `installer` | Testet und baut beide Windows-ZIPs mit Setup und direkt startbarer App in `build-output/setup`. |
+| `--all` | Testet und erzeugt die vollständigen Windows-Pakete für x64 und ARM64 samt Prüfliste in `release`. |
 
 Das Toolstarter-ZIP lag den 666LINGUA-Anhängen nicht bei. Das Batch-Muster aus dem Auftrag dient als Vorlage für Projektcheck, Menü und CLI. Der Projektcheck läuft im Build-Werkzeug und ist kein Bestandteil der Anwendung.
 
@@ -89,4 +87,4 @@ Auf Linux können die beiden Windows-Architekturen mit `go run -buildvcs=false .
 
 ## Öffentlicher Projekt-Checkout
 
-Die unveröffentlichten nativen R19-Archive und ihre Begleitdateien liegen im separat übergebenen Gesamtpaket. Der öffentliche Checkout enthält die abgeleiteten Desktop-Testfälle und Ressourcen. Fehlt der Ordner `sources`, meldet die Build-Prüfung den fehlenden Archivbeleg und kann mit den Desktop-Dateien fortfahren. Bei vorhandenem Ordner werden beide Originalarchive vollständig gegen ihre SHA-256-Werte geprüft.
+Die unveröffentlichten nativen R19-Archive und ihre Begleitdateien liegen in früher übergebenen Gesamtpaketen. Der öffentliche Checkout enthält die abgeleiteten Desktop-Testfälle und Ressourcen. Fehlt der Ordner `sources`, meldet die Build-Prüfung den fehlenden Archivbeleg und kann mit den Desktop-Dateien fortfahren. Bei vorhandenem Ordner werden beide Originalarchive vollständig gegen ihre SHA-256-Werte geprüft.

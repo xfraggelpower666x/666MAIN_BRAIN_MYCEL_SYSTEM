@@ -8,18 +8,20 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"slices"
 	"strings"
+	"time"
+
+	"lingua666/internal/electronruntime"
 )
 
 const (
-	release  = "release"
-	portable = "666LINGUA-Portable-Windows.zip"
-	payload  = "cmd/setup/payload/666LINGUA.exe"
+	release = "release"
+	payload = "cmd/setup/payload/666LINGUA.exe"
 )
 
 var architectures = []string{"amd64", "arm64"}
@@ -36,6 +38,8 @@ func architectureName(arch string) string {
 }
 func appName(arch string) string   { return "666LINGUA-" + architectureName(arch) + ".exe" }
 func setupName(arch string) string { return "666LINGUA-Setup-" + architectureName(arch) + ".exe" }
+
+func packageName(arch string) string { return "666LINGUA-Windows-" + architectureName(arch) + ".zip" }
 
 func goTool(args []string, env ...string) error {
 	name := "go"
@@ -66,7 +70,7 @@ func hash(path string) (string, error) {
 	return hex.EncodeToString(h.Sum(nil)), nil
 }
 func preflight() error {
-	for _, path := range []string{"go.mod", "STARTEN.bat", "scripts/windows-go.ps1", "app/index.html", "data/phrases.tsv", "data/r19.json", "cmd/setup/setup_windows.go"} {
+	for _, path := range []string{"go.mod", "STARTEN.bat", "scripts/windows-go.ps1", "app/index.html", "electron/main.cjs", "electron/preload.cjs", "electron/package.json", "data/phrases.tsv", "data/r19.json", "cmd/setup/setup_windows.go"} {
 		if _, err := os.Stat(path); err != nil {
 			return err
 		}
@@ -107,32 +111,132 @@ func verifyPE(path, arch string) error {
 	}
 	return nil
 }
-func portableZip(stage string) error {
-	f, err := os.Create(filepath.Join(stage, portable))
+func ensureElectron(stage, arch string) (electronruntime.Distribution, error) {
+	d, err := electronruntime.For(arch)
+	if err != nil {
+		return d, err
+	}
+	cache := os.Getenv("LINGUA_ELECTRON_ARCHIVES")
+	if cache == "" {
+		cache = filepath.Join("build-output", "electron-downloads")
+	}
+	if err := os.MkdirAll(cache, 0700); err != nil {
+		return d, err
+	}
+	local := filepath.Join(cache, d.Name)
+	if err := d.Verify(local); err != nil {
+		fmt.Printf("[DOWNLOAD] Electron %s / %s\n", electronruntime.Version, architectureName(arch))
+		if err := downloadElectron(d, local); err != nil {
+			return d, err
+		}
+	}
+	fmt.Printf("[OK] Electron %s / %s (SHA-256)\n", electronruntime.Version, architectureName(arch))
+	return d, d.Copy(local, filepath.Join(stage, d.Name))
+}
+
+func downloadElectron(d electronruntime.Distribution, destination string) error {
+	client := &http.Client{Timeout: 15 * time.Minute}
+	response, err := client.Get(d.URL())
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		return fmt.Errorf("Electron-Download fehlgeschlagen: %s", response.Status)
+	}
+	file, err := os.CreateTemp(filepath.Dir(destination), ".electron-*.zip")
+	if err != nil {
+		return err
+	}
+	defer os.Remove(file.Name())
+	_, err = io.Copy(file, io.LimitReader(response.Body, 512<<20))
+	if err = errors.Join(err, file.Close()); err != nil {
+		return err
+	}
+	if err := d.Verify(file.Name()); err != nil {
+		return err
+	}
+	return os.Rename(file.Name(), destination)
+}
+
+func writePackage(stage, arch, runtimeArchive string, withSetup bool) error {
+	f, err := os.Create(filepath.Join(stage, packageName(arch)))
 	if err != nil {
 		return err
 	}
 	w := zip.NewWriter(f)
-	for _, name := range []string{appName("amd64"), appName("arm64"), "PORTABLE.txt"} {
+	names := []string{appName(arch), runtimeArchive, "PORTABLE.txt"}
+	if withSetup {
+		names = append(names, setupName(arch))
+	}
+	for _, name := range names {
 		path := filepath.Join(stage, name)
 		if name == "PORTABLE.txt" {
 			path = name
 		}
-		b, readErr := os.ReadFile(path)
-		if readErr != nil {
-			err = readErr
-			break
-		}
-		item, writeErr := w.Create(name)
-		if writeErr == nil {
-			_, writeErr = item.Write(b)
-		}
-		if writeErr != nil {
-			err = writeErr
+		if err = writePackageEntry(w, path, name, runtimeArchive); err != nil {
 			break
 		}
 	}
 	return errors.Join(err, w.Close(), f.Close())
+}
+
+func writePackageEntry(w *zip.Writer, path, name, runtimeArchive string) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	method := uint16(zip.Deflate)
+	if name == runtimeArchive {
+		method = zip.Store
+	}
+	item, err := w.CreateHeader(&zip.FileHeader{Name: name, Method: method})
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(item, file)
+	return err
+}
+
+func verifyPackage(dir string, manifest map[string]string, arch, runtimeArchive string) error {
+	z, err := zip.OpenReader(filepath.Join(dir, packageName(arch)))
+	if err != nil {
+		return err
+	}
+	defer z.Close()
+	expected := map[string]string{appName(arch): manifest[appName(arch)], runtimeArchive: manifest[runtimeArchive]}
+	notice, err := hash("PORTABLE.txt")
+	if err != nil {
+		return err
+	}
+	expected["PORTABLE.txt"] = notice
+	if checksum := manifest[setupName(arch)]; checksum != "" {
+		expected[setupName(arch)] = checksum
+	}
+	for _, item := range z.File {
+		expectedHash, ok := expected[item.Name]
+		if !ok {
+			return fmt.Errorf("Unerwarteter ZIP-Eintrag: %s", item.Name)
+		}
+		in, err := item.Open()
+		if err != nil {
+			return err
+		}
+		h := sha256.New()
+		_, err = io.Copy(h, in)
+		if err = errors.Join(err, in.Close()); err != nil {
+			return err
+		}
+		if hex.EncodeToString(h.Sum(nil)) != expectedHash {
+			return fmt.Errorf("Paketinhalt stimmt nicht mit der Ausgabedatei überein: %s", item.Name)
+		}
+		delete(expected, item.Name)
+	}
+	if len(expected) != 0 {
+		return fmt.Errorf("Paketdateien fehlen: %v", expected)
+	}
+	return nil
 }
 func readManifest(dir string) (map[string]string, error) {
 	raw, err := os.ReadFile(filepath.Join(dir, "SHA256SUMS.txt"))
@@ -167,46 +271,29 @@ func verify(dir string, complete bool, buildArchitectures []string) error {
 			}
 		}
 	}
-	if complete && files[portable] == "" {
-		return fmt.Errorf("Prüfsumme fehlt: %s", portable)
+	for _, arch := range buildArchitectures {
+		d, err := electronruntime.For(arch)
+		if err != nil {
+			return err
+		}
+		if files[d.Name] != d.SHA256 {
+			return fmt.Errorf("Die festgelegte Electron-Prüfsumme fehlt: %s", d.Name)
+		}
+		if files[packageName(arch)] == "" {
+			if complete {
+				return fmt.Errorf("Paket fehlt: %s", packageName(arch))
+			}
+		} else if err := verifyPackage(dir, files, arch, d.Name); err != nil {
+			return err
+		}
 	}
 	for name, expected := range files {
-		h, err := hash(filepath.Join(dir, name))
+		got, err := hash(filepath.Join(dir, name))
 		if err != nil {
 			return err
 		}
-		if h != expected {
+		if got != expected {
 			return fmt.Errorf("Datei stimmt nicht mit Prüfliste überein: %s", name)
-		}
-	}
-	if _, loaded := files[portable]; loaded {
-		z, err := zip.OpenReader(filepath.Join(dir, portable))
-		if err != nil {
-			return err
-		}
-		defer z.Close()
-		expected := []string{appName("amd64"), appName("arm64"), "PORTABLE.txt"}
-		for _, item := range z.File {
-			if !slices.Contains(expected, item.Name) {
-				return fmt.Errorf("Unerwarteter ZIP-Eintrag: %s", item.Name)
-			}
-			expected = slices.DeleteFunc(expected, func(name string) bool { return name == item.Name })
-			in, err := item.Open()
-			if err != nil {
-				return err
-			}
-			h := sha256.New()
-			_, err = io.Copy(h, in)
-			closeErr := in.Close()
-			if err = errors.Join(err, closeErr); err != nil {
-				return err
-			}
-			if item.Name != "PORTABLE.txt" && hex.EncodeToString(h.Sum(nil)) != files[item.Name] {
-				return fmt.Errorf("Portable Datei stimmt nicht mit EXE überein: %s", item.Name)
-			}
-		}
-		if len(expected) != 0 {
-			return fmt.Errorf("Portable Dateien fehlen: %v", expected)
 		}
 	}
 	return nil
@@ -226,33 +313,37 @@ func configure(target string, buildArchitectures []string) error {
 	}
 	defer os.RemoveAll(stage)
 	names := []string{}
+	withSetup := target == "setup" || target == "all" || target == "repair"
 	for _, arch := range buildArchitectures {
 		out := filepath.Join(stage, appName(arch))
-		if err = build(arch, out, ".", "-tags=desktop,production,wv2runtime.embed"); err != nil {
+		if err := build(arch, out, "."); err != nil {
 			return err
 		}
-		names = append(names, appName(arch))
-		if target == "build" || target == "package" || target == "dev" {
-			continue
-		}
-		raw, err := os.ReadFile(out)
+		d, err := ensureElectron(stage, arch)
 		if err != nil {
 			return err
 		}
-		if err = os.WriteFile(payload, raw, 0600); err != nil {
-			return err
+		names = append(names, appName(arch), d.Name)
+		if withSetup {
+			raw, err := os.ReadFile(out)
+			if err != nil {
+				return err
+			}
+			if err := os.WriteFile(payload, raw, 0600); err != nil {
+				return err
+			}
+			defer os.Remove(payload)
+			if err := build(arch, filepath.Join(stage, setupName(arch)), "./cmd/setup", "-tags=installer"); err != nil {
+				return err
+			}
+			names = append(names, setupName(arch))
 		}
-		defer os.Remove(payload)
-		if err = build(arch, filepath.Join(stage, setupName(arch)), "./cmd/setup", "-tags=installer"); err != nil {
-			return err
+		if target != "build" && target != "dev" {
+			if err := writePackage(stage, arch, d.Name, withSetup); err != nil {
+				return err
+			}
+			names = append(names, packageName(arch))
 		}
-		names = append(names, setupName(arch))
-	}
-	if target != "build" && target != "setup" && target != "dev" {
-		if err := portableZip(stage); err != nil {
-			return err
-		}
-		names = append(names, portable)
 	}
 	var list strings.Builder
 	for _, name := range names {
