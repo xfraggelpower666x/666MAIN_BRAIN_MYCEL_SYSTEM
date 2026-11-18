@@ -1,4 +1,4 @@
-# 666LINGUA Desktop 1.5.2
+# 666LINGUA Desktop 1.5.3
 
 ## Windows starten
 
@@ -7,7 +7,7 @@ Dieser Checkout enthält den vollständigen Desktop-Quellcode. Die fertigen Wind
 
 1. Das Gesamt-ZIP vollständig entpacken.
 2. In `release` **666LINGUA-Setup-x64.exe** für Intel/AMD oder **666LINGUA-Setup-ARM64.exe** für Windows auf ARM öffnen.
-3. Nach der Installation „666LINGUA“ im Startmenü öffnen. Das Setup installiert für den angemeldeten Benutzer unter `%LOCALAPPDATA%\Programs\666LINGUA` und registriert die Deinstallation in den Windows-Einstellungen.
+3. Nach der Installation „666LINGUA“ im Startmenü öffnen. Im Setup kannst du den Zielordner eingeben oder per Ordnerdialog auswählen. Standard ist `%LOCALAPPDATA%\Programs\666LINGUA`. Startmenü- und Desktop-Verknüpfung sowie der direkte Start sind separat wählbar. Updates schlagen den zuletzt registrierten Ordner vor. Die Deinstallation ist in den Windows-Einstellungen verfügbar.
 
 Für den portablen Betrieb `release/666LINGUA-Portable-Windows.zip` entpacken und die passende Programm-EXE starten. Die lauffähigen Dateien liegen auch direkt in `release`. App und Setup benötigen weder Go noch Python. Die EXEs sind nicht signiert. Das Anwendungsfenster nutzt Microsoft Edge im Vollbild-Kioskmodus mit eigenem temporärem Browserprofil. Bei fehlendem Edge steht der Standardbrowser zur Verfügung. Im Browser-Modus beendet die Schaltfläche **Beenden** auch den lokalen Prozess.
 
