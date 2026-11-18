@@ -83,3 +83,12 @@ Privates Account-Release `0.2.7` / `pluginrel_6afb018c03a88191a84790ba36989e8f`.
 - Die praktische Ausführung in einem frischen Chat bleibt offen. Insbesondere sind lesendes Audit mit eingebettetem Trigger, begrenzte Reparatur, Ziel-Readback nach unterbrochenem Write und blockierte Freigabe bei fehlender Pflichtprüfung als Host-Fälle nachzuweisen. Hierfür liegt kein Ausführungsbeleg vor.
 
 Recovery: unveränderter Basiscommit `a4572e65744d7d1795f95cb6e0b301ebc8434e56`, Preimage der Matrix `2f4270dae36d0fca1994f603220ef2c48f9cb722` und des Current Pointers `483e30cd5163f32cf351ecf74ce1414bccf4e8d6`. Der Paketnachweis ändert den Migrations-Gate-Status nicht.
+
+## Release 0.2.8 · PSYLLO-Coding-Rehydration und Workbench
+
+Privates MAIN-BRAIN-Release `0.2.8` / `pluginrel_6afdcf591fb88191aaad24a6e8cef7b3`. Direkter Paket-Readback `23/23`. Repository-Integrationscommit `9c7e6ead2ee4ac9c2a6ed47eb400d7a854a809a1`, Quell-Readback `19/19`.
+
+- Lokale Abnahme: Git-Checkpoint `12/12`, Laufbeleg `8/8`, Workbench `10/10`. Die eingebetteten JavaScript-Blöcke bestehen die Syntaxprüfung.
+- Fresh Chat: offen. Zu prüfen sind Coding WEITER und NEXT CHAT im gebundenen Projekt, ein fehlendes oder falsches Laufartefakt, die Workbench-Navigation und der UI-Handoff nach Projekt- und Revisionsbindung.
+- Persistenz einer UI-Präferenz, Host-Klickpfade und Plugin-Ausführung benötigen einen eigenen Beleg.
+- Rückkehrbasis: [Pre-change recovery](../AUDIT/PRECHANGE_PSYLLO_CODING_2026-11-18.md).
