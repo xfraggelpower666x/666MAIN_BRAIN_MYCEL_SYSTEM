@@ -1,0 +1,18 @@
+{
+  "system_id": "SCC-12001",
+  "control_plane_release": "1.0.0",
+  "functional_source_version": "1.3.2",
+  "source_sha256": "06cc504566071f247c79c1d22ac2988c3620750d0b5a5f705279a1b913bc5b7c",
+  "source_size_bytes": 184168,
+  "source_surface": "SCRIPTABLE",
+  "repo_native": true,
+  "pfs_runtime_dependency": false,
+  "last_device_runtime_accepted_version": "1.3.1",
+  "v1_3_2_device_runtime": "PENDING_USER_DEVICE",
+  "v1_3_2_live_soundcloud_api": "PENDING_INDEPENDENT_CONFIRMATION",
+  "ownership_guard": "ACTIVE_SOURCE",
+  "pc_port": "FROZEN_HISTORICAL_EVIDENCE_ONLY",
+  "no_pc_phone_bridge": true,
+  "pfs_child_detachment": "PENDING_NATIVE_666PFS_UPDATE",
+  "status": "REPO_NATIVE_SOURCE_READY_DEVICE_ACCEPTANCE_OPEN"
+}
