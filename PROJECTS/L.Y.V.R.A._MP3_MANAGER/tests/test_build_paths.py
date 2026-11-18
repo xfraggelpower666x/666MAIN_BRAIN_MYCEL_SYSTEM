@@ -10,7 +10,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 import SYSTEM_CHECK
-from VERIFY_PORTABLE_FOLDER import verify
+from VERIFY_PORTABLE_FOLDER import REQUIRED_FILES, verify
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="Windows batch launcher")
@@ -82,6 +82,7 @@ def test_build_copies_required_portable_batch_files(tmp_path):
     for name in (
         "BEDIENUNGSANLEITUNG_DE.md", "MANUAL_EN.md", "README.txt",
         "L.Y.V.R.A._MP3_MANAGER.bat", "PORTABLE_VERIFY.ps1",
+        "HOST_ABNAHME_WINDOWS.bat", "HOST_ABNAHME_WINDOWS.ps1",
     ):
         shutil.copy2(ROOT / name, tmp_path / name)
     shutil.copytree(ROOT / "assets", tmp_path / "assets")
@@ -96,7 +97,11 @@ def test_build_copies_required_portable_batch_files(tmp_path):
         portable = Path(cmd[cmd.index("--distpath") + 1]) / cmd[cmd.index("--name") + 1]
         portable.mkdir(parents=True)
         (portable / "L.Y.V.R.A._MP3_MANAGER.exe").write_bytes(b"MZ")
-        (portable / "_internal").mkdir()
+        for rel in REQUIRED_FILES:
+            if rel.startswith("_internal/"):
+                bundled = portable / rel
+                bundled.parent.mkdir(parents=True, exist_ok=True)
+                bundled.write_bytes(b"build fixture")
         return 0
 
     def fake_verification(cmd, cwd):

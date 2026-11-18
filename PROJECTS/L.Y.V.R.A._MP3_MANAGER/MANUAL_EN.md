@@ -16,6 +16,8 @@ Choose WAV, MP3 or MIXED input. Standard output: 48000 Hz, 320 kbit/s, Stereo, o
 
 Select exactly one WAV or MP3 in the audio browser and choose **OPEN RESTORATION LAB** to open its full interface above the manager with that file loaded. Restoration Lab supports mono or stereo audio at 44.1 or 48 kHz. Export a separate WAV in Restoration Lab; after export, you can select the result in the manager's audio browser. The source checkout needs the sibling `Restoration-Lab-main` project and the dependencies in `requirements.txt`; the portable build bundles the integration.
 
+**Preset behavior from v2.38.** Maximum Quality and Original Preserve export without loudness normalization. When Balanced Radio normalization is enabled, the measurement is followed by a fixed gain adjustment. If the projected level exceeds the true-peak limit or source LRA exceeds the target, the manager reports an error for that track. The MP3 appears in the output folder after ID3 validation and any enabled audio QC.
+
 ## 5. Second-screen windows and drag & drop
 Open the detachable file manager from any tab, then move it to the second display. Explorer file/folder drag & drop is supported when tkinterdnd2 is available. The detachable live monitor shows current track and individual/overall job progress.
 

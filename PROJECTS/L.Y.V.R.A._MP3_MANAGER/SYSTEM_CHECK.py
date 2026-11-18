@@ -137,7 +137,8 @@ def main():
         # Alle Arbeitsdateien im selben verschiebbaren Root-Ordner halten.
         shutil.copytree(ROOT/'assets',portable/'assets',dirs_exist_ok=True)
         for doc in ('BEDIENUNGSANLEITUNG_DE.md','MANUAL_EN.md','README.txt',
-                    'L.Y.V.R.A._MP3_MANAGER.bat','PORTABLE_VERIFY.ps1'):
+                    'L.Y.V.R.A._MP3_MANAGER.bat','PORTABLE_VERIFY.ps1',
+                    'HOST_ABNAHME_WINDOWS.bat','HOST_ABNAHME_WINDOWS.ps1'):
             shutil.copy2(ROOT/doc,portable/doc)
         tools_out=portable/'tools';tools_out.mkdir(parents=True,exist_ok=True)
         missing=[]
@@ -149,9 +150,10 @@ def main():
             else:
                 missing.append(name)
                 print('PORTABLE_TOOL_MISSING:',name)
-        (portable/'PORTABLE_STATUS.txt').write_text(
-            'Build: onedir\nAudio-Tools: '+('COMPLETE' if not missing else 'MISSING: '+', '.join(missing))+ '\n'
-            'Copy this entire folder; never move only the EXE.\n',encoding='utf-8')
+        status_file=portable/'PORTABLE_STATUS.txt'
+        status_file.write_text('Build: onedir\nAudio-Tools: '+
+                               ('MISSING: '+', '.join(missing) if missing else 'VERIFICATION_PENDING')+'\n',
+                               encoding='utf-8')
         if missing:
             print('PORTABLE_INCOMPLETE: missing audio tools. Installiere sie im Quellprojekt und baue neu,')
             print('oder lege sie in dist/'+app_name+'/tools/ ab. Keine irrefuehrende COMPLETE-Meldung.')
@@ -161,6 +163,12 @@ def main():
         if verification.returncode:
             print('PORTABLE_FOLDER_INVALID: Verzeichnispruefung fehlgeschlagen')
             return 9
+        if sys.platform != 'win32':
+            print('STATIC_PASS_WINDOWS_PENDING:',portable)
+            return 0
+        status_file.write_text('Build: onedir\nAudio-Tools: VERIFIED\n'
+                               'Copy this entire folder. GUI and Explorer-DnD require host acceptance.\n',
+                               encoding='utf-8')
         print('PORTABLE_FOLDER_READY:',portable)
         return 0
     return 0

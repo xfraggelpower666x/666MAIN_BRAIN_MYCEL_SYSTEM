@@ -16,6 +16,8 @@ Cover: »Ein Cover für alle gewählten MP3« oder »Cover nur für markierte MP
 ## 4. Audio-Konvertierung
 Quellformat WAV, MP3 oder GEMISCHT wählen. Zielprofil nach Wunsch: Standard 48000 Hz / 320 kbit/s / Stereo, optional Normalisierung −14 LUFS und True Peak −2 dBTP. `s16p` bezeichnet das PCM-Zwischenformat, nicht die Bit-Tiefe der MP3. WAV→MP3 ist verlustbehaftet. MP3→MP3 kann keine verlorenen Klanginformationen zurückbringen. Prüfe Ausgabe und Lautheit nach dem Umkodieren. STOPP beendet laufende FFmpeg-Aufträge; nur unvollständige Ausgaben werden entfernt.
 
+**Preset-Verhalten ab v2.38.** Maximum Quality und Original Preserve exportieren ohne Lautheitsnormalisierung. Bei aktivierter Balanced-Radio-Normalisierung folgt auf die Lautheitsmessung eine konstante Pegeländerung. Überschreitet der berechnete Pegel das True-Peak-Limit oder liegt die Quell-LRA über dem Zielwert, meldet der Manager einen Fehler für diese Datei. Die MP3 erscheint erst nach erfolgreicher ID3-Prüfung und gegebenenfalls Audio-QC im Exportordner.
+
 ## 5. Zwei Monitore und Drag & Drop
 In jedem Reiter »DATEIMANAGER / 2. BILDSCHIRM« öffnen, Fenster auf anderen Monitor ziehen. Dateien/Ordner aus dem Explorer in die GUI ziehen. Der separate Live-Statusmonitor zeigt aktuelle Datei, Umbenennung, Audio und Gesamt. Die Anzeigen werden von aktiven Prozessen gespeist und können bei inaktiven Vorgängen 0 anzeigen.
 

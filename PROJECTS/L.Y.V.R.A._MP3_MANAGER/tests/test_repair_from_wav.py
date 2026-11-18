@@ -36,7 +36,7 @@ with tempfile.TemporaryDirectory() as td:
  assert report['normalization_applied'] is False
  assert report['technical_qc']['decode']=='PASS'
  assert sha(src)==src_before and sha(old)==old_before
- assert not list(result.parent.glob('*.partial.mp3'))
+ assert not list(result.parent.glob('.lyvra-export-*'))
  print('PASS original source and damaged MP3 preserved')
  print('PASS repair export 48k 320k and per-track metadata')
  print('PASS complete decode and evidence SHA256 for 3 files')
