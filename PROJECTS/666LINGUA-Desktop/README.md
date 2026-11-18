@@ -1,4 +1,4 @@
-# 666LINGUA Desktop 1.5.3
+# 666LINGUA Desktop 1.6.0
 
 ## Windows starten
 
@@ -10,6 +10,10 @@ Dieser Checkout enthält den vollständigen Desktop-Quellcode. Die fertigen Wind
 3. Nach der Installation „666LINGUA“ im Startmenü öffnen. Im Setup kannst du den Zielordner eingeben oder per Ordnerdialog auswählen. Standard ist `%LOCALAPPDATA%\Programs\666LINGUA`. Startmenü- und Desktop-Verknüpfung sowie der direkte Start sind separat wählbar. Updates schlagen den zuletzt registrierten Ordner vor. Die Deinstallation ist in den Windows-Einstellungen verfügbar.
 
 Für den portablen Betrieb `release/666LINGUA-Portable-Windows.zip` entpacken und die passende Programm-EXE starten. Die lauffähigen Dateien liegen auch direkt in `release`. App und Setup benötigen weder Go noch Python. Die EXEs sind nicht signiert. Das Anwendungsfenster nutzt Microsoft Edge im Vollbild-Kioskmodus mit eigenem temporärem Browserprofil. Bei fehlendem Edge steht der Standardbrowser zur Verfügung. Im Browser-Modus beendet die Schaltfläche **Beenden** auch den lokalen Prozess.
+
+## Startintro
+
+Vor der Arbeitsfläche erscheint das 666LINGUA-Intro mit dem mitgelieferten Platinenhintergrund und dem transparenten Logo. Der Ablauf orientiert sich an der Vorlage `PROJECTS/Anwendungsintro_Python`: Er führt vom Laden der Oberfläche zur tatsächlichen Bereitschaft des Übersetzers. Für die Desktop-App ist er in der bestehenden lokalen Oberfläche eingebaut. Über **Intro überspringen** oder **Esc** kannst du sofort weiter. Die Bilder sind in der App enthalten.
 
 ## Vollbild-Arbeitsfläche
 

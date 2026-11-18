@@ -374,5 +374,10 @@ function updateSystemInfo() {
   ];
   for(const [key,value] of lines) el('system-info').append(node('dt',t(key)),node('dd',value));
 }
-api('info').then(info=>{systemInfo=info;updateSystemInfo();}).catch(error=>status(error.message));
+const startupInfo = api('info').then(info=>{
+  systemInfo=info;
+  updateSystemInfo();
+  el('startup-version').textContent='DESKTOP '+info.version;
+  return true;
+}).catch(error=>{status(error.message);return false;});
 refreshInput();

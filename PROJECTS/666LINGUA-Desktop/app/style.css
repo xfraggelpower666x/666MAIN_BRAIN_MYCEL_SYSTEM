@@ -221,3 +221,33 @@ main>nav{flex:none}
   .source .card-head .pair{display:none}
   .workspace .actions{gap:5px}
 }
+
+/* Startintro im vorhandenen Fenster. Die Arbeitsfläche übernimmt erst danach. */
+#startup-intro{display:none}
+html[data-starting] body>:not(#startup-intro){visibility:hidden}
+html[data-starting] #startup-intro{
+  display:grid;place-items:center;position:fixed;inset:0;z-index:10;overflow:hidden;
+  padding:24px;background:#050b1b;color:#f5faff;text-align:center;
+}
+.startup-background{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;
+}
+.startup-panel{
+  position:relative;display:grid;justify-items:center;width:min(100%,1060px);padding:0 12px 8px;
+}
+.startup-logo{display:block;width:min(100%,980px);height:auto;max-height:53dvh;object-fit:contain}
+.startup-version{min-height:1.2em;margin-top:8px;color:#a2cde0;font:600 .82rem var(--mono);letter-spacing:.16em}
+#startup-status{
+  min-height:1.35em;margin:12px 0;color:#e9ffff;font:600 clamp(.85rem,2vw,1.05rem) var(--mono);
+  text-shadow:0 0 16px #0acdf8;
+}
+#startup-progress{
+  appearance:none;width:min(72vw,390px);height:7px;border:0;border-radius:7px;overflow:hidden;
+  background:#142438;accent-color:#65e9ff;
+}
+#startup-progress::-webkit-progress-bar{background:#142438}
+#startup-progress::-webkit-progress-value{background:linear-gradient(90deg,#74ecff,#f76bdd);transition:width .18s ease-out}
+#startup-skip{margin-top:18px;min-height:36px;color:#d9eaf6;background:#0b1524d9}
+@media(prefers-reduced-motion:reduce){
+  #startup-progress::-webkit-progress-value{transition:none}
+}

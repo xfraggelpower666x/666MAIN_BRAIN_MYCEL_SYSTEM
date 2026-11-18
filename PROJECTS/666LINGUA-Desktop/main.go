@@ -21,7 +21,7 @@ import (
 //go:embed app/*
 var web embed.FS
 
-const version = "1.5.3"
+const version = "1.6.0"
 
 type app struct {
 	lex     Lexicon
@@ -74,7 +74,7 @@ func (a *app) handler() http.Handler {
 		}
 		path := strings.TrimPrefix(r.URL.Path, a.prefix)
 		if !strings.HasPrefix(path, "api/") {
-			if r.Method != http.MethodGet || !slices.Contains([]string{"", "index.html", "app.js", "dictionary.js", "style.css", "icon.svg", "settings.js", "i18n.js", "cities.json", "emoji-en.json", "emoji-de.json", "notices.txt"}, path) {
+			if r.Method != http.MethodGet || !slices.Contains([]string{"", "index.html", "app.js", "dictionary.js", "style.css", "icon.svg", "settings.js", "i18n.js", "cities.json", "emoji-en.json", "emoji-de.json", "notices.txt", "intro.js", "intro-background.webp", "intro-logo.webp"}, path) {
 				http.NotFound(w, r)
 				return
 			}

@@ -434,14 +434,15 @@ el('fullscreen').addEventListener('click',async()=>{
 const liveTimer=setInterval(refreshClocks,1000);
 el('quit').addEventListener('click',()=>clearInterval(liveTimer));
 refreshClocks();
-api('settings').then(saved=>{
+const startupSettings = api('settings').then(saved=>{
   acceptSettings(saved);
   el('ui-language').value=desktop.language;
   el('target-zone').value=desktop.targetZone;
   applyLocale(desktop.language);
   applyRoute();
   refreshClocks();
-}).catch(error=>status(error.message));
+  return true;
+}).catch(error=>{status(error.message);return false;});
 
 el('notice-panel').addEventListener('toggle',async(event)=>{
   if(!event.target.open || el('notice-copy').dataset.loaded)return;

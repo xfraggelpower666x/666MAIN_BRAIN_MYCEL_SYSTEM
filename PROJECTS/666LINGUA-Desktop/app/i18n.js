@@ -52,6 +52,8 @@ const english = {
   'Systemfreigabe nicht verfügbar. Wähle ein anderes Ziel oder kopiere den Text.':'System sharing is unavailable. Choose another destination or copy the text.',
   'Dieser Text ist für einen Freigabelink zu lang. Nutze Weitere Apps oder kopiere ihn.':'This text is too long for a share link. Use More apps or copy it.',
   'Das Teilen-Ziel konnte nicht geöffnet werden.':'Could not open the share destination.',
+  'Intro überspringen':'Skip intro','666LINGUA startet …':'Starting 666LINGUA …',
+  'Oberfläche lädt …':'Loading the interface …','Bereit':'Ready',
   'Kopieren':'Copy','Bearbeiten':'Edit','Löschen':'Delete','Hauptübersetzung':'Primary translation',
   'Natürlich / lokal':'Natural / local','Präzise / technisch':'Precise / technical','Emotional+':'Emotional+','Frech / spielerisch':'Cheeky / playful',
   'Hauptfassung · keine eigenständige Fassung belegt':'Primary wording · no separate phrasing available',
