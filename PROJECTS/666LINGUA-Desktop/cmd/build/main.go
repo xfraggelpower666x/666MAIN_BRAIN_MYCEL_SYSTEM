@@ -358,7 +358,39 @@ func configure(target string) error {
 	if err := os.MkdirAll("build-output", 0755); err != nil {
 		return err
 	}
-	return commit(stage, filepath.Join("build-output", target))
+	destination := filepath.Join("build-output", target)
+	if target == "setup" {
+		return publishSetup(stage, destination)
+	}
+	return commit(stage, destination)
+}
+
+func publishSetup(stage, destination string) error {
+	if err := commit(stage, destination); err != nil {
+		// Wenn die Ausgabe nicht umbenannt werden kann, ist die geprüfte
+		// Nutzlast noch im Stage. Eine alte laufende EXE bleibt unangetastet.
+		if _, stageErr := os.Stat(stage); stageErr != nil {
+			return err
+		}
+		fmt.Printf("[AUSGABE] Alter Setup-Ordner konnte nicht ersetzt werden: %v\n", err)
+		dir, reserveErr := os.MkdirTemp(filepath.Dir(destination), "setup-neu-")
+		if reserveErr != nil {
+			return errors.Join(err, reserveErr)
+		}
+		destination = filepath.Join(dir, "setup")
+		if moveErr := os.Rename(stage, destination); moveErr != nil {
+			_ = os.Remove(dir)
+			return errors.Join(err, moveErr)
+		}
+	}
+	for _, name := range []string{setupName, portableName} {
+		file := filepath.Join(destination, name)
+		if _, err := os.Stat(file); err != nil {
+			return err
+		}
+		fmt.Printf("PASS: %q\n", file)
+	}
+	return nil
 }
 
 func stageOutputs(stage, archive string, d electronruntime.Distribution, names []string) error {

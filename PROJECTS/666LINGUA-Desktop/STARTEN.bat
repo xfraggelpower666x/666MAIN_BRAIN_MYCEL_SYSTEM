@@ -125,10 +125,6 @@ exit /b %ERRORLEVEL%
 
 :installer
 call :developer setup
-set "BUILD_RC=%ERRORLEVEL%"
-if not "%BUILD_RC%"=="0" exit /b %BUILD_RC%
-call :artifact "build-output\setup\666LINGUA-Setup.exe" || exit /b 1
-call :artifact "build-output\setup\666LINGUA-Portable.exe"
 exit /b %ERRORLEVEL%
 
 :portable

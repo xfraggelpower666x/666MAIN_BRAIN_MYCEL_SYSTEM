@@ -81,7 +81,7 @@ Fehlt eine passende Toolchain, laden Setup, Build, Paketierung, Tests, Reparatur
 | `--check` / `check` | Prüft Go, die Projektdateien und SHA-256 der Electron-Laufzeit. Richtet fehlende Werkzeuge bei Bedarf ein und führt die Tests aus. |
 | `--package` / `portable` / Menü **3** | Testet und baut das portable x64-ZIP in `build-output/package`. |
 | `--toolstarter` | Prüft die Projektstruktur sowie die beiden R19-Quellarchive bei vorhandenem Quellenordner. |
-| `--setup` / `installer` / Menü **2** | Baut die eigenständige Setup-EXE und Portable-EXE in `build-output/setup`. |
+| `--setup` / `installer` / Menü **2** | Baut die eigenständige Setup-EXE und Portable-EXE in `build-output/setup`. Ist die vorherige Ausgabe in Benutzung, nennt die PASS-Zeile den Ersatzpfad unter `build-output/setup-neu-*/setup`. |
 | `--all` | Testet und erzeugt Setup, Portable-EXE und portables x64-ZIP samt Prüfliste in `release`. |
 
 Vor dem Menü prüft der Starter Projektdateien, Go und Electron 45.3.2 und führt die Projekttests aus. Download und Reparatur laufen nur bei Bedarf. Build-Protokolle stehen in `build-output/logs`. Die Menüpunkte 1 bis 4 folgen RADIO WAVE v6.66. Weitere Menüpunkte stehen für Entwicklung und Diagnose bereit. Das 666LINGUA-Setup nutzt seine vorhandene Installationsoberfläche mit individuellen Verknüpfungsoptionen.
