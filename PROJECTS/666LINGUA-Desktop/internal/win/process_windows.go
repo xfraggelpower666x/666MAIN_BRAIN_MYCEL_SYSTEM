@@ -2,10 +2,13 @@ package win
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strconv"
+	"strings"
 	"syscall"
 	"unsafe"
 )
@@ -14,15 +17,23 @@ func Hidden(cmd *exec.Cmd) {
 	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true, CreationFlags: 0x08000000}
 }
 
+func powerShellPath() string {
+	return filepath.Join(os.Getenv("SystemRoot"), "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
+}
+
 func PowerShell(script string, values ...string) error {
-	cmd := exec.Command("powershell.exe", "-NoProfile", "-NonInteractive", "-Command", script)
+	cmd := exec.Command(powerShellPath(), "-NoProfile", "-NonInteractive", "-Command", script)
 	cmd.Env = append(os.Environ(), values...)
 	Hidden(cmd)
-	return cmd.Run()
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("PowerShell: %w\n%s", err, strings.TrimSpace(string(out)))
+	}
+	return nil
 }
 
 func startCleanup(path string, pid int) error {
-	cmd := exec.Command("powershell.exe", "-NoProfile", "-NonInteractive", "-Command",
+	cmd := exec.Command(powerShellPath(), "-NoProfile", "-NonInteractive", "-Command",
 		`Wait-Process -Id ([int]$env:LINGUA_EXIT_PID) -ErrorAction SilentlyContinue; Remove-Item -LiteralPath $env:LINGUA_EXIT_PATH -Force -ErrorAction SilentlyContinue; $p = Split-Path -LiteralPath $env:LINGUA_EXIT_PATH; if ((Test-Path -LiteralPath $p) -and -not (Get-ChildItem -LiteralPath $p -Force)) { Remove-Item -LiteralPath $p -ErrorAction SilentlyContinue }`)
 	cmd.Env = append(os.Environ(), "LINGUA_EXIT_PID="+strconv.Itoa(pid), "LINGUA_EXIT_PATH="+path)
 	Hidden(cmd)

@@ -25,7 +25,7 @@ import (
 var program []byte
 
 const registry = `HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\666LINGUA`
-const installVersion = "1.8.2"
+const installVersion = "1.8.3"
 
 //go:embed options_windows.ps1
 var optionsScript string
@@ -65,6 +65,10 @@ func readOptions(readOnly bool) (*setupOptions, error) {
 	win.Hidden(command)
 	out, err := command.Output()
 	if err != nil {
+		var child *exec.ExitError
+		if errors.As(err, &child) && len(child.Stderr) != 0 {
+			return nil, fmt.Errorf("Setup-Optionen konnten nicht geöffnet werden: %w\nPowerShell: %s", err, strings.TrimSpace(string(child.Stderr)))
+		}
 		return nil, fmt.Errorf("Setup-Optionen konnten nicht geöffnet werden: %w", err)
 	}
 	raw := strings.TrimSpace(strings.TrimPrefix(string(out), "\ufeff"))
@@ -372,7 +376,7 @@ func run() error {
 
 func main() {
 	if err := run(); err != nil {
-		win.Message("666LINGUA Setup · "+runtime.GOARCH, err.Error(), 0x10)
+		win.StartupError("666LINGUA Setup", installVersion, err)
 		os.Exit(1)
 	}
 }

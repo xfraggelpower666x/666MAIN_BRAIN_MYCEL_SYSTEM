@@ -16,7 +16,7 @@ import (
 func TestBundledRuntime(t *testing.T) {
 	var data bytes.Buffer
 	z := zip.NewWriter(&data)
-	for _, name := range []string{"electron.exe", "resources.pak", "icudtl.dat", "locales/en.pak"} {
+	for _, name := range runtimeFiles {
 		file, err := z.Create(name)
 		if err != nil {
 			t.Fatal(err)
@@ -63,7 +63,7 @@ func TestBundledRuntime(t *testing.T) {
 	if err != nil || string(got) != "electron.exe" {
 		t.Fatalf("Laufzeit konnte nicht aus der EXE geladen werden: %s, %v", got, err)
 	}
-	if err := os.Remove(executable); err != nil {
+	if err := os.Remove(filepath.Join(filepath.Dir(executable), "ffmpeg.dll")); err != nil {
 		t.Fatal(err)
 	}
 	repaired, err := distribution.PrepareExecutable(portable, cache)

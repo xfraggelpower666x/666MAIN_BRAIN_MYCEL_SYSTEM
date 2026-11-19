@@ -1,4 +1,4 @@
-# 666LINGUA Desktop 1.8.2
+# 666LINGUA Desktop 1.8.3
 
 ## Windows x64 starten
 
@@ -9,6 +9,8 @@
 | `666LINGUA-Portable-win-x64.zip` | Vollständig entpacken und `666LINGUA-x64.exe` öffnen. Das Electron-Archiv liegt daneben. |
 
 Alle Ausgaben sind für Windows x64 auf Intel/AMD. Die App verwendet **Electron 45.3.2**. Beim ersten portablen Start entpackt sie die Laufzeit in den Benutzer-Cache. Folgestarts nutzen den Cache. Die Windows-Anwendung benötigt weder Node.js noch Go. Der Go-Übersetzungskern kommuniziert mit Electron über Prozesspipes. Die 666LINGUA-EXEs sind nicht signiert.
+
+Bei einem App- oder Setup-Startfehler zeigt das Fehlerfenster den Pfad zum Protokoll in `%LOCALAPPDATA%\666SOUNDsDESIGn\666LINGUA\logs`. Build-Fehler stehen in `build-output/logs`.
 
 ## Startintro
 

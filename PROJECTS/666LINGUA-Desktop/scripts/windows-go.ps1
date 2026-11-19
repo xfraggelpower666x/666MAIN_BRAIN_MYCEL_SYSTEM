@@ -130,8 +130,20 @@ try {
         $go = Find-Go
         if (-not $go) { throw 'No working Go compiler was found after installation.' }
     }
-    & $go run -buildvcs=false ./cmd/build $Action
-    exit $LASTEXITCODE
+    Write-Host "[BUILD] Go-Buildwerkzeug startet: $Action"
+    $nativeExit = 1
+    try {
+        # Windows PowerShell 5 behandelt umgeleitetes stderr als ErrorRecord.
+        # Der native Exitcode entscheidet, waehrend beide Kanaele im Log erscheinen.
+        $ErrorActionPreference = 'Continue'
+        & $go run -buildvcs=false ./cmd/build $Action 2>&1 |
+            ForEach-Object { Write-Host $_.ToString() }
+        $nativeExit = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = 'Stop'
+    }
+    Write-Host "[BUILD] $Action Exitcode: $nativeExit"
+    exit $nativeExit
 } catch {
     [Console]::Error.WriteLine("666LINGUA $Action failed: $($_.Exception.Message)")
     exit 1

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"embed"
 	"errors"
 	"fmt"
@@ -18,7 +19,7 @@ import (
 //go:embed electron/*.cjs electron/package.json
 var electronApp embed.FS
 
-func showError(message string) { win.Message("666LINGUA", message, 0x10) }
+func showError(message string) { win.StartupError("666LINGUA", version, errors.New(message)) }
 
 func openExternal(url string) error { return win.Open(url) }
 
@@ -44,7 +45,7 @@ func runDesktop(a *app, windowed bool) error {
 		executable, err = distribution.Prepare(filepath.Join(filepath.Dir(self), distribution.Name), cache)
 	}
 	if err != nil {
-		return err
+		return fmt.Errorf("Electron %s konnte nicht vorbereitet werden: %w", electronruntime.Version, err)
 	}
 	profile := filepath.Join(cache, "profile")
 	if err := os.MkdirAll(profile, 0700); err != nil {
@@ -80,6 +81,11 @@ func runDesktop(a *app, windowed bool) error {
 			command.Env = append(command.Env, entry)
 		}
 	}
+	// Auf Windows bleibt der JSON-Kanal auf den geerbten Prozesspipes.
+	command.Env = append(command.Env, "ELECTRON_NO_ATTACH_CONSOLE=1")
+	var stderr bytes.Buffer
+	command.Stderr = &stderr
+
 	output, err := command.StdoutPipe()
 	if err != nil {
 		return err
@@ -99,6 +105,10 @@ func runDesktop(a *app, windowed bool) error {
 		_ = command.Process.Kill()
 	}
 	if err := errors.Join(pipeErr, command.Wait()); err != nil {
+		detail := strings.TrimSpace(stderr.String())
+		if detail != "" {
+			return fmt.Errorf("Das 666LINGUA-Fenster wurde mit einem Fehler beendet: %w\nElectron %s: %s", err, electronruntime.Version, detail)
+		}
 		return fmt.Errorf("Das 666LINGUA-Fenster wurde mit einem Fehler beendet: %w", err)
 	}
 	return nil

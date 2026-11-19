@@ -112,6 +112,12 @@ func (d Distribution) PrepareExecutable(executable, cache string) (string, error
 	})
 }
 
+var runtimeFiles = []string{
+	"electron.exe", "ffmpeg.dll", "icudtl.dat", "resources.pak",
+	"chrome_100_percent.pak", "chrome_200_percent.pak", "snapshot_blob.bin",
+	"v8_context_snapshot.bin", "resources/default_app.asar", "locales/en-US.pak",
+}
+
 func (d Distribution) prepare(cache string, open func() (*os.File, *io.SectionReader, error)) (string, error) {
 	dir := filepath.Join(cache, strings.TrimSuffix(d.Name, ".zip"))
 	program := filepath.Join(dir, "electron.exe")
@@ -120,8 +126,8 @@ func (d Distribution) prepare(cache string, open func() (*os.File, *io.SectionRe
 		if err != nil || string(stamp) != d.SHA256 {
 			return false
 		}
-		for _, name := range []string{"electron.exe", "resources.pak", "icudtl.dat", "locales"} {
-			if _, err := os.Stat(filepath.Join(dir, name)); err != nil {
+		for _, name := range runtimeFiles {
+			if info, err := os.Stat(filepath.Join(dir, name)); err != nil || !info.Mode().IsRegular() || info.Size() == 0 {
 				return false
 			}
 		}
