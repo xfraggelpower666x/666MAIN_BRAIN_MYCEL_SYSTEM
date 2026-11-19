@@ -34,6 +34,15 @@ $form.FormBorderStyle = 'FixedDialog'
 $form.MaximizeBox = $false
 $form.MinimizeBox = $false
 $form.TopMost = $true
+$setupIcon = $null
+if ($env:LINGUA_SETUP_EXE) {
+    try {
+        $setupIcon = [System.Drawing.Icon]::ExtractAssociatedIcon($env:LINGUA_SETUP_EXE)
+        if ($setupIcon) { $form.Icon = $setupIcon }
+    } catch {
+        # Der Dialog bleibt auch ohne das Symbol benutzbar.
+    }
+}
 
 function Add-Control($kind, $label, $x, $y, $width, $height) {
     $control = New-Object "System.Windows.Forms.$kind"
@@ -85,4 +94,7 @@ $install.Add_Click({
 })
 try {
     if ($form.ShowDialog() -eq 'OK') { $options | ConvertTo-Json -Compress }
-} finally { $form.Dispose() }
+} finally {
+    $form.Dispose()
+    if ($setupIcon) { $setupIcon.Dispose() }
+}

@@ -25,7 +25,7 @@ import (
 var program []byte
 
 const registry = `HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\666LINGUA`
-const installVersion = "1.8.3"
+const installVersion = "1.8.4"
 
 //go:embed options_windows.ps1
 var optionsScript string
@@ -58,11 +58,15 @@ func readOptions(readOnly bool) (*setupOptions, error) {
 	}
 	command := exec.Command(filepath.Join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe"),
 		"-NoProfile", "-STA", "-NonInteractive", "-EncodedCommand", base64.StdEncoding.EncodeToString(data))
-	command.Env = append(os.Environ(), "LINGUA_SETUP_VERSION="+installVersion, "LINGUA_SETUP_READ_ONLY=0")
+	self, err := os.Executable()
+	if err != nil {
+		return nil, err
+	}
+	command.Env = append(os.Environ(), "LINGUA_SETUP_VERSION="+installVersion, "LINGUA_SETUP_READ_ONLY=0", "LINGUA_SETUP_EXE="+self)
 	if readOnly {
 		command.Env = append(command.Env, "LINGUA_SETUP_READ_ONLY=1")
 	}
-	win.Hidden(command)
+	win.WithoutConsole(command)
 	out, err := command.Output()
 	if err != nil {
 		var child *exec.ExitError
@@ -310,13 +314,17 @@ func uninstall(p locations, registered bool) error {
 	return win.DeleteAfterExit(p.setup, os.Getpid())
 }
 
-func run() error {
-	title := "666LINGUA Setup · " + runtime.GOARCH
+func withSetupLock(operation func() error) error {
 	release, err := win.SetupLock()
 	if err != nil {
 		return err
 	}
 	defer release()
+	return operation()
+}
+
+func run() error {
+	title := "666LINGUA Setup · " + runtime.GOARCH
 	switch {
 	case len(os.Args) == 2 && os.Args[1] == "--uninstall":
 		self, err := os.Executable()
@@ -343,7 +351,7 @@ func run() error {
 		if win.Message(title, "666LINGUA deinstallieren? Deine Einstellungen und bestätigten Übersetzungen bleiben im Benutzerprofil.", 0x24) != 6 {
 			return nil
 		}
-		if err := uninstall(p, registered); err != nil {
+		if err := withSetupLock(func() error { return uninstall(p, registered) }); err != nil {
 			return err
 		}
 		win.Message(title, "666LINGUA wurde deinstalliert.", 0x40)
@@ -357,7 +365,7 @@ func run() error {
 		if err != nil {
 			return err
 		}
-		if err := install(p); err != nil {
+		if err := withSetupLock(func() error { return install(p) }); err != nil {
 			return err
 		}
 		if o.Launch {

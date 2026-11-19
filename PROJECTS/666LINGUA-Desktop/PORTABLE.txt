@@ -1,4 +1,4 @@
-666LINGUA Desktop 1.8.3 · Windows x64 · R19
+666LINGUA Desktop 1.8.4 · Windows x64 · R19
 Das ZIP vollständig entpacken und 666LINGUA-x64.exe starten.
 Die Electron-ZIP-Datei neben der EXE lassen.
 Die eigenständige 666LINGUA-Portable.exe ist eine separate Ausgabe.

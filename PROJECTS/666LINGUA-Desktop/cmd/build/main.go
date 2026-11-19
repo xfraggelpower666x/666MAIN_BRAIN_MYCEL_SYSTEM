@@ -63,7 +63,7 @@ func hash(path string) (string, error) {
 	return hex.EncodeToString(h.Sum(nil)), nil
 }
 func preflight() error {
-	for _, path := range []string{"go.mod", "STARTEN.bat", "scripts/windows-go.ps1", "app/index.html", "electron/main.cjs", "electron/preload.cjs", "electron/package.json", "data/phrases.tsv", "data/r19.json", "cmd/setup/setup_windows.go"} {
+	for _, path := range []string{"go.mod", "STARTEN.bat", "scripts/windows-go.ps1", "app/index.html", "electron/main.cjs", "electron/preload.cjs", "electron/package.json", "data/phrases.tsv", "data/r19.json", "cmd/setup/setup_windows.go", "icon_windows_amd64.syso", "cmd/setup/icon_windows_amd64.syso"} {
 		if _, err := os.Stat(path); err != nil {
 			return err
 		}
@@ -97,6 +97,9 @@ func verifyPE(r io.ReaderAt, name string) error {
 	header, is64 := f.OptionalHeader.(*pe.OptionalHeader64)
 	if !is64 || f.Machine != pe.IMAGE_FILE_MACHINE_AMD64 || header.Subsystem != 2 {
 		return fmt.Errorf("Erwartet wurde ein Windows-x64-GUI-Programm: %s", name)
+	}
+	if f.Section(".rsrc") == nil {
+		return fmt.Errorf("Windows-Ressourcen mit Programmsymbol fehlen: %s", name)
 	}
 	return nil
 }

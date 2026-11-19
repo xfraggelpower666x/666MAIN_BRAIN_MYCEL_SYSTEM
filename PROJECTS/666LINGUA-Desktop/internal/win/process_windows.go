@@ -1,7 +1,6 @@
 package win
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -13,8 +12,15 @@ import (
 	"unsafe"
 )
 
+const createNoWindow = 0x08000000
+
 func Hidden(cmd *exec.Cmd) {
-	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true, CreationFlags: 0x08000000}
+	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true, CreationFlags: createNoWindow}
+}
+
+// WithoutConsole suppresses PowerShell's console and leaves its WinForms dialog visible.
+func WithoutConsole(cmd *exec.Cmd) {
+	cmd.SysProcAttr = &syscall.SysProcAttr{CreationFlags: createNoWindow}
 }
 
 func powerShellPath() string {
@@ -46,28 +52,27 @@ func startCleanup(path string, pid int) error {
 var kernel32 = syscall.NewLazyDLL("kernel32.dll")
 
 func SetupLock() (func(), error) {
-	return namedLock("Local\\666LINGUA-Desktop-Setup-v1")
+	return namedLockTimeout("Local\\666LINGUA-Desktop-Setup-v1", "Setup oder Deinstallation", 10000)
 }
 
 func ElectronCacheLock() (func(), error) {
-	return namedLockTimeout("Local\\666LINGUA-Desktop-ElectronCache-v1", 120000)
+	return namedLockTimeout("Local\\666LINGUA-Desktop-ElectronCache-v1", "Electron-Cache", 120000)
 }
 
-func namedLock(name string) (func(), error) {
-	return namedLockTimeout(name, 10000)
-}
-
-func namedLockTimeout(name string, waitMS uintptr) (func(), error) {
+func namedLockTimeout(name, task string, waitMS uintptr) (func(), error) {
 	handle, _, err := kernel32.NewProc("CreateMutexW").Call(0, 0, uintptr(unsafe.Pointer(text(name))))
 	if handle == 0 {
 		return nil, err
 	}
 	runtime.LockOSThread()
-	wait, _, _ := kernel32.NewProc("WaitForSingleObject").Call(handle, waitMS)
-	if wait != 0 && wait != 0x80 {
+	wait, _, waitErr := kernel32.NewProc("WaitForSingleObject").Call(handle, waitMS)
+	if status := uint32(wait); status != 0 && status != 0x80 {
 		_ = syscall.CloseHandle(syscall.Handle(handle))
 		runtime.UnlockOSThread()
-		return nil, errors.New("Ein anderer 666LINGUA-Vorgang hält die Sperre.")
+		if status == 0x102 {
+			return nil, fmt.Errorf("%s wird bereits von einer anderen 666LINGUA-Instanz ausgeführt.", task)
+		}
+		return nil, fmt.Errorf("Windows konnte die Sperre für %s nicht übernehmen (Status 0x%08x): %w", task, status, waitErr)
 	}
 	return func() {
 		kernel32.NewProc("ReleaseMutex").Call(handle)
@@ -77,5 +82,5 @@ func namedLockTimeout(name string, waitMS uintptr) (func(), error) {
 }
 
 func LearningLock() (func(), error) {
-	return namedLock("Local\\666LINGUA-Desktop-Learning-v1")
+	return namedLockTimeout("Local\\666LINGUA-Desktop-Learning-v1", "Übersetzungsdaten", 10000)
 }
