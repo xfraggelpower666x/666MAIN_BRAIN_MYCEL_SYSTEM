@@ -3,6 +3,8 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	_ "embed"
 	"encoding/base64"
 	"encoding/binary"
@@ -15,6 +17,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 	"unicode/utf16"
 
 	"lingua666/internal/electronruntime"
@@ -25,7 +28,7 @@ import (
 var program []byte
 
 const registry = `HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\666LINGUA`
-const installVersion = "1.8.4"
+const installVersion = "1.8.5"
 
 //go:embed options_windows.ps1
 var optionsScript string
@@ -67,12 +70,8 @@ func readOptions(readOnly bool) (*setupOptions, error) {
 		command.Env = append(command.Env, "LINGUA_SETUP_READ_ONLY=1")
 	}
 	win.WithoutConsole(command)
-	out, err := command.Output()
+	out, err := setupDialogOutput(command)
 	if err != nil {
-		var child *exec.ExitError
-		if errors.As(err, &child) && len(child.Stderr) != 0 {
-			return nil, fmt.Errorf("Setup-Optionen konnten nicht geöffnet werden: %w\nPowerShell: %s", err, strings.TrimSpace(string(child.Stderr)))
-		}
 		return nil, fmt.Errorf("Setup-Optionen konnten nicht geöffnet werden: %w", err)
 	}
 	raw := strings.TrimSpace(strings.TrimPrefix(string(out), "\ufeff"))
@@ -84,6 +83,58 @@ func readOptions(readOnly bool) (*setupOptions, error) {
 		return nil, fmt.Errorf("Setup-Auswahl konnte nicht gelesen werden: %w", err)
 	}
 	return &o, nil
+}
+
+func setupDialogOutput(command *exec.Cmd) ([]byte, error) {
+	output, err := command.StdoutPipe()
+	if err != nil {
+		return nil, err
+	}
+	defer output.Close()
+	var stdout, stderr bytes.Buffer
+	command.Stderr = &stderr
+	if err := command.Start(); err != nil {
+		return nil, err
+	}
+	visible := make(chan struct{}, 1)
+	done := make(chan error, 1)
+	go func() {
+		scanner := bufio.NewScanner(output)
+		scanner.Buffer(make([]byte, 4096), 256000)
+		for scanner.Scan() {
+			if scanner.Text() == "LINGUA_SETUP_VISIBLE" {
+				select {
+				case visible <- struct{}{}:
+				default:
+				}
+			} else {
+				stdout.WriteString(scanner.Text())
+				stdout.WriteByte('\n')
+			}
+		}
+		scanErr := scanner.Err()
+		if scanErr != nil {
+			_ = command.Process.Kill()
+		}
+		done <- errors.Join(scanErr, command.Wait())
+	}()
+	timer := time.NewTimer(60 * time.Second)
+	defer timer.Stop()
+	select {
+	case <-visible:
+		err = <-done
+	case err = <-done:
+	case <-timer.C:
+		_ = command.Process.Kill()
+		err = errors.Join(errors.New("Der Windows-Setup-Dialog wurde nach 60 Sekunden nicht sichtbar."), <-done)
+	}
+	if err != nil {
+		if detail := strings.TrimSpace(stderr.String()); detail != "" {
+			return nil, fmt.Errorf("%w\nPowerShell: %s", err, detail)
+		}
+		return nil, err
+	}
+	return stdout.Bytes(), nil
 }
 
 func (o setupOptions) paths() (locations, error) {

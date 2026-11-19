@@ -92,6 +92,12 @@ $install.Add_Click({
         [void][System.Windows.Forms.MessageBox]::Show($form, $_.Exception.Message, '666LINGUA Setup')
     }
 })
+$form.Add_Shown({
+    [void]$form.Activate()
+    [Console]::Out.WriteLine('LINGUA_SETUP_VISIBLE')
+    [Console]::Out.Flush()
+})
+
 try {
     if ($form.ShowDialog() -eq 'OK') { $options | ConvertTo-Json -Compress }
 } finally {

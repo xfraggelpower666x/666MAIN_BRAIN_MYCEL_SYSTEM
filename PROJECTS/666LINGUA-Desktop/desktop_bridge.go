@@ -25,7 +25,7 @@ type desktopResponse struct {
 	Body    []byte            `json:"body"`
 }
 
-// Der Desktop nutzt Prozesspipes. Die vorhandenen Handler benötigen keinen TCP-Port.
+// Der Desktop nutzt einen separaten lokalen Datenkanal. Die vorhandenen Handler benötigen keinen TCP-Port.
 func serveDesktopPipe(input io.Reader, output io.Writer, handler http.Handler) error {
 	scanner := bufio.NewScanner(input)
 	// JSON kann Steuerzeichen aus einer 200-KB-Anfrage sechsfach maskieren.

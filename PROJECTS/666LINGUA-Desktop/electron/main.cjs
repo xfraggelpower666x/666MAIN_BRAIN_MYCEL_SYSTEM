@@ -1,6 +1,7 @@
 'use strict';
 
 const { app, BrowserWindow, clipboard, ipcMain, Menu, protocol, session } = require('electron');
+const { createConnection } = require('node:net');
 const { createInterface } = require('node:readline');
 
 const origin = 'lingua://desktop';
@@ -15,7 +16,15 @@ protocol.registerSchemesAsPrivileged([
 app.setName('666LINGUA');
 app.commandLine.appendSwitch('disable-background-networking');
 app.setPath('userData', process.argv[process.argv.indexOf('--lingua-profile') + 1]);
-const responses = createInterface({ input: process.stdin, terminal: false });
+const bridgePath = process.env.LINGUA_BRIDGE_PIPE;
+if (!bridgePath) throw new Error('Der lokale 666LINGUA-Datenkanal fehlt.');
+const bridge = createConnection(bridgePath);
+bridge.on('error', (error) => {
+  if (closing) return;
+  console.error('Electron-Datenkanal:', error);
+  app.exit(1);
+});
+const responses = createInterface({ input: bridge, terminal: false });
 responses.on('line', (line) => {
   try {
     const { id, status, headers, body } = JSON.parse(line);
@@ -31,9 +40,11 @@ responses.on('line', (line) => {
   }
 });
 responses.on('close', () => {
-  if (!closing) app.exit(1);
+  if (!closing) {
+    console.error('Der lokale 666LINGUA-Datenkanal wurde geschlossen.');
+    app.exit(1);
+  }
 });
-process.stdout.on('error', () => app.exit(1));
 app.on('before-quit', () => { closing = true; });
 app.on('window-all-closed', () => app.quit());
 
@@ -60,7 +71,7 @@ async function serve(request) {
   return new Promise((resolve) => {
     const id = ++nextId;
     pending.set(id, resolve);
-    process.stdout.write(JSON.stringify({ id, method, path: pathname + search, body }) + '\n');
+    bridge.write(JSON.stringify({ id, method, path: pathname + search, body }) + '\n');
   });
 }
 
