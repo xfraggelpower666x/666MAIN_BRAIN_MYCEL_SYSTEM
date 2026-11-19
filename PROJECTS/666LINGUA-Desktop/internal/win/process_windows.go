@@ -38,13 +38,21 @@ func SetupLock() (func(), error) {
 	return namedLock("Local\\666LINGUA-Desktop-Setup-v1")
 }
 
+func ElectronCacheLock() (func(), error) {
+	return namedLockTimeout("Local\\666LINGUA-Desktop-ElectronCache-v1", 120000)
+}
+
 func namedLock(name string) (func(), error) {
+	return namedLockTimeout(name, 10000)
+}
+
+func namedLockTimeout(name string, waitMS uintptr) (func(), error) {
 	handle, _, err := kernel32.NewProc("CreateMutexW").Call(0, 0, uintptr(unsafe.Pointer(text(name))))
 	if handle == 0 {
 		return nil, err
 	}
 	runtime.LockOSThread()
-	wait, _, _ := kernel32.NewProc("WaitForSingleObject").Call(handle, 10000)
+	wait, _, _ := kernel32.NewProc("WaitForSingleObject").Call(handle, waitMS)
 	if wait != 0 && wait != 0x80 {
 		_ = syscall.CloseHandle(syscall.Handle(handle))
 		runtime.UnlockOSThread()

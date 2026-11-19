@@ -25,7 +25,7 @@ import (
 var program []byte
 
 const registry = `HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\666LINGUA`
-const installVersion = "1.8.1"
+const installVersion = "1.8.2"
 
 //go:embed options_windows.ps1
 var optionsScript string

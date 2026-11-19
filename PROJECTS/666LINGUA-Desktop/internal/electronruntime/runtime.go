@@ -130,6 +130,14 @@ func (d Distribution) prepare(cache string, open func() (*os.File, *io.SectionRe
 	if ready() {
 		return program, nil
 	}
+	unlock, err := lockCache()
+	if err != nil {
+		return "", err
+	}
+	defer unlock()
+	if ready() {
+		return program, nil
+	}
 	file, archive, err := open()
 	if err != nil {
 		return "", err
@@ -152,8 +160,25 @@ func (d Distribution) prepare(cache string, open func() (*os.File, *io.SectionRe
 	if err := os.WriteFile(filepath.Join(stage, ".sha256"), []byte(d.SHA256), 0600); err != nil {
 		return "", err
 	}
-	if err := os.Rename(stage, dir); err != nil && !ready() {
-		return "", fmt.Errorf("Electron-Laufzeit konnte nicht bereitgestellt werden. Ordner prüfen: %s: %w", dir, err)
+	var saved string
+	if _, err := os.Lstat(dir); err == nil {
+		recovery, err := os.MkdirTemp(cache, ".electron-recovery-")
+		if err != nil {
+			return "", err
+		}
+		saved = filepath.Join(recovery, filepath.Base(dir))
+		if err := os.Rename(dir, saved); err != nil {
+			_ = os.Remove(recovery)
+			return "", fmt.Errorf("Defekter Electron-Cache konnte nicht gesichert werden: %w", err)
+		}
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return "", err
+	}
+	if err := os.Rename(stage, dir); err != nil {
+		if saved != "" {
+			err = errors.Join(err, os.Rename(saved, dir))
+		}
+		return "", fmt.Errorf("Electron-Laufzeit konnte nicht bereitgestellt werden: %w", err)
 	}
 	if !ready() {
 		return "", fmt.Errorf("Electron-Laufzeit ist unvollständig: %s", dir)

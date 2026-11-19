@@ -1,4 +1,4 @@
-# 666LINGUA Desktop 1.8.1
+# 666LINGUA Desktop 1.8.2
 
 ## Windows x64 starten
 
@@ -69,7 +69,7 @@ Fehlt eine passende Toolchain, laden Setup, Build, Paketierung, Tests, Reparatur
 
 | Aktion | Ergebnis |
 | --- | --- |
-| `--start` / Menü **1** | Startet einen vorhandenen x64-Build oder baut die App direkt aus den Quellen. |
+| `--start` / Menü **1** | Prüft die Projektwerkzeuge, baut aus dem geöffneten Quellordner und startet genau diesen Build. |
 | `--windowed` | Öffnet das eigene App-Fenster im Fenstermodus. `--browser` ist als alter Befehlsalias verfügbar. |
 | `--diagnose` | Vergleicht Quellarchiv-Hashes, Release-Hashes, PE-Architektur und Portable-Inhalt. |
 | `--repair` | Prüft die Quellen, führt Tests aus, erzeugt ein vollständiges Release und sichert die alte Ausgabe separat. |
@@ -82,7 +82,7 @@ Fehlt eine passende Toolchain, laden Setup, Build, Paketierung, Tests, Reparatur
 | `--setup` / `installer` / Menü **2** | Baut die eigenständige Setup-EXE und Portable-EXE in `build-output/setup`. |
 | `--all` | Testet und erzeugt Setup, Portable-EXE und portables x64-ZIP samt Prüfliste in `release`. |
 
-Die Menüpunkte 1 bis 4 folgen RADIO WAVE v6.66. Weitere Menüpunkte stehen für Entwicklung und Diagnose bereit. Das 666LINGUA-Setup nutzt seine vorhandene Installationsoberfläche mit individuellen Verknüpfungsoptionen.
+Vor dem Menü prüft der Starter Projektdateien, Go und Electron 45.3.2 und führt die Projekttests aus. Download und Reparatur laufen nur bei Bedarf. Build-Protokolle stehen in `build-output/logs`. Die Menüpunkte 1 bis 4 folgen RADIO WAVE v6.66. Weitere Menüpunkte stehen für Entwicklung und Diagnose bereit. Das 666LINGUA-Setup nutzt seine vorhandene Installationsoberfläche mit individuellen Verknüpfungsoptionen.
 
 Auf Linux kann das Windows-x64-Release mit `go run -buildvcs=false ./cmd/build all` gebaut werden. Quellarchive und nachvollziehbare Übernahmen stehen in [QUELLEN.md](QUELLEN.md).
 

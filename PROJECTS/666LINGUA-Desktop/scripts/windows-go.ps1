@@ -104,7 +104,19 @@ function Install-Go {
     }
 }
 
+$transcribing = $false
 try {
+    # Separate Protokolle fuer Preflight und Aktion vermeiden Ueberschreiben und zeigen den letzten Fehler.
+    try {
+        $logs = Join-Path $project 'build-output/logs'
+        [void][IO.Directory]::CreateDirectory($logs)
+        $log = Join-Path $logs ((Get-Date -Format 'yyyyMMdd-HHmmss-fff') + '-' + $PID + '-' + $Action + '.log')
+        Start-Transcript -LiteralPath $log -ErrorAction Stop | Out-Null
+        $transcribing = $true
+        Write-Host "Build log: $log"
+    } catch {
+        Write-Warning "Build log could not be opened: $($_.Exception.Message)"
+    }
     $directive = Select-String -LiteralPath 'go.mod' -Pattern '^go\s+([0-9]+\.[0-9]+(?:\.[0-9]+)?)\s*$'
     if (-not $directive) { throw 'The minimum Go version could not be read from go.mod.' }
     $minimum = [version]$directive.Matches[0].Groups[1].Value
@@ -123,4 +135,6 @@ try {
 } catch {
     [Console]::Error.WriteLine("666LINGUA $Action failed: $($_.Exception.Message)")
     exit 1
+} finally {
+    if ($transcribing) { Stop-Transcript -ErrorAction SilentlyContinue | Out-Null }
 }

@@ -63,6 +63,18 @@ func TestBundledRuntime(t *testing.T) {
 	if err != nil || string(got) != "electron.exe" {
 		t.Fatalf("Laufzeit konnte nicht aus der EXE geladen werden: %s, %v", got, err)
 	}
+	if err := os.Remove(executable); err != nil {
+		t.Fatal(err)
+	}
+	repaired, err := distribution.PrepareExecutable(portable, cache)
+	if err != nil || repaired != executable {
+		t.Fatalf("Defekter Cache wurde nicht repariert: %s, %v", repaired, err)
+	}
+	saved, err := filepath.Glob(filepath.Join(cache, ".electron-recovery-*", "fixture", ".sha256"))
+	if err != nil || len(saved) != 1 {
+		t.Fatalf("Defekter Cache wurde nicht gesichert: %v, %v", saved, err)
+	}
+
 	bundled.Bytes()[len(original)] ^= 1
 	if err := os.WriteFile(portable, bundled.Bytes(), 0600); err != nil {
 		t.Fatal(err)
