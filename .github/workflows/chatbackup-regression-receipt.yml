@@ -72,5 +72,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add provenance/REPO_REGRESSION_READBACK.json
           git commit -m "test(chatbackup): record GitHub branch regression and legacy blob readback"
-          git pull --rebase origin migration/chatbackup-r1-detach-20261120
+          # Do not rebase evidence onto untested commits; let a non-fast-forward push fail.
           git push origin HEAD:migration/chatbackup-r1-detach-20261120
