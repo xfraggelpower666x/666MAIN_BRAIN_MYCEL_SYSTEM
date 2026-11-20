@@ -46,3 +46,7 @@ DRIVE_HISTORY_ONLY=FALSE_UNTIL_FINAL_COMPLETION_GATE
 STALE_HISTORY_PROMOTION=FORBIDDEN
 BACKUP_PROMOTION=FORBIDDEN
 MAX_UNVERIFIED_ASSUMPTIONS=0
+
+## MYCEL R01 · Sub-LiveCircle and shared guidance attachment
+
+After native Whole Current / Authority / Continuity resolution, use [Facet Sub-LiveCircle](FACET_SUB_LIVECIRCLE.md) and [Facet Registry](FACET_RUNTIME_REGISTRY.json) only for causally relevant PSYLLO facets. Non-selected facets remain reachable/idle. Bind one shared task-scoped [Guidance Daemon](../DAEMON/GUIDANCE_CONTRACT.md) with [facet adapters](../DAEMON/FACET_ADAPTERS.json) for grounded next-step guidance. Sub-circles return to existing Whole checkpoint, lock/queue and write/readback sequence; they cannot create authority, background execution, separate system identity or foreign routing. Native UI remains optional and falls back to text. SOURCE acceptance is independent from plugin HOST acceptance.
