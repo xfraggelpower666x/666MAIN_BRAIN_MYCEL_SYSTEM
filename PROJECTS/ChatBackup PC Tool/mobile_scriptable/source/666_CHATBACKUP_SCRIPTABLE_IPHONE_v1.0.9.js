@@ -716,7 +716,7 @@ async function browseImages(images) {
 const MAX_IMAGE_DOWNLOAD_BYTES = 30 * 1024 * 1024;
 function isSafeRemoteImageUrl(value) {
   const url = String(value || '').trim();
-  if (url.length > 4096 || /[\\u0000-\\u0020\\u007f]/.test(url)) return false;
+  if (url.length > 4096 || Array.from(url).some(ch => ch.charCodeAt(0) <= 32 || ch.charCodeAt(0) === 127)) return false;
   const match = /^https:\/\/([^\/?#]+)(?:[\/?#]|$)/i.exec(url);
   if (!match || url.includes('#') || match[1].includes('@')) return false;
   const authority = match[1].toLowerCase();
