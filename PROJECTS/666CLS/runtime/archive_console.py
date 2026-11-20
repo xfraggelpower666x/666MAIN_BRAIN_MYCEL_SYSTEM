@@ -15,6 +15,8 @@ from tempfile import TemporaryDirectory
 from cls_livecircle import DOMAINS, ROOT, SYSTEM, json_text, read, rehydrate, require
 from dashboard import render_dashboard
 from framework_intake import analyze
+from framework_source_catalog import summary as catalog_summary
+from cls_facet_runtime import facet_model
 from shared_archive import CLIENT_ID, authorize, inbox_counts, live_records, pending, prepare, submit
 
 LIMIT = 1024 * 1024
@@ -82,7 +84,8 @@ class Console:
         existing = {item["id"] for item in result}
         result.extend(dict(item) for item in FRAMEWORK_REFERENCES if item["id"] not in existing)
         return {"archive_version": state["version"], "counts": state["domains"],
-                "frameworks": result}
+                "frameworks": result, "source_catalog": catalog_summary(),
+                "facet_runtime": facet_model(self.root)}
 
     def overview(self, output):
         state = rehydrate(self.root)

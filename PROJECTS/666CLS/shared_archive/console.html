@@ -24,7 +24,9 @@ article{border-block-start:1px solid #39314e;padding:.5rem 0}
 <p id="release"></p>
 <nav aria-label="Hauptmenü">
   <button type="button" data-panel="frameworks">Frameworks</button>
+  <button type="button" data-panel="facets">Facetten</button>
   <button type="button" data-panel="intake">Systemaufnahme</button>
+  <button type="button" data-panel="catalog">Quellenkatalog</button>
   <button type="button" data-panel="archive">Archiv</button>
   <button type="button" data-panel="inbox">Eingang</button>
   <a href="overview">Nachweise und Visualisierung</a>
@@ -38,6 +40,8 @@ article{border-block-start:1px solid #39314e;padding:.5rem 0}
   <label id="handoff-label" hidden>Trigger für den zugehörigen Chat <input id="handoff" readonly></label>
   <pre id="framework-result" hidden></pre>
 </section>
+<section id="catalog" hidden><h2>Geprüfte Quellen · nur Referenzen</h2><p>Keine fremde Runtime-Aktivierung, keine Archivberechtigungen.</p><div id="source-catalog"></div></section>
+<section id="facets" hidden><h2>Facetten · LiveCircle</h2><p id="main-livecircle"></p><div id="facet-guide"></div><div id="facet-items"></div></section>
 <section id="intake" hidden>
   <h2>Einzelsystem einordnen</h2>
   <p>JSON-Dossier mit Fundstellen einfügen oder laden. Im Dossier kannst du ein registriertes Framework als Vergleichsziel angeben.</p>
@@ -87,7 +91,7 @@ function element(tag, text) {
 }
 function openPanel(id) {
   document.querySelectorAll('[data-panel]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.panel === id)));
-  ['frameworks','intake','archive','inbox'].forEach((name) => get(name).hidden = name !== id);
+  ['frameworks','intake','catalog','archive','inbox'].forEach((name) => get(name).hidden = name !== id);
 }
 async function request(path, body) {
   const opts = body ? {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)} : {};
@@ -127,6 +131,18 @@ function renderEntries() {
     return node;
   }));
   if (query && !visible.length) get('records').append(element('p', 'Keine passenden Einträge.'));
+}
+function renderCatalog() {
+  const info = model?.source_catalog;
+  const place = get('source-catalog');
+  if (!info) return place.replaceChildren(element('p','Kein geprüfter Quellenkatalog.'));
+  place.replaceChildren(...info.sources.map((item) => {
+    const box = element('article','');
+    box.append(element('h3', item.id + ' · v' + item.version),
+      element('p', item.classification + ' · ' + item.owner_scope),
+      element('p', item.summary), element('small','Quelle SHA-256: ' + item.source_sha256));
+    return box;
+  }));
 }
 function updateFramework() {
   const entry = active();
@@ -230,8 +246,20 @@ run(async () => {
   get('release').textContent = 'Archivstand v' + model.archive_version;
   get('counts').textContent = Object.entries(model.counts).map(([name,count]) => name + ' ' + count).join(' · ');
   framework.replaceChildren(...model.frameworks.map((item) => Object.assign(element('option',item.name),{value:item.id})));
+  const life = model.facet_runtime;
+  get('main-livecircle').textContent = life.main_livecircle + ' · CLS v' + life.cls_version;
+  get('facet-guide').textContent = life.guide.recommendation + ' · nur lesende Begleitung';
+  get('facet-items').replaceChildren(...life.facets.map((item) => {
+    const article = element('article','');
+    article.append(element('h3',item.name + ' · ' + item.version),
+                   element('p',item.classification + ' · ' + item.status),
+                   element('p','Native: ' + item.native_system_id),
+                   element('p','Offen: ' + item.next_step));
+    return article;
+  }));
   openPanel('frameworks');
   updateFramework();
+  renderCatalog();
 })();
 </script>
 </html>

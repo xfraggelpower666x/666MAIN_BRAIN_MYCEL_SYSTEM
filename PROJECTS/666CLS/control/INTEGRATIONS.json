@@ -74,8 +74,8 @@
       "name": "666CLS Framework- und Archivsteuerung",
       "role": "LOCAL_OPERATOR_CONSOLE",
       "sha256": {
-        "runtime/archive_console.py": "e38d4de467d31887417933851bc7ff9de218306bcf603d94eb83dfc07d16c119",
-        "shared_archive/console.html": "a08dcb78fcbb229f56d644331a4f2253370c2b967efa81ddc3708c5a03ed577e",
+        "runtime/archive_console.py": "1b26700ed8beedd3aabdfcc66a4242659fb4c8e7c23dd570edc1885da23097c7",
+        "shared_archive/console.html": "03ddf2ca2ed338712bc5a9255de9feb23a2051d84b642d9b5287b3c61b5751e8",
         "tests/test_archive_console.py": "a2de2c9bc250cca3929c7a74de1d955bed3dbca4e51769eabc253ed91df8701d"
       }
     },
@@ -85,6 +85,42 @@
       "sha256": {
         "runtime/framework_intake.py": "17136a173608ae0010c8b811c99570272cdfb110e5ba062728205ec2ded2c316",
         "tests/test_framework_intake.py": "98956a58eb4740a409563c1577100afceb51480cfcc9e195e4dc10aef5d8bc7a"
+      }
+    },
+    {
+      "name": "666CLS Source Evidence Catalog v1",
+      "role": "READ_ONLY_SOURCE_EVIDENCE",
+      "sha256": {
+        "catalog/FRAMEWORK_SOURCE_INDEX.json": "569d263c9350a1f02f6468264e90e8fdfea8ca55cdca8007916b3efc47cec37a",
+        "runtime/framework_source_catalog.py": "0e524c315b24487b31d18f8d7ecd8918d86686ca79daf60bfde6ff25d29fd299",
+        "tests/test_framework_source_catalog.py": "2bf65f163e27ea5d3b3eb8f7c97a11eb7adf543c838536d3139bdf923c99df9a"
+      }
+    },
+    {
+      "name": "666CLS Main Sub-LiveCircle Intelligent UI V1",
+      "role": "NATIVE_READ_ONLY_FACET_ORCHESTRATION",
+      "source": {
+        "scope": "CLS_NATIVELY_SCOPED_NO_FOREIGN_EXECUTION",
+        "base_version": "1.24.4",
+        "candidate_version": "1.24.5",
+        "foreign_native_authority": "UNCHANGED"
+      },
+      "sha256": {
+        "facets/MAIN_LIVECIRCLE.json": "4b2b30d80c5b43945a99b004150207873d4175468e123c3ded14f52e07aff7af",
+        "facets/FACET_REGISTRY.json": "834d070ba8d0c24bad86adf098319265c0c15d05f5d6c655691b63e3ffcc6de4",
+        "facets/README.md": "e40987dcc920032c938e994325216afca529a19b4759c4ef9902d77558e70b19",
+        "runtime/cls_facet_runtime.py": "0f94c04a94cb88f3fa681347b8812a1c374ead1b8d34910c7c5353f389e9a3e6",
+        "tests/test_cls_facet_runtime.py": "8fb3c6dba4fe2ff6642c1ccff63558c080c8e2470eda72f96ffa9fe3fecb8012",
+        "facets/cures/LIVECIRCLE.json": "cbbb82c99555eb72de14a64bff759735a7d5e2a67cf175b65a082c9debe02a0e",
+        "facets/cures/UI.json": "ae310359c32675985d5bda911ea1028243c050e22826ebddf918a2f898a48a33",
+        "facets/lyrics-fulltext/LIVECIRCLE.json": "099fcaa4a373fc5c264e6969f19185966b15e62392c0497bc7b7f644791f948b",
+        "facets/lyrics-fulltext/UI.json": "8e4b20d536d7c051d7cb6aac900f1e5ceb6300d79cc735593946952d751f40c9",
+        "facets/mantra-router/LIVECIRCLE.json": "1e6e442d3d1b289325d48e65860dec97d3bd20fc68b1f0032237459f114ad3a7",
+        "facets/mantra-router/UI.json": "6d476e2a6b51976c4007f2aa7e9d2ddc793db82e834d7be96ce948efd3bad08e",
+        "facets/cover-builder/LIVECIRCLE.json": "040c5af18fb71889aa28180a246948bb8bba75b3b7c0010fda1b6e52962f42a7",
+        "facets/cover-builder/UI.json": "3009d9e05da6028b83ad0378e05d3207a6facc2e8393f3bb057ecd1a40fe6b39",
+        "facets/character-auditor/LIVECIRCLE.json": "0085f43bbea7b937c37972f5b676c627d1e2582a7afaea15ea704402a4389029",
+        "facets/character-auditor/UI.json": "fea09d84741f224d0d7775b37aa737c2688026c1aac19953e49bf1f7d5efd64e"
       }
     }
   ]

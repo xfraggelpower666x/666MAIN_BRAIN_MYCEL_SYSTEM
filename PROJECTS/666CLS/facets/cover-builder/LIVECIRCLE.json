@@ -1,0 +1,15 @@
+{
+  "schema": "666CLS_SUB_LIVECIRCLE_V1",
+  "facet_id": "cover-builder",
+  "state": "REFERENCE_ONLY",
+  "native_system_id": "666-COVER-BUILDER-ORCHESTRA",
+  "native_entry": "",
+  "parent_cls": "666CLS-CORE-001",
+  "source_version": "1.0.3-rc1",
+  "source_sha256": "2b9cc1ca0d537aa7da0ca54e1630b1d073566e10caffdb40269ad458cc3fa5b4",
+  "autoload": false,
+  "execution_authority": "NATIVE_OWNER_ONLY",
+  "triggers": {},
+  "rehydration": "VERIFY_PARENT_THEN_SOURCE_EVIDENCE",
+  "continuation": "ORIGINAL_SOURCE_UNAVAILABLE"
+}

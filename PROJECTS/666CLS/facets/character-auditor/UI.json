@@ -1,0 +1,15 @@
+{
+  "schema": "666CLS_SUB_UI_V1",
+  "facet_id": "character-auditor",
+  "title": "666 Visual Character Auditor",
+  "views": [
+    "Überblick",
+    "Quellen",
+    "Abhängigkeiten",
+    "Audit",
+    "Fortsetzung"
+  ],
+  "actions": [],
+  "mode": "READ_ONLY",
+  "daemon": "ADVISORY_ONLY"
+}
