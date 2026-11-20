@@ -5,6 +5,11 @@ on:
       - migration/chatbackup-r1-detach-20261120
     paths:
       - .github/workflows/chatbackup-regression-receipt.yml
+      - PROJECTS/ChatBackup PC Tool/app/**
+      - PROJECTS/ChatBackup PC Tool/bootstrap/**
+      - PROJECTS/ChatBackup PC Tool/tests/**
+      - PROJECTS/ChatBackup PC Tool/MANIFEST.sha256
+      - PROJECTS/ChatBackup PC Tool/mobile_scriptable/source/**
   workflow_dispatch:
 permissions:
   contents: write
