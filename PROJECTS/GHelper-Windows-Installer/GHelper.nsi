@@ -1,4 +1,24 @@
-﻿Target amd64-unicode
+﻿; Das normale Windows-NSIS-Paket kann ohne amd64-Stubs installiert sein.
+!if ! /FileExists "${NSISDIR}/Stubs/zlib-amd64-unicode"
+  !define /redef SETUP_WOW64
+!endif
+!if ! /FileExists "${NSISDIR}/Stubs/lzma_solid-amd64-unicode"
+  !define /redef SETUP_WOW64
+!endif
+!if ! /FileExists "${NSISDIR}/Plugins/amd64-unicode/System.dll"
+  !define /redef SETUP_WOW64
+!endif
+!if ! /FileExists "${NSISDIR}/Plugins/amd64-unicode/nsExec.dll"
+  !define /redef SETUP_WOW64
+!endif
+!ifdef SETUP_WOW64
+  Target x86-unicode
+  !define SETUP_POWERSHELL "$WINDIR\Sysnative\WindowsPowerShell\v1.0\powershell.exe"
+  !echo "NSIS: x86-Setup-Starter fuer Windows x64."
+!else
+  Target amd64-unicode
+  !define SETUP_POWERSHELL "$SYSDIR\WindowsPowerShell\v1.0\powershell.exe"
+!endif
 !include "MUI2.nsh"
 !include "LogicLib.nsh"
 !include "WinVer.nsh"
@@ -12,7 +32,9 @@
 Name "${APP_NAME} ${APP_VER}"
 OutFile "output/GHelper-${APP_VER}-Offline-Setup-x64.exe"
 InstallDir "$PROGRAMFILES64\G-Helper"
-InstallDirRegKey HKLM "${UNINSTALL_KEY}" "InstallLocation"
+!ifndef SETUP_WOW64
+  InstallDirRegKey HKLM "${UNINSTALL_KEY}" "InstallLocation"
+!endif
 RequestExecutionLevel admin
 CRCCheck force
 SetCompressor /SOLID lzma
@@ -67,6 +89,13 @@ Function .onInit
     Quit
   ${EndIf}
   ReadRegStr $0 HKLM "${UNINSTALL_KEY}" "InstallLocation"
+  !ifdef SETUP_WOW64
+    ; InstallDirRegKey würde vor SetRegView die 32-Bit-Registry lesen.
+    ${If} $0 != ""
+    ${AndIf} $INSTDIR == "$PROGRAMFILES64\G-Helper"
+      StrCpy $INSTDIR $0
+    ${EndIf}
+  !endif
   ${If} $0 != ""
   ${AndIf} ${FileExists} "$0\hostfxr.dll"
     MessageBox MB_OK|MB_ICONSTOP "$(Legacy)" /SD IDOK
@@ -122,7 +151,7 @@ Function InstallPrerequisites
   ${If} ${Errors}
     StrCpy $0 "extract-error"
   ${Else}
-    nsExec::ExecToLog '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$PLUGINSDIR\install-prerequisites.ps1"'
+    nsExec::ExecToLog '"${SETUP_POWERSHELL}" -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$PLUGINSDIR\install-prerequisites.ps1"'
     Pop $0
   ${EndIf}
   Delete "$PLUGINSDIR\RuntimeSetup.exe"

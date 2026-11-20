@@ -20,3 +20,9 @@
 
 - G-Helper-Quellarchiv, Desktop Runtime und PawnIO wurden aus den drei hinterlegten Bezugsquellen neu geladen und gegen ihre festgelegten SHA-256-Werte geprüft. Das ursprüngliche G-Helper-Archiv wurde separat erneut akzeptiert. Der ASUS-Installer wurde lokal bereitgestellt und geprüft.
 - Der vollständige Neubau mit dem heruntergeladenen G-Helper-Archiv und NSIS 3.13 war erfolgreich. Der Neubau ergab `d1311a2308b735625c8e51ccb2d753f76c60ec41765ba29bb18bd1218ceabd91`. Die separat versionierte Prüfsummendatei dokumentiert den zuvor bereitgestellten Build.
+
+## Korrektur für NSIS 3.13 unter Windows
+
+Das Windows-Protokoll bestätigt Restore und Publish von G-Helper. Die anschließende NSIS-Kompilierung stoppte wegen des fehlenden `Stubs/zlib-amd64-unicode`. Das offizielle Windows-ZIP von NSIS 3.13 enthält die entsprechenden x86-Unicode-Stubs.
+
+`GHelper.nsi` wählt anhand der vorhandenen Stubs und Plugins zwischen amd64 und x86. Der x86-Starter nutzt die 64-Bit-Registry und startet native PowerShell über `Sysnative`. Die x64-Voraussetzung und der x64-Programm-Payload gelten in beiden Varianten. Beide NSIS-Ziele wurden mit als Fehler behandelten Compilerwarnungen geprüft. Zusätzlich hat ein Buildtest mit den Ressourcen aus dem offiziellen NSIS-Windows-ZIP den x86-Pfad bestätigt. Die erneute praktische Prüfung auf Windows steht aus.

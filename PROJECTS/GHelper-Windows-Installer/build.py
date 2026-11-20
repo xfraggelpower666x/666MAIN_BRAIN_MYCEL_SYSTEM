@@ -274,7 +274,7 @@ def compile_setup(dotnet: Path, makensis: Path, work: Path, inputs: tuple[dict, 
     print(f"NSIS für diesen Build: {version}", flush=True)
     run([str(makensis), prefix + "WX", "GHelper.nsi"], cwd=work)
     setup = work / "output" / f"GHelper-{app_version}-Offline-Setup-x64.exe"
-    if pe_machine(setup) != 0x8664:
+    if pe_machine(setup) not in (0x8664, 0x14C):
         raise RuntimeError("Setup-EXE hat ein unerwartetes PE-Format.")
     return setup
 
