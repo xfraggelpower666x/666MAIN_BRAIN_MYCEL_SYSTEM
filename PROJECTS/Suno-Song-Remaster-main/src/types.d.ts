@@ -5,7 +5,12 @@ interface ElectronAPI {
   selectDirectory: () => Promise<string | null>;
   saveFile: () => Promise<string | null>;
   readAudioFile: (filePath: string) => Promise<Uint8Array>;
-  writeFile: (filePath: string, data: ArrayBuffer | Uint8Array) => Promise<{ success: boolean }>;
+  writeFile: (filePath: string, data: Uint8Array) => Promise<{ success: boolean }>;
+  writeBatchFile: (
+    directory: string,
+    baseName: string,
+    data: Uint8Array
+  ) => Promise<{ success: boolean; path: string }>;
   getPathForFile: (file: File) => string;
   getSystemInfo: () => Promise<{
     platform: string;
