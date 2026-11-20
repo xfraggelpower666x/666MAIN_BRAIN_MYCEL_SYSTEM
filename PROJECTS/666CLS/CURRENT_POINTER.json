@@ -5,15 +5,15 @@
     "branch": "666MAIN_BRAIN",
     "root": "PROJECTS/666CLS"
   },
-  "current_version": "1.24.3",
-  "release_path": "releases/1.24.3",
+  "current_version": "1.24.4",
+  "release_path": "releases/1.24.4",
   "domains": {
     "LYRICS": 0,
     "RAW_MATERIAL": 0,
     "STORIES": 0,
     "TEXT": 0
   },
-  "manifest_sha256": "ddd8602cb5e085d68d0fbd51dbc4f392e3443e85b0e08ba342a6168b6627695e",
+  "manifest_sha256": "bf96a194cdea4cc5a4b12598b70f83042fb85e516b096cc3fa1f0180629ff7da",
   "controls": {
     "control/AUTHORITY.json": "a5d1b332800d8821e8b32a252b6f6193b6574cfed7f5548f786622eba0477bee",
     "control/BOOTSTRAP.json": "c5edae5ff5171515b1e1ac14b6ce848a39370af1cb9da503adcb5e890dc9bff9",
