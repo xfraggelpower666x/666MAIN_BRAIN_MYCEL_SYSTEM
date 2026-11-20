@@ -76,6 +76,12 @@ class MycelBridgeTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             project(menu(), bad)
 
+    def test_invalid_project_key_rejected(self):
+        bad = state()
+        bad["active_scope"] = "666 MAIN BRAIN"
+        with self.assertRaises(ValueError):
+            project(menu(), bad)
+
     def test_menu_mutation_rejected(self):
         bad = menu()
         bad["views"][0]["action"] = "execute_command"
