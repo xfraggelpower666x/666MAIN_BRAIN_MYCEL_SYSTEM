@@ -1,0 +1,31 @@
+{
+  "schema": "chatbackup.repo-regression.v1",
+  "date_utc": "2026-11-20T21:09:10.193639+00:00",
+  "source": "github-actions-linux",
+  "physical_windows_host": "READBACK_PENDING",
+  "physical_iphone_host": "READBACK_PENDING",
+  "tests": {
+    "pytest": {
+      "exit_code": 1,
+      "tail": "with(b\"\\xef\\xbb\\xbf\")\n        body = data[3:]\n        assert body\n        assert all(byte < 128 for byte in body)\n>       assert b\"\\r\\n\" in body\nE       assert b'\\r\\n' in b'# Windows PowerShell 5.1 compatibility: this bootstrap is intentionally ASCII-only.\\n# Do not add Unicode punctuatio...Write-Host \"BLOCKIERT: $message\" -ForegroundColor Red\\n        Write-Host \"Logdatei: $LogPath\"\\n    }\\n    exit 1\\n}\\n'\n\ntests/test_core.py:382: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_core.py::test_windows_powershell51_bootstrap_is_ascii_only - assert b'\\r\\n' in b'# Windows PowerShell 5.1 compatibility: this bootstrap is intentionally ASCII-only.\\n# Do not add Unicode punctuatio...Write-Host \"BLOCKIERT: $message\" -ForegroundColor Red\\n        Write-Host \"Logdatei: $LogPath\"\\n    }\\n    exit 1\\n}\\n'\n1 failed, 49 passed in 0.41s\n"
+    },
+    "baseline": {
+      "exit_code": 1,
+      "tail": "Traceback (most recent call last):\n  File \"/home/runner/work/666MAIN_BRAIN_MYCEL_SYSTEM/666MAIN_BRAIN_MYCEL_SYSTEM/PROJECTS/ChatBackup PC Tool/tests/run_tests.py\", line 191, in <module>\n    main()\n  File \"/home/runner/work/666MAIN_BRAIN_MYCEL_SYSTEM/666MAIN_BRAIN_MYCEL_SYSTEM/PROJECTS/ChatBackup PC Tool/tests/run_tests.py\", line 174, in main\n    assert b\"\\r\\n\" in bootstrap_body\n           ^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    "integrity": {
+      "exit_code": 2,
+      "tail": "_MYCEL_SYSTEM/PROJECTS/ChatBackup PC Tool/mobile_scriptable/history\"\n    },\n    {\n      \"name\": \"HISTORY_V1_0_6_PRESENT\",\n      \"status\": \"PASS\",\n      \"detail\": \"/home/runner/work/666MAIN_BRAIN_MYCEL_SYSTEM/666MAIN_BRAIN_MYCEL_SYSTEM/PROJECTS/ChatBackup PC Tool/mobile_scriptable/history\"\n    },\n    {\n      \"name\": \"HISTORY_V1_0_7_PRESENT\",\n      \"status\": \"PASS\",\n      \"detail\": \"/home/runner/work/666MAIN_BRAIN_MYCEL_SYSTEM/666MAIN_BRAIN_MYCEL_SYSTEM/PROJECTS/ChatBackup PC Tool/mobile_scriptable/history\"\n    },\n    {\n      \"name\": \"HISTORY_V1_0_8_PRESENT\",\n      \"status\": \"PASS\",\n      \"detail\": \"/home/runner/work/666MAIN_BRAIN_MYCEL_SYSTEM/666MAIN_BRAIN_MYCEL_SYSTEM/PROJECTS/ChatBackup PC Tool/mobile_scriptable/history\"\n    }\n  ]\n}\nREPORT=/home/runner/work/666MAIN_BRAIN_MYCEL_SYSTEM/666MAIN_BRAIN_MYCEL_SYSTEM/PROJECTS/ChatBackup PC Tool/runtime_readback/release_integrity_readback.json\n"
+    },
+    "scriptable_node": {
+      "exit_code": 0,
+      "tail": "NODE_VM 6/6 PASS · Scriptable-APIs per Testdouble\n"
+    },
+    "pfs_binary_hash": {
+      "exit_code": 0,
+      "tail": "75547ff2dcd365b30a434d546803ae773ce07bc6\n",
+      "match": true
+    }
+  },
+  "status": "FAIL"
+}
