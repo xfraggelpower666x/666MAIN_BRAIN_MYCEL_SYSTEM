@@ -1,0 +1,56 @@
+{
+  "schema": "psyllo.daemon-facet-adapters.1",
+  "owner": "666MAIN BRAIN MYCEL SYSTEM",
+  "shared_core": "DAEMON/GUIDANCE_CONTRACT.md",
+  "default_mode": "REACHABLE_IDLE",
+  "inherit_by": "PSYLLO_NATIVE_FACET_ID",
+  "adapters": [
+    {
+      "facet": "PSYLLO.DEV",
+      "steps": [
+        "CHECK_PROJECT_BINDING",
+        "CHECK_HEAD",
+        "AUDIT_EVIDENCE",
+        "REPAIR_VS_DEVELOP",
+        "CHECK_TESTS",
+        "GUIDE_CHECKPOINT"
+      ],
+      "runtime": "INTELLIGENCE/DEV/FACET_CONTRACT.md"
+    },
+    {
+      "facet": "PSYLLO.VISUAL",
+      "steps": [
+        "RESOLVE_VERIFIED_EVIDENCE",
+        "CHOOSE_VIEW",
+        "SHOW_ACTIONS",
+        "CONFIRM_HOST_SUPPORT"
+      ],
+      "runtime": "UI/INTELLIGENT_UI/UI_CONTRACT.md"
+    },
+    {
+      "facet": "PSYLLO.REHYDRATOR",
+      "steps": [
+        "VERIFY_WHOLE_CURRENT",
+        "RESOLVE_FACET_BUNDLE",
+        "COMPARE_HEAD",
+        "CLASSIFY_GAPS"
+      ],
+      "runtime": "RUNTIME/FACET_SUB_REHYDRATION.md"
+    },
+    {
+      "facet": "*",
+      "steps": [
+        "VERIFY_SCOPE",
+        "CHECK_OBLIGATIONS",
+        "PROPOSE_NEXT_CAUSAL_STEP",
+        "WAIT_FOR_USER"
+      ],
+      "runtime": "DAEMON/LIVECIRCLE.md"
+    }
+  ],
+  "restrictions": {
+    "owns_authority": false,
+    "writes_without_user": false,
+    "autostart_foreign": false
+  }
+}
