@@ -5,7 +5,7 @@
   "authority": "REPOSITORY_PROJECT",
   "branch": "666MAIN_BRAIN",
   "project_root": "PROJECTS/666TDH",
-  "state": "REPO_NATIVE_HOST_ACCEPTANCE_OPEN",
+  "state": "REPO_NATIVE_INTELLIGENT_R2_HOST_ACCEPTANCE_OPEN",
   "shared_layer_authority": "NONE",
   "pfs_runtime_authority": "NONE",
   "bootstrap_order": [
@@ -17,6 +17,10 @@
     "runtime/REHYDRATION.md",
     "runtime/LIVECIRCLE.md",
     "runtime/REPO_UPDATE_AUTHORITY.md",
+    "runtime/facets/SUBFACET_BINDINGS.json",
+    "runtime/facets/SUBFACET_LIFECIRCLE_CONTRACT.md",
+    "runtime/ui/INTELLIGENT_UI_CONTRACT.md",
+    "runtime/hub/daemon/DAEMON_COMPANION_CONTRACT.md",
     "runtime/hub/SYSTEM_WIDE_STATE_FORCE_CONTRACT.md",
     "runtime/provider-state/DAEMON/DAEMON_LIVE_STATE.md",
     "continuity/CURRENT_HANDOFF.json"
@@ -287,10 +291,22 @@
     "runtime/visual/666TDH_VISUAL_SUB_LIFECYCLE_v1.0.md": "f88017bf04ccc0856c91b4c06d4780b42c906f92a185bc87c1169bb7d2ca77ef",
     "runtime/visual/666TDH_VISUAL_SUB_REHYDRATION_v1.0.md": "441ea23cfaba92287fe86c2d8665992782a00846e6d874dea0be8cbb97c3be61",
     "skills/666tdh/SKILL.md": "96d62f783c93cf38b0f314c365526aac05ff7504dafce7f4db2f42782d9d2bbb",
-    "tdh.py": "749710b2f4dc3991c7e7147c3e0b2e1c374275fc864ecb55c9e45e7a1405fa10",
+    "tdh.py": "f3e893406c44fa041fca76c42b0a5792a1ce674144c1cf934d0aa3166296f25d",
     "runtime/REPO_UPDATE_AUTHORITY.md": "b4420cac2d77cb77a078cb651fa98f2cdaa02651702c7a9b4187047e737d8d83",
     "README.md": "f8612f07734c2aea519d96541c7429674ba1583428dd8624bbb0b25fa6f66924",
-    "tests/test_tdh.py": "984a3bdc1563f057575f344cefaafa915f8ef2b8e0c227521802791deedf5a4b"
+    "tests/test_tdh.py": "984a3bdc1563f057575f344cefaafa915f8ef2b8e0c227521802791deedf5a4b",
+    "runtime/facets/lifecycle.py": "25fd539132039934933b6b619a5597c3a0c1eb1ffcccaa7b29b0be3660f8a701",
+    "runtime/facets/SUBFACET_LIFECIRCLE_CONTRACT.md": "0e688ce7ad96276b3dbe7593ed354708e1dee6401b36ad72d95755b000b1f138",
+    "runtime/facets/SUBFACET_BINDINGS.json": "e9f31e8aa144906b19cb16de14b37a51b15a265b82e6cd29ab22e36270320384",
+    "runtime/ui/view_model.py": "58091f8e2d74ca0f8203c7a46a430c3a094e97d4c39536f13bf1275d2e5bf1ef",
+    "runtime/ui/render_html.py": "6bd156cc146948d3c4d1e6e033232f2a1e5ca4e7594bbeef2b1abdec04b560cc",
+    "runtime/ui/INTELLIGENT_UI_CONTRACT.md": "d8274641fe5f8c43df4b7ca6505b2245d054edc351b6641e788cb50f8fa41e92",
+    "runtime/hub/daemon/DAEMON_COMPANION_CONTRACT.md": "89518b0a5c375d7f8a35c05f19e23d22b6ca9720e51945ea6880615c8d8ba45b",
+    "tests/test_subfacets.py": "bbab948abe089ffe2e96d935897a326331d60cba3b32c85a5466e35be2f3ac88",
+    "tests/test_subfacet_router.py": "96a5f94118eca76f65645333196586cf65535c9aceaf93d7c518a2db3b0d1c15",
+    "audit/R2_AUDIT.json": "9602d17546b986a7bb3d99b639a7f05e003b68e03bea601a1c82f66af7a67e01",
+    "audit/R2_FREEZE.json": "be21a90bf310a318b2778ea475e2bde8d4d9d3835661a7fcc44a348a5ac0567c",
+    "audit/R2_SYSTEM_RECOVERY.json": "7b9055232ecb758577f93244e172bb5ccf12628455e99511b9dce9dbc991e6ba"
   },
   "source_snapshot": {
     "release": "v1.15.0",
@@ -306,5 +322,26 @@
     "scope": "REPOSITORY_PROJECT_ONLY",
     "pfs_runtime_authority": "NONE",
     "interactive_host_render": "OPEN_NOT_VERIFIED"
+  },
+  "previous_state": "REPO_NATIVE_HOST_ACCEPTANCE_OPEN",
+  "repo_capability_revision": {
+    "revision": "R2",
+    "date": "2026-11-20",
+    "kind": "ROOT_INTELLIGENT_UI_AND_FIVE_SCOPED_SUBFACETS",
+    "inherited_from_native_release": "v1.15.0",
+    "original_native_release_preserved": true,
+    "base_commit": "c4684a8e6e86595e7bb4afca4b9b40b7c2cbd855",
+    "data_commit": "79bf09f7eeb512adb6db0ff7535700c11fb8108c",
+    "prechange_recovery_ref": "backup/666TDH/pre-intelligent-subfacet-R2-20261120-c4684a8e",
+    "validated_local_tests": 12,
+    "existing_full_repo_suite": "NOT_RUN",
+    "interactive_chat_host": "OPEN_NOT_VERIFIED",
+    "child_versions_changed": false,
+    "source_originals_changed": false,
+    "pfs_mutation": false,
+    "foreign_system_mutation": false,
+    "freeze_manifest": "audit/R2_FREEZE.json",
+    "audit_manifest": "audit/R2_AUDIT.json",
+    "system_backup_manifest": "audit/R2_SYSTEM_RECOVERY.json"
   }
 }
