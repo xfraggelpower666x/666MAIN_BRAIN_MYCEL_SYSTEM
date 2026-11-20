@@ -32,9 +32,10 @@ jobs:
       - name: Capture scoped local regression receipts
         shell: bash
         run: |
-          set -uo pipefail
+          set -euo pipefail
           cd "PROJECTS/ChatBackup PC Tool"
           mkdir -p provenance
+          for attempt in 1 2 3; do
           set +e
           python -m pytest -q tests > /tmp/chatbackup-pytest.log 2>&1
           a=$?
@@ -46,6 +47,7 @@ jobs:
           d=$?
           git hash-object provenance/pfs-child-history/backup/2026-10-28_VERIFIED_ORIGINALS/666_CHATBACKUP_PC_TOOL_v1.10.0.zip > /tmp/chatbackup-legacy-hash.log
           e=$?
+          set -e
           export P_A="$a" P_B="$b" P_C="$c" P_D="$d" P_E="$e"
           python - <<'PY'
           import json,os,pathlib,datetime
@@ -72,5 +74,13 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add provenance/REPO_REGRESSION_READBACK.json
           git commit -m "test(chatbackup): record GitHub branch regression and legacy blob readback"
-          # Do not rebase evidence onto untested commits; let a non-fast-forward push fail.
-          git push origin HEAD:migration/chatbackup-r1-detach-20261120
+          if git push origin HEAD:migration/chatbackup-r1-detach-20261120; then
+            exit 0
+          fi
+          git fetch origin migration/chatbackup-r1-detach-20261120
+          if [ "$attempt" -eq 3 ] || [ "$(git rev-parse HEAD^)" = "$(git rev-parse FETCH_HEAD)" ]; then
+            exit 1
+          fi
+          # Discard the receipt and rerun every check on the new branch tip.
+          git reset --hard FETCH_HEAD
+          done
