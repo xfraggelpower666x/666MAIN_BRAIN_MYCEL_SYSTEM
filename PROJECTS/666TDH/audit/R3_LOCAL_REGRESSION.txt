@@ -1,0 +1,33 @@
+test_dirty_checkout_rejected (test_backup_helper.BackupHelperTest.test_dirty_checkout_rejected) ... ok
+test_output_inside_repo_rejected (test_backup_helper.BackupHelperTest.test_output_inside_repo_rejected) ... ok
+test_zip_preserves_exact_git_head_and_sha256_manifest (test_backup_helper.BackupHelperTest.test_zip_preserves_exact_git_head_and_sha256_manifest) ... ok
+test_child_dashboard_contains_actual_visual_adapter (test_subfacet_router.SubfacetRouterTests.test_child_dashboard_contains_actual_visual_adapter) ... ok
+test_daemon_all_documented_commands_are_root_scoped_read_only (test_subfacet_router.SubfacetRouterTests.test_daemon_all_documented_commands_are_root_scoped_read_only) ... ok
+test_daemon_is_advisory_and_no_new_update_router (test_subfacet_router.SubfacetRouterTests.test_daemon_is_advisory_and_no_new_update_router) ... ok
+test_duplicate_pointer_keys_fail_closed (test_subfacet_router.SubfacetRouterTests.test_duplicate_pointer_keys_fail_closed) ... ok
+test_five_child_start_bootstrap_is_scoped (test_subfacet_router.SubfacetRouterTests.test_five_child_start_bootstrap_is_scoped) ... ok
+test_root_start_no_child_autoload_and_all_menu_branches (test_subfacet_router.SubfacetRouterTests.test_root_start_no_child_autoload_and_all_menu_branches) ... ok
+test_scoped_checkpoint_and_negative_branch (test_subfacet_router.SubfacetRouterTests.test_scoped_checkpoint_and_negative_branch) ... ok
+test_subcircle_position_never_crosses_branch (test_subfacet_router.SubfacetRouterTests.test_subcircle_position_never_crosses_branch) ... ok
+test_tamper_blocks_root_rehydration (test_subfacet_router.SubfacetRouterTests.test_tamper_blocks_root_rehydration) ... ok
+test_checkpoint_scope_and_read_only (test_subfacets.SubfacetContractTests.test_checkpoint_scope_and_read_only) ... ok
+test_five_isolated_profile_bindings (test_subfacets.SubfacetContractTests.test_five_isolated_profile_bindings) ... ok
+test_menu_only_routed_commands (test_subfacets.SubfacetContractTests.test_menu_only_routed_commands) ... ok
+test_offline_ui_copy_only_and_script_escape (test_subfacets.SubfacetContractTests.test_offline_ui_copy_only_and_script_escape) ... ok
+test_wrong_or_missing_profile_rejected (test_subfacets.SubfacetContractTests.test_wrong_or_missing_profile_rejected) ... ok
+test_all_current_branch_bootstraps (test_tdh.RepoCurrentTest.test_all_current_branch_bootstraps) ... ok
+test_foreign_or_inert_commands_are_rejected (test_tdh.RepoCurrentTest.test_foreign_or_inert_commands_are_rejected) ... ok
+test_new_chat_and_handoff_scope (test_tdh.RepoCurrentTest.test_new_chat_and_handoff_scope) ... ok
+test_open_identity_and_visual_gates_preserved (test_tdh.RepoCurrentTest.test_open_identity_and_visual_gates_preserved) ... ok
+test_repo_update_is_pfs_independent (test_tdh.RepoCurrentTest.test_repo_update_is_pfs_independent) ... ok
+test_root_does_not_select_a_child (test_tdh.RepoCurrentTest.test_root_does_not_select_a_child) ... ok
+test_tampered_file_is_rejected (test_tdh.RepoCurrentTest.test_tampered_file_is_rejected) ... ok
+test_all_children_have_scoped_views_and_holds (test_ui_r3.NativeUiR3.test_all_children_have_scoped_views_and_holds) ... ok
+test_daemon_checkpoint_is_advisory_not_run (test_ui_r3.NativeUiR3.test_daemon_checkpoint_is_advisory_not_run) ... ok
+test_renderer_has_real_tabs_and_copy_only_no_external_requests (test_ui_r3.NativeUiR3.test_renderer_has_real_tabs_and_copy_only_no_external_requests) ... ok
+test_root_views_show_real_content_and_verified_count (test_ui_r3.NativeUiR3.test_root_views_show_real_content_and_verified_count) ... ok
+
+----------------------------------------------------------------------
+Ran 28 tests in 0.285s
+
+OK

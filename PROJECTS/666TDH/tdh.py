@@ -22,10 +22,23 @@ class CurrentError(Exception):
     """Der verifizierte Current kann nicht aufgelöst werden."""
 
 
+def unique_json(raw: bytes) -> dict:
+    """Kontroll-Dateien mit doppelten JSON-Schlüsseln fail-closed ablehnen."""
+    def unique(pairs):
+        obj = dict(pairs)
+        if len(obj) != len(pairs):
+            raise CurrentError("HOLD: Doppelter JSON-Schlüssel in Current-Steuerdaten")
+        return obj
+    data = json.loads(raw.decode("utf-8-sig"), object_pairs_hook=unique)
+    if not isinstance(data, dict):
+        raise CurrentError("HOLD: Current-Steuerdaten müssen JSON-Objekte sein")
+    return data
+
+
 class Current:
     def __init__(self, root: Path) -> None:
         self.root = root.resolve()
-        self.pointer = json.loads(self.read("CURRENT_POINTER.json"))
+        self.pointer = unique_json(self.read("CURRENT_POINTER.json"))
         if self.pointer["system_id"] != SYSTEM_ID or self.pointer["namespace"] != NAMESPACE:
             raise CurrentError("Current gehört zu einem anderen System.")
         if self.pointer["authority"] != "REPOSITORY_PROJECT":
@@ -65,7 +78,7 @@ class Current:
         return raw
 
     def document(self, relative: str) -> dict:
-        return json.loads(self.verified(relative))
+        return unique_json(self.verified(relative))
 
     def parse(self, message: str) -> tuple[str | None, str]:
         prefix, gap, suffix = message.strip().partition(" ")
@@ -74,6 +87,9 @@ class Current:
         if suffix in self.routes["root"]:
             return None, suffix
         token, _, action = suffix.partition(" ")
+        if token == "DAEMON" and action in self.routes.get("daemon", []):
+            # Integrierter Hub-Unterbefehl, kein zweiter Controller/Router.
+            return None, f"DAEMON {action}"
         if token in self.registry["children"] and action in self.routes["child"]:
             return token, action
         raise CurrentError("Der Trigger oder Branch-Token ist in der aktuellen Registry nicht registriert.")
@@ -108,14 +124,14 @@ class Current:
         if child:
             result["child"] = {key: value for key, value in child.items() if key != "bootstrap"}
             result["subfacet"] = profile_state(token, profile)
-        if action in {"SYSTEMSTART", "HELP", "STATUS", "DASHBOARD", "VISUAL", "HOST RECOVERY"}:
+        if action in {"SYSTEMSTART", "HELP", "STATUS", "DASHBOARD", "VISUAL", "HOST RECOVERY", "DAEMON STATUS", "DAEMON MENU", "DAEMON HELP", "DAEMON BACK"}:
             result["commands"] = self.commands(token)
         if action in {"SYSTEMSTART", "HELP", "STATUS"} and token is None:
             result["hub_commands"] = [f"{NAMESPACE} {route}" for route in self.routes["root"]]
-        if checkpoint is not None and action not in {"WEITER", "NEW CHAT", "SYSTEMSTART"}:
+        if checkpoint is not None and action not in {"WEITER", "NEW CHAT", "SYSTEMSTART", "DAEMON CONTINUE", "DAEMON WEITER", "DAEMON NEW CHAT"}:
             raise CurrentError("HOLD: Checkpoint nur für Rehydration/WEITER/NEW CHAT")
         continuity = None
-        if action in {"WEITER", "NEW CHAT", "HOST RECOVERY"} or checkpoint is not None:
+        if action in {"WEITER", "NEW CHAT", "HOST RECOVERY", "DAEMON CONTINUE", "DAEMON WEITER", "DAEMON NEW CHAT"} or checkpoint is not None:
             try:
                 continuity = scoped_continuity(
                     checkpoint, pointer_sha256=hashlib.sha256(self.read("CURRENT_POINTER.json")).hexdigest(),
@@ -127,7 +143,7 @@ class Current:
                     continuity["development_position"] not in profile["local_lifecycle"]:
                 raise CurrentError("HOLD: Entwicklungsposition gehört nicht zum Child-Sub-LiveCircle")
             result["continuity"] = continuity
-        if action == "NEW CHAT":
+        if action in {"NEW CHAT", "DAEMON NEW CHAT"}:
             result["checkpoint_template"] = checkpoint_template(
                 pointer_raw=self.read("CURRENT_POINTER.json"), release=self.pointer["release"],
                 target_system_id=child["system_id"] if child else SYSTEM_ID, branch_token=token)
@@ -144,8 +160,24 @@ class Current:
             }
         result["intelligent_ui"] = build_view_model(
             registry=self.registry, routes=self.routes, token=token, release=self.pointer["release"],
-            profile=profile, continuity=continuity, pointer_state=current_state)
+            profile=profile, continuity=continuity, pointer_state=current_state,
+            files_verified=len(verified))
         result["daemon"] = result["intelligent_ui"]["companion"]
+        if action.startswith("DAEMON "):
+            # Keine Daemon-Writes: alle Aktionen bleiben an den geprüften Hub gebunden.
+            verb = action.split(" ", 1)[1]
+            result["daemon_commands"] = [f"{NAMESPACE} DAEMON {name}" for name in self.routes["daemon"]]
+            result["daemon_operation"] = {
+                "operation": verb, "authority": "NONE", "scope": "HUB",
+                "persistence": "NONE", "selected_child": None,
+                "status": "SESSION_ONLY_DISPLAY_MUTED" if verb == "STOP" else "READ_ONLY_RESPONSE",
+            }
+            if verb == "NEXT":
+                result["next_safe_action"] = result["daemon"]["next_safe_action"]
+                result["suggested_command"] = result["daemon"]["suggested_command"]
+            if verb == "STOP":
+                result["daemon"] = {**result["daemon"], "state": "SESSION_ONLY_DISPLAY_MUTED",
+                                    "autoactive": True}
         if include_bootstrap:
             result["bootstrap"] = {path: verified[path].decode("utf-8-sig") for path in dict.fromkeys(bootstrap)}
         return result

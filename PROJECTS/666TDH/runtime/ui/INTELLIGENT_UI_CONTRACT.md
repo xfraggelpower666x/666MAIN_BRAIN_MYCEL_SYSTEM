@@ -24,3 +24,22 @@ current task or an explicit unknown, a safe next action and a countercheck.
 Session-only UI changes are not Current; no user selection grants update
 or routing authority. For continuation, verify native root and selected
 child first, then optionally apply a revision-bound user-supplied checkpoint.
+
+
+## R3 · Interaktive lokale Bedienung (additiv)
+
+Die bisherigen Modell-IDs und Child-Routen bleiben erhalten. Jede deklarierte
+Ansicht trägt einen Titel, eine Zusammenfassung, einen konkreten Current-/Child-
+Dateipfad, Evidenzstatus und eine nichtleere Faktenmenge. Der lokale Renderer
+zeigt beim Wechsel eines Tabs tatsächlich die neuen Inhalte und markiert den
+gewählten Tab zugänglich mit `aria-selected`. Keine erfundenen Track-Zustände.
+
+Ein optionales, aus der vorhandenen Daemon-Registry abgeleitetes Root-Menü
+zeigt die neun read-only Begleitbefehle. Die HTML-Buttons kopieren lediglich
+Trigger und halten bei fehlender Clipboard-API den Befehl im markierbaren
+Textfeld. Der Browser führt keine Netzwerk-Requests oder Host-Aktionen aus.
+Die Quellen werden mit Textknoten eingefügt; JSON-Script-Inhalte sind
+gegen Markup-Injection escaped. Child-HOLDs bleiben sichtbar.
+
+READ != REHYDRATED. Ein lokaler Chromium-PASS ist keine ChatGPT-Host-Abnahme.
+DAEMON/CHILD-WRITES=FORBIDDEN; NATIVE_ROOT_UPDATE=666TDH UPDATE.

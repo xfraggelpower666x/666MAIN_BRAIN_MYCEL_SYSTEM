@@ -1,0 +1,78 @@
+{
+  "system_id": "666TRACKHUB-001",
+  "target": "PROJECTS/666TDH",
+  "native_release": "v1.15.0",
+  "capability_revision": "R3",
+  "policy_revision": "R1",
+  "scope": "ROOT_ROUTER_UI_DAEMON_REPO_BACKUP_TESTS_ONLY",
+  "audit_status": "LOCAL_REAUDIT_PASS_PROVIDER_PUBLICATION_PENDING",
+  "findings": [
+    {
+      "id": "TDH-UI-01",
+      "severity": "MEDIUM",
+      "source": "runtime/ui/render_html.py",
+      "cause": "Section buttons only changed feedback label",
+      "repair": "Evidence-bound tab content, source, factual details and aria-selected",
+      "test": "CHROMIUM_LOCAL_6_OF_6_PASS"
+    },
+    {
+      "id": "TDH-DAEMON-01",
+      "severity": "MEDIUM",
+      "source": "runtime/hub/daemon/DAEMON_MENU.md and runtime/TRIGGERS.json",
+      "cause": "Nine documented daemon commands missing from executable router",
+      "repair": "Same root parser now recognizes read-only registered DAEMON actions",
+      "test": "ROOT_NO_AUTHORITY_REGRESSIONS_PASS"
+    },
+    {
+      "id": "TDH-RECOVERY-01",
+      "severity": "MEDIUM",
+      "source": "PROJECTS/666TDH tools",
+      "cause": "No packaged Windows method for full tracked Git snapshot",
+      "repair": "STARTEN.bat, verify_and_backup.py, SHA256/CRC/dirty-worktree guards",
+      "test": "SYNTHETIC_GIT_ARCHIVE_PASS"
+    },
+    {
+      "id": "TDH-CONTROL-01",
+      "severity": "LOW",
+      "source": "tdh.py JSON control loader",
+      "cause": "Duplicate JSON keys not rejected",
+      "repair": "Fail-closed duplicate-key rejection",
+      "test": "NEGATIVE_REGRESSION_PASS"
+    }
+  ],
+  "local_regression": {
+    "count": 28,
+    "pass": 28,
+    "basis": "ISOLATED_SYNTHETIC_CURRENT_FIXTURE",
+    "includes_original_tdh_tests": 7
+  },
+  "chromium": {
+    "surfaces": [
+      "HUB",
+      "TD",
+      "LCTS",
+      "DTSTE",
+      "FSE",
+      "SHACHIVITI"
+    ],
+    "tabs": "ACTUAL_CONTENT",
+    "requests": 0,
+    "js_errors": 0,
+    "status": "PASS_LOCAL_BROWSER"
+  },
+  "source_guards": [
+    "CHILD_VERSIONS_UNCHANGED",
+    "PFS_RUNTIME_AUTHORITY_NONE",
+    "SOURCE_VAULT_ONLY",
+    "NO_SECOND_ROUTER",
+    "POINTER_LAST"
+  ],
+  "open_gates": [
+    "REAL_352_FILE_GIT_CHECKOUT_FULL_PYTHON_TEST_RUN",
+    "CHATGPT_HOST_INTERACTIVE_ACCEPTANCE",
+    "FSE_SOURCE_VAULT_PROVIDER_RECOVERY",
+    "WINDOWS_DOUBLE_CLICK"
+  ],
+  "remote_stage_readback": "PENDING",
+  "remote_pointer_readback": "PENDING"
+}

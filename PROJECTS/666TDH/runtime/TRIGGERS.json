@@ -2,6 +2,7 @@
   "source": "runtime/hub/TRIGGER_NAMESPACE.md",
   "root": ["SYSTEMSTART", "STATUS", "HELP", "WEITER", "NEW CHAT", "DASHBOARD", "VISUAL", "HOST RECOVERY", "UPDATE"],
   "child": ["SYSTEMSTART", "STATUS", "HELP", "WEITER", "NEW CHAT", "DASHBOARD", "VISUAL"],
+  "daemon": ["STATUS", "NEXT", "MENU", "CONTINUE", "BACK", "HELP", "STOP", "WEITER", "NEW CHAT"],
   "descriptions": {
     "SYSTEMSTART": "Current verifiziert. Der Hub-Einstieg zeigt das Menü. Eine Branch-Route liefert ausschließlich das gewählte Child.",
     "STATUS": "Verifizierter Repo-Stand für das ausgewählte Ziel.",
@@ -11,9 +12,20 @@
     "DASHBOARD": "Verifizierte Daten für das native Dashboard ausgeben.",
     "VISUAL": "Verifizierte Daten und Verträge für Semantic Visual Intelligence ausgeben.",
     "HOST RECOVERY": "Current-Verifikation und Rückkehranker für den Host ausgeben.",
-    "UPDATE": "Repo-Current prüfen und die native Veröffentlichung vorbereiten."
+    "UPDATE": "Repo-Current prüfen und die native Veröffentlichung vorbereiten.",
+    "DAEMON STATUS": "Geprüfter Begleit-Daemon-Status im Hub; keine eigene Autorität.",
+    "DAEMON NEXT": "Aus dem geprüften Status abgeleitete sichere nächste Aktion anzeigen.",
+    "DAEMON MENU": "Die erlaubten Read-only-Daemon-Befehle anzeigen.",
+    "DAEMON CONTINUE": "Hub-Continuity lesend aus dem verifizierten Current anzeigen.",
+    "DAEMON BACK": "Zur unveränderten Hub-Übersicht zurückkehren.",
+    "DAEMON HELP": "Funktions- und Authority-Grenzen des Begleit-Daemons erklären.",
+    "DAEMON STOP": "Begleit-Anzeige nur für diese einzelne Antwort ausblenden; kein dauerhafter Stop.",
+    "DAEMON WEITER": "Hub-Continuity lesend aus dem verifizierten Current anzeigen.",
+    "DAEMON NEW CHAT": "Nichtautoritativen Hub-Checkpoint und Root-Startbefehl ausgeben."
   },
   "direct_user_trigger_only": true,
   "handoff_runtime_authority": "NONE",
-  "durable_update_authority": "666TDH UPDATE"
+  "durable_update_authority": "666TDH UPDATE",
+  "daemon_authority": "NONE",
+  "daemon_actions_scope": "ROOT_READ_ONLY_SESSION"
 }

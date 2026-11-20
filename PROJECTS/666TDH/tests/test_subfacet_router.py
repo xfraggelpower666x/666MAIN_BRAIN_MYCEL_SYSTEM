@@ -36,9 +36,11 @@ class SubfacetRouterTests(unittest.TestCase):
             files[p['current_path']]=json.dumps(cp)
             self.children[token]={'system_id':p['system_id'],'name':token,'version':p['version'],'current_path':p['current_path'],'bootstrap':[p['current_path'],*bp]}
         registry={'system_id':'666TRACKHUB-001','children':self.children,'visual_bootstrap':['runtime/ui/INTELLIGENT_UI_CONTRACT.md']}
+        daemon=['STATUS','NEXT','MENU','CONTINUE','BACK','HELP','STOP','WEITER','NEW CHAT']
         routes={'root':['SYSTEMSTART','STATUS','HELP','WEITER','NEW CHAT','DASHBOARD','VISUAL','UPDATE','HOST RECOVERY'],
                 'child':['SYSTEMSTART','STATUS','HELP','WEITER','NEW CHAT','DASHBOARD','VISUAL'],
-                'descriptions':{x:x for x in ('SYSTEMSTART','STATUS','HELP','WEITER','NEW CHAT','DASHBOARD','VISUAL','UPDATE','HOST RECOVERY')}}
+                'daemon':daemon,
+                'descriptions':{x:x for x in ('SYSTEMSTART','STATUS','HELP','WEITER','NEW CHAT','DASHBOARD','VISUAL','UPDATE','HOST RECOVERY',*("DAEMON "+v for v in daemon))}}
         handoff={'system_id':'666TRACKHUB-001','source_release':'v1.15.0','runtime_authority':'NONE','target_branch':None,'status':'CURRENT_IDLE_PENDING_EXTERNAL_HOST_GATE_ONLY','open_step':None,'handoff_id':'handoff-1'}
         files['runtime/REGISTRY.json']=json.dumps(registry)
         files['runtime/TRIGGERS.json']=json.dumps(routes)
@@ -97,7 +99,33 @@ class SubfacetRouterTests(unittest.TestCase):
             self.assertEqual(result['daemon']['routing_authority'],'NONE')
             with self.assertRaises(CurrentError):self.current.execute('666TDH '+token+' UPDATE')
         self.assertEqual(self.current.execute('666TDH UPDATE')['publication']['status'],'PREFLIGHT_VERIFIED')
-        with self.assertRaises(CurrentError):self.current.execute('666TDH DAEMON STATUS')
+        self.assertEqual(self.current.execute('666TDH DAEMON STATUS')['daemon_operation']['status'],'READ_ONLY_RESPONSE')
+
+
+    def test_daemon_all_documented_commands_are_root_scoped_read_only(self):
+        for cmd in ('STATUS','NEXT','MENU','CONTINUE','BACK','HELP','STOP','WEITER','NEW CHAT'):
+            with self.subTest(cmd=cmd):
+                got=self.current.execute('666TDH DAEMON '+cmd)
+                self.assertIsNone(got['selected_branch'])
+                self.assertEqual(got['daemon_operation']['authority'],'NONE')
+                self.assertEqual(got['daemon_operation']['persistence'],'NONE')
+                self.assertEqual(got['daemon']['routing_authority'],'NONE')
+                self.assertEqual(got['daemon']['write_authority'],'NONE')
+                if cmd == 'STOP':
+                    self.assertEqual(got['daemon_operation']['status'],'SESSION_ONLY_DISPLAY_MUTED')
+                if cmd == 'NEW CHAT':
+                    self.assertEqual(got['next_chat_trigger'],'666TDH SYSTEMSTART')
+        with self.assertRaises(CurrentError):
+            self.current.execute('666TDH TD DAEMON STOP')
+        with self.assertRaises(CurrentError):
+            self.current.execute('666TDH DAEMON UPDATE')
+
+    def test_duplicate_pointer_keys_fail_closed(self):
+        p = self.root/'CURRENT_POINTER.json'
+        raw=p.read_text(encoding='utf-8')
+        p.write_text(raw[:-1]+', "system_id": "666TRACKHUB-001"}',encoding='utf-8')
+        with self.assertRaisesRegex(CurrentError,'Doppelter JSON-Schlüssel'):
+            Current(self.root)
 
     def test_tamper_blocks_root_rehydration(self):
         file=self.root/'runtime/facets/SUBFACET_BINDINGS.json'

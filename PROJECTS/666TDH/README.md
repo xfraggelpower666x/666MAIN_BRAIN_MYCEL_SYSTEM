@@ -33,3 +33,33 @@ does not relabel child data versions.
 The original FSE source-vault archive is not published here because it may
 contain credentials. See provenance/SOURCE_VAULT_ONLY.json for safe recovery
 metadata. The interactive ChatGPT host acceptance remains open.
+
+## R3 · Intelligent UI, Daemon und Sicherung (additiv)
+
+Der native R2-Subfacetten-Vertrag bleibt erhalten. R3 ergänzt echte lokale
+Inhaltsansichten für Hub/Child, ein nachweisbasiertes Menü und die früher
+bereits dokumentierten Daemon-Befehle über **denselben** Root-Parser:
+
+```text
+python tdh.py 666TDH DAEMON STATUS
+python tdh.py 666TDH DAEMON NEXT
+python tdh.py 666TDH DAEMON MENU
+python tdh.py 666TDH TD DASHBOARD --html ../tdh-td.html
+python -m unittest discover -s tests -v
+```
+
+Die neun Daemon-Befehle bleiben ausschließlich read-only und ohne eigene
+Authority. `DAEMON STOP` betrifft nur die aktuelle Ausgabe, nicht einen
+persistenten Hintergrunddienst. Eine lokale HTML-Ansicht aktiviert keinen
+Chat-Systemtrigger und schreibt nicht ins Repository.
+
+Für Windows ist `STARTEN.bat` das interaktive Prüf- und Backup-Menü. Ein
+vollständiges, restorable Repo-Systembackup aus **allen getrackten TDH-Dateien**
+inklusive Binärdateien erzeugt der Nutzer im geklonten Git-Checkout über
+`tools/verify_and_backup.py --backup-dir <PFAD_AUSSERHALB_DES_REPOS>`.
+Das externe FSE-Original ist ausdrücklich nicht Bestandteil des öffentlichen
+Git-Repositories. Näheres: [Backup-Anleitung](tools/README.md).
+
+Die Python-Tests sowie die optionale Browser-Gegenprobe (`tests/browser_ui_smoke.py`,
+Playwright/Chromium erforderlich) prüfen verschiedene Ebenen. Der echte
+interaktive ChatGPT-Host bleibt `OPEN_NOT_VERIFIED` bis zu dessen Abnahme.
