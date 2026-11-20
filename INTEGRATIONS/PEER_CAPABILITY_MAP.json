@@ -1,0 +1,38 @@
+{
+  "schema": "psyllo.peer-capability-map.1",
+  "owner": "666MAIN BRAIN MYCEL SYSTEM",
+  "authority": "REFERENCE_ONLY",
+  "foreign_autoload": false,
+  "peers": [
+    {
+      "name": "666CLIC",
+      "pattern": "semantic visual evidence, bounded adapters, development position",
+      "status": "PARTIAL",
+      "import_runtime": false
+    },
+    {
+      "name": "LYVRA",
+      "pattern": "Whole/sub-facet lifecycle, shared daemon and rehydration",
+      "status": "SOURCE_VERIFIED",
+      "import_runtime": false
+    },
+    {
+      "name": "666PFS",
+      "pattern": "child identity, recovery and pointer-last",
+      "status": "SOURCE_VERIFIED",
+      "import_runtime": false
+    },
+    {
+      "name": "666STREAM",
+      "pattern": "session governor and project-local interruption continuity",
+      "status": "SOURCE_VERIFIED",
+      "import_runtime": false
+    },
+    {
+      "name": "666DEV",
+      "pattern": "developer checkpoint and project/Windows workflows",
+      "status": "READBACK_PENDING",
+      "import_runtime": false
+    }
+  ]
+}
