@@ -86,13 +86,10 @@ def fetch_chat_image(url: str, *, max_bytes: int = 30 * 1024 * 1024) -> tuple[by
         raise ChatBackupError("Ungültige Bildgrößenbegrenzung.")
     opener = urllib.request.build_opener(
         urllib.request.ProxyHandler({}),
-        urllib.request.HTTPHandler(),
-        urllib.request.HTTPSHandler(),
+        _SafeHTTPHandler(),
+        _SafeHTTPSHandler(),
         _NoRedirect(),
     )
-    # Override only the transport, keeping urllib's existing HTTP behavior.
-    opener.add_handler(_SafeHTTPHandler())
-    opener.add_handler(_SafeHTTPSHandler())
     request = urllib.request.Request(url, headers={
         "User-Agent": USER_AGENT,
         "Accept": "image/png,image/jpeg,image/gif,image/webp,image/bmp,image/avif",
