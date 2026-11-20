@@ -53,3 +53,11 @@ FOREIGN_NATIVE_AUTHORITY_OVERRIDE=FORBIDDEN
 ## Plugin-Fähigkeiten R01
 
 Die vorhandenen PSYLLO-Facetten verwenden die [Arbeitsverfahren](../INTEGRATIONS/PLUGIN_CAPABILITIES/WORKFLOWS_R01.md) und den [Fähigkeitskatalog](../INTEGRATIONS/PLUGIN_CAPABILITIES/CAPABILITIES_R01.json) für fachlich passende Aufträge. Auswahl bleibt innerhalb des aktiven MAIN-BRAIN-Scopes. Die Zuordnung verleiht keine Provider-Rechte und startet keine fremde Runtime.
+
+## MYCEL R01 · inherited facet continuity and PSYLLO.DEV
+
+All existing PSYLLO faculties remain in place. Their new *capability-local* continuity is defined by [Facet Registry](../RUNTIME/FACET_RUNTIME_REGISTRY.json), [Sub-LiveCircle](../RUNTIME/FACET_SUB_LIVECIRCLE.md) and [Sub-Rehydration](../RUNTIME/FACET_SUB_REHYDRATION.md), subordinate to Whole PSYLLO. [Shared Guidance Daemon](../DAEMON/GUIDANCE_CONTRACT.md) supplies advice through adapters by reference, not a second agent or controller.
+
+### PSYLLO.DEV
+
+[Development facet contract](DEV/FACET_CONTRACT.md) coordinates MAIN-BRAIN-owned coding and repository tasks; reuses existing PSYLLO Coding Workbench and provenance/test gates. [666DEV peer adapter](DEV/DEV_SOURCE_ADAPTER.md) remains READ_ONLY/READBACK_PENDING pending its native runtime Current, and does not transfer 666DEV authority. No existing facets, triggers or CodeForge modules are replaced.
