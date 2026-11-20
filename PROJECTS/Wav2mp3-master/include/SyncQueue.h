@@ -26,6 +26,7 @@ class SyncQueue
 
     void enqueue( const T& item );
     T dequeue();
+    void close( size_t waitingConsumers );
     size_t getSize() const;
 
   private:
@@ -44,12 +45,14 @@ class SyncQueue
     sem_t mSemEmpty;
     sem_t mSemFull;
     mutable pthread_mutex_t mMutex;
+    bool mClosed;
 };
 
 
 template <typename T>
 SyncQueue<T>::SyncQueue( unsigned int maxElements ):
-        mQueue()
+        mQueue(),
+        mClosed(false)
 {
     sem_init(&mSemEmpty, 0, maxElements);
     sem_init(&mSemFull, 0, 0);
@@ -78,6 +81,8 @@ void SyncQueue<T>::enqueue( const T& item )
 
     try {
         Locker lock(mMutex);
+        if( mClosed )
+            throw std::runtime_error("enqueue on closed queue");
         mQueue.push_back(item);
     } catch(...) {
         sem_post(&mSemEmpty);
@@ -86,6 +91,22 @@ void SyncQueue<T>::enqueue( const T& item )
 
     if( sem_post(&mSemFull) != 0 )
         throw std::runtime_error("sem_post failed after enqueue");
+}
+
+template <typename T>
+void SyncQueue<T>::close( size_t waitingConsumers )
+{
+    {
+        Locker lock(mMutex);
+        if( mClosed ) return;
+        mClosed = true;
+    }
+
+    for( size_t i=0; i<waitingConsumers; i++ )
+    {
+        if( sem_post(&mSemFull) != 0 )
+            throw std::runtime_error("sem_post failed while closing queue");
+    }
 }
 
 
@@ -100,7 +121,11 @@ T SyncQueue<T>::dequeue()
 
     try {
         Locker lock(mMutex);
+        if( mQueue.empty() && mClosed )
+            return T();
         assert(mQueue.size() > 0);
+        if( mQueue.empty() )
+            throw std::runtime_error("empty queue after sem_wait");
         T item = mQueue.front();
         mQueue.pop_front();
         if( sem_post(&mSemEmpty) != 0 )

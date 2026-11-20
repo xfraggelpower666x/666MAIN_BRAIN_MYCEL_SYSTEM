@@ -4,6 +4,7 @@
 #include <sstream>
 #include <cstdlib>
 #include <vector>
+#include <climits>
 #include <pthread.h>
 #include "Encoder.h"
 #include "Log.h"
@@ -144,10 +145,20 @@ int Encoder::encode()
 
         // Allocate mp3 buffer. Will be freed when the vector goes out of scope.
         int numSamples = mWavFilePtr->getRawAudioDataSize() / mWavFilePtr->getFrameSize();
-        size_t mp3bufsz = numSamples*5/4 + 7200;  // According to LAME lib
+        uint64_t mp3BufferSize64 =
+            static_cast<uint64_t>(numSamples) * 5 / 4 + 7200;
+        if( mp3BufferSize64 > static_cast<uint64_t>(INT_MAX) )
+        {
+            LOG("ERROR MP3 buffer size exceeds LAME's supported limit" << std::endl);
+            success = false;
+            lame_close(mLameContext); mLameContext = NULL;
+            break;
+        }
+        size_t mp3BufferSize = static_cast<size_t>(mp3BufferSize64);
+        int mp3bufsz = static_cast<int>(mp3BufferSize);
         std::vector<unsigned char> mp3BufVec;
         try {
-            mp3BufVec.resize(mp3bufsz);
+            mp3BufVec.resize(mp3BufferSize);
         } catch(...) {
             LOG("ERROR allocating mp3 buffer" << std::endl);
             success = false;
@@ -214,9 +225,10 @@ int Encoder::encode()
                                       (static_cast<uint32_t>(datap[i+1]) << 8) |
                                       (static_cast<uint32_t>(datap[i+2]) << 16);
                     if( sample & 0x800000u )
-                        copiedDataLVec[j] = static_cast<int>(sample) - 0x1000000;
+                        copiedDataLVec[j] =
+                            (static_cast<int>(sample) - 0x1000000) * 256;
                     else
-                        copiedDataLVec[j] = static_cast<int>(sample);
+                        copiedDataLVec[j] = static_cast<int>(sample) * 256;
                 }
 
                 encoded = lame_encode_buffer_int(mLameContext, &copiedDataLVec[0],
@@ -235,8 +247,8 @@ int Encoder::encode()
             {
                 // Allocate temp conversion buffers
                 uint32_t datasz = mWavFilePtr->getRawAudioDataSize();
-                std::vector<uint8_t> copiedDataLVec;
-                std::vector<uint8_t> copiedDataRVec;
+                std::vector<short int> copiedDataLVec;
+                std::vector<short int> copiedDataRVec;
                 try {
                     copiedDataLVec.resize(datasz/2);
                     copiedDataRVec.resize(datasz/2);
@@ -284,32 +296,30 @@ int Encoder::encode()
 #else
                 // Allocate temp channel buffers
                 uint32_t datasz = mWavFilePtr->getRawAudioDataSize();
-                std::vector<uint8_t> copiedDataLVec;
-                std::vector<uint8_t> copiedDataRVec;
+                std::vector<int> copiedDataLVec;
+                std::vector<int> copiedDataRVec;
                 try {
-                    copiedDataLVec.resize(datasz/2);
-                    copiedDataRVec.resize(datasz/2);
+                    copiedDataLVec.resize(datasz / (2 * sizeof(int)));
+                    copiedDataRVec.resize(datasz / (2 * sizeof(int)));
                 } catch(...) {
                     LOG("ERROR allocating copiedDataLVec or copiedDataRVec" << std::endl);
                     success = false;
                     lame_close(mLameContext); mLameContext = NULL;
                     break;
                 }
-                uint8_t* mCopiedDataL = &copiedDataLVec[0];
-                uint8_t* mCopiedDataR = &copiedDataRVec[0];
 
                 // Copy data in separate channel buffers
-                int* lchan = (int *) mCopiedDataL;
-                int* rchan = (int *) mCopiedDataR;
-                int* ichan = (int *) mWavFilePtr->getRawAudioDataPtr();
-                for( uint32_t i=0, l=0, r=0; i<datasz/sizeof(int); i++ )
+                const int* ichan =
+                    reinterpret_cast<const int*>(mWavFilePtr->getRawAudioDataPtr());
+                for( size_t i=0; i<copiedDataLVec.size(); i++ )
                 {
-                    lchan[l++] = ichan[i];
-                    rchan[r++] = ichan[++i];
+                    copiedDataLVec[i] = ichan[2 * i];
+                    copiedDataRVec[i] = ichan[2 * i + 1];
                 }
 
-                encoded = lame_encode_buffer_int(mLameContext, (int *) mCopiedDataL,
-                        (int *)mCopiedDataR, numSamples, mMp3Buffer, mp3bufsz);
+                encoded = lame_encode_buffer_int(mLameContext,
+                        copiedDataLVec.data(), copiedDataRVec.data(),
+                        numSamples, mMp3Buffer, mp3bufsz);
 #endif // LAME ver
             }
         }

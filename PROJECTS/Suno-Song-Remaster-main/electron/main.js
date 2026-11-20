@@ -14,6 +14,9 @@ function normalizePath(filePath) {
   return process.platform === 'win32' ? resolved.toLowerCase() : resolved;
 }
 
+const previewDir = path.join(os.tmpdir(), 'spotify-worthy-preview');
+const audioExtensions = new Set(['.mp3', '.wav', '.flac', '.aac', '.m4a']);
+
 function assertTrustedSender(event) {
   if (!mainWindow || event.sender !== mainWindow.webContents ||
       event.senderFrame !== mainWindow.webContents.mainFrame ||
@@ -36,8 +39,6 @@ function toBuffer(data) {
   }
   throw new Error('Invalid file data');
 }
-
-const previewDir = path.join(os.tmpdir(), 'spotify-worthy-preview');
 
 if (!fs.existsSync(previewDir)) {
   fs.mkdirSync(previewDir, { recursive: true });
@@ -98,11 +99,16 @@ function createWindow() {
 }
 
 // Window control handlers
-registerHandler('window-minimize', () => mainWindow.minimize());
+registerHandler('window-minimize', () => {
+  if (!mainWindow.isDestroyed()) mainWindow.minimize();
+});
 registerHandler('window-maximize', () => {
+  if (mainWindow.isDestroyed()) return;
   mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize();
 });
-registerHandler('window-close', () => mainWindow.close());
+registerHandler('window-close', () => {
+  if (!mainWindow.isDestroyed()) mainWindow.close();
+});
 
 // File selection
 registerHandler('select-file', async () => {
@@ -147,7 +153,9 @@ registerHandler('save-file', async () => {
 
 // Read audio file
 registerHandler('read-audio-file', async (filePath) => {
-  if (typeof filePath !== 'string' || !authorizedReadPaths.has(normalizePath(filePath))) {
+  if (typeof filePath !== 'string' ||
+      !audioExtensions.has(path.extname(filePath).toLowerCase()) ||
+      !authorizedReadPaths.has(normalizePath(filePath))) {
     throw new Error('File was not selected through the file dialog');
   }
 
@@ -161,7 +169,8 @@ registerHandler('read-audio-file', async (filePath) => {
 
 // Write a single export to the path explicitly approved in the save dialog.
 registerHandler('write-file', async (filePath, data) => {
-  if (typeof filePath !== 'string' || !authorizedSavePaths.has(normalizePath(filePath))) {
+  if (typeof filePath !== 'string' || path.extname(filePath).toLowerCase() !== '.wav' ||
+      !authorizedSavePaths.has(normalizePath(filePath))) {
     throw new Error('Export path was not selected through the save dialog');
   }
 
