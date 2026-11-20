@@ -1,0 +1,110 @@
+"""Optional R5 offline Tkinter window; deliberately separate from existing .pyw app."""
+from __future__ import annotations
+import json,sys,threading,tkinter as tk
+from pathlib import Path
+from tkinter import filedialog,messagebox,ttk
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'app'))
+from archive_intelligence import ArchiveCatalog,load_export,completeness
+from archive_research import export_jsonl
+
+BG='#090f1b';PANEL='#10192a';TXT='#edf4ff';CYAN='#00e8ff';PINK='#ff2acb'
+
+class ArchiveWindow(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title('666 ChatBackup · Archive Intelligence R5 · OFFLINE')
+        self.geometry('1030x700')
+        self.configure(bg=BG)
+        self.database=tk.StringVar(value=str(Path.home()/'.666chatbackup'/'catalog.sqlite3'))
+        self.term=tk.StringVar()
+        self.state=tk.StringVar(value='READY · Local-only; original exports remain unchanged')
+        self.chats=[]
+        self.create_ui()
+
+    def create_ui(self):
+        root=tk.Frame(self,bg=BG,padx=20,pady=16);root.pack(fill='both',expand=True)
+        tk.Label(root,text='666 CHATBACKUP · ARCHIVE INTELLIGENCE',fg=CYAN,bg=BG,font=('Segoe UI',17,'bold')).pack(anchor='w')
+        tk.Label(root,text='OFFLINE IMPORT · SEARCH · COMPLETENESS · RAG JSONL',fg=PINK,bg=BG).pack(anchor='w',pady=(0,16))
+        buttons=tk.Frame(root,bg=BG);buttons.pack(fill='x')
+        tk.Button(buttons,text='Import official export ZIP',command=self.import_file).pack(side='left',padx=(0,8))
+        tk.Button(buttons,text='Export RAG JSONL',command=self.export_rag).pack(side='left',padx=(0,8))
+        tk.Button(buttons,text='Catalog status',command=self.info).pack(side='left')
+        index=tk.Frame(root,bg=BG);index.pack(fill='x',pady=12)
+        tk.Label(index,text='SQLite catalog: ',bg=BG,fg=CYAN).pack(side='left')
+        tk.Entry(index,textvariable=self.database).pack(side='left',fill='x',expand=True)
+        tk.Button(index,text='Choose',command=self.choose_database).pack(side='left',padx=(8,0))
+        search=tk.Frame(root,bg=BG);search.pack(fill='x',pady=(0,10))
+        tk.Label(search,text='Search: ',bg=BG,fg=CYAN).pack(side='left')
+        entry=tk.Entry(search,textvariable=self.term);entry.pack(side='left',fill='x',expand=True)
+        entry.bind('<Return>',lambda event:self.search())
+        tk.Button(search,text='Search',command=self.search).pack(side='left',padx=(8,0))
+        tabs=ttk.Notebook(root);tabs.pack(fill='both',expand=True)
+        self.matches=tk.Text(tabs,bg=PANEL,fg=TXT,wrap='word',insertbackground=TXT)
+        self.report=tk.Text(tabs,bg=PANEL,fg=TXT,wrap='word',insertbackground=TXT)
+        tabs.add(self.matches,text='Matches');tabs.add(self.report,text='Import and completeness')
+        tk.Label(root,textvariable=self.state,fg=CYAN,bg=BG,anchor='w').pack(fill='x',pady=(10,0))
+
+    @staticmethod
+    def show(widget,payload):
+        widget.delete('1.0','end')
+        widget.insert('end',json.dumps(payload,ensure_ascii=False,indent=2))
+
+    def choose_database(self):
+        chosen=filedialog.asksaveasfilename(defaultextension='.sqlite3',filetypes=[('SQLite','*.sqlite3')])
+        if chosen:self.database.set(chosen)
+
+    def run_worker(self,fn):
+        self.state.set('PROCESSING OFFLINE...')
+        def run():
+            try:fn()
+            except Exception as exc:
+                message=str(exc)
+                self.after(0,lambda:self.error(message))
+        threading.Thread(target=run,daemon=True).start()
+
+    def error(self,message):
+        self.state.set('ERROR · '+message[:140])
+        messagebox.showerror('Archive Intelligence',message)
+
+    def import_file(self):
+        path=filedialog.askopenfilename(filetypes=[('ZIP export','*.zip')])
+        if not path:return
+        db=self.database.get()
+        def work():
+            chats,inspection=load_export(path)
+            with ArchiveCatalog(db) as catalog:
+                updated=catalog.add(chats,inspection['sha256'],Path(path).name)
+                counts=catalog.status()
+            report={'source':inspection,'indexed':updated,'catalog':counts,
+                    'completeness':[completeness(c) for c in chats]}
+            def finish():
+                self.chats=chats
+                self.show(self.report,report)
+                self.state.set(f"IMPORT {inspection['status']} · {len(chats)} conversations")
+            self.after(0,finish)
+        self.run_worker(work)
+
+    def search(self):
+        term=self.term.get().strip()
+        if not term:return
+        db=self.database.get()
+        def work():
+            with ArchiveCatalog(db) as catalog:rows=catalog.search(term,limit=200)
+            self.after(0,lambda:self.show(self.matches,rows))
+            self.after(0,lambda:self.state.set(f'{len(rows)} local results'))
+        self.run_worker(work)
+
+    def info(self):
+        with ArchiveCatalog(self.database.get()) as catalog:status=catalog.status()
+        messagebox.showinfo('Local catalog',json.dumps(status,indent=2))
+
+    def export_rag(self):
+        if not self.chats:
+            messagebox.showinfo('RAG','Import a data-export ZIP first.');return
+        output=filedialog.asksaveasfilename(defaultextension='.jsonl',filetypes=[('JSONL','*.jsonl')])
+        if not output:return
+        try:messagebox.showinfo('Export',json.dumps(export_jsonl(self.chats,output),indent=2))
+        except Exception as exc:self.error(str(exc))
+
+if __name__=='__main__':
+    ArchiveWindow().mainloop()
