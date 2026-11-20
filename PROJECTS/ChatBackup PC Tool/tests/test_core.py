@@ -573,3 +573,18 @@ def test_v181_package_version_contract_is_consistent():
     assert deps == APP_VERSION
     assert f'toolVersion = "{APP_VERSION}"' in bootstrap
     assert readme.startswith(f"# 666 ChatBackup PC Tool v{APP_VERSION}")
+
+
+def test_share_url_rejects_userinfo_nonstandard_port_and_nonweb_schemes():
+    import pytest
+    from chatbackup_core import ChatBackupError
+    for candidate in (
+        "https://user:secret@chatgpt.com/share/abc",
+        "https://chatgpt.com:4443/share/abc",
+        "https://chatgpt.com:bad/share/abc",
+        "ftp://chatgpt.com/share/abc",
+        "https://127.0.0.1/share/abc",
+    ):
+        with pytest.raises(ChatBackupError):
+            normalize_and_validate_share_url(candidate)
+    assert normalize_and_validate_share_url("http://chatgpt.com/share/abc#frag") == "https://chatgpt.com/share/abc"
