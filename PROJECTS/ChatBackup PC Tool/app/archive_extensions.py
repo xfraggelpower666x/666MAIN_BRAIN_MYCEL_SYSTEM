@@ -13,12 +13,11 @@ from pathlib import Path
 from typing import Callable
 
 
-class ArchiveCancelled(ArchiveImportError):
-    """Controlled cancellation without claiming the current file completed."""
-
-
 from archive_intelligence import ArchiveCatalog, ArchiveImportError, completeness
 from archive_streaming import iter_export_conversations, StreamingCancelled
+
+class ArchiveCancelled(ArchiveImportError):
+    """Controlled cancellation without claiming the current file completed."""
 
 CHECKPOINT_SCHEMA = "666.chatbackup.batch-checkpoint.v1"
 MAX_BATCH_FILES = 10000
