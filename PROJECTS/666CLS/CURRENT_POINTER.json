@@ -5,21 +5,21 @@
     "branch": "666MAIN_BRAIN",
     "root": "PROJECTS/666CLS"
   },
-  "current_version": "1.24.6",
-  "release_path": "releases/1.24.6",
+  "current_version": "1.24.7",
+  "release_path": "releases/1.24.7",
   "domains": {
     "LYRICS": 0,
     "RAW_MATERIAL": 0,
     "STORIES": 0,
     "TEXT": 0
   },
-  "manifest_sha256": "6b2dfa2348847cd6858cfbfd47537355353e23c84d18c541f0caee291441bdd0",
+  "manifest_sha256": "fae9763cfbee0570b53d3eff8483fe6628d2ea9e6f2b7eb8024e15962c234007",
   "controls": {
     "control/AUTHORITY.json": "a5d1b332800d8821e8b32a252b6f6193b6574cfed7f5548f786622eba0477bee",
     "control/BOOTSTRAP.json": "c5edae5ff5171515b1e1ac14b6ce848a39370af1cb9da503adcb5e890dc9bff9",
     "control/FRAMEWORK.md": "a099a54f2987fb7797044b3fe5383c338180647c1145724158cce198c7041512",
     "control/SYSTEM_REGISTRY.json": "449d24ed2a5f0ee1802c1a217be2276f9e7681fae153e6f5df685b5139d80436",
-    "continuity/LIVECIRCLE.json": "c6bfb0bc51824caa9573c146e7a020fba5fec3a7955577937cc7afa9472a683a",
-    "control/INTEGRATIONS.json": "744339d90d3c6348103d02111e9dafe8e2bff0e639b14509e0b7080801721233"
+    "continuity/LIVECIRCLE.json": "8ce1c883bb783c767e503bc0b3eea94134f52470db721cc73fd3f9ec84ddc4fc",
+    "control/INTEGRATIONS.json": "ccc8bf68b20fc9dd5834aa8a97cd60f6e0f44f03766e18babef1f0a06bc7de73"
   }
 }
