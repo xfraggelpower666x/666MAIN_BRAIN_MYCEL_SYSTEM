@@ -245,7 +245,18 @@ def normalize_and_validate_share_url(raw_url: str) -> str:
     except ValueError as exc:
         raise ChatBackupError("Der eingegebene Link ist ungültig.") from exc
 
-    host = parsed.netloc.lower().split("@")[-1].split(":")[0]
+    # Reject userinfo, alternate schemes and ports before making an HTTP request.
+    # A hostile ``user:pass@chatgpt.com`` URL must never be treated as a safe share.
+    try:
+        port = parsed.port
+    except ValueError as exc:
+        raise ChatBackupError("Der Share-Link enthält einen ungültigen Port.") from exc
+    if (parsed.scheme.lower() not in {"http", "https"}
+            or parsed.username is not None or parsed.password is not None
+            or port not in (None, 443)
+            or not parsed.hostname):
+        raise ChatBackupError("Der Share-Link verwendet ein nicht unterstütztes URL-Format.")
+    host = parsed.hostname.lower()
     if host not in {"chatgpt.com", "www.chatgpt.com", "chat.openai.com", "www.chat.openai.com"}:
         raise ChatBackupError("Der Link gehört nicht zu ChatGPT.")
 
@@ -262,7 +273,7 @@ def normalize_and_validate_share_url(raw_url: str) -> str:
             "https://chatgpt.com/share/..."
         )
 
-    return urlunsplit(("https", parsed.netloc, parsed.path, parsed.query, ""))
+    return urlunsplit(("https", host, parsed.path, parsed.query, ""))
 
 
 def fetch_share_page(

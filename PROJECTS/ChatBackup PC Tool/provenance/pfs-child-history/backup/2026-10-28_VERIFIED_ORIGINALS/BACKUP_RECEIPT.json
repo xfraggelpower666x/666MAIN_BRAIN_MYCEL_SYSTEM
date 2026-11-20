@@ -1,0 +1,31 @@
+{
+  "schema": "PFS_CHATBACKUP_BACKUP_RECEIPT_V1",
+  "child_id": "CHATBACKUP-8001",
+  "classification": "PFS_BACKUP_STORAGE_ONLY",
+  "source_review_commit": "4e500c26999269f5165633f18cc6e948e255309a",
+  "source_branch": "pfs/chatbackup-8001-offline-intake-20261028-221742",
+  "original_runtime_v1_1_1_preserved": true,
+  "live_authority_claim": false,
+  "autoload": false,
+  "files": [
+    {
+      "filename": "666_CHATBACKUP_PC_TOOL_v1.10.0.zip",
+      "sha256": "b3cfdfeb79f325a9a3d1bc7f9448fe4529b66d6f56725c6bf4b3cedc6b64ed68",
+      "git_blob_sha": "75547ff2dcd365b30a434d546803ae773ce07bc6",
+      "size_bytes": 13409046,
+      "zip_entries": 66,
+      "crc": "PASS"
+    },
+    {
+      "filename": "666_CHATBACKUP_SCRIPTABLE_IPHONE_v1.0.5.zip",
+      "sha256": "a738cb0573b1e65b1a8f5c514308e350b925ebe7e2c3600bbf15052643504707",
+      "git_blob_sha": "17924e8caf061349cda322515604b9f35dd25490",
+      "size_bytes": 20294,
+      "zip_entries": 4,
+      "crc": "PASS"
+    }
+  ],
+  "recovery_base_commit": "3c893d520a15b46a6c56ef494f7bdd2e3afbcc7f",
+  "promotion": "BACKUP_ONLY_NO_RUNTIME_REPLACEMENT",
+  "restore_test": "NOT_PERFORMED"
+}

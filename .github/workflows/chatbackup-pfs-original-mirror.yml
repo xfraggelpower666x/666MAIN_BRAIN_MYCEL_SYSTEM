@@ -1,0 +1,47 @@
+name: ChatBackup PFS legacy binary parity mirror
+on:
+  push:
+    branches:
+      - migration/chatbackup-r1-detach-20261120
+    paths:
+      - .github/workflows/chatbackup-pfs-original-mirror.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  mirror-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout migration branch
+        uses: actions/checkout@v4
+        with:
+          ref: migration/chatbackup-r1-detach-20261120
+          persist-credentials: true
+      - name: Fetch original PFS bytes and verify Git blob identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          work="$(mktemp -d)"
+          trap 'rm -rf "$work"' EXIT
+          git clone --depth 1 --branch main https://github.com/xfraggelpower666x/666PFS_CSM.git "$work/pfs"
+          source_file="$work/pfs/children/CHATBACKUP-8001/backup/2026-10-28_VERIFIED_ORIGINALS/666_CHATBACKUP_PC_TOOL_v1.10.0.zip"
+          test -f "$source_file"
+          test "$(wc -c < "$source_file" | tr -d ' ')" = "13409046"
+          blob="$(git hash-object "$source_file")"
+          echo "SOURCE_GIT_BLOB=$blob"
+          test "$blob" = "75547ff2dcd365b30a434d546803ae773ce07bc6"
+          dest="PROJECTS/ChatBackup PC Tool/provenance/pfs-child-history/backup/2026-10-28_VERIFIED_ORIGINALS/666_CHATBACKUP_PC_TOOL_v1.10.0.zip"
+          mkdir -p "$(dirname "$dest")"
+          if test -f "$dest"; then
+            cmp "$source_file" "$dest"
+          else
+            cp "$source_file" "$dest"
+          fi
+          test "$(git hash-object "$dest")" = "$blob"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- "$dest"
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(chatbackup): preserve byte-identical PFS PC v1.10.0 original as historical provenance"
+            git push origin HEAD:migration/chatbackup-r1-detach-20261120
+          fi
