@@ -79,7 +79,7 @@ class MycelBridgeTests(unittest.TestCase):
         s["blockers"] = []
         s["next_action"] = None
         result = project(menu(), s)
-        self.assertIn("nicht", result["companion"]["blocker"].lower())
+        self.assertIn("keine", result["companion"]["blocker"].lower())
         self.assertIn("prüfen", result["companion"]["next_step"])
 
 
