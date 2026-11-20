@@ -904,7 +904,7 @@ async function extractMessagesFromWebView(w, parserName, parserDetails, url) {
     const d = result && result.diagnostics || {};
     throw new Error('DOM_NO_MESSAGES ' + JSON.stringify(d).slice(0,500));
   }
-  const messages = items.map((x,i) => makeMessage({id:x.id||`dom-${i+1}`, role:x.role,author:x.role==='assistant'?'ChatGPT':t('User','Benutzer'), text:x.text,rawContent:{text:x.text}, rawMetadata:{domFallback:true,parser:parserName},contentType:'dom', status:'dom', recipient:'all'}));
+  const messages = items.map((x,i) => makeMessage({id:x.id||`dom-${i+1}`, role:x.role,author:x.role==='assistant'?'ChatGPT':t('User','Benutzer'), text:x.text,rawContent:{text:x.text}, rawMetadata:{domFallback:true,parser:parserName},contentType:'dom', status:'dom', recipient:'all', participantResolution:x.role==='assistant'?'ROLE_CONFIRMED':'UNRESOLVED'}));
   return {title:String(result.title||'ChatGPT Conversation').replace(/^ChatGPT\s*[-–—:]\s*/i,'').trim()||'ChatGPT Conversation',shareId:extractShareId(url),updatedAt:null,messages,participants:buildParticipants(messages),parser:parserName,parserDetails,stats:{sourceEntries:items.length,exported:items.length,skippedHidden:0,skippedRole:0,skippedRecipient:0,skippedEmpty:0,skippedDuplicate:0,possiblyIncomplete:0},warnings:[]};
 }
 async function extractViaFetchedHtml(html,url) {
