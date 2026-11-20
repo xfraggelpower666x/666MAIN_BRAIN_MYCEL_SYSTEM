@@ -93,8 +93,49 @@ class MycelBridgeTests(unittest.TestCase):
         s["blockers"] = []
         s["next_action"] = None
         result = project(menu(), s)
-        self.assertIn("keine", result["companion"]["blocker"].lower())
+        self.assertNotIn("blocker", result["companion"])
         self.assertIn("prüfen", result["companion"]["next_step"])
+
+
+    def test_native_actions_are_nonexecuting_suggestions(self):
+        m = menu()
+        m["native_actions"] = [
+            {"label": "STATUS", "trigger": "666MAIN BRAIN STATUS",
+             "requires_direct_user_click": True},
+            {"label": "WEITER", "trigger": "666MAIN BRAIN WEITER",
+             "requires_direct_user_click": True},
+        ]
+        result = project(m, state())
+        self.assertEqual(len(result["actions"]), 2)
+        self.assertEqual(result["actions"][0]["kind"], "navigate")
+        self.assertEqual(result["actions"][0]["status"], "VORGESCHLAGEN")
+        self.assertNotIn("blocker", project(m, {**state(), "blockers": []})["companion"])
+
+    def test_unapproved_trigger_rejected(self):
+        m = menu()
+        m["native_actions"] = [
+            {"label": "UPDATE", "trigger": "666MAIN BRAIN UPDATE",
+             "requires_direct_user_click": True}]
+        with self.assertRaises(ValueError):
+            project(m, state())
+
+    def test_duplicate_native_trigger_rejected(self):
+        m = menu()
+        m["native_actions"] = [
+            {"label": "STATUS", "trigger": "666MAIN BRAIN STATUS",
+             "requires_direct_user_click": True},
+            {"label": "STATUS", "trigger": "666MAIN BRAIN STATUS",
+             "requires_direct_user_click": True}]
+        with self.assertRaises(ValueError):
+            project(m, state())
+
+    def test_missing_click_gate_rejected(self):
+        m = menu()
+        m["native_actions"] = [
+            {"label": "STATUS", "trigger": "666MAIN BRAIN STATUS",
+             "requires_direct_user_click": False}]
+        with self.assertRaises(ValueError):
+            project(m, state())
 
 
 if __name__ == "__main__":
