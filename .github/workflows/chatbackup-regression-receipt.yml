@@ -56,6 +56,12 @@ jobs:
               tests[name]={"exit_code":int(os.environ[k]),"tail":t[-900:]}
           observed=pathlib.Path("/tmp/chatbackup-legacy-hash.log").read_text().strip()
           tests["pfs_binary_hash"]["match"]=observed=="75547ff2dcd365b30a434d546803ae773ce07bc6"
+          try:
+              raw=pathlib.Path("/tmp/chatbackup-integrity.log").read_text(errors="replace")
+              details=json.loads(raw.split("\\nREPORT=")[0])
+              tests["integrity"]["failed_checks"]=[x for x in details.get("checks",[]) if x.get("status")!="PASS"]
+          except Exception as exc:
+              tests["integrity"]["parse_error"]=type(exc).__name__
           result={"schema":"chatbackup.repo-regression.v1","date_utc":datetime.datetime.now(datetime.timezone.utc).isoformat(),"source":"github-actions-linux","physical_windows_host":"READBACK_PENDING","physical_iphone_host":"READBACK_PENDING","tests":tests}
           result["status"]="PASS" if all(x["exit_code"]==0 for x in tests.values()) and tests["pfs_binary_hash"]["match"] else "FAIL"
           p.write_text(json.dumps(result,indent=2,ensure_ascii=False)+"\n")
