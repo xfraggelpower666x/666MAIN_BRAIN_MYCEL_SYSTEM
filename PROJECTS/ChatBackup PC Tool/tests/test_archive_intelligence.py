@@ -11,7 +11,7 @@ def conversation(text='hello'):
     return {'id':'chat-1','title':'Music archive','update_time':1710000000,
       'mapping':{'a':{'parent':None,'children':['b','c'],'message':{'id':'m1','author':{'role':'user'},'content':{'content_type':'text','parts':[text]}}},
                  'b':{'parent':'a','children':[],'message':{'id':'m2','author':{'role':'assistant'},'content':{'content_type':'text','parts':['response']}}},
-                 'c':{'parent':'a','children':[],'message':{'id':'m3','author':{'role':'assistant'},'content':{'content_type':'multimodal_text','parts':[{'content_type':'image_asset_pointer','asset_pointer':'asset://ptr'}]}}}}
+                 'c':{'parent':'a','children':[],'message':{'id':'m3','author':{'role':'assistant'},'content':{'content_type':'multimodal_text','parts':[{'content_type':'image_asset_pointer','asset_pointer':'asset://ptr'}]}}}}}
 
 def exported(path,entry='conversations.json',extra=None,contents=None):
     with zipfile.ZipFile(path,'w',compression=zipfile.ZIP_DEFLATED) as z:
