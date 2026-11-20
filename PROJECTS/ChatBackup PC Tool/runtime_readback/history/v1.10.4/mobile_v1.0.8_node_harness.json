@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "tool": "666 ChatBackup Scriptable iPhone",
+  "version": "1.0.8",
+  "environment": "Node VM with Scriptable API stubs; not a real iPhone host pass",
+  "checks": {
+    "REACT_FLIGHT_FIXTURE": "PASS",
+    "SSR_SOURCE_FIXTURE": "PASS",
+    "SSR_HTTP_IMAGE_FIXTURE": "PASS",
+    "FAIL_CLOSED_USER_IDENTITY": "PASS",
+    "MACHINE_EXPORT": "PASS",
+    "MARKDOWN_EXPORT": "PASS",
+    "JSONL_EXPORT": "PASS",
+    "STRUCTURE_EXPORT": "PASS",
+    "HOST_ACCEPTANCE_FUNCTION_PRESENT": "PASS"
+  },
+  "hostGateClosed": false
+}

@@ -1,0 +1,10 @@
+G-Helper 0.294 – Korrektur fuer den NSIS-Fehler
+
+GHelper.nsi und build.py aus diesem ZIP in den vorhandenen Projektordner
+GHelper-Windows-Installer kopieren, direkt neben GHELPER_BUILD.bat.
+Beide gleichnamigen Dateien ersetzen. Dann GHELPER_BUILD.bat starten
+und 1 waehlen. Das fertige Setup liegt in output.
+
+NSIS nutzt den x64-Starter, wenn alle benoetigten amd64-Komponenten
+vorhanden sind. Fehlen sie, nutzt es den x86-Starter mit nativer
+64-Bit-PowerShell. G-Helper und das erforderliche Windows bleiben x64.

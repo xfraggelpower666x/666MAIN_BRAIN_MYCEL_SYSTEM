@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "1.0.0",
+  "tool": "666_CHATBACKUP_PC_TOOL",
+  "toolVersion": "1.10.5",
+  "runtime": {
+    "python": {
+      "requiredForSource": true,
+      "requiredForExe": false,
+      "minimumVersion": "3.10.0",
+      "preferredInstallLine": "3.14",
+      "updatePolicy": "compatible-runtime-required_patch-updates-best-effort-installer-aware"
+    },
+    "tkinter": {
+      "requiredForSource": true,
+      "requiredForExe": false,
+      "provider": "official-python-installer"
+    },
+    "nodejs": {
+      "required": false,
+      "updatePolicy": "do-not-install-or-update"
+    },
+    "npm": {
+      "required": false,
+      "updatePolicy": "do-not-install-or-update"
+    },
+    "pythonPackages": {
+      "requiredForSource": true,
+      "requiredForExe": false,
+      "requirementsFile": "requirements-runtime.txt",
+      "updatePolicy": "upgrade-on-bootstrap",
+      "packages": [
+        "Pillow>=11,<13"
+      ]
+    }
+  },
+  "build": {
+    "pyinstaller": {
+      "required": true,
+      "versionSpec": ">=6.17,<7.0",
+      "environment": ".venv-build"
+    }
+  }
+}

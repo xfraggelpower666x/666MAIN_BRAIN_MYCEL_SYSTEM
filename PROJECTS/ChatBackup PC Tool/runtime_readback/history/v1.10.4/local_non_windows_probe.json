@@ -1,0 +1,59 @@
+{
+  "status": "NON_WINDOWS_PROBE_PASS_HOST_GATE_NOT_CLOSED",
+  "tool": "666 ChatBackup PC Tool",
+  "expectedVersion": "1.10.3",
+  "executedAtUtc": "2026-11-06T12:12:04.753086+00:00",
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "system": "Linux",
+  "python": "3.13.5 (main, Jul 15 2026, 20:25:40) [GCC 14.2.0]",
+  "checks": [
+    {
+      "name": "CORE_IMPORT",
+      "status": "PASS",
+      "detail": "1.10.3"
+    },
+    {
+      "name": "VERSION_MATCH",
+      "status": "PASS",
+      "detail": "1.10.3"
+    },
+    {
+      "name": "BACKEND_IMPORT",
+      "status": "PASS",
+      "detail": "ChatBackend/BackendConfig"
+    },
+    {
+      "name": "TKINTER_IMPORT",
+      "status": "PASS",
+      "detail": "8.6"
+    },
+    {
+      "name": "PILLOW_IMPORT",
+      "status": "PASS",
+      "detail": "12.3.0"
+    },
+    {
+      "name": "GUI_MODULE_IMPORT",
+      "status": "PASS",
+      "detail": "ChatBackupApp"
+    },
+    {
+      "name": "GUI_INSTANTIATION",
+      "status": "PASS",
+      "detail": "666 ChatBackup PC Tool v1.10.3"
+    },
+    {
+      "name": "GUI_TITLE_VERSION",
+      "status": "PASS",
+      "detail": "666 ChatBackup PC Tool v1.10.3"
+    },
+    {
+      "name": "GUI_GEOMETRY_READBACK",
+      "status": "PASS",
+      "detail": "1240x894+20+65"
+    }
+  ],
+  "guiTitle": "666 ChatBackup PC Tool v1.10.3",
+  "guiGeometry": "1240x894+20+65",
+  "isWindowsHost": false
+}
