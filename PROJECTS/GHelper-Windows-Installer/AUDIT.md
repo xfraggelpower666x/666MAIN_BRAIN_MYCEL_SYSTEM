@@ -32,3 +32,9 @@ Das Windows-Protokoll bestätigt Restore und Publish von G-Helper. Die anschlie�
 Das zweite Windows-Protokoll erreicht den Kopierabschnitt von NSIS und meldet `payload/GHelper.dll.config -> no files found`. Die Datei war im Publish-Verzeichnis vorhanden. Der Python-Generator hatte `File`-Quellpfade in POSIX-Schreibweise ausgegeben. MakeNSIS zerlegt diese Dateimuster anhand des Pfadtrenners des Buildhosts.
 
 Der Manifestgenerator verwendet jetzt den Pfadtrenner des Buildhosts. Eine Gegenprobe bestätigte die Windows-Ausgabe `payload\GHelper.dll.config` und einen verschachtelten Pfad mit Leerzeichen, sowie die entsprechende Linux-Ausgabe. Die frühere Korrektur für fehlende amd64-Stubs gilt weiterhin. Der erneute Build auf dem Windows-PC steht aus.
+
+## Windows-Abnahme nach Pfadkorrektur
+
+Am 20.11.2026 hat der Projektbetreiber gemeldet, dass der Build mit der aktuellen NSIS-Pfadkorrektur auf seinem Windows-PC funktioniert. Die zuvor dokumentierten Fehler mit dem fehlenden amd64-Stub und `payload/GHelper.dll.config` sind damit aus Anwendersicht behoben. Ein vollständiges Windows-Buildprotokoll des erfolgreichen Durchlaufs und ein Setup-/Treibertest wurden noch nicht übergeben.
+
+Die aktuell veröffentlichten Projektdateien enthalten die funktionierende Korrektur. Große Eingabebinärdateien und die Setup-EXE liegen weiterhin im separaten Komplettpaket. Für eine vollständig lokale Wiederherstellung des Repository-Ordners müssen diese Dateien noch nach `eingaben/` beziehungsweise `output/` übertragen werden.
