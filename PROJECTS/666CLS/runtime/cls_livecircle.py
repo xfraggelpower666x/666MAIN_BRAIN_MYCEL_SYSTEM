@@ -21,13 +21,27 @@ SCHEMA = "1.12.0"
 TRIGGERS = {"666CLS SYSTEMSTART": "status", "666CLS WEITER": "continue", "666CLS UPDATE": "update"}
 VERSION = re.compile(r"[0-9]+\.[0-9]+\.[0-9]+")
 ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}")
+SENSITIVE_FIELD = re.compile(
+    r"password|passphrase|credential|clientsecret|privatekey|apikey|accesstoken|refreshtoken|"
+    r"authtoken|bottoken|sessiontoken|sessioncookie|secret|token",
+    re.IGNORECASE,
+)
+SENSITIVE_TEXT = re.compile(
+    r"-----BEGIN (?:[A-Z0-9]+ )*PRIVATE KEY-----|"
+    r"\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|"
+    r"sk-(?:proj-)?[A-Za-z0-9_-]{20,})\b|"
+    r"\b(?:authorization\s*:\s*bearer|api[_ -]?key\s*[:=]|"
+    r"password\s*[:=]|access[_ -]?token\s*[:=])\s*[\x22\x27]?[A-Za-z0-9_./+=!@#%\-]{8,}|"
+    r"https?://[^/\s:@]+:[^/\s@]+@",
+    re.IGNORECASE,
+)
 REPO_CONTROLS = (
     "control/AUTHORITY.json", "control/BOOTSTRAP.json", "control/FRAMEWORK.md",
     "control/SYSTEM_REGISTRY.json", "continuity/LIVECIRCLE.json", "control/INTEGRATIONS.json",
 )
 DATA_PATHS = tuple(f"{directory}/{domain}_{suffix}.json" for domain in DOMAINS
                    for directory, suffix in (("DATABASE", "ARCHIVE"), ("MENU", "MENU")))
-RELEASE_FILES = ("MANIFEST.json", "AUDIT.json", *DATA_PATHS)
+REQUIRED_RELEASE_FILES = {*DATA_PATHS, "AUDIT.json"}
 
 
 def read(path):
@@ -81,6 +95,19 @@ def entries_by_id(entries, domain):
     return indexed
 
 
+def requires_source_vault(value):
+    """Erkennbare Zugangsdaten bleiben im privaten Quellenbestand."""
+    if isinstance(value, dict):
+        return any(
+            (SENSITIVE_FIELD.fullmatch(re.sub(r"[_ -]", "", key)) and bool(item))
+            or requires_source_vault(item)
+            for key, item in value.items()
+        )
+    if isinstance(value, list):
+        return any(requires_source_vault(item) for item in value)
+    return isinstance(value, str) and SENSITIVE_TEXT.search(value) is not None
+
+
 def menu_for(entries, domain):
     result = {"schema_version": SCHEMA, "content_type": DOMAINS[domain],
               "menu_count": len(entries), "menu": []}
@@ -123,13 +150,19 @@ def inspect_release(release, version):
     manifest = read(release / "MANIFEST.json")
     require(manifest["system_id"] == SYSTEM and manifest["version"] == version
             and manifest["schema_version"] == SCHEMA, "Release-Identität stimmt nicht")
-    require(set(manifest["sha256"]) == set(DATA_PATHS) | {"AUDIT.json"}, "Release-Inventar weicht ab")
+    paths = set(manifest["sha256"])
+    require(REQUIRED_RELEASE_FILES <= paths <= REQUIRED_RELEASE_FILES | {"FREEZE.json"},
+            "Release-Inventar weicht ab")
     for name, expected in manifest["sha256"].items():
         require(sha(release / name) == expected, f"Prüfsumme weicht ab: {name}")
     counts = inspect_data(release)
     audit = read(release / "AUDIT.json")
     require(audit["version"] == version and audit["status"] == "VERIFIZIERT"
             and manifest["domains"] == audit["domains"] == counts, "Audit und Release weichen ab")
+    if "FREEZE.json" in paths:
+        freeze = read(release / "FREEZE.json")
+        require(freeze["system_id"] == SYSTEM and freeze["version"] == version,
+                "Freeze und Release weichen ab")
     return counts
 
 
@@ -169,6 +202,8 @@ def build_release(release, version, records, phase):
     require(isinstance(records, dict) and set(records) == set(DOMAINS), "Vier Archivbereiche erforderlich")
     for domain, kind in DOMAINS.items():
         entries = entries_by_id(records[domain], domain)
+        require(not any(requires_source_vault(entry) for entry in entries.values()),
+                f"{domain}: HOLD / SOURCE_VAULT_ONLY. Eintrag privat fachlich prüfen.")
         write(release / f"DATABASE/{domain}_ARCHIVE.json",
               {"schema_version": SCHEMA, "content_type": kind,
                "entry_count": len(entries), "entries": list(entries.values())})
@@ -193,15 +228,18 @@ def pointer_for(root, release, version, counts):
 def backup_current(root, current, backup_dir):
     backup_dir.mkdir(parents=True, exist_ok=True)
     backup = Path(tempfile.mkdtemp(prefix="666CLS-", dir=backup_dir)) / f"pre-update-{current['version']}.zip"
-    files = [root / "CURRENT_POINTER.json", *(root / name for name in REPO_CONTROLS),
-             *(root / current["source"] / name for name in RELEASE_FILES)]
+    files = {root / "CURRENT_POINTER.json", *(root / name for name in REPO_CONTROLS)}
+    for release in (root / "releases").iterdir():
+        if release.is_dir() and VERSION.fullmatch(release.name):
+            inspect_release(release, release.name)
+            files.update(release / name for name in (*read(release / "MANIFEST.json")["sha256"], "MANIFEST.json"))
     integrations = read(root / "control/INTEGRATIONS.json")
     for item in integrations["integrations"]:
-        files.extend(root / name for name in item["sha256"])
-    expected = {p.relative_to(root).as_posix(): sha(p) for p in files}
+        files.update(root / name for name in item["sha256"])
+    expected = {p.relative_to(root).as_posix(): sha(p) for p in sorted(files)}
     with backup.open("xb") as stream, ZipFile(stream, "w", ZIP_DEFLATED) as z:
-        for file in files:
-            z.write(file, file.relative_to(root).as_posix())
+        for name in expected:
+            z.write(root / name, name)
     with ZipFile(backup) as z:
         actual = {name: hashlib.sha256(z.read(name)).hexdigest() for name in z.namelist()}
         require(actual == expected and z.testzip() is None, "Sicherung: Readback fehlgeschlagen")

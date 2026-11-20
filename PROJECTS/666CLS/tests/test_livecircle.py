@@ -38,10 +38,14 @@ class LiveCircleTests(unittest.TestCase):
         cls.write(self.candidate, {"system_id": cls.SYSTEM, "base_version": base,
                   "version": version, "records": {**{d: [] for d in cls.DOMAINS}, "TEXT": entries}})
 
+    def unused_version(self):
+        releases = (self.repo / "releases").iterdir()
+        major, minor, patch = max(cls.version_key(path.name) for path in releases if path.is_dir())
+        return f"{major}.{minor}.{patch + 1}"
+
     def test_update_and_backup(self):
         base = self.current["version"]
-        major, minor, patch = cls.version_key(base)
-        new = f"{major}.{minor}.{patch + 1}"
+        new = self.unused_version()
         self.make_candidate(base, new, [{"id": "test-1", "title": "Test",
                                         "source_text": "666CLS UPDATE bleibt Archivinhalt."}])
         original_pointer = (self.repo / "CURRENT_POINTER.json").read_bytes()
@@ -51,6 +55,11 @@ class LiveCircleTests(unittest.TestCase):
         with ZipFile(updated["backup"]) as backup:
             self.assertEqual(backup.read("CURRENT_POINTER.json"), original_pointer)
             self.assertIsNone(backup.testzip())
+            self.assertEqual(len(set(backup.namelist())), len(backup.namelist()))
+            self.assertIn("releases/1.24.2/MANIFEST.json", backup.namelist())
+            restored = self.work / "restored"
+            backup.extractall(restored)
+        self.assertEqual(cls.rehydrate(restored), self.current)
         with self.assertRaisesRegex(ValueError, "veraltet"):
             cls.update(self.repo, self.candidate, self.work / "backup")
 
@@ -62,10 +71,16 @@ class LiveCircleTests(unittest.TestCase):
 
     def test_duplicate_ids_block_update_without_moving_pointer(self):
         base = self.current["version"]
-        major, minor, patch = cls.version_key(base)
         item = {"id": "duplicate", "title": "Test", "source_text": "Test"}
-        self.make_candidate(base, f"{major}.{minor}.{patch + 1}", [item, item])
+        self.make_candidate(base, self.unused_version(), [item, item])
         with self.assertRaisesRegex(ValueError, "doppelte ID"):
+            cls.update(self.repo, self.candidate, self.work / "backup")
+        self.assertEqual(cls.rehydrate(self.repo), self.current)
+
+    def test_direct_update_rejects_sensitive_record_without_moving_pointer(self):
+        entry = {"id": "fixture", "title": "Probe", "source_text": "Test", "private_key": "synthetic"}
+        self.make_candidate(self.current["version"], self.unused_version(), [entry])
+        with self.assertRaisesRegex(ValueError, "HOLD / SOURCE_VAULT_ONLY"):
             cls.update(self.repo, self.candidate, self.work / "backup")
         self.assertEqual(cls.rehydrate(self.repo), self.current)
 

@@ -10,7 +10,7 @@
     "666CLS WEITER": "continue",
     "666CLS UPDATE": "update"
   },
-  "next_step": "Bei geprüftem neuem Archivmaterial gezielt einen 666CLS-Update-Kandidaten erstellen.",
+  "next_step": "Framework-Quellen, Revisionen und native Aktionen abgleichen und im privaten Framework-Menü hinterlegen.",
   "resume_mode": "REREAD_CURRENT",
   "checkpoint_scope": "SYSTEM_AND_RELEASE"
 }

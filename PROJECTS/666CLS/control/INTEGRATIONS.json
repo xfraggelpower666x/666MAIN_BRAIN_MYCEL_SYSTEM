@@ -22,8 +22,9 @@
         "integrations/visual/assets/visual-daemon.html": "e915390ef6a1b22087ae9006c3e28787899cbfc83c6d9afefcd09437b751ec83",
         "integrations/visual/assets/visualform-menu.html": "85598acde043608470a2d8aa07d500f7e212d25ef2eee38ee2b19634c7a6e516",
         "integrations/visual/scripts/render_ui.py": "a83e2f7252f2016d5f1d7b1d301755e6b41826618ab55695e73a2b18be9baa14",
-        "runtime/dashboard.py": "f617bd56cb00aeeb5e3fb1de91ce9dcbb303881dfbddd7282297be652ed34b2b",
-        "skills/cls-visual/SKILL.md": "6b1af5e15797bc66c5c40b53c711fe4861682a74516d5be0bb5d9764c6f07836"
+        "runtime/dashboard.py": "67dfaa81564ef06639ff9d1b28ab22f41e45bc156b1b78b7c71a1d255f4d36f0",
+        "skills/cls-visual/SKILL.md": "6b1af5e15797bc66c5c40b53c711fe4861682a74516d5be0bb5d9764c6f07836",
+        "tests/test_archive_dashboard.py": "934ab99b4875e512c039d6496a2a4684a2773b214a799e804a626e067daf860c"
       }
     },
     {
@@ -37,11 +38,11 @@
         }
       },
       "sha256": {
-        "runtime/cls_livecircle.py": "375b18f94f1fd520250b51fe409fe0d3406caf6224dc5d181ec1fbb4ae69cdd2",
-        "tests/test_livecircle.py": "bf916be1e824ab5a574ee99b6b25a7ccc280ae26c561954eace7e399a3d7b443",
+        "runtime/cls_livecircle.py": "a0559a0efee682b962bbaa813676d17a0e0d4c7afae5510cffe658a86f55321c",
+        "tests/test_livecircle.py": "fde66dd744115be0e0f4a2c4eb97409f3b8d910396c56c4d0da14e09b5fc0134",
         "skills/cls-release/SKILL.md": "02a1fc4485f207d8ab2725b6de8c3e232c05a5f5410d4db6ffb04b1ddd473160",
         "README.md": "2bb10ac984a4fbbf1c7dcc442bddb917b617735b3170a04c199e5cc2692891e8",
-        "START_HERE.md": "e7e884cab2dc7f26b8c3bfb703751dcaf2ce75b8135e9b1a01cf8b7d2cf6aad2",
+        "START_HERE.md": "48b1187a845b10c1f85eabc8ceeca88a0c49d561c233cfbc3136c7acb162651d",
         ".gitignore": "e469b1ce4110700c806e72a501c330e169f38d25026681c1ca29b81693d3d20d"
       }
     },
@@ -58,6 +59,32 @@
       "sha256": {
         "integrations/ARCHIVE_EVIDENCE.json": "6bb0ac16952025f577a0d54b0874d50f4dbcceb8e70a182dd5c12597fe7408ee",
         "skills/cls-evidence/SKILL.md": "e51aea3865908247c8ef0aea320a2b9fbad1b28007acfafdb8083fd349f0fbc0"
+      }
+    },
+    {
+      "name": "666CLS gemeinsamer Archivzugang",
+      "role": "SCOPED_ARCHIVE_INTAKE",
+      "sha256": {
+        "runtime/shared_archive.py": "d8ea1fdd74cabc87fdd5bd21949ef665df00c9b78cc08190132d9abda0d1774e",
+        "shared_archive/README.md": "ae3fa6d4b9f25e0e23cfc75bbccf9b53b25ba67d49d85f38209c34b6260fc121",
+        "tests/test_shared_archive.py": "0e29f192a9ade3f5bac598c1f9df6d64a3af68ca24f8a08a7440058d2e105da1"
+      }
+    },
+    {
+      "name": "666CLS Framework- und Archivsteuerung",
+      "role": "LOCAL_OPERATOR_CONSOLE",
+      "sha256": {
+        "runtime/archive_console.py": "5cd42f9b4d9a3c2b106978db68c7f6114bea7f2075e9593b600e349e6587bda8",
+        "shared_archive/console.html": "a08dcb78fcbb229f56d644331a4f2253370c2b967efa81ddc3708c5a03ed577e",
+        "tests/test_archive_console.py": "4a4764fcb3c44b477e578f6c8c60c37998447e71a722ba6bc41e5715b9274d1c"
+      }
+    },
+    {
+      "name": "666CLS Systemaufnahme",
+      "role": "FRAMEWORK_BOUNDARY_REVIEW",
+      "sha256": {
+        "runtime/framework_intake.py": "17136a173608ae0010c8b811c99570272cdfb110e5ba062728205ec2ded2c316",
+        "tests/test_framework_intake.py": "98956a58eb4740a409563c1577100afceb51480cfcc9e195e4dc10aef5d8bc7a"
       }
     }
   ]
