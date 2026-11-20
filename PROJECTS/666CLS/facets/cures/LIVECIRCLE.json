@@ -11,5 +11,12 @@
   "execution_authority": "NATIVE_OWNER_ONLY",
   "triggers": {},
   "rehydration": "VERIFY_PARENT_THEN_SOURCE_EVIDENCE",
-  "continuation": "NO_FOREIGN_AUTOACTIVATION"
+  "continuation": "PFS_FUNCTIONAL_PAYLOAD_AND_NATIVE_READBACK_PENDING",
+  "native_authority_readback": {
+    "repository": "xfraggelpower666x/666PFS_CSM",
+    "head": "199c24a1ad3b9a0baa218f2b97cd847dbbd0448c",
+    "state": "HOLD_FUNCTIONAL_PAYLOAD_SOURCE_NOT_FOUND",
+    "source": "children/CURES-16001/SYSTEM_IDENTITY.md"
+  },
+  "local_candidate_state": "FROZEN_LOCAL_RELEASE_V0.2.0_NOT_PFS_PUBLISHED"
 }
