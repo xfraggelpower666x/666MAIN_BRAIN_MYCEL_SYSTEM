@@ -181,8 +181,8 @@ const ChannelStrip = React.memo(function ChannelStrip({ track, faderHeight, retu
               onClick={() => track.isGroup ? setGroupMuted(track.id, !track.muted) : updateTrack(track.id, { muted: !track.muted })}
               aria-label={`Mute ${track.displayName}`}
               aria-pressed={track.muted}
-              className={`text-[10px] font-bold w-[18px] h-[18px] flex items-center justify-center rounded-sm transition-all duration-200 ${
-                track.muted ? 'bg-red-500 text-white shadow-[0_0_6px_rgba(239,68,68,0.4)]' : 'bg-[#444] text-zinc-500 hover:bg-[#484848]'
+              className={`text-[10px] font-bold w-6 h-6 shrink-0 flex items-center justify-center rounded-sm transition-all duration-200 ${
+                track.muted ? 'bg-red-600 text-white shadow-[0_0_6px_rgba(220,38,38,0.4)]' : 'bg-[#444] text-zinc-500 hover:bg-[#484848]'
               }`}
             >
               M
@@ -192,7 +192,7 @@ const ChannelStrip = React.memo(function ChannelStrip({ track, faderHeight, retu
               onClick={() => track.isGroup ? setGroupSoloed(track.id, !track.soloed) : updateTrack(track.id, { soloed: !track.soloed })}
               aria-label={`Solo ${track.displayName}`}
               aria-pressed={track.soloed}
-              className={`text-[10px] font-bold w-[18px] h-[18px] flex items-center justify-center rounded-sm transition-all duration-200 ${
+              className={`text-[10px] font-bold w-6 h-6 shrink-0 flex items-center justify-center rounded-sm transition-all duration-200 ${
                 track.soloed ? 'bg-amber-400 text-black shadow-[0_0_6px_rgba(251,191,36,0.5)]' : 'bg-[#444] text-zinc-500 hover:bg-[#484848]'
               }`}
             >
@@ -203,7 +203,7 @@ const ChannelStrip = React.memo(function ChannelStrip({ track, faderHeight, retu
               aria-label={`FX bypass ${track.displayName}`}
               aria-keyshortcuts="P"
               title={`Bypass all track effects (P)${effectsBypassed ? ' — active' : ''}`}
-              className={`flex h-[18px] min-w-[26px] items-center justify-center rounded-sm px-1.5 text-[9px] font-semibold leading-none transition-colors ${
+              className={`flex h-6 min-w-[34px] items-center justify-center rounded-sm px-1.5 text-[9px] font-semibold leading-none transition-colors ${
                 effectsBypassed ? 'bg-orange-500 text-black' : 'bg-[#444] text-zinc-400 hover:bg-[#484848]'
               }`}
             >
@@ -240,7 +240,7 @@ const ChannelStrip = React.memo(function ChannelStrip({ track, faderHeight, retu
                   <span className="flex-1 truncate">{label}</span>
                   <button
                     data-testid={`remove-insert-btn-${i}`}
-                    className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm text-zinc-500 hover:bg-red-500/20 hover:text-red-400 transition-colors"
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm text-zinc-500 hover:bg-red-500/20 hover:text-red-400 transition-colors"
                     aria-label={`Remove ${label} insert`}
                     title="Remove insert"
                     onClick={() => removeTrackEffect(track.id, effect.id)}
@@ -253,7 +253,7 @@ const ChannelStrip = React.memo(function ChannelStrip({ track, faderHeight, retu
             })}
             <button
               data-testid="add-insert-btn"
-              className="text-[10px] w-full rounded px-1.5 py-1 text-center transition-colors bg-[#333] text-zinc-600 hover:bg-[#3a3a3a]"
+              className="min-h-6 text-[10px] w-full rounded px-1.5 py-1 text-center transition-colors bg-[#333] text-zinc-600 hover:bg-[#3a3a3a]"
               title="Add insert effect"
               onClick={() => addTrackEffect(track.id, 'reverb' as TrackEffectType)}
               disabled={isFrozen}
@@ -286,7 +286,7 @@ const ChannelStrip = React.memo(function ChannelStrip({ track, faderHeight, retu
                       <button
                         type="button"
                         data-testid={`send-prepost-${i}`}
-                        className={`h-4 rounded px-1 text-[8px] font-bold uppercase leading-none transition-colors ${
+                        className={`h-6 min-w-[42px] rounded px-1 text-[8px] font-bold uppercase leading-none transition-colors ${
                           isPre
                             ? 'bg-amber-600 text-white'
                             : 'bg-[#333] text-zinc-500 hover:bg-[#3a3a3a]'
@@ -309,12 +309,12 @@ const ChannelStrip = React.memo(function ChannelStrip({ track, faderHeight, retu
                         value={amount}
                         onChange={(e) => updateTrackSend(track.id, rt.id, parseFloat(e.target.value))}
                         aria-label={`Send ${track.displayName} to ${rt.name}`}
-                        className="w-10 h-3 accent-blue-500"
+                        className="w-10 h-6 accent-blue-500"
                         disabled={isFrozen}
                       />
                       <button
                         data-testid={`remove-send-btn-${i}`}
-                        className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm text-zinc-500 hover:bg-red-500/20 hover:text-red-400 transition-colors"
+                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm text-zinc-500 hover:bg-red-500/20 hover:text-red-400 transition-colors"
                         aria-label={`Remove send to ${rt.name}`}
                         title="Remove send"
                         onClick={() => removeReturnTrack(rt.id)}
@@ -330,7 +330,7 @@ const ChannelStrip = React.memo(function ChannelStrip({ track, faderHeight, retu
             })}
             <button
               data-testid="add-send-btn"
-              className="text-[10px] w-full rounded px-1.5 py-1 text-center transition-colors bg-[#333] text-zinc-600 hover:bg-[#3a3a3a]"
+              className="min-h-6 text-[10px] w-full rounded px-1.5 py-1 text-center transition-colors bg-[#333] text-zinc-600 hover:bg-[#3a3a3a]"
               title="Add send bus"
               onClick={() => {
                 const idx = returnTracks.length + 1;
@@ -364,7 +364,7 @@ const ChannelStrip = React.memo(function ChannelStrip({ track, faderHeight, retu
           <button
             onClick={() => updateTrackMixer(track.id, { compressorEnabled: !compEnabled })}
             className={`text-xs font-semibold px-2 py-1 rounded w-full transition-colors ${
-              compEnabled ? 'bg-daw-accent text-white' : 'bg-[#444] text-zinc-400 hover:bg-[#555]'
+              compEnabled ? 'bg-daw-accent text-zinc-900' : 'bg-[#444] text-zinc-400 hover:bg-[#555]'
             }`}
           >
             {compEnabled ? 'ON' : 'OFF'}
@@ -607,7 +607,7 @@ export function MixerPanel() {
           onClick={() => useUIStore.getState().setShowMixer(false)}
           aria-label="Close mixer"
           title="Close mixer (M)"
-          className="ml-2 flex h-4 w-4 items-center justify-center rounded text-zinc-500 hover:bg-[#444] hover:text-zinc-200 transition-colors"
+          className="ml-2 flex h-6 w-6 items-center justify-center rounded text-zinc-500 hover:bg-[#444] hover:text-zinc-200 transition-colors"
           data-testid="mixer-close-btn"
         >
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><line x1="1" y1="1" x2="9" y2="9" /><line x1="9" y1="1" x2="1" y2="9" /></svg>

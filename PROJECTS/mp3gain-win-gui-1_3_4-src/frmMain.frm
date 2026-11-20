@@ -1595,9 +1595,9 @@ Public Function AddSingleFile(strName As String) As String
             blnHaveTag = False
             
             If blnHaveUnicode Then
-                strCmdCheckTag = """" & strAppPath & "mp3Gain"" /o /s c """ & strNewKeyVal & """"
+                strCmdCheckTag = """" & strAppPath & "mp3gain.exe"" /o /s c """ & strNewKeyVal & """"
             Else
-                strCmdCheckTag = """" & strAppPath & "mp3Gain"" /o /s c """ & strName & """"
+                strCmdCheckTag = """" & strAppPath & "mp3gain.exe"" /o /s c """ & strName & """"
             End If
             
             If mnuSkipTags.Checked Or mnuReCalcTags.Checked Or mnuSkipTagsWhileAdding.Checked Then
@@ -2138,7 +2138,7 @@ Private Sub SingleAlbum(strAlbum As String, Optional blnFromGain As Boolean = Fa
     Dim strBlah As String
     Dim lngRetVal As Long
     
-    strCmd = """" & strAppPath & "mp3Gain"" /o "
+    strCmd = """" & strAppPath & "mp3gain.exe"" /o "
     
     If mnuKeepTime.Checked Then
         strCmd = strCmd & "/p "
@@ -2380,7 +2380,7 @@ Private Sub Album(Optional blnFromGain As Boolean = False)
                     End If
                 End If
                 
-                strCmd = """" & strAppPath & "mp3Gain"" /o "
+                strCmd = """" & strAppPath & "mp3gain.exe"" /o "
                 
                 If mnuKeepTime.Checked Then
                     strCmd = strCmd & "/p "
@@ -2572,7 +2572,7 @@ Private Sub AlbumGain()
 
                     Refresh
                     strBlah = ""
-                    strCmd = """" & strAppPath & "mp3gain"" /g " & mp3Inf.AlbumMp3Gain & " "
+                    strCmd = """" & strAppPath & "mp3gain.exe"" /g " & mp3Inf.AlbumMp3Gain & " "
                     If blnUseTempFiles Then
                         strCmd = strCmd & "/t "
                     End If
@@ -2762,7 +2762,7 @@ Private Sub ApplyConstGain(intGainChange As Integer, _
     For Each itmX In lstvMain.ListItems
         If ((Not mnuSelectedFiles.Checked) Or (itmX.Checked)) And (itmX.Tag = "Y") Then
             If Not blnCancel Then
-                strCmd = """" & strAppPath & "mp3Gain"" "
+                strCmd = """" & strAppPath & "mp3gain.exe"" "
                 
                 strDBChange = Format$(CDbl(intGainChange) * 1.505, "0.0")
                 If blnSingleChannel Then
@@ -2903,7 +2903,7 @@ Private Sub RadioSingleFile(itmX As ListItem, mp3Inf As Mp3Info)
         "Analyzing %%filename%%"), "%%filename%%", itmX.Text)
     Refresh
     strBlah = ""
-    strCmd = """" & strAppPath & "mp3gain"" /o "
+    strCmd = """" & strAppPath & "mp3gain.exe"" /o "
     
     If mnuKeepTime.Checked Then
         strCmd = strCmd & "/p "
@@ -3184,7 +3184,7 @@ Private Sub RadioGain()
 
                     Refresh
                     
-                    strCmd = """" & strAppPath & "mp3gain"" /g " & intGainChange & " "
+                    strCmd = """" & strAppPath & "mp3gain.exe"" /g " & intGainChange & " "
                     
                     If blnUseTempFiles Then
                         strCmd = strCmd & "/t "
@@ -3523,7 +3523,7 @@ Private Sub MaxNoClipGain()
                     
                     Refresh
                     strBlah = ""
-                    strCmd = """" & strAppPath & "mp3gain"" /g " & mp3Inf.MaxNoclipMp3Gain & " "
+                    strCmd = """" & strAppPath & "mp3gain.exe"" /g " & mp3Inf.MaxNoclipMp3Gain & " "
                     If blnUseTempFiles Then
                         strCmd = strCmd & "/t "
                     End If
@@ -3915,7 +3915,7 @@ Private Sub Form_Load()
     blnBackEndOK = False
     blnHaveAACGain = False
     
-    lngRetVal = GetCommandOutput(sBlah, strAppPath & "mp3gain /v", strAppPath, False, True, False)
+    lngRetVal = GetCommandOutput(sBlah, """" & strAppPath & "mp3gain.exe"" /v", strAppPath, True, True, False)
     
     If LCase$(Left$(sBlah, 7)) = "aacgain" Then
         blnHaveAACGain = True
@@ -5853,7 +5853,7 @@ On Error GoTo DeleteFileTags_Error
     For Each itmX In lstvMain.ListItems
         If ((Not mnuSelectedFiles.Checked) Or (itmX.Checked)) And (itmX.Tag = "Y") Then
             If Not blnCancel Then
-                strCmd = """" & strAppPath & "mp3Gain"" /o /s d "
+                strCmd = """" & strAppPath & "mp3gain.exe"" /o /s d "
                 
                 stbStat.Panels(1).Text = Replace(GetLocalString("frmMain.LCL_REMOVING_TAGS", _
                     "Removing MP3Gain tags from %%filename%%"), _
@@ -5938,7 +5938,7 @@ On Error GoTo UndoFileGain_Error
     For Each itmX In lstvMain.ListItems
         If ((Not mnuSelectedFiles.Checked) Or (itmX.Checked)) And (itmX.Tag = "Y") Then
             If Not blnCancel Then
-                strCmd = """" & strAppPath & "mp3Gain"" /o /u "
+                strCmd = """" & strAppPath & "mp3gain.exe"" /o /u "
                 
                 stbStat.Panels(1).Text = Replace(GetLocalString("frmMain.LCL_UNDOING_CHANGES", _
                     "Un-doing MP3Gain changes to %%filename%%"), _

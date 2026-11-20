@@ -3,6 +3,8 @@
  * Pure JavaScript implementation with K-weighting filters
  * Supports both 44.1kHz and 48kHz sample rates with proper coefficients
  */
+import { calculateRelativeThreshold } from './lufsGate.mjs';
+export { calculateRelativeThreshold } from './lufsGate.mjs';
 
 // K-weighting filter coefficients per sample rate
 const K_WEIGHTING_COEFFS = {
@@ -83,9 +85,7 @@ export function calculateIntegratedLoudness(blockEnergies) {
   );
   if (absoluteGated.length === 0) return -Infinity;
 
-  const meanAbsoluteEnergy =
-    absoluteGated.reduce((sum, energy) => sum + energy, 0) / absoluteGated.length;
-  const relativeThresholdEnergy = meanAbsoluteEnergy * Math.pow(10, -10 / 10);
+  const relativeThresholdEnergy = Math.pow(10, (calculateRelativeThreshold(blockEnergies) + 0.691) / 10);
   const relativeGated = absoluteGated.filter(energy => energy > relativeThresholdEnergy);
   const meanGatedEnergy =
     relativeGated.reduce((sum, energy) => sum + energy, 0) / relativeGated.length;

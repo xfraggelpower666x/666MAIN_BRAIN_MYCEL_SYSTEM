@@ -1,0 +1,462 @@
+DTSTE__DNA__v0_FULL.txt
+
+SYSTEM ROLE
+This file contains the identity streets.
+If the core file is the routing law and spine,
+this file is the district map, naming system, phonetic manipulation logic, 666 logic, signature density logic, and identity-trigger behavior.
+Without this file, the generated output may keep structure but lose identity.
+Without enough mass in this file, the model may default to generic techno language.
+Therefore this file must remain large, redundant, and example-rich.
+
+SECTION 1
+SPECIAL WORD SYSTEM PHILOSOPHY
+
+A special word is not merely a funny spelling.
+A special word is an audio instruction, identity anchor, rhythmic device, phrasing modifier, and brand carrier.
+A special word may exist in multiple forms depending on location in track, pressure level, and voice usage.
+
+Core forms:
+CLEAN
+SPLIT
+FRAGMENT
+INTENSIFIED SPLIT
+WHISPER FRAGMENT
+STACKED REPETITION
+
+Definitions:
+
+CLEAN
+The word appears readable and mostly natural.
+Used in groove, longer semantic lines, or where clarity matters more than stamp effect.
+
+SPLIT
+The word is rhythmically divided with dots or segmentation:
+frag.el
+dee.sign
+tek.no
+psy tek.no
+trans.mis.sion
+cyber.netic
+at.mo.spher.ic
+
+Used when the word needs pulse, emphasis, mechanical dissection, or club articulation.
+
+FRAGMENT
+The word is broken into pieces:
+fr…ag…el
+dee…sign
+te…k…no
+trans…mis…sion
+
+Used in break states, glitch states, spiritual distance states, collapse states, ritual states, or fragment voice.
+
+INTENSIFIED SPLIT
+The word is segmented harder:
+dee.men.shun
+e.lec.tron.ic
+mere.dian
+numi.nastic
+broad.caster
+
+Used where identity and rhythm both matter.
+
+WHISPER FRAGMENT
+The word is ghosted:
+fr…ag…el…
+dee…sign…
+six…
+
+Used for spectral, distance, memory, or internal link effects.
+
+STACKED REPETITION
+The word is repeated in deliberate controlled manner:
+frag.el
+frag.el power
+frag.el power
+Used for signature anchoring.
+Must not be spammed.
+
+SECTION 2
+BASE SPECIAL WORD POOL
+
+The following pool is not closed forever, but it is a central identity bank.
+
+fraggle -> frag.el / fragel / fr…ag…el / Frag.el / Frag.el power
+design -> dee.sign / de…sign / Sounds dee.sign
+soundsdesign -> Sounds dee.sign / sounds dee.sign / sounds de.sign
+techno -> tek.no / Tek.no
+psytechno -> psy tek.no / Psy Tek.no
+psytrance -> psy trance / Psy Trance
+live -> laiv
+broadcast -> broad.cast / broad.caster
+dimension -> dee.men.shun
+electronic -> e.lec.tron.ic
+cybernetic -> cyber.netic
+atmospheric -> at.mo.spher.ic
+mystical -> mys.ti.cal
+meridian -> mere.dian
+transmission -> trans.mis.sion
+numinastic -> numi.nastic
+frequency -> fre.quen.cy / fre.quen.cies if needed
+galaxies -> ga.la.xies
+dj -> dee jay
+dx -> dee ex
+3D -> three dee
+
+Not every occurrence must be transformed.
+Forced overuse kills identity.
+Context decides.
+
+SECTION 3
+CONTEXT TRANSFORMATION RULES
+
+Groove context:
+prefer clean or mild split
+goal = flow and usability
+
+Peak context:
+prefer split or intensified split
+goal = punch, stamp, force
+
+Break context:
+prefer fragment, whisper fragment, or stretched split
+goal = tension, atmosphere, destabilization
+
+System voice context:
+prefer technical split forms and mechanical phrasing
+
+Group voice context:
+prefer short repeatable split forms
+
+Fragment voice context:
+prefer broken and ghosted forms only
+
+Spiritual / distant energy context:
+prefer breathy fragments, elongated vowels, less aggressive stamp forms
+
+Industrial / fail / control context:
+prefer technical split, command-like segmentation, sharp consonant edge
+
+SECTION 4
+TRANSFORMATION DECISION TREE
+
+If word carries brand identity strongly:
+preserve transformed form more often
+
+If word carries only temporary semantic content:
+do not force transform
+
+If line is already heavy with transformed words:
+reduce transformation density in next line
+
+If section is peak and phrase is weak:
+upgrade one key word to split form
+
+If break feels too normal:
+fragment one or more identity words
+
+If line is too readable and too generic:
+introduce controlled segmentation
+
+If track concept is intimate/spiritual:
+use softer transformation density
+
+If track concept is brutal/control/failure:
+use stronger mechanical segmentation
+
+SECTION 5
+666 SYSTEM PHILOSOPHY
+
+666 is not decoration.
+666 is pattern stamp, pressure trigger, signature marker, identity axis, ritual pulse, and transition device.
+
+Base core:
+Six.
+Six.
+Six.
+
+This may appear with explicit beat space, silence gaps, voice type, and tension behavior.
+
+Core usage contexts:
+pre-drop trigger
+break ritual
+identity stamp
+peak reinforcement
+ghost repeat
+system identifier
+transmission signature
+
+SECTION 6
+666 MODES
+
+MODE A
+PURE PULSE
+Six.
+Six.
+Six.
+
+MODE B
+BEAT-GAPPED
+[beat] Six.
+[beat] Six.
+[beat] Six.
+
+MODE C
+SILENCE-GAPPED
+Six.
+(beat silence)
+Six.
+(beat silence)
+Six.
+
+MODE D
+WHISPERED
+six…
+six…
+six…
+
+MODE E
+SYSTEM IDENTIFIER
+IDENTIFIER
+Six.
+(beat)
+Six.
+(beat)
+Six.
+
+MODE F
+EXTENDED TAG
+Six.
+Sounds dee.sign.
+Six.
+Frag.el power.
+Six.
+
+MODE G
+PEAK STAMP
+Six.
+Six.
+Six.
+followed by impact or maximal pressure phrase.
+
+MODE H
+BROKEN GLITCH
+Si—
+Six…
+S—ix…
+used in fail or instability contexts.
+
+SECTION 7
+666 DENSITY RULES
+
+Do not use every track the same way.
+Do not place it in the exact same location each time.
+Do not let it become predictable wallpaper.
+Do not remove it entirely from system identity across a whole run of tracks if the identity layer needs visible retention.
+
+Recommended densities:
+Invisible / nearly absent track:
+0 or 1 light reference
+Moderate signature track:
+1 main 666 block
+Strong identity track:
+2 carefully placed 666 blocks
+Extreme signature track:
+3 uses maximum, each with different mode
+
+Absolute warning:
+Three identical 666 blocks in identical locations across multiple tracks = clone behavior.
+
+SECTION 8
+SIGNATURE ENGINE
+
+Signature words and signature blocks include:
+frag.el
+frag.el power
+sounds dee.sign
+radio luxury if relevant
+666 pulse
+under.ground if contextually valid
+custom track-specific system tag if user introduced one
+
+Signature insertion modes:
+MICRO INSERT
+DROP TAG
+BACKGROUND LOOP
+FRAGMENTED GHOST
+IDENTIFIER BLOCK
+CALL-AND-ANSWER
+SYSTEM HEADER
+
+MICRO INSERT
+One short identity hit in a dense section.
+Used to mark without overloading.
+
+DROP TAG
+Used on or near drop if the drop needs a recognizable system bite.
+
+BACKGROUND LOOP
+Identity hidden in lower density repeated layer.
+Useful in group voice or distant response.
+
+FRAGMENTED GHOST
+Identity appears as a broken residue in breaks or collapse zones.
+
+IDENTIFIER BLOCK
+Formal declaration:
+USER ID
+Frag.el
+aka Frag.el power
+
+Should be rare.
+High-impact only.
+
+CALL-AND-ANSWER
+Main voice says one form, group or system echoes variant.
+Useful but dangerous if overused.
+
+SYSTEM HEADER
+Technical broadcast-like identity intro inside running flow, not empty intro.
+
+SECTION 9
+PHONETIC ENGINE
+
+Phonetic manipulation is not arbitrary.
+It must support one or more of the following:
+rhythm
+identity
+mechanical flavor
+glitch flavor
+breath spacing
+pressure emphasis
+anti-generic mutation
+
+Allowed operations:
+dot segmentation
+syllable cutting
+letter stretching
+hyphen-like audible separation (represented by dots or breaks, not random punctuation chaos)
+fragment insertion
+pause splitting
+voice assignment splitting
+
+Examples:
+transmission fully aligned -> trans.mis.sion fully aligned
+electronic breath on skin -> e.lec.tron.ic breath on skin
+dimension after dimension -> dee.men.shun after dee.men.shun
+cybernetic thunder -> cyber.netic thunder
+
+SECTION 10
+ANTI-AI MUTATION VIA DNA
+
+If a line feels too common, DNA should mutate it before total line replacement is attempted.
+
+Generic:
+control the system
+
+Mutated possibilities:
+control loop active
+signal authority locked
+channel locked
+command layer active
+pressure channel sealed
+system spine engaged
+
+Generic:
+frequencies rising
+
+Mutated possibilities:
+high range cutting through the skull
+upper band tearing open
+pressure in the high band
+signal edge increasing
+top end slicing the mind
+
+Generic:
+feel the bass
+
+Mutated possibilities:
+low end splits the chest
+sub pressure enters the ribs
+pressure under the sternum
+floor pressure in the bones
+the low band takes the body
+
+SECTION 11
+IDENTITY COMPATIBILITY WITH THEMES
+
+The DNA layer must work across different themes:
+control
+failure
+spiritual connection
+dark erotic pressure
+radio / transmission
+ritual
+warehouse calibration
+demonic duality
+distance / psychic link
+industrial collapse
+
+This means identity words must not appear only in one tone.
+They need multiple emotional coatings:
+cold
+hard
+broken
+intimate
+ritual
+distant
+broadcast
+violent
+calm
+exhausted
+seductive
+authoritative
+
+SECTION 12
+EXAMPLE BANK
+
+Example clean:
+I feel you before distance can exist
+
+Example mild transformed:
+I feel you before dis.tance can exist
+
+Example peak transformed:
+frag.el power in command
+
+Example break fragment:
+fr…ag…el in the signal
+
+Example radio/broadcast style:
+trans.mis.sion fully aligned
+
+Example spiritual style:
+your signal moves across the dark between us
+
+Example industrial style:
+channel sealed pressure active
+
+Example fail style:
+system broken logic missing structure destroyed
+
+SECTION 13
+DENSITY COMPENSATION RULE
+
+If a section contains:
+- 2 or more split words
+- 1 signature insert
+- 1 heavy technical phrase
+
+Then the next line should usually reduce complexity unless the target is deliberate overload.
+
+Reason:
+the system must remain intense, not unreadable sludge.
+
+SECTION 14
+ROUTING NOTE
+
+This file is not a completed infinite lexicon.
+It is the full active DNA layer for version zero stack use.
+It is meant to be extended over time by real testing, not replaced by prettier abstractions.
+
+END OF FILE

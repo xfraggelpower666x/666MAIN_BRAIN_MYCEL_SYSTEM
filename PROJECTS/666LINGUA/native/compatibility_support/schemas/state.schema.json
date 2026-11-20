@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:lyvra:dolmetscher:state:1.5.0",
+  "title": "LYVRA DOLMETSCHER State",
+  "type": "object",
+  "required": [
+    "system_id",
+    "version",
+    "system_language",
+    "state",
+    "last_verified_checkpoint"
+  ],
+  "properties": {
+    "system_id": {
+      "const": "LYVRA-DOLMETSCHER-001"
+    },
+    "version": {
+      "type": "string"
+    },
+    "system_language": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "state": {
+      "enum": [
+        "OFFLINE",
+        "BOOTSTRAPPING",
+        "WAITING_FOR_SYSTEM_LANGUAGE",
+        "INTRODUCING",
+        "WAITING_FOR_MODE",
+        "WAITING_FOR_TARGET",
+        "WAITING_FOR_PAIR",
+        "READY",
+        "PROCESSING_INPUT",
+        "TRANSLATING",
+        "LOCALIZING",
+        "AUDITING",
+        "AUTO_REPAIRING",
+        "HOLD",
+        "PAUSED_BY_INTERRUPTION",
+        "RESUME_PENDING",
+        "OUTPUT_READY",
+        "FREEZING",
+        "BACKING_UP",
+        "RECOVERING",
+        "CONFLICT_QUARANTINE",
+        "ERROR"
+      ]
+    },
+    "active_mode": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "target_profile": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "interpreter_pair": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "hold_queue": {
+      "type": "array"
+    },
+    "translation_queue": {
+      "type": "array"
+    },
+    "task_stack": {
+      "type": "array"
+    },
+    "last_verified_checkpoint": {
+      "type": "string"
+    },
+    "message_relation": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "correction_target_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "dictation_state": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "intent_role": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "processing_holds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "confidence_evidence": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "companion_mode": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "companion_outputs": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "context_ledger": {
+      "type": "array",
+      "items": {
+        "$ref": "context_ledger_entry.schema.json"
+      }
+    },
+    "learning_candidates": {
+      "type": "array",
+      "items": {
+        "$ref": "correction_learning_candidate.schema.json"
+      }
+    },
+    "human_review_feedback": {
+      "type": "array",
+      "items": {
+        "$ref": "human_review_feedback.schema.json"
+      }
+    },
+    "evolution_proposals": {
+      "type": "array",
+      "items": {
+        "$ref": "evolution_proposal.schema.json"
+      }
+    },
+    "privacy_retention_scope": {
+      "type": "string"
+    },
+    "next_cycle_stage": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": true
+}

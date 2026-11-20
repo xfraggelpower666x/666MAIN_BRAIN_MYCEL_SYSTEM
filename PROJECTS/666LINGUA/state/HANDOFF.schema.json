@@ -1,0 +1,404 @@
+{
+  "type": "object",
+  "required": [
+    "systemId",
+    "schemaVersion",
+    "frameworkRevision",
+    "revision",
+    "profile",
+    "settings",
+    "dictionaries",
+    "learning",
+    "tasks",
+    "checkpoint"
+  ],
+  "properties": {
+    "systemId": {
+      "const": "LYVRA-DOLMETSCHER-001"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "frameworkRevision": {
+      "type": "string",
+      "minLength": 1
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "profile": {
+      "type": "object",
+      "required": [
+        "uiLanguage",
+        "uiConfirmed",
+        "sourceLanguage",
+        "targetLanguage",
+        "pairConfirmed",
+        "sourceZone",
+        "targetZone",
+        "person",
+        "partner",
+        "sourceZoneStatus",
+        "targetZoneStatus"
+      ],
+      "properties": {
+        "uiLanguage": {
+          "type": "string",
+          "minLength": 1
+        },
+        "uiConfirmed": {
+          "type": "boolean"
+        },
+        "sourceLanguage": {
+          "type": "string",
+          "minLength": 1
+        },
+        "targetLanguage": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pairConfirmed": {
+          "type": "boolean"
+        },
+        "sourceZone": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "targetZone": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "person": {
+          "anyOf": [
+            {
+              "type": "object",
+              "required": [
+                "name"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "birthDate": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "city": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "zone": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "partner": {
+          "anyOf": [
+            {
+              "type": "object",
+              "required": [
+                "name"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "city": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "language": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "zone": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sourceZoneStatus": {
+          "enum": [
+            "unconfirmed",
+            "confirmed",
+            "declined"
+          ]
+        },
+        "targetZoneStatus": {
+          "enum": [
+            "unconfirmed",
+            "confirmed",
+            "declined"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "settings": {
+      "type": "object",
+      "required": [
+        "coreForce",
+        "translationForceLock",
+        "translationMode",
+        "emojiReinforcement"
+      ],
+      "properties": {
+        "coreForce": {
+          "const": true
+        },
+        "translationForceLock": {
+          "type": "boolean"
+        },
+        "translationMode": {
+          "enum": [
+            "active",
+            "paused"
+          ]
+        },
+        "emojiReinforcement": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "dictionaries": {
+      "type": "object",
+      "required": [
+        "de-en",
+        "en-de"
+      ],
+      "properties": {
+        "de-en": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "key",
+              "source",
+              "target",
+              "confirmed"
+            ],
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source": {
+                "type": "string",
+                "minLength": 1
+              },
+              "target": {
+                "type": "string",
+                "minLength": 1
+              },
+              "context": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "confirmed": {
+                "const": true
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "en-de": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "key",
+              "source",
+              "target",
+              "confirmed"
+            ],
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source": {
+                "type": "string",
+                "minLength": 1
+              },
+              "target": {
+                "type": "string",
+                "minLength": 1
+              },
+              "context": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "confirmed": {
+                "const": true
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "learning": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "key",
+          "kind",
+          "source",
+          "target",
+          "evidence",
+          "confirmed"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "enum": [
+              "translation",
+              "preference"
+            ]
+          },
+          "sourceLanguage": {
+            "type": "string",
+            "minLength": 1
+          },
+          "targetLanguage": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1
+          },
+          "target": {
+            "type": "string",
+            "minLength": 1
+          },
+          "context": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "evidence": {
+            "type": "string",
+            "minLength": 1
+          },
+          "confirmed": {
+            "const": true
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "goal",
+          "nextStep",
+          "baseline"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "goal": {
+            "type": "string",
+            "minLength": 1
+          },
+          "lastEvidence": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "nextStep": {
+            "type": "string",
+            "minLength": 1
+          },
+          "baseline": {
+            "type": "string",
+            "minLength": 1
+          },
+          "dependsOn": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "checkpoint": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "id",
+            "change",
+            "evidence"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "change": {
+              "type": "string",
+              "minLength": 1
+            },
+            "evidence": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "privateExtensions": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "666LINGUA private chat handoff"
+}

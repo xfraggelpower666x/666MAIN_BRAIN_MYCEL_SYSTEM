@@ -127,8 +127,10 @@ check(/rw-led-low/.test(html)&&/rw-led-mid/.test(html)&&/rw-led-high/.test(html)
 check(/ledLow\.style\.setProperty\('--rw-level'/.test(text('src/app.js'))&&/ledMid\.style\.setProperty\('--rw-level'/.test(text('src/app.js'))&&/ledHigh\.style\.setProperty\('--rw-level'/.test(text('src/app.js')),'cyber-led-real-analyser-drive');
 check(exists('docs/RADIO_WAVE_INTERRUPTED_WORK_CHECKPOINT_2026-10-24.md'),'interrupted-work-checkpoint');
 check(/dialog:importMilkdropPersonalLibrary/.test(main)&&/personalMilkdropRoot/.test(main),'personal-milkdrop-persistent-library');
-check(/Expand-Archive/.test(main)&&/256\*1024\*1024/.test(main),'personal-milkdrop-bounded-zip-import');
+check(/ZipFile\]::ExtractToDirectory/.test(main)&&/256\*1024\*1024/.test(main),'personal-milkdrop-bounded-zip-import');
 check(/personal_library_no_milk_presets/.test(main)&&/512\*1024\*1024/.test(main),'personal-milkdrop-extraction-bounds');
+check(/archive\.Entries/.test(main)&&/MAX_ARCHIVE_ENTRIES/.test(main)&&/MAX_ARCHIVE_UNCOMPRESSED_BYTES/.test(main)&&/personal_library_staging_cleanup_failed/.test(main),'personal-milkdrop-archive-preflight-and-cleanup');
+check(exists('tests/personal-milkdrop-archive.test.cjs')&&text('package.json').includes('tests/personal-milkdrop-archive.test.cjs'),'personal-milkdrop-archive-regression-tests');
 check(main.includes("docs[\\\\/]license\\.txt")&&main.includes("license:licenseFile"),'personal-milkdrop-license-retention');
 check(/top100\\.txt/.test(main)&&/top100Count/.test(main),'personal-milkdrop-top100-index');
 check(/importMilkdropPersonalLibrary/.test(text('preload.js'))&&/personalMilkdropLibrary/.test(text('preload.js')),'personal-milkdrop-preload-bridge');
@@ -185,7 +187,7 @@ check(/visualizer-style[^]*milkdropDeactivate/.test(integration)||/q\('#visualiz
 check(/RWPersonalMilkdropBoot/.test(integration)&&/AUTOLOADED PERSONAL LIBRARY/.test(integration),'milkdrop-personal-library-autoload-contract');
 check(/user-imports/.test(main)&&/persisted/.test(main),'milkdrop-folder-persistent-userdata');
 check(/local:queue-state/.test(main)&&/local:queue-activate/.test(main)&&/local:queue-add-paths/.test(main),'local-queue-main-ipc');
-check(/localQueueState/.test(text('preload.js'))&&/localQueueAddPaths/.test(text('preload.js'))&&/getPathForFile/.test(text('preload.js')),'local-queue-preload-bridge');
+check(/localQueueState/.test(text('preload.js'))&&/onLocalFilesDropped/.test(text('preload.js'))&&/getPathForFile/.test(text('preload.js'))&&/event\.isTrusted/.test(text('preload.js')),'local-queue-preload-bridge');
 check(/id="local-drop-zone"/.test(html)&&/id="local-queue-list"/.test(html),'local-dragdrop-queue-ui');
 check(/localQueueNextTrack/.test(text('src/app.js'))&&/localShuffleMode/.test(text('src/app.js')),'local-queue-sequential-shuffle-runtime');
 check(/rw666-local-crossfade/.test(text('src/app.js'))&&/fadeAudioTo/.test(text('src/app.js')),'local-queue-transition-setting');

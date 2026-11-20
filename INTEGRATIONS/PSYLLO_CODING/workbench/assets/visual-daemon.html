@@ -1,0 +1,47 @@
+<aside id="sceeri-visual-daemon" aria-labelledby="sceeri-daemon-title">
+  <style>
+    #sceeri-visual-daemon { color-scheme:dark; color:#f3f5fa; background:#101728; border:1px solid #303954; border-left:3px solid var(--scevi-orange,#ffad58); border-radius:10px; padding:.65rem .85rem; margin-bottom:.5rem; font:400 .86rem/1.5 system-ui,sans-serif; overflow-wrap:anywhere; }
+    #sceeri-visual-daemon header { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:baseline; column-gap:.7rem; }
+    #sceeri-visual-daemon h2 { font-size:.91rem; margin:0; font-weight:600; }
+    #sceeri-visual-daemon p { margin:.25rem 0; }
+    #sceeri-visual-daemon .daemon-muted, #sceeri-visual-daemon [data-daemon-feedback] { color:#c1cce1; }
+    #sceeri-visual-daemon [data-daemon-state] { color:var(--scevi-orange,#ffad58); font-size:.77rem; }
+    #sceeri-visual-daemon [data-daemon-action] { color:var(--scevi-orange,#ffad58); }
+    #sceeri-visual-daemon [data-daemon-state][data-state="VERIFIZIERT"] { color:var(--scevi-green,#68ff6a); }
+    #sceeri-visual-daemon [data-daemon-state]:is([data-state="BLOCKIERT"],[data-state="CONFLICT_QUARANTINE"],[data-state="WRITE_BLOCKED"]) { color:var(--scevi-red,#ff6581); }
+    #sceeri-visual-daemon [data-daemon-state][data-state="ABGELEITET"] { color:var(--scevi-lilac,#c674ff); }
+    #sceeri-visual-daemon [data-daemon-basis], #sceeri-visual-daemon [data-daemon-reason] { color:var(--scevi-blue,#79aaff); }
+    #sceeri-visual-daemon .daemon-actions { display:flex; flex-wrap:wrap; gap:.38rem; align-items:center; margin-top:.4rem; }
+    #sceeri-visual-daemon button { min-height:44px; padding:.28rem .55rem; border-radius:7px; color:inherit; border:1px solid #54617d; background:#1a253d; font:inherit; }
+    #sceeri-visual-daemon button[aria-pressed="true"] { border-color:var(--scevi-pink); color:var(--scevi-pink); }
+    #sceeri-visual-daemon button:focus-visible,#sceeri-visual-daemon textarea:focus-visible { outline:2px solid #00f5ff; outline-offset:2px; }
+    #sceeri-visual-daemon textarea { box-sizing:border-box; width:100%; min-height:6rem; color:inherit; padding:.45rem; background:#101829; border:1px solid #5d6b89; }
+    #sceeri-visual-daemon details { margin-top:.25rem; }
+    #sceeri-visual-daemon summary { min-height:44px; display:list-item; padding:.5rem 0; }
+    #sceeri-visual-daemon [hidden] { display:none !important; }
+  </style>
+  <header>
+    <h2 id="sceeri-daemon-title">Visual Daemon</h2>
+    <span data-daemon-state></span>
+  </header>
+  <p aria-live="polite"><strong>Nächste Aktion</strong> <span data-daemon-action></span></p>
+  <p class="daemon-muted" data-daemon-reason></p>
+  <div class="daemon-actions" data-daemon-options role="group" aria-label="Mögliche nächste Aktionen" hidden></div>
+  <p class="daemon-muted" data-daemon-effect hidden></p>
+  <div class="daemon-actions">
+    <button class="cursor-interaction" type="button" data-daemon-local hidden>Zur Eingabe</button>
+    <button class="cursor-interaction" type="button" data-daemon-copy>Auftrag kopieren</button>
+    <button class="cursor-interaction" type="button" data-daemon-remember>Diese Ansicht merken</button>
+    <button class="cursor-interaction" type="button" data-daemon-learn hidden>Priorität merken</button>
+    <button class="cursor-interaction" type="button" data-daemon-forget hidden>Vorliebe zurücksetzen</button>
+  </div>
+  <p role="status" data-daemon-feedback></p>
+  <textarea aria-label="Vorschlag zum Kopieren" data-daemon-command readonly hidden></textarea>
+  <details>
+    <summary>Grundlage und Gegenprobe</summary>
+    <p data-daemon-basis></p>
+    <p data-daemon-detail></p>
+    <p data-daemon-probe></p>
+    <button class="cursor-interaction" type="button" data-daemon-handoff hidden>UI-Handoff kopieren</button>
+  </details>
+</aside>

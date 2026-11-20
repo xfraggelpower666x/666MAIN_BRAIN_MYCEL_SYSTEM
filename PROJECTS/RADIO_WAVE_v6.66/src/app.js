@@ -6,9 +6,12 @@
 // Global state variables
 let audioContext = null;
 let audioSource = null;
+let audioEq = null;
+let audioEqSettings = { bass: 0, mid: 0, treble: 0, bypass: false, width: 100 };
 let analyserNode = null;
 let externalAnalyserFrame = null; // real analyzer snapshot from primary player for visual-only output windows
 let audioDestinationNode = null; // Node for recording audio track
+let audioDeviceController = null;
 let dataArray = null;
 let timeDataArray = null;
 let bufferLength = 0;
@@ -54,8 +57,9 @@ let visualizerParticles = []; // Particles bursting on circular visualizer beat 
 // Recording State
 let mediaRecorder = null;
 let isRecording = false;
-let recordedChunks = [];
 let exportSavePath = null;
+let exportBusy = false;
+let exportSession = null;
 
 // DOM Elements
 const canvas = document.getElementById('visualizer-canvas');
@@ -107,6 +111,7 @@ const checkBeatReact = document.getElementById('check-beat-react');
 const selectAspectRatio = document.getElementById('select-aspect-ratio');
 const selectFps = document.getElementById('select-fps');
 const btnExport = document.getElementById('btn-export');
+const audioInputRecord = document.getElementById('audio-input-record');
 
 // Diagnostics HUD
 const diagStatus = document.getElementById('diag-status');
@@ -140,6 +145,13 @@ const exportProgressBar = document.getElementById('export-progress');
 const exportTimeLabel = document.getElementById('export-time');
 const exportStatusLabel = document.getElementById('export-status-label');
 const btnStopExport = document.getElementById('btn-stop-export');
+const btnBrowseExport = document.getElementById('btn-browse-export');
+const exportDestination = document.getElementById('export-destination');
+const exportModalPath = document.getElementById('export-modal-path');
+const exportModalTitle = document.getElementById('export-modal-title');
+const exportModalDescription = document.getElementById('export-modal-description');
+const exportResult = document.getElementById('export-result');
+const exportProgressContainer = document.getElementById('export-progress-container');
 
 // ==========================================================================
 // Setup & Initialization
@@ -175,8 +187,8 @@ function renderLocalQueue(state){
     localQueueList.replaceChildren();
     for(const item of localQueueSnapshot.items||[]){
       const row=document.createElement('div');row.className='local-queue-row'+(item.active?' active':'');
-      const play=document.createElement('button');play.type='button';play.className='local-queue-track';play.dataset.index=String(item.index);play.textContent=(item.active?'▶ ':'')+item.name;
-      const remove=document.createElement('button');remove.type='button';remove.className='local-queue-remove';remove.dataset.removeIndex=String(item.index);remove.textContent='×';remove.title='Remove from local queue';
+      const play=document.createElement('button');play.type='button';play.id='local-queue-play-'+item.index;play.className='local-queue-track';play.dataset.index=String(item.index);play.textContent=(item.active?'▶ ':'')+item.name;
+      const remove=document.createElement('button');remove.type='button';remove.id='local-queue-remove-'+item.index;remove.className='local-queue-remove';remove.dataset.removeIndex=String(item.index);remove.textContent='×';remove.title='Remove from local queue';
       row.append(play,remove);localQueueList.appendChild(row);
     }
   }
@@ -328,6 +340,304 @@ window.RWLocalQueue=Object.freeze({
   cancelTransition:cancelLocalTransition
 });
 
+function setupAudioFx(){
+  const bands=['bass','mid','treble'];
+  const inputs=Object.fromEntries(bands.map(band=>[band,document.getElementById('audio-fx-'+band)]));
+  const bypass=document.getElementById('audio-fx-bypass');
+  const reset=document.getElementById('audio-fx-reset');
+  const width=document.getElementById('audio-fx-width');
+  if(!bypass||!reset||!width||bands.some(band=>!inputs[band]))return;
+  function apply(){
+    for(const band of bands){
+      const value=Number(inputs[band].value);
+      audioEqSettings[band]=Number.isFinite(value)?Math.max(-12,Math.min(12,value)):0;
+      document.getElementById('audio-fx-'+band+'-value').textContent=`${audioEqSettings[band]>0?'+':''}${audioEqSettings[band]} dB`;
+    }
+    audioEqSettings.bypass=bypass.checked;
+    const value=Number(width.value);
+    audioEqSettings.width=Number.isFinite(value)?Math.max(0,Math.min(200,value)):100;
+    document.getElementById('audio-fx-width-value').textContent=audioEqSettings.width+'%';
+    audioEq?.set(audioEqSettings);
+  }
+  for(const band of bands)inputs[band].addEventListener('input',apply);
+  bypass.addEventListener('change',apply);
+  width.addEventListener('input',apply);
+  reset.addEventListener('click',()=>{
+    for(const band of bands){inputs[band].value='0';inputs[band].dispatchEvent(new Event('input',{bubbles:true}));}
+    width.value='100';width.dispatchEvent(new Event('input',{bubbles:true}));
+    bypass.checked=false;bypass.dispatchEvent(new Event('change',{bubbles:true}));
+  });
+  apply();
+}
+
+function setupAudioDevices(){
+  const el=id=>document.getElementById(id);
+  const input=el('audio-input-device'),output=el('audio-output-device');
+  const inputStatus=el('audio-input-status'),outputStatus=el('audio-output-status');
+  const surroundToggle=el('audio-surround-enable'),surroundStatus=el('audio-surround-status');
+  if(!input||!output||!window.RWAudioDevices)return;
+  let surround=null,outputChanging=false;
+  function resetSurround(message){
+    if(!surroundToggle||!surroundStatus)return;
+    surroundToggle.checked=false;
+    try {surround?.disable();surroundStatus.textContent=message;}
+    catch(error){surroundStatus.textContent='7.1 reset error · '+String(error?.message||error);}
+  }
+  surroundToggle?.addEventListener('change',()=>{
+    if(!surroundToggle.checked){resetSurround('7.1 upmix off; normal playback routing restored.');return;}
+    if(outputChanging){resetSurround('7.1 unavailable while the output is changing.');return;}
+    try {
+      if(!window.RWAudioSurround)throw new Error('7.1 processing is unavailable.');
+      ensureAudioContext();
+      if(!surround){
+        surround=window.RWAudioSurround.create(audioContext,audioEq.output);
+        audioContext.addEventListener('sinkchange',()=>resetSurround('Output changed; 7.1 upmix off. Enable again after checking the device.'));
+      }
+      surround.enable();
+      surroundStatus.textContent='7.1 upmix active on the current output (8 channels advertised). Hardware speaker routing is not verified.';
+    }catch(error){resetSurround('7.1 unavailable · '+String(error?.message||error));}
+  });
+  const controller=window.RWAudioDevices.create({
+    mediaDevices:navigator.mediaDevices,
+    begin:kind=>window.api.audioPermissionBegin(kind),
+    end:kind=>window.api.audioPermissionEnd(kind),
+    graph:()=>{ensureAudioContext();return {context:audioContext,analyser:analyserNode,exportNode:audioDestinationNode};},
+    onInputStopped:message=>{
+      inputStatus.textContent=message;
+      if(exportSession?.includeMicrophone)recordingError(exportSession,new Error(message));
+      updateExportAvailability();
+    }
+  });
+  audioDeviceController=controller;
+  function updateExportAvailability(){
+    if(controller.recordsInput())btnExport.disabled=false;
+    else if(!audioElement.currentSrc&&!audioElement.getAttribute('src'))btnExport.disabled=true;
+  }
+  function applyInputRecording(){
+    try{
+      controller.setInputRecording(audioInputRecord.checked);
+      inputStatus.textContent=controller.recordsInput()?'Microphone active; included in video exports, not monitored.':'Microphone recording setting saved.';
+      updateExportAvailability();
+    }catch(error){
+      audioInputRecord.checked=controller.recordsInput();
+      inputStatus.textContent='Microphone recording error · '+String(error?.message||error);
+    }
+  }
+  audioInputRecord.addEventListener('change',applyInputRecording);
+  applyInputRecording();
+  function setOptions(select,devices,kind,label){
+    const previous=select.value;
+    select.replaceChildren();
+    const defaultOption=document.createElement('option');defaultOption.value='';defaultOption.textContent=label;select.appendChild(defaultOption);
+    let count=0;
+    for(const device of devices.filter(device=>device.kind===kind&&device.deviceId&&device.deviceId!=='default')){
+      const option=document.createElement('option');option.value=device.deviceId;option.textContent=device.label||`${kind==='audioinput'?'Microphone':'Output'} ${++count}`;select.appendChild(option);
+    }
+    if(Array.from(select.options).some(option=>option.value===previous))select.value=previous;
+    else if(previous)(kind==='audioinput'?inputStatus:outputStatus).textContent='Previously selected device is unavailable; choose a device again.';
+    return !!previous&&select.value!==previous;
+  }
+  async function refresh(){
+    const devices=await controller.enumerate();
+    setOptions(input,devices,'audioinput','System default microphone');
+    const outputMissing=setOptions(output,devices,'audiooutput','System default output');
+    if(outputMissing)resetSurround('Output unavailable; 7.1 upmix off. Choose an output again.');
+    return {devices,outputMissing};
+  }
+  el('audio-devices-refresh').addEventListener('click',async()=>{
+    try {const {devices,outputMissing}=await refresh();outputStatus.textContent=outputMissing?'Previously selected output is unavailable; choose a device again.':`Devices refreshed (${devices.filter(d=>d.kind==='audiooutput').length} outputs). Labels may require permission.`;}
+    catch(error){outputStatus.textContent='Device discovery error · '+String(error?.message||error);}
+  });
+  async function startMicrophone(){
+    inputStatus.textContent='Requesting microphone access…';
+    try{
+      if(await controller.startInput(input.value)){
+        inputStatus.textContent=controller.recordsInput()?'Microphone active; included in video exports, not monitored.':'Microphone active for visualization only; not monitored or recorded.';
+        updateExportAvailability();
+        try {await refresh();} catch(error){outputStatus.textContent='Device discovery error · '+String(error?.message||error);}
+      }
+    }catch(error){inputStatus.textContent='Microphone error · '+String(error?.message||error);}
+  }
+  el('audio-input-start').addEventListener('click',event=>{
+    if(!event.isTrusted){inputStatus.textContent='Use the microphone enable button directly.';return;}
+    return startMicrophone();
+  });
+  window.api.onDetachedMicrophoneRequest(startMicrophone);
+  el('audio-input-stop').addEventListener('click',()=>{
+    if(exportSession?.includeMicrophone)recordingError(exportSession,new Error('Microphone stopped during recording'));
+    controller.stopInput();inputStatus.textContent='Microphone off.';updateExportAvailability();
+  });
+  el('audio-output-apply').addEventListener('click',async()=>{
+    if(outputChanging)return;
+    outputChanging=true;resetSurround('Output selection changed; 7.1 upmix off. Enable again after checking the device.');
+    try {await controller.setOutput(output.value);outputStatus.textContent='Playback output applied.';}
+    catch(error){outputStatus.textContent='Playback output error · '+String(error?.message||error);}
+    finally {outputChanging=false;}
+  });
+  el('audio-output-choose').addEventListener('click',async()=>{
+    if(outputChanging)return;
+    outputChanging=true;resetSurround('Output selection changed; 7.1 upmix off. Enable again after checking the device.');
+    try {
+      const device=await controller.chooseOutput();
+      try {await refresh();}
+      catch(error){outputStatus.textContent='Playback output applied; device refresh failed · '+String(error?.message||error);return;}
+      if(Array.from(output.options).some(option=>option.value===device.deviceId))output.value=device.deviceId;
+      outputStatus.textContent='Playback output applied · '+(device.label||'selected device');
+    } catch(error){outputStatus.textContent='Playback output error · '+String(error?.message||error);}
+    finally {outputChanging=false;}
+  });
+  navigator.mediaDevices?.addEventListener?.('devicechange',()=>{
+    resetSurround('Devices changed; 7.1 upmix off. Refresh and check the output before enabling again.');
+    outputStatus.textContent='Devices changed. Refresh the device list.';
+  });
+  window.addEventListener('beforeunload',()=>controller.stopInput(),{once:true});
+}
+
+function setupLocalLibrary(){
+  const el=id=>document.getElementById(id);
+  const select=el('local-playlist-select');
+  const name=el('local-playlist-name');
+  const poolList=el('local-pool-list');
+  const tracks=el('local-playlist-tracks');
+  const status=el('local-library-status');
+  const checked=new Set();
+  const pageSize=40;
+  let poolPage=0,playlistPage=0;
+  let snapshot={folder:'',pool:[],playlists:[],errors:[]};
+  function selected(){return snapshot.playlists.find(p=>p.id===select.value);}
+  function requirePlaylist(){
+    const item=selected();
+    if(!item)throw new Error('Create or select a playlist first.');
+    return item;
+  }
+  function ratingControl(item,scope){
+    const control=document.createElement('select');
+    control.id=`local-${scope}-rating-${item.id}`;
+    control.className='local-rating';
+    control.dataset.ratingId=item.id;
+    control.setAttribute('aria-label',`Rating for ${item.name}`);
+    for(let rating=0;rating<=5;rating++){
+      const option=document.createElement('option');option.value=String(rating);
+      option.textContent=rating?`${'★'.repeat(rating)} ${rating}/5`:'Unrated / clear';
+      control.appendChild(option);
+    }
+    control.value=String(item.rating||0);
+    return control;
+  }
+  function render(next,preferred){
+    snapshot=next;
+    const chosen=preferred||select.value;
+    select.replaceChildren();
+    if(!next.playlists.length){
+      const option=document.createElement('option');option.value='';option.textContent='No playlists yet';select.appendChild(option);
+    }
+    for(const item of next.playlists){
+      const option=document.createElement('option');option.value=item.id;option.textContent=`${item.name} (${item.tracks.length})`;select.appendChild(option);
+    }
+    if(next.playlists.some(p=>p.id===chosen))select.value=chosen;
+    const playlistTracks=selected()?.tracks||[];
+    const playlistPages=Math.max(1,Math.ceil(playlistTracks.length/pageSize));
+    playlistPage=Math.max(0,Math.min(playlistPage,playlistPages-1));
+    el('local-playlist-page').textContent=`Page ${playlistPage+1}/${playlistPages} · ${playlistTracks.length} tracks`;
+    el('local-playlist-page-prev').disabled=playlistPage===0;
+    el('local-playlist-page-next').disabled=playlistPage>=playlistPages-1;
+    tracks.replaceChildren();
+    for(const item of playlistTracks.slice(playlistPage*pageSize,(playlistPage+1)*pageSize)){
+      const row=document.createElement('div');row.className='local-queue-row local-library-track-row';
+      const label=document.createElement('span');label.className='local-queue-track';label.textContent=item.name+(item.available?'':' · MISSING');
+      const remove=document.createElement('button');remove.type='button';remove.id='local-playlist-remove-'+item.id;remove.className='local-queue-remove';remove.textContent='×';remove.title='Remove from playlist';remove.dataset.trackId=item.id;
+      row.append(label,ratingControl(item,'playlist'),remove);tracks.appendChild(row);
+    }
+    const ids=new Set(next.pool.map(item=>item.id));
+    for(const id of checked)if(!ids.has(id))checked.delete(id);
+    const filter=el('local-pool-filter').value.trim().toLowerCase();
+    const filtered=next.pool.filter(item=>item.name.toLowerCase().includes(filter));
+    const poolPages=Math.max(1,Math.ceil(filtered.length/pageSize));
+    poolPage=Math.max(0,Math.min(poolPage,poolPages-1));
+    el('local-pool-page').textContent=`Page ${poolPage+1}/${poolPages} · ${filtered.length} shown · ${checked.size} checked`;
+    el('local-pool-page-prev').disabled=poolPage===0;
+    el('local-pool-page-next').disabled=poolPage>=poolPages-1;
+    poolList.replaceChildren();
+    for(const item of filtered.slice(poolPage*pageSize,(poolPage+1)*pageSize)){
+      const row=document.createElement('div');row.className='local-pool-row';
+      const label=document.createElement('label');label.className='local-pool-track';
+      const box=document.createElement('input');box.type='checkbox';box.id='local-pool-track-'+item.id;box.dataset.trackId=item.id;box.checked=checked.has(item.id);
+      const text=document.createElement('span');text.textContent=item.name.length>240?'…'+item.name.slice(-239):item.name;
+      label.append(box,text);row.append(label,ratingControl(item,'pool'));poolList.appendChild(row);
+    }
+    el('local-pool-state').textContent=(next.folder?`${next.folder} · ${next.pool.length} tracks${next.scanning?' · scanning…':''}`:'No folder selected.')+
+      (next.errors.length?' · '+next.errors.join(' · '):'');
+  }
+  async function action(fn){
+    try { await fn(); }
+    catch(error){status.textContent='Audio library error · '+String(error?.message||error);}
+  }
+  select.addEventListener('change',()=>{playlistPage=0;render(snapshot);});
+  el('local-playlist-page-prev').addEventListener('click',()=>{playlistPage--;render(snapshot);});
+  el('local-playlist-page-next').addEventListener('click',()=>{playlistPage++;render(snapshot);});
+  el('local-pool-filter').addEventListener('input',()=>{poolPage=0;render(snapshot);});
+  el('local-pool-page-prev').addEventListener('click',()=>{poolPage--;render(snapshot);});
+  el('local-pool-page-next').addEventListener('click',()=>{poolPage++;render(snapshot);});
+  el('local-playlist-create').addEventListener('click',()=>action(async()=>{
+    const previous=new Set(snapshot.playlists.map(p=>p.id));
+    const next=await window.api.localPlaylistCreate(name.value);
+    const added=next.playlists.find(p=>!previous.has(p.id));
+    render(next,added?.id);name.value='';status.textContent='Playlist created.';
+  }));
+  el('local-playlist-rename').addEventListener('click',()=>action(async()=>{
+    const item=requirePlaylist();render(await window.api.localPlaylistRename(item.id,name.value),item.id);name.value='';status.textContent='Playlist renamed.';
+  }));
+  el('local-playlist-delete').addEventListener('click',()=>action(async()=>{
+    const item=requirePlaylist();
+    if(!window.confirm(`Delete playlist "${item.name}"? Audio files will not be deleted.`))return;
+    render(await window.api.localPlaylistDelete(item.id));status.textContent='Playlist deleted; audio files were not deleted.';
+  }));
+  el('local-playlist-files').addEventListener('click',()=>action(async()=>{
+    const item=requirePlaylist();const result=await window.api.localPlaylistAddFiles(item.id);
+    if(result){render(result.state,item.id);status.textContent=`Files added.${result.skipped?' Skipped: '+result.skipped+'.':''}`;}
+  }));
+  el('local-playlist-queue').addEventListener('click',()=>action(async()=>{
+    const item=requirePlaylist();const before=localQueueSnapshot.count||0;
+    const result=await window.api.localPlaylistAddQueue(item.id);renderLocalQueue(result.state);
+    if(!before&&result.state.count&&document.body.classList.contains('source-local')){
+      audioElement.src=result.state.mediaUrl;audioElement.load();
+    }
+    status.textContent=`Added ${Math.max(0,result.state.count-before)} tracks to queue${result.missing?`; ${result.missing} missing`:''}. Existing queue and source are preserved.`;
+  }));
+  tracks.addEventListener('click',event=>action(async()=>{
+    const button=event.target.closest('[data-track-id]');if(!button)return;
+    const item=requirePlaylist();render(await window.api.localPlaylistRemoveTrack(item.id,button.dataset.trackId),item.id);status.textContent='Track removed from playlist.';
+  }));
+  async function changeRating(control){
+    const value=Number(control.value);
+    try {render(await window.api.localLibrarySetRating(control.dataset.ratingId,value===0?null:value));}
+    catch(error){render(snapshot);throw error;}
+    status.textContent=value?`Rating set to ${value} of 5 stars.`:'Rating cleared.';
+  }
+  tracks.addEventListener('change',event=>{
+    if(event.target.dataset.ratingId)action(()=>changeRating(event.target));
+  });
+  poolList.addEventListener('change',event=>{
+    const box=event.target;
+    if(box.dataset.ratingId){action(()=>changeRating(box));return;}
+    if(!box.dataset.trackId)return;
+    if(box.checked)checked.add(box.dataset.trackId);else checked.delete(box.dataset.trackId);
+    el('local-pool-page').textContent=el('local-pool-page').textContent.replace(/\d+ checked$/,`${checked.size} checked`);
+  });
+  el('local-pool-folder').addEventListener('click',()=>action(async()=>{
+    const next=await window.api.localLibraryChooseFolder();if(next){checked.clear();render(next);status.textContent='Audio pool folder selected.';}
+  }));
+  el('local-pool-refresh').addEventListener('click',()=>action(async()=>{render(await window.api.localLibraryRefresh());status.textContent='Audio pool scan finished.';}));
+  el('local-pool-clear').addEventListener('click',()=>action(async()=>{checked.clear();render(await window.api.localLibraryClearFolder());status.textContent='Audio pool folder cleared; playlists were kept.';}));
+  el('local-pool-add').addEventListener('click',()=>action(async()=>{
+    const item=requirePlaylist();if(!checked.size)throw new Error('Check at least one pool track.');
+    const result=await window.api.localPlaylistAddPool(item.id,[...checked]);checked.clear();render(result.state,item.id);
+    status.textContent=`Checked tracks added.${result.skipped?' Unavailable or over limit: '+result.skipped+'.':''}`;
+  }));
+  window.api.onLocalLibraryChanged(next=>render(next));
+  action(async()=>render(await window.api.localLibraryState()));
+}
+
 function init() {
   setupEventListeners();
   updateAspectSettings();
@@ -413,17 +723,20 @@ function setupEventListeners() {
   });
   for(const type of ['dragenter','dragover'])localDropZone?.addEventListener(type,e=>{e.preventDefault();e.stopPropagation();localDropZone.classList.add('drag-active');});
   for(const type of ['dragleave','drop'])localDropZone?.addEventListener(type,e=>{e.preventDefault();e.stopPropagation();if(type==='dragleave')localDropZone.classList.remove('drag-active');});
-  localDropZone?.addEventListener('drop',async e=>{
+  localDropZone?.addEventListener('drop',()=>{
     localDropZone.classList.remove('drag-active');
-    const paths=Array.from(e.dataTransfer?.files||[]).map(file=>window.api.getPathForFile(file)).filter(Boolean);
-    if(!paths.length)return;
+  });
+  window.api.onLocalFilesDropped(async(state,error)=>{
+    if(error){diagStatus.textContent='Local Audio Load Error · '+error;return;}
     const before=localQueueSnapshot.count||0;
-    const state=await window.api.localQueueAddPaths(paths);
     renderLocalQueue(state);
     if(!document.body.classList.contains('source-local'))document.querySelector('.source-btn[data-source="local"]')?.click();
     else if(before===0&&state.count)await activateLocalQueueIndex(Math.max(0,state.index),{autoplay:true,fade:false});
   });
   restoreLocalQueue();
+  setupLocalLibrary();
+  setupAudioDevices();
+  setupAudioFx();
 
   // Background selection
   btnSelectBg.addEventListener('click', async () => {
@@ -467,6 +780,12 @@ function setupEventListeners() {
       localQueueNextTrack().catch(err=>{console.error(err);setPlayerUiPlaying(false);});
     } else {
       setPlayerUiPlaying(false);
+    }
+  });
+
+  audioElement.addEventListener('error', () => {
+    if (exportSession && !exportSession.stopping && !exportSession.finishing) {
+      recordingError(exportSession, new Error('Audio playback failed during recording'));
     }
   });
 
@@ -581,6 +900,7 @@ function setupEventListeners() {
   selectFps.addEventListener('change', (e) => exportFps = parseInt(e.target.value));
 
   // Export engine button
+  btnBrowseExport.addEventListener('click', browseExportDestination);
   btnExport.addEventListener('click', startRecordingPipeline);
   btnStopExport.addEventListener('click', stopRecordingAndSave);
 }
@@ -667,12 +987,19 @@ function ensureAudioContext() {
     timeDataArray = new Uint8Array(bufferLength);
 
     audioSource = audioContext.createMediaElementSource(audioElement);
-    audioSource.connect(analyserNode);
-    analyserNode.connect(audioContext.destination);
+    audioEq = window.RWAudioEq.create(audioContext);
+    audioEq.set(audioEqSettings);
+    audioSource.connect(audioEq.input);
+    audioEq.output.connect(analyserNode);
+    audioEq.output.connect(audioContext.destination);
+    const silentAnalyserOutput = audioContext.createGain();
+    silentAnalyserOutput.gain.value = 0;
+    analyserNode.connect(silentAnalyserOutput);
+    silentAnalyserOutput.connect(audioContext.destination);
 
     // Create stream destination node for crisp digital recording
     audioDestinationNode = audioContext.createMediaStreamDestination();
-    analyserNode.connect(audioDestinationNode);
+    audioEq.output.connect(audioDestinationNode);
   }
   
   if (audioContext.state === 'suspended') {
@@ -817,6 +1144,9 @@ function drawFrame() {
     drawDummyWave();
   }
   ctx.restore();
+
+  // Composite VJ frames on the same canvas used for recording.
+  window.vjStudio?.draw(ctx, canvasWidth, canvasHeight, {bass, snare:mid, hihat:treble});
 
   // Typography overlay rendering
   drawTextOverlays(bass);
@@ -1356,179 +1686,260 @@ function drawTextOverlays(bass) {
 // Video Recording & Exporter Process (Native Save Dialog Connection)
 // ==========================================================================
 
-async function startRecordingPipeline() {
-  ensureAudioContext();
-  
+async function browseExportDestination() {
+  if (exportBusy) return false;
+  exportBusy = true;
+  btnBrowseExport.disabled = true;
   try {
-    // 1. Trigger Native Dialog to locate export file path
     diagStatus.textContent = 'Opening Save Dialog...';
-    const chosenSavePath = await window.api.getSavePath();
-    if (!chosenSavePath) {
-      diagStatus.textContent = 'Export cancelled';
-      return;
-    }
-    exportSavePath = chosenSavePath;
+    const formats=['mp4','webm'].filter(extension=>recordingMimeForPath('video.'+extension));
+    if(!formats.length)throw new Error('No supported MP4 or WebM recording format is available.');
+    exportSavePath = await window.api.getSavePath(formats);
+    exportDestination.textContent = exportSavePath || 'No destination selected';
+    exportResult.textContent = exportSavePath ? 'Destination selected. Ready to record.' : 'Destination selection cancelled.';
+    diagStatus.textContent = exportSavePath ? 'Destination selected' : 'Export cancelled';
+    return !!exportSavePath;
+  } catch (error) {
+    exportSavePath = null;
+    exportDestination.textContent = 'No destination selected';
+    exportResult.textContent = `Could not choose destination: ${error.message}`;
+    diagStatus.textContent = 'Export error';
+    return false;
+  } finally {
+    exportBusy = false;
+    btnBrowseExport.disabled = false;
+  }
+}
 
-    // 2. Initialize native file write stream
-    const initRes = await window.api.startFileWrite(exportSavePath);
-    if (!initRes.success) {
-      alert(`Failed to initialize video file: ${initRes.error}`);
-      return;
-    }
+function recordingMimeForPath(savePath) {
+  if (typeof MediaRecorder === 'undefined' || typeof MediaRecorder.isTypeSupported !== 'function') return null;
+  const extension = (savePath.match(/\.([^.\\\/]+)$/) || [])[1]?.toLowerCase();
+  const candidates = extension === 'mp4'
+    ? ['video/mp4;codecs=avc1,mp4a.40.2', 'video/mp4;codecs=h264,aac', 'video/mp4']
+    : extension === 'webm'
+      ? ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']
+      : [];
+  return candidates.find(type => MediaRecorder.isTypeSupported(type)) || null;
+}
 
-    // 3. Reset audio and begin recording configuration
-    isPlaying = false;
+function recordingError(session, error) {
+  session.error ||= error instanceof Error ? error : new Error(String(error || 'Recording failed'));
+  if (session.recorder && session.recorder.state !== 'inactive') {
+    try { session.recorder.stop(); } catch { void finishRecording(session); }
+  }
+}
+
+function reportPlaybackError(message) {
+  if(exportSession&&!exportSession.stopping&&!exportSession.finishing)recordingError(exportSession,new Error(String(message)));
+}
+
+async function finishRecording(session) {
+  if (session.finishing) return;
+  session.finishing = true;
+  if (recordingInterval) {
+    clearInterval(recordingInterval);
+    recordingInterval = null;
+  }
+  audioElement.pause();
+  window.vjStudio?.setMicrophoneRecording(false);
+  setPlayerUiPlaying(false);
+  btnStopExport.disabled = true;
+  exportStatusLabel.textContent = 'Finishing and saving…';
+  await session.queue;
+  if (!session.bytes && !session.error) session.error = new Error('No video data was recorded');
+  try {
+    if (session.error) {
+      // An empty chunk marks this write as aborted without granting a new IPC capability.
+      const aborted = await window.api.writeFileChunk(new ArrayBuffer(0));
+      if (!aborted?.success) throw new Error(`Could not abort partial file: ${aborted?.error || 'unknown error'}`);
+    }
+    const result = await window.api.closeFile();
+    if (!result?.success && !session.error) throw new Error(result?.error || 'Could not save video');
+    if (!result?.success && session.error && result?.error !== 'video_write_aborted') {
+      session.error = new Error(`${session.error.message}; ${result?.error || 'Could not discard partial file'}`);
+    }
+  } catch (error) {
+    session.error = session.error ? new Error(`${session.error.message}; ${error.message}`) : error;
+  }
+  if (session.trackEnded) session.tracks.forEach(track => track.removeEventListener('ended', session.trackEnded));
+  session.videoTracks.forEach(track => track.stop());
+  isRecording = false;
+  mediaRecorder = null;
+  exportSession = null;
+  exportBusy = false;
+  btnBrowseExport.disabled = false;
+  btnExport.disabled = !(audioElement.currentSrc||audioElement.getAttribute?.('src')||audioElement.src||audioDeviceController?.recordsInput());
+  audioInputRecord.disabled = false;
+  btnStopExport.disabled = false;
+  btnStopExport.textContent = 'Close';
+  const message = session.error
+    ? `Video not saved: ${session.error.message}`
+    : `Saved video: ${session.path}`;
+  exportModalTitle.textContent = session.error ? 'Video Export Failed' : 'Video Saved';
+  exportModalDescription.textContent = session.error ? 'The recording could not be saved.' : 'Your video was saved successfully.';
+  exportDestination.textContent = `${session.path} (browse again for next export)`;
+  exportStatusLabel.textContent = message;
+  exportResult.textContent = message;
+  diagStatus.textContent = session.error ? 'Export error' : 'Export completed';
+  diagStatusColor.style.backgroundColor = session.error ? '#ff4757' : '#2ed573';
+  diagStatusColor.style.boxShadow = '';
+  if (session.previewStopped) renderLoop();
+}
+
+async function startRecordingPipeline() {
+  if (exportBusy) return;
+  if (!exportSavePath && !await browseExportDestination()) return;
+  if (exportBusy) return;
+  const mimeType = recordingMimeForPath(exportSavePath);
+  if (!mimeType) {
+    exportResult.textContent = 'Unsupported filename or recording format. Browse for a supported .mp4 or .webm destination.';
+    diagStatus.textContent = 'Export format unavailable';
+    return;
+  }
+  exportBusy = true;
+  btnBrowseExport.disabled = true;
+  btnExport.disabled = true;
+  let session;
+  try {
+    ensureAudioContext();
+    const hasMedia=!!(audioElement.currentSrc||audioElement.getAttribute?.('src')||audioElement.src);
+    const includeMicrophone=audioDeviceController?.recordsInput()===true;
+    if(!hasMedia&&!includeMicrophone)throw new Error('Choose an audio track or enable microphone recording');
+    const canvasStream = canvas.captureStream(exportFps);
+    const videoTracks = canvasStream.getVideoTracks();
+    const audioTracks = audioDestinationNode ? audioDestinationNode.stream.getAudioTracks() : [];
+    session = { path: exportSavePath, videoTracks, tracks: [...videoTracks, ...audioTracks], queue: Promise.resolve(), bytes: 0, error: null, recorder: null, finishing: false, includeMicrophone, microphoneOnly:!hasMedia };
+    exportSession = session;
+    if (!videoTracks.length || !audioTracks.length) throw new Error('Video or audio recording track is unavailable');
+    const combinedStream = new MediaStream();
+    session.tracks.forEach(track => combinedStream.addTrack(track));
+    const requestedBitrate=Number(globalThis.document?.getElementById('export-audio-bitrate')?.value);
+    const audioBitsPerSecond=[96000,128000,192000,256000].includes(requestedBitrate)?requestedBitrate:192000;
+    session.recorder = new MediaRecorder(combinedStream, { videoBitsPerSecond: 8000000, audioBitsPerSecond, mimeType });
+    if (session.recorder.mimeType && session.recorder.mimeType.split(';')[0].toLowerCase() !== mimeType.split(';')[0]) {
+      throw new Error('Recorder format does not match the selected filename');
+    }
+    exportSavePath = null;
+    exportDestination.textContent = `${session.path} (browse again for next export)`;
+    const initRes = await window.api.startFileWrite(session.path);
+    if (!initRes?.success) throw new Error(initRes?.error || 'Could not initialize video file');
+    session.opened = true;
+    if(session.error)throw session.error;
+    if(includeMicrophone&&!audioDeviceController?.recordsInput())throw new Error('Microphone stopped before recording');
+    mediaRecorder = session.recorder;
+    audioInputRecord.disabled = true;
     audioElement.pause();
-    audioElement.currentTime = 0;
-    
-    // Ensure renderer has clean blank frames
+    if(!session.microphoneOnly&&Number.isFinite(audioElement.duration)&&audioElement.duration>0)audioElement.currentTime = 0;
     setupProceduralParticles();
-    
-    // Stop standard requestAnimationFrame preview loop
     if (animationFrameId) {
       cancelAnimationFrame(animationFrameId);
       animationFrameId = null;
     }
-
-    // Set status
+    session.previewStopped = true;
     isRecording = true;
-    recordedChunks = [];
     diagStatus.textContent = 'Rendering...';
-    diagStatusColor.style.backgroundColor = '#ff4757'; // blinking record HUD
+    diagStatusColor.style.backgroundColor = '#ff4757';
     diagStatusColor.style.boxShadow = '0 0 10px #ff4757';
-
-    // Show export modal overlay
     exportModal.classList.remove('hidden');
+    exportModalTitle.textContent = 'Rendering Music Video';
+    exportModalDescription.textContent = 'Your audio and soundwaves are being rendered to a file.';
+    exportModalPath.textContent = session.path;
     exportProgressBar.style.width = '0%';
+    exportProgressContainer.setAttribute('aria-valuenow', '0');
+    exportTimeLabel.textContent = '00:00';
     exportStatusLabel.textContent = 'Preparing video tracks...';
-
-    // Capture Canvas frame track
-    const canvasStream = canvas.captureStream(exportFps);
-    const combinedStream = new MediaStream();
-
-    // Add Canvas Video track
-    canvasStream.getVideoTracks().forEach(track => combinedStream.addTrack(track));
-
-    // Route direct Audio tracks from WebAudio stream node
-    if (audioDestinationNode) {
-      audioDestinationNode.stream.getAudioTracks().forEach(track => combinedStream.addTrack(track));
-    }
-
-    // Setup media recorder configuration with high compatibility MP4 prioritised 
-    let mimeType = 'video/mp4;codecs=avc1,mp4a.40.2';
-    if (!MediaRecorder.isTypeSupported(mimeType)) {
-      mimeType = 'video/mp4;codecs=h264,aac';
-    }
-    if (!MediaRecorder.isTypeSupported(mimeType)) {
-      mimeType = 'video/mp4';
-    }
-    if (!MediaRecorder.isTypeSupported(mimeType)) {
-      mimeType = 'video/webm;codecs=vp9,opus';
-    }
-    if (!MediaRecorder.isTypeSupported(mimeType)) {
-      mimeType = 'video/webm;codecs=vp8,opus';
-    }
-    if (!MediaRecorder.isTypeSupported(mimeType)) {
-      mimeType = ''; // Let browser decide
-    }
-    
-    console.log('Selected recording MIME type:', mimeType);
-
-    let options = { videoBitsPerSecond: 8000000 }; // 8 Mbps for pristine high-bitrate video
-    if (mimeType) {
-      options.mimeType = mimeType;
-    }
-    
-    mediaRecorder = new MediaRecorder(combinedStream, options);
-
-    // Recording buffer chunks event streams
-    mediaRecorder.ondataavailable = async (e) => {
-      if (e.data && e.data.size > 0) {
-        // Stream recorded chunk directly through IPC contextBridge to disk
-        const arrayBuf = await e.data.arrayBuffer();
-        await window.api.writeFileChunk(arrayBuf);
-      }
+    exportResult.textContent = 'Recording in progress…';
+    btnStopExport.textContent = 'Stop & Save Video';
+    btnStopExport.disabled = false;
+    session.recorder.ondataavailable = event => {
+      if (!event.data?.size) return;
+      session.queue = session.queue.then(async () => {
+        if (session.error) return;
+        if (event.data.type && event.data.type.split(';')[0].toLowerCase() !== mimeType.split(';')[0]) {
+          throw new Error('Recorded data format does not match the selected filename');
+        }
+        const data = await event.data.arrayBuffer();
+        for (let offset = 0; offset < data.byteLength; offset += 8 * 1024 * 1024) {
+          const part = data.slice(offset, offset + 8 * 1024 * 1024);
+          const result = await window.api.writeFileChunk(part);
+          if (!result?.success) throw new Error(result?.error || 'Could not write video data');
+          session.bytes += part.byteLength;
+        }
+      }).catch(error => recordingError(session, error));
     };
-
-    mediaRecorder.onstop = async () => {
-      if (recordingInterval) {
-        clearInterval(recordingInterval);
-        recordingInterval = null;
-      }
-      
-      exportStatusLabel.textContent = 'Closing file stream...';
-      await window.api.closeFile();
-      
-      // Cleanup states
-      isRecording = false;
-      exportModal.classList.add('hidden');
-      diagStatus.textContent = 'Export Completed';
-      diagStatusColor.style.backgroundColor = '#2ed573';
-      
-      alert(`Success! Your music video has been saved to:\n${exportSavePath}`);
-      
-      // Restart standard interactive preview loop
-      renderLoop();
+    session.recorder.onerror = event => recordingError(session, event.error || new Error('Media recorder error'));
+    session.recorder.onstop = () => {
+      if (!session.stopping && !session.error) session.error = new Error('Recording stopped unexpectedly');
+      void finishRecording(session);
     };
-
-    // Begin recording and play audio
-    mediaRecorder.start(1000); // Trigger dataavailable chunks every 1 second
-    audioElement.play();
-    isPlaying = true;
-    btnPlayPause.querySelector('.play-icon').classList.add('hidden');
-    btnPlayPause.querySelector('.pause-icon').classList.remove('hidden');
-
-    // Run drawing loop on high-precision background-resilient timer
-    // This runs drawing frames and updating indicators even if window is blurred/minimized!
-    const frameTime = 1000 / exportFps;
-    recordingInterval = setInterval(() => {
-      drawFrame();
-    }, frameTime);
-    
-  } catch (err) {
-    console.error('Error starting recording:', err);
-    alert(`Export recording failed: ${err.message}`);
-    isRecording = false;
-    exportModal.classList.add('hidden');
-    
-    if (recordingInterval) {
-      clearInterval(recordingInterval);
-      recordingInterval = null;
+    session.trackEnded = () => {
+      if (!session.stopping && !session.finishing) recordingError(session, new Error('A recording track ended unexpectedly'));
+    };
+    session.tracks.forEach(track => track.addEventListener('ended', session.trackEnded));
+    session.recorder.start(1000);
+    session.started = true;
+    session.startedAt = performance.now();
+    if (session.microphoneOnly) window.vjStudio?.setMicrophoneRecording(true);
+    if (session.recorder.mimeType && session.recorder.mimeType.split(';')[0].toLowerCase() !== mimeType.split(';')[0]) {
+      throw new Error('Recorder format does not match the selected filename');
     }
-    renderLoop();
+    recordingInterval = setInterval(() => drawFrame(), 1000 / exportFps);
+    if(!session.microphoneOnly){
+      await audioElement.play();
+      if (!session.finishing && session.recorder.state !== 'inactive') setPlayerUiPlaying(true);
+    }
+  } catch (error) {
+    if (session?.opened) {
+      if (session.finishing) return;
+      recordingError(session, error);
+      if (!session.started) void finishRecording(session);
+    } else {
+      session?.videoTracks.forEach(track => track.stop());
+      if(exportSession===session)exportSession=null;
+      exportBusy = false;
+      btnBrowseExport.disabled = false;
+      btnExport.disabled = false;
+      exportResult.textContent = `Video not saved: ${error.message}`;
+      diagStatus.textContent = 'Export error';
+    }
   }
 }
 
 function updateRecordingHUD() {
-  if (!isRecording) return;
-  
-  const curTime = audioElement.currentTime;
-  const totalTime = audioElement.duration || 1;
-  const percentage = (curTime / totalTime) * 100;
-  
-  // Update progress bars
+  if (!isRecording || exportSession?.finishing) return;
+  const curTime = exportSession?.microphoneOnly ? Math.max(0,(performance.now()-exportSession.startedAt)/1000) : (Number.isFinite(audioElement.currentTime) ? audioElement.currentTime : 0);
+  const totalTime = exportSession?.microphoneOnly ? Infinity : audioElement.duration;
+  const percentage = Number.isFinite(totalTime) && totalTime > 0 ? Math.max(0, Math.min(100, curTime / totalTime * 100)) : 0;
   exportProgressBar.style.width = `${percentage}%`;
+  exportProgressContainer.setAttribute('aria-valuenow', String(Math.round(percentage)));
   exportTimeLabel.textContent = formatTime(curTime);
-  exportStatusLabel.textContent = `Encoding frames at ${exportFps} FPS...`;
-
-  // SoundCloud seek bars tracking
+  exportStatusLabel.textContent = `Encoding frames at ${exportFps} FPS${Number.isFinite(totalTime) && totalTime > 0 ? ` · ${Math.round(percentage)}%` : ' · duration unknown'}`;
   seekSlider.value = Math.floor(curTime);
   currentTimeLabel.textContent = formatTime(curTime);
   seekProgressFill.style.width = `${percentage}%`;
 }
 
-async function stopRecordingAndSave() {
+function stopRecordingAndSave() {
+  if (!exportSession) {
+    exportModal.classList.add('hidden');
+    return;
+  }
+  if (exportSession.finishing) return;
+  exportSession.stopping = true;
+  btnStopExport.disabled = true;
+  exportStatusLabel.textContent = 'Stopping recording…';
+  audioElement.pause();
+  setPlayerUiPlaying(false);
   if (recordingInterval) {
     clearInterval(recordingInterval);
     recordingInterval = null;
   }
-  
-  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-    mediaRecorder.stop();
-    audioElement.pause();
-    isPlaying = false;
-    btnPlayPause.querySelector('.play-icon').classList.remove('hidden');
-    btnPlayPause.querySelector('.pause-icon').classList.add('hidden');
+  try {
+    if (exportSession.recorder.state !== 'inactive') exportSession.recorder.stop();
+    else if (!exportSession.started) void finishRecording(exportSession);
+  } catch (error) {
+    recordingError(exportSession, error);
+    void finishRecording(exportSession);
   }
 }
 
@@ -2076,6 +2487,8 @@ window.SoundwaveRuntime = Object.freeze({
   ensureAudioContext,
   getAnalyser: () => analyserNode,
   getAudioContext: () => audioContext,
+  isExporting: () => !!exportSession,
+  reportPlaybackError,
   getFrequencyData: () => dataArray,
   getTimeData: () => timeDataArray,
   setExternalAnalyserFrame: (frame) => {

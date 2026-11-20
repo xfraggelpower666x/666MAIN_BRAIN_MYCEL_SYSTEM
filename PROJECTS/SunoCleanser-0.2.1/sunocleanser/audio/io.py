@@ -16,8 +16,8 @@ class WavInfo:
     frames: int
 
 
-def load_wav(path: Path) -> tuple[np.ndarray, WavInfo]:
-    """Load WAV as float64, shape (frames, channels). Preserves channel layout."""
+def load_audio(path: Path) -> tuple[np.ndarray, WavInfo]:
+    """Load a soundfile-supported audio file as float64, preserving channels."""
     data, sample_rate = sf.read(path, dtype="float64", always_2d=True)
     with sf.SoundFile(path) as f:
         info = WavInfo(
@@ -27,6 +27,11 @@ def load_wav(path: Path) -> tuple[np.ndarray, WavInfo]:
             frames=len(f),
         )
     return data, info
+
+
+def load_wav(path: Path) -> tuple[np.ndarray, WavInfo]:
+    """Backward-compatible alias for loading audio files."""
+    return load_audio(path)
 
 
 def write_wav_24bit(path: Path, audio: np.ndarray, sample_rate: int) -> None:

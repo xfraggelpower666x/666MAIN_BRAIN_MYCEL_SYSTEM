@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "id": "python",
+  "name": "Python, pip, venv und uv",
+  "evidence": [
+    "pyproject.toml",
+    "requirements-Dateien",
+    "uv.lock",
+    "Python-Einstieg"
+  ],
+  "roles": [
+    "development",
+    "build",
+    "target"
+  ],
+  "check": "Projektinterpreter und Version feststellen. Beim gewählten Interpreter die erforderlichen Imports und den normalen Einstieg prüfen.",
+  "repair": "Vorhandenen Manager und Lock verwenden. Python-Umgebung projektlokal reparieren. pip über den gewählten Interpreter aufrufen; bei uv den vorhandenen Lock verwenden.",
+  "delivery": "Für Windows-Offlinebetrieb einen eingebetteten, erlaubten Interpreter oder einen eingefrorenen Build mit benötigten Plugins, Tcl/Tk und Daten liefern, soweit diese tatsächlich gebraucht werden.",
+  "acceptance": "Mit frisch bereitgestelltem Projekt starten und einen echten Import- oder Anwendungstest durchführen."
+}

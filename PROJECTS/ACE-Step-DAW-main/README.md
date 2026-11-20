@@ -65,6 +65,39 @@ Opens at [http://localhost:5174](http://localhost:5174). The dev server proxies 
 
 **Cloud API:** Configure the backend URL in Settings → API URL: `https://api.acemusic.ai`
 
+**ComfyUI workspace:** Install the included `ACE-Step-ComfyUI-main` directory
+as a ComfyUI custom node (including its dependencies), then start trusted
+ComfyUI on `127.0.0.1:8188` **without** `--enable-cors-header`. For example:
+
+```powershell
+# In the ComfyUI directory, using its existing Python environment:
+.\.venv\Scripts\python.exe main.py --listen 127.0.0.1 --port 8188
+# In a second terminal, from this DAW directory:
+& 'C:\path\to\ComfyUI\.venv\Scripts\python.exe' integration\comfy_gateway.py
+```
+
+Select ComfyUI and Connect in the DAW. The gateway needs `aiohttp`, binds only
+to `127.0.0.1:8189`, checks host and origin, and exposes selected editor routes.
+It rejects ComfyUI's CORS mode because it disables ComfyUI's origin protection.
+Keep both services local and use only trusted custom nodes; their APIs are not
+generally exposed by the gateway. The development DAW origin must be
+`http://127.0.0.1:5174`.
+
+Connecting and disconnecting do not start or stop services. If either service
+becomes unavailable, the editor stays mounted and the DAW reports the loss.
+Disconnecting closes the editor after a confirmation; save any unsaved workflow
+changes first. In a narrow browser window, scroll horizontally to access the
+full desktop workspace.
+Save workflow to project captures a snapshot via the installed custom-node
+bridge; download it to restore manually in ComfyUI without replacing the active
+graph automatically. Find output audio lists ComfyUI history; importing copies
+the selected audio to a new undoable track without changing the source. The
+project and its `.acedaw` archive retain the workflow and copied audio. Preview
+outputs may disappear from ComfyUI before import. The Windows Tauri editor,
+workflow capture, and model-free audio import were exercised with local
+ComfyUI; GPU inference and the shared queue against a live ACE-Step server
+remain unverified. Service process management is not automated.
+
 **Production build:**
 
 ```bash
@@ -92,10 +125,11 @@ npm run build && npm run preview
 | **Multi-Track Timeline** | Clip-based arrangement with drag, resize, split, fade handles, and snap-to-grid |
 | **5 Track Types** | Stems (AI), Sample (imported audio), Sequencer (step drums), Piano Roll (MIDI), Strudel (live code) |
 | **Piano Roll** | Canvas-based MIDI editor with velocity lane, slide notes, ghost notes, chord stamps, and quantize |
+| **Local SoundFonts** | Import licensed SF2, SF3, or DLS banks (up to 512 MiB) for track-routed MIDI playback and offline rendering; banks are stored locally and are not bundled |
 | **Step Sequencer** | FL Studio-inspired 16-step drum pattern editor with 16 synthesized drum sounds and 4 kit presets |
 | **Effect Chain** | Per-track effect rack — EQ3, Compressor, Reverb, Delay, Distortion, Chorus, Flanger, Phaser, Filter, Sidechain |
 | **Mixer** | Channel strips with volume, pan, mute, solo, and per-track metering |
-| **6 Synth Presets** | Piano, Strings, Pad, Lead, Bass, Organ (Tone.js polyphonic synthesis) |
+| **6 Built-in Synth Presets** | Piano, Strings, Pad, Lead, Bass, Organ |
 | **Loop Browser** | 15 built-in synthesized loops with search, filter, and drag-to-timeline |
 | **Recording** | Microphone input with real-time waveform, count-in, and input level metering |
 | **Automation** | Breakpoint envelopes with interpolation for volume, pan, and effect parameters |

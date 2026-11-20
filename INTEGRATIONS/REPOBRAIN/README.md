@@ -19,3 +19,9 @@ Der Adapter nutzt die Python-Standardbibliothek, schreibt sein Ergebnis auf stdo
 - Parserfehler, generische Fallbacks oder ausgelassene Kanten mit fehlenden Endpunkten ergeben `PARTIAL`. Selbst ohne diese Hinweise ist die Gesamtdeckung `UNVERIFIED`. Der Graph kann etwa durch Scanlimits unvollständig sein.
 - Die Originaltypen `imports`, `defines`, `tests` und weitere bleiben erhalten. Eine statische Importkante belegt keinen ausgeführten Aufruf. API-, Event- und Bridge-Beziehungen benötigen eigene Belege.
 - `074b281bd7950752397880b9912f620258828556` ist der MAIN-BRAIN-Ausgangscommit vor der Veröffentlichung von R01. Die Registrierung des Adapters steht im [Current Pointer](../../CURRENT_POINTER.md). Das Paket enthält den Adapter und ein synthetisches Beispiel. Der UCA-Zielcheckout und ein produktiver Host waren hier nicht verfügbar.
+
+## Originalfundstellen prüfen
+
+Ergänze den bisherigen Aufruf um `--checkout REPO --source-locations LOCATIONS.json`. Die JSON-Datei enthält das Schema `repobrain-source-locations/v1`, den exakten Exporthash unter `graph_sha256`, den vollständigen `revision`-Commit und ein Array `locations`. Jede Fundstelle nennt `node_id` (portable Graph-ID), `path`, `blob_sha`, `start_line`, `end_line` und `excerpt_sha256`. Zeilen zählen ab 1 und schließen beide Grenzen ein. Der Hash umfasst die Originalbytes der ausgewählten Zeilen samt vorhandenem Zeilenumbruch. Bei einer Abweichung endet der Aufruf mit Exit 2.
+
+Die Prüfung liest reguläre UTF-8-Blobs aus dem angegebenen Commit. Sie setzt voraus, dass der Aufrufer den Checkout dem Zielrepository zugeordnet hat. Sie prüft weder den Scanner-Lauf noch die fachliche Richtigkeit der vom Manifest angegebenen Graphbeziehung.

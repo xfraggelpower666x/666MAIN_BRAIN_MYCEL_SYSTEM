@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Literal, TypedDict
@@ -11,6 +12,7 @@ from scipy import signal
 from sunocleanser import __version__
 from sunocleanser.audio.io import (
     count_clipped,
+    load_audio,
     load_wav,
     peak_levels,
     sha256_file,
@@ -48,6 +50,17 @@ class ProcessingParams:
     reconstruction_threshold_db: float = -60.0
 
     def __post_init__(self) -> None:
+        for name in (
+            "quiet_fraction",
+            "bass_cut_hz",
+            "oversubtraction",
+            "freq_smooth_sigma",
+            "time_smooth_sigma",
+            "reconstruction_threshold_db",
+        ):
+            value = getattr(self, name)
+            if not math.isfinite(value):
+                raise InvalidInputError(f"{name} must be finite (got {value}).")
         if self.n_fft < 64:
             raise InvalidInputError(f"n_fft must be >= 64 (got {self.n_fft}).")
         if not 1 <= self.hop_length < self.n_fft:
@@ -110,13 +123,13 @@ def null_test_error(
 def _validate_audio(original: np.ndarray, params: ProcessingParams) -> None:
     n_frames = original.shape[0]
     if n_frames == 0:
-        raise InvalidInputError("Input WAV contains no audio samples.")
+        raise InvalidInputError("Input audio contains no samples.")
     if n_frames < params.n_fft:
         raise InvalidInputError(
             f"Input too short: {n_frames} samples, need at least n_fft={params.n_fft}."
         )
     if not np.all(np.isfinite(original)):
-        raise InvalidInputError("Input WAV contains NaN/Inf samples.")
+        raise InvalidInputError("Input audio contains NaN/Inf samples.")
 
 
 def wav_output_paths(
@@ -124,6 +137,15 @@ def wav_output_paths(
 ) -> tuple[Path, Path]:
     destination = out_dir if out_dir is not None else input_path.parent
     song_title = title or input_path.stem
+    has_path_syntax = "/" in song_title or "\\" in song_title
+    song_title = song_title.replace("/", "_").replace("\\", "_")
+    if has_path_syntax or (
+        len(song_title) > 1
+        and song_title[0].isascii()
+        and song_title[0].isalpha()
+        and song_title[1] == ":"
+    ):
+        song_title = song_title.replace(":", "_")
     return (
         destination / f"{song_title} - Phase Cancelled Clean.wav",
         destination / f"{song_title} - Removed Noise.wav",
@@ -192,7 +214,7 @@ def process_suno_wav(
     )
 
     try:
-        original, info = load_wav(input_path)
+        original, info = load_audio(input_path)
     except Exception as exc:  # soundfile raises LibsndfileError / RuntimeError
         raise InvalidInputError(f"Cannot read '{input_path.name}' as audio: {exc}") from exc
     _validate_audio(original, params)
@@ -207,7 +229,7 @@ def process_suno_wav(
         spec, freqs = stft_channel(original[:, ch], sample_rate, stft_config)
         spectra.append(spec)
     if freqs is None:
-        raise InvalidInputError("Input WAV contains no audio channels.")
+            raise InvalidInputError("Input audio contains no channels.")
     magnitudes = [np.abs(s) for s in spectra]
     linked_mag = linked_magnitude(magnitudes)
 

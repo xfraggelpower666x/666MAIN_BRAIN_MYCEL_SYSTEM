@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:lyvra:dolmetscher:human-review-feedback:1.5.0",
+  "title": "Human Review Feedback",
+  "type": "object",
+  "required": [
+    "review_id",
+    "case_id",
+    "source_profile",
+    "target_profile",
+    "verdict",
+    "issues",
+    "reviewer_scope",
+    "created_at_utc",
+    "canonical_promotion"
+  ],
+  "properties": {
+    "review_id": {
+      "type": "string"
+    },
+    "case_id": {
+      "type": "string"
+    },
+    "source_profile": {
+      "type": "string"
+    },
+    "target_profile": {
+      "type": "string"
+    },
+    "verdict": {
+      "enum": [
+        "PASS",
+        "PASS_WITH_NOTE",
+        "REPAIR_REQUIRED",
+        "REJECT",
+        "UNAVAILABLE"
+      ]
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "MEANING_DRIFT",
+          "TONE_DRIFT",
+          "RELATIONSHIP_DRIFT",
+          "REGISTER_ERROR",
+          "CULTURAL_MISMATCH",
+          "GRAMMAR",
+          "NATURALNESS",
+          "TERMINOLOGY",
+          "FORMAT",
+          "EMOJI",
+          "TYPOGRAPHY",
+          "PROTECTED_TOKEN"
+        ]
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "corrected_output_hash": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "reviewer_scope": {
+      "enum": [
+        "CURRENT_CHAT_HOST",
+        "BILINGUAL_HUMAN",
+        "AUTHORIZED_EXTERNAL"
+      ]
+    },
+    "created_at_utc": {
+      "type": "string"
+    },
+    "canonical_promotion": {
+      "const": false
+    }
+  },
+  "additionalProperties": false
+}

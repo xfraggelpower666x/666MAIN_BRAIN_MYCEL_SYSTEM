@@ -1,0 +1,64 @@
+{
+  "system_id": "666CLS-CORE-001",
+  "integrations": [
+    {
+      "name": "LYVRA Intelligent UI 0.85.1",
+      "role": "READ_ONLY_VISUALIZATION",
+      "source": {
+        "archive_sha256": "1f95cecb033e0e9f2f24e1365fc2bf21ec59afa0afa40da6ff2fcb000b719fc7",
+        "members": {
+          "lyvra-intelligent-ui-template/assets/charts.html": "673cecff5d640a93894ab8ed4b317bb6e569c60e789a375d4c3ca2010ee57b31",
+          "lyvra-intelligent-ui-template/assets/companion.js": "edd2dc8c1a689450977a36cce587e40e561b0b8ac9cfccce17194e33ba485e49",
+          "lyvra-intelligent-ui-template/assets/ui-template.html": "2a3adb23ac89f3080e6efb9fb27881f7b02d8f65dc36f05976091571118939f4",
+          "lyvra-intelligent-ui-template/assets/visual-daemon.html": "e915390ef6a1b22087ae9006c3e28787899cbfc83c6d9afefcd09437b751ec83",
+          "lyvra-intelligent-ui-template/assets/visualform-menu.html": "85598acde043608470a2d8aa07d500f7e212d25ef2eee38ee2b19634c7a6e516",
+          "lyvra-intelligent-ui-template/scripts/render_ui.py": "a83e2f7252f2016d5f1d7b1d301755e6b41826618ab55695e73a2b18be9baa14"
+        }
+      },
+      "sha256": {
+        "integrations/visual/assets/charts.html": "673cecff5d640a93894ab8ed4b317bb6e569c60e789a375d4c3ca2010ee57b31",
+        "integrations/visual/assets/companion.js": "edd2dc8c1a689450977a36cce587e40e561b0b8ac9cfccce17194e33ba485e49",
+        "integrations/visual/assets/ui-template.html": "2a3adb23ac89f3080e6efb9fb27881f7b02d8f65dc36f05976091571118939f4",
+        "integrations/visual/assets/visual-daemon.html": "e915390ef6a1b22087ae9006c3e28787899cbfc83c6d9afefcd09437b751ec83",
+        "integrations/visual/assets/visualform-menu.html": "85598acde043608470a2d8aa07d500f7e212d25ef2eee38ee2b19634c7a6e516",
+        "integrations/visual/scripts/render_ui.py": "a83e2f7252f2016d5f1d7b1d301755e6b41826618ab55695e73a2b18be9baa14",
+        "runtime/dashboard.py": "f617bd56cb00aeeb5e3fb1de91ce9dcbb303881dfbddd7282297be652ed34b2b",
+        "skills/cls-visual/SKILL.md": "6b1af5e15797bc66c5c40b53c711fe4861682a74516d5be0bb5d9764c6f07836"
+      }
+    },
+    {
+      "name": "System Build Control Kernel 6.7",
+      "role": "NATIVE_RELEASE_GATES",
+      "source": {
+        "archive_sha256": "76a9c90be940f6bd1f9b05cf38cc51bfbb6a3879c95b35b3e5a4024feb986379",
+        "members": {
+          "SYSTEM_BUILD_CONTROL_KERNEL_v6_7_FREEZE_SYSTEM_BACKUP/01_FROZEN_RELEASE/SYSTEM_BUILD_CONTROL_KERNEL_v6_7_INTEGRATION_AUDIT_REPAIR_FREEZE_MASTER.md": "c3dd799b11dad8bc747cdffdecf9675496fb246471fd34ee219567ec20df5a50",
+          "SYSTEM_BUILD_CONTROL_KERNEL_v6_7_FREEZE_SYSTEM_BACKUP/03_REGISTRY/MODULE_REGISTRY_v6_7.md": "75eb6b0f2001bd7535d75039950da29f250abed558c1f4ea404a9fc7cf9fc75f"
+        }
+      },
+      "sha256": {
+        "runtime/cls_livecircle.py": "375b18f94f1fd520250b51fe409fe0d3406caf6224dc5d181ec1fbb4ae69cdd2",
+        "tests/test_livecircle.py": "bf916be1e824ab5a574ee99b6b25a7ccc280ae26c561954eace7e399a3d7b443",
+        "skills/cls-release/SKILL.md": "02a1fc4485f207d8ab2725b6de8c3e232c05a5f5410d4db6ffb04b1ddd473160",
+        "README.md": "2bb10ac984a4fbbf1c7dcc442bddb917b617735b3170a04c199e5cc2692891e8",
+        "START_HERE.md": "e7e884cab2dc7f26b8c3bfb703751dcaf2ce75b8135e9b1a01cf8b7d2cf6aad2",
+        ".gitignore": "e469b1ce4110700c806e72a501c330e169f38d25026681c1ca29b81693d3d20d"
+      }
+    },
+    {
+      "name": "666SOUNDsDESIGn DE/EN",
+      "role": "ARCHIVE_EVIDENCE_RULES",
+      "source": {
+        "archive_sha256": "ad4f05a07f878dd5f0e78d7087acfc4c0c52cfb52c4e7254ef788d8b38731f31",
+        "members": {
+          "DEU/18_auswertungsregeln.json": "9a2a46904bcc9764e6b82c7c104decc5b76cecffcd68768bf4c90ebfae3a1121",
+          "ENG/18_auswertungsregeln.json": "e6cb400f40ae08981d5b342b10d92d49cb72c726bea3b100243d28c22037c082"
+        }
+      },
+      "sha256": {
+        "integrations/ARCHIVE_EVIDENCE.json": "6bb0ac16952025f577a0d54b0874d50f4dbcceb8e70a182dd5c12597fe7408ee",
+        "skills/cls-evidence/SKILL.md": "e51aea3865908247c8ef0aea320a2b9fbad1b28007acfafdb8083fd349f0fbc0"
+      }
+    }
+  ]
+}

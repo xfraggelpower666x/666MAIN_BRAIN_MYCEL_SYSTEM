@@ -1,0 +1,26 @@
+{
+  "source": "v1.15.0 native TDH provider",
+  "folders": {
+    "live_snapshot": "1pjirJIEvxvCwTbevekP82q-7uDdTkT_q",
+    "history": "1j3my8hxkUz_24R-k6dZvjQgJV1i-A2Fu",
+    "backup": "1K4rRyxgZOYIUcx-lYewK3Ei_wzWxJ2B8",
+    "shachiviti_source_vault": "1GTges2IIFvawe1P55ULG9TRZZSwhlHzi"
+  },
+  "retained_provenance": [
+    {
+      "provider_id": "1TLY_LilP9z1ISa5DrkkbDPkPbc_P7weS",
+      "repo_path": "provenance/v1.15.0-provider/NATIVE_STARBRIDGE_RECEIPT.json",
+      "size": 610,
+      "sha256": "987c49d4870fc101cb5e16c925df481c6a19a9bd3f62021f43d840e31c403451",
+      "runtime_authority": "NONE"
+    },
+    {
+      "provider_id": "14R8FZMNljI4LJQkbU5wnO1KpdbmB4YfW",
+      "repo_path": "provenance/v1.15.0-provider/RETURN_HANDOFF_TO_CLIC.md",
+      "size": 1359,
+      "sha256": "f4e2818d63fe2e8bfa69f497c84ec6482a6f84b51bd54c0a04590fb266118399",
+      "runtime_authority": "NONE"
+    }
+  ],
+  "autoload": "FORBIDDEN"
+}

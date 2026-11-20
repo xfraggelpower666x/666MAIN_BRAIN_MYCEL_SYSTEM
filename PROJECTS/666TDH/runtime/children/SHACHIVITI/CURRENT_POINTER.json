@@ -1,0 +1,26 @@
+{
+  "system_id": "666SHACHIVITI-001",
+  "parent_system_id": "666TRACKHUB-001",
+  "branch_token": "SHACHIVITI",
+  "version": "v1.0.0",
+  "provider_snapshot": "runtime/provider-state/SHACHIVITI/LIVE_STATE.md",
+  "bootstrap": [
+    "runtime/provider-state/SHACHIVITI/LIVE_STATE.md",
+    "runtime/children/SHACHIVITI/SYSTEM_IDENTITY.md",
+    "runtime/children/SHACHIVITI/TRIGGER_NAMESPACE.md",
+    "runtime/children/SHACHIVITI/SOURCE_VAULT_MANIFEST.md",
+    "runtime/children/SHACHIVITI/recovery/RECOVERY_GUIDE.md"
+  ],
+  "files": [
+    "runtime/children/SHACHIVITI/AUDIT_REPORT.md",
+    "runtime/children/SHACHIVITI/FREEZE.md",
+    "runtime/children/SHACHIVITI/LIVE_STATE.md",
+    "runtime/children/SHACHIVITI/MANIFEST.json",
+    "runtime/children/SHACHIVITI/README.md",
+    "runtime/children/SHACHIVITI/SOURCE_VAULT_MANIFEST.md",
+    "runtime/children/SHACHIVITI/SYSTEM_IDENTITY.md",
+    "runtime/children/SHACHIVITI/TRIGGER_NAMESPACE.md",
+    "runtime/children/SHACHIVITI/provider/PROVIDER_BINDINGS.json",
+    "runtime/children/SHACHIVITI/recovery/RECOVERY_GUIDE.md"
+  ]
+}

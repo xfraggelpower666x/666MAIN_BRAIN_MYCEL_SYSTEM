@@ -1,0 +1,16 @@
+{
+  "system_id": "666CLS-CORE-001",
+  "authority": {
+    "repository": "xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM",
+    "branch": "666MAIN_BRAIN",
+    "root": "PROJECTS/666CLS"
+  },
+  "triggers": {
+    "666CLS SYSTEMSTART": "status",
+    "666CLS WEITER": "continue",
+    "666CLS UPDATE": "update"
+  },
+  "next_step": "Bei geprüftem neuem Archivmaterial gezielt einen 666CLS-Update-Kandidaten erstellen.",
+  "resume_mode": "REREAD_CURRENT",
+  "checkpoint_scope": "SYSTEM_AND_RELEASE"
+}

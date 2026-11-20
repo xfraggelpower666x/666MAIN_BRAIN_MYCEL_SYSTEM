@@ -1,0 +1,270 @@
+{
+  "system_id": "666TRACKHUB-001",
+  "version": "v1.15.0",
+  "base": "v1.14.0",
+  "clic_source_head": "98622df610aada53258f33d95b979499f48cbfe8",
+  "child_core_packages_changed": false,
+  "daemon_authority": "NONE",
+  "files": [
+    {
+      "path": "AUDIT_REPORT.md",
+      "size": 532,
+      "sha256": "154d00515904acae382c289d9d699ff7ca94a14d608c109b3fc15deed4a4e99d"
+    },
+    {
+      "path": "BACKUP_POLICY.md",
+      "size": 581,
+      "sha256": "e7ffd0fc2c6abf1a4ae70541bc221d7fdd5084f8cd548cf76a1e31204f194d3c"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "size": 8075,
+      "sha256": "e5b30e273aa66db4b41c75e8b8cab9f4188101c13207deb956280af007040b98"
+    },
+    {
+      "path": "CHECKPOINT.md",
+      "size": 318,
+      "sha256": "7c7822a142c517e60b1f4f4339dfdadbb7f9b74cf67800da9e7380c5437d782f"
+    },
+    {
+      "path": "CLIC_REPO_FIRST_INTAKE_LEDGER_v1.15.0.md",
+      "size": 995,
+      "sha256": "40e8bbbf18c117988bf5c0ca279465babeb0b405af52130e903d168e447e606b"
+    },
+    {
+      "path": "COMPONENT_REGISTRY.md",
+      "size": 1150,
+      "sha256": "cc79c7183639bc945e06b450297e0adc4538c145e30393d5dba4b3f6fd110896"
+    },
+    {
+      "path": "CURRENT_POINTER.md",
+      "size": 571,
+      "sha256": "3264b3cada40f8ec6643387b5ba115a8fea8c068051a474dd0a356c9808a74e3"
+    },
+    {
+      "path": "DASHBOARD_CONTRACT.md",
+      "size": 770,
+      "sha256": "1a68dd22e8073b79dbf9f0c289f3387f3eafa8783570f70c5e24249d594d014c"
+    },
+    {
+      "path": "FACET_INTELLIGENCE_CONTRACT.md",
+      "size": 660,
+      "sha256": "41daa3a060acbcc6b37400469ab471b006567e55716ea48050b03aae7fbc1c91"
+    },
+    {
+      "path": "FORCE_INTELLIGENCE.md",
+      "size": 2040,
+      "sha256": "b38b862983a35fbf43ed819a72f74146692864eaa23b00c3fd6bc3d11347fa0a"
+    },
+    {
+      "path": "GPT6_INTERACTIVE_VISUAL_CAPABILITY_v1.0.md",
+      "size": 413,
+      "sha256": "c460275eeb09eae54bcbaabf2e62f80fa74c6488d5f3c49a9ef590fa0a666368"
+    },
+    {
+      "path": "HANDOFF_CONTINUITY_POLICY.md",
+      "size": 866,
+      "sha256": "75be179f3bb27d591f933618152d6cb3dc82c9a153cf27cd7c63daa372244ca3"
+    },
+    {
+      "path": "HELP.md",
+      "size": 2258,
+      "sha256": "563b0c6431fa3edd9919df8f82869cc4f43e0c763af5d5a6624059797817cb02"
+    },
+    {
+      "path": "HOST_RECOVERY.md",
+      "size": 451,
+      "sha256": "71743c84751a899317d0f365ff657167b9721c1c76ebf8e7e54c057ce560389a"
+    },
+    {
+      "path": "HYDRATION_COMPLETENESS.md",
+      "size": 1140,
+      "sha256": "b279f35a0173aefb184b12ec20ea3cc467d18e66c587ebdfd80e8a2b050ad408"
+    },
+    {
+      "path": "LIVE_PURITY_POLICY.md",
+      "size": 836,
+      "sha256": "1b9f217f850218d7ce8ed16978f89a8b2514ba86df809027f5783d0c2f961fbc"
+    },
+    {
+      "path": "LIVE_SYNC_POLICY.md",
+      "size": 562,
+      "sha256": "b69342679c63683b87c3be5fbc766b36911af086374063b7b721826c44be3c66"
+    },
+    {
+      "path": "NEW_CHAT_HANDOFF.md",
+      "size": 791,
+      "sha256": "6fb77e59d9bd26481c7f8cb3305bc55123d250e8a765ca5d3860172200aa7371"
+    },
+    {
+      "path": "PFS_CHILD_PREPARATION.md",
+      "size": 450,
+      "sha256": "f5b0148cd45a3d1be3fd151a7cd3d3b8de8ab0c24e48016f3e3747f1df37e35b"
+    },
+    {
+      "path": "README.md",
+      "size": 315,
+      "sha256": "06d2d487424a1400a710a7a467bcc7d83113e33ef8f5a44276a70e2303e3c6c5"
+    },
+    {
+      "path": "ROUTING.md",
+      "size": 1359,
+      "sha256": "bdeb116a0160539078d3325e38d7d0905dd1ddf6bff4c67ecbe6a1d8b4a33a40"
+    },
+    {
+      "path": "RUNTIME_LIFECYCLE_MANIFEST.md",
+      "size": 1510,
+      "sha256": "f070e2589b600dcdaa437f29abba5deade08a290a49aa542becb90f9d2c1eda9"
+    },
+    {
+      "path": "SEMANTIC_VISUAL_INTELLIGENCE_V01_4.md",
+      "size": 1597,
+      "sha256": "e2f2be30651c73e02c83efad23fd83d977c76b32b3b00c202e8fef9746fc35a6"
+    },
+    {
+      "path": "STARBRIDGE_NATIVE_RECEIPT_CONTRACT_v1.0.md",
+      "size": 523,
+      "sha256": "927afabc110641af5113a7339cc3a627bfd5e16de3e8558ffc66482fac244034"
+    },
+    {
+      "path": "START_MENU.md",
+      "size": 1343,
+      "sha256": "98ce10927e66a7101f384a3384229f8c4047f602605e95ed22c9c239c6f9b36f"
+    },
+    {
+      "path": "STATE_STORAGE_ARCHITECTURE.md",
+      "size": 994,
+      "sha256": "0ab5b9383478f6933bd977c96ce597ee023d9cb59a9efada20e8ac4ce04f2233"
+    },
+    {
+      "path": "SYSTEM_ARCHITECTURE.md",
+      "size": 1190,
+      "sha256": "a6645acf234773c1bfd5c25cc51ec49f1c87ba5c35f069326adf9d0147807bb7"
+    },
+    {
+      "path": "SYSTEM_IDENTITY.md",
+      "size": 257,
+      "sha256": "e0d6c6ee67baefbbbc5f3d1b073f1ce0700a668477f54114d39eca14b31dfbe4"
+    },
+    {
+      "path": "SYSTEM_WIDE_STATE_FORCE_CONTRACT.md",
+      "size": 1860,
+      "sha256": "5b69ba17cd2b9bc348a1f4e35371eaa460a84473aac856963833d9fba48b472d"
+    },
+    {
+      "path": "TRIGGER_NAMESPACE.md",
+      "size": 979,
+      "sha256": "0514879b38f210227f3611451b0d8aa8bfd13af96efef3fe6a6533ab077ceda3"
+    },
+    {
+      "path": "UNIFIED_NEON_VISUAL_CONTRACT_v1.0.md",
+      "size": 441,
+      "sha256": "4af9def60243ce1faf7e7c97b58ba70885a7653164fa40d9348a9f634443a68b"
+    },
+    {
+      "path": "UNIVERSAL_UPDATE_SAVE.md",
+      "size": 723,
+      "sha256": "5d2b6991cf6ae8d2c7e92c7df79c774e1cea0c1d108c74aff188a930b56ad881"
+    },
+    {
+      "path": "UNIVERSAL_VISUAL_OUTPUT_DAEMON_HANDOFF_CONTRACT.md",
+      "size": 1177,
+      "sha256": "4ed3a92e99606bc51d1b501bfc8c5eb71ed132e7513ee7e16ee39476e93c4b1b"
+    },
+    {
+      "path": "UPDATE_LIFECYCLE.md",
+      "size": 937,
+      "sha256": "e439a5adac5e2f2441fd60cb7b8ec46f10f02b252b441ec04881626812668d08"
+    },
+    {
+      "path": "VERSION.txt",
+      "size": 8,
+      "sha256": "e8df9e77d7f8ab19321afa6014eaf6265ece65b51143c23f21f69682791e20fc"
+    },
+    {
+      "path": "VISUAL_COMPLIANCE_REGISTER.md",
+      "size": 999,
+      "sha256": "f3745368239b2c4a4a594590b5b59b5a3475434e5d61fcfaf9528a50b308e86f"
+    },
+    {
+      "path": "VISUAL_OUTPUT_CONTRACT.md",
+      "size": 1288,
+      "sha256": "6f28bf20f3ac340f01c422fa308098195d675d18c53b0f0e81c29bf7c96d93bf"
+    },
+    {
+      "path": "VISUAL_SUB_LIFECYCLE.md",
+      "size": 651,
+      "sha256": "f88017bf04ccc0856c91b4c06d4780b42c906f92a185bc87c1169bb7d2ca77ef"
+    },
+    {
+      "path": "VISUAL_SUB_REHYDRATION.md",
+      "size": 607,
+      "sha256": "441ea23cfaba92287fe86c2d8665992782a00846e6d874dea0be8cbb97c3be61"
+    },
+    {
+      "path": "daemon/DAEMON_BOUNDARIES.md",
+      "size": 540,
+      "sha256": "aa065c77db78d23c3724410a06ceca1f87b4d6c7060a10da2bcc6b75b4db43d4"
+    },
+    {
+      "path": "daemon/DAEMON_FORCE_INTELLIGENCE.md",
+      "size": 3158,
+      "sha256": "072088d2dcbe52c422c827f8b7bd24f9d432c0d5254448a626313dd621e9fd10"
+    },
+    {
+      "path": "daemon/DAEMON_IDENTITY.md",
+      "size": 399,
+      "sha256": "4165658c5ada2459e93c4baccb0c848ae2cf8e5c6938959fc5ea5ef3a98b5ccb"
+    },
+    {
+      "path": "daemon/DAEMON_LONGFORM_FLOW.md",
+      "size": 559,
+      "sha256": "e31d5cb0c4aadeecd79693071e2eff57a3d2bf53c2151dcbc1de29605f9da035"
+    },
+    {
+      "path": "daemon/DAEMON_MENU.md",
+      "size": 962,
+      "sha256": "febda4265d9e2b81734992ba85f029a6f69e79cb214b730664946b8f58ab950c"
+    },
+    {
+      "path": "daemon/DAEMON_NORMAL_FLOW.md",
+      "size": 528,
+      "sha256": "d6e8124df81c0f8303debf24225c783d045c2c6751e9ec189b5f7f55719af4d9"
+    },
+    {
+      "path": "daemon/DAEMON_STATE_SCHEMA.md",
+      "size": 1202,
+      "sha256": "5b35d946f2627f3284c3f88b86008bbadc020325dfe850e876e721a98c45faf5"
+    },
+    {
+      "path": "recovery/RECOVERY_GUIDE.md",
+      "size": 399,
+      "sha256": "33642c9bad44f6634faec37ab7b87897a2ab9d68466d9566178c3973674e8f4a"
+    },
+    {
+      "path": "visual_adapters/DTSTE_VISUAL_ADAPTER.md",
+      "size": 707,
+      "sha256": "62a19cd32934d1f4a347a0e5539bb9b37b3c4c4a06063ede9468ec0ecbe7027c"
+    },
+    {
+      "path": "visual_adapters/FSE_VISUAL_ADAPTER.md",
+      "size": 770,
+      "sha256": "ea5af8612dcee0ae80bd1b17c49b6227dd1fa130cc1d15736ffcd89126fecb7e"
+    },
+    {
+      "path": "visual_adapters/LCTS_VISUAL_ADAPTER.md",
+      "size": 689,
+      "sha256": "5fa5c46fefe7df5efc04f924a1a77ae0b46eb0894e881db432ece76503054528"
+    },
+    {
+      "path": "visual_adapters/SHACHIVITI_VISUAL_ADAPTER.md",
+      "size": 796,
+      "sha256": "405b7374fe85782f1730c99e796f336259979c23fe4e098dd19236f4725ed270"
+    },
+    {
+      "path": "visual_adapters/TD_VISUAL_ADAPTER.md",
+      "size": 735,
+      "sha256": "b2267ca323472f4aa02d705dc27506fb24f8bf8f824899fc8217de8692936289"
+    }
+  ]
+}

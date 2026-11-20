@@ -15,11 +15,9 @@ function normalizePath(filePath) {
 }
 
 function assertTrustedSender(event) {
-  const frameUrl = event.senderFrame?.url;
-  const trustedUrl = frameUrl === pathToFileURL(path.join(__dirname, '../dist/index.html')).href ||
-    (!app.isPackaged && frameUrl && new URL(frameUrl).origin === 'http://localhost:5173');
   if (!mainWindow || event.sender !== mainWindow.webContents ||
-      event.senderFrame !== mainWindow.webContents.mainFrame || !trustedUrl) {
+      event.senderFrame !== mainWindow.webContents.mainFrame ||
+      !isAppUrl(event.senderFrame?.url)) {
     throw new Error('Untrusted IPC sender');
   }
 }
@@ -40,8 +38,19 @@ function toBuffer(data) {
 }
 
 const previewDir = path.join(os.tmpdir(), 'spotify-worthy-preview');
+
 if (!fs.existsSync(previewDir)) {
   fs.mkdirSync(previewDir, { recursive: true });
+}
+
+function isAppUrl(value) {
+  try {
+    const url = new URL(value);
+    if (!app.isPackaged && url.origin === 'http://localhost:5173') return true;
+    return url.href === pathToFileURL(path.join(__dirname, '../dist/index.html')).href;
+  } catch {
+    return false;
+  }
 }
 
 function createWindow() {
@@ -55,11 +64,23 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      sandbox: true,
+      webSecurity: true,
+      allowRunningInsecureContent: false,
+      webviewTag: false,
       preload: path.join(__dirname, 'preload.js')
     },
     backgroundColor: '#0a0a0a',
     icon: path.join(__dirname, '../image.png')
   });
+
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (!isAppUrl(url)) event.preventDefault();
+  });
+  mainWindow.webContents.on('will-redirect', (event, url) => {
+    if (!isAppUrl(url)) event.preventDefault();
+  });
+  mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
 
   // Always try to load from dist first, fall back to dev server
   const distPath = path.join(__dirname, '../dist/index.html');

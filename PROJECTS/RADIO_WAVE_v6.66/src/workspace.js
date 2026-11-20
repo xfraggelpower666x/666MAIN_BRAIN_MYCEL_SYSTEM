@@ -23,12 +23,17 @@
 
   const sectionDefs=[
     {key:'source',title:'SOURCE HUB',icon:'⚡',node:q('#source-hub'),x:28,y:95,w:420,h:470,open:true},
+    {key:'radioAdmin',title:'ONLINE RADIO ADMIN',icon:'📡',node:q('#rw-radio-admin'),x:65,y:100,w:520,h:620},
     {key:'media',title:'MEDIA LIBRARY',icon:'📁',match:'Media Library',x:70,y:135,w:390,h:360},
+    {key:'audioPool',title:'AUDIO POOL & PLAYLISTS',icon:'🎵',node:q('#local-audio-library'),x:85,y:110,w:500,h:620},
+    {key:'audioFx',title:'AUDIO FX · EQ',icon:'🎚️',node:q('#audio-fx'),x:110,y:115,w:430,h:480},
+    {key:'audioDevices',title:'AUDIO DEVICES',icon:'🎙️',node:q('#audio-device-controls'),x:140,y:120,w:440,h:520},
     {key:'wave',title:'WAVE DESIGN',icon:'🎨',match:'Wave Design',x:120,y:115,w:420,h:520},
     {key:'position',title:'POSITION & SIZE',icon:'📐',match:'Position & Size',x:170,y:135,w:420,h:500},
     {key:'text',title:'TEXT OVERLAYS',icon:'✏️',match:'Text Overlays',x:220,y:155,w:410,h:430},
     {key:'engines',title:'PRESENTATION & ENGINES',icon:'🖥️',match:'Presentation & Engines',x:260,y:105,w:440,h:610},
     {key:'milkdrop',title:'MILKDROP STUDIO',icon:'🌌',node:q('#milkdrop-studio'),x:300,y:120,w:430,h:470},
+    {key:'vjStudio',title:'VJ STUDIO',icon:'🎬',node:q('#vj-studio'),x:250,y:100,w:440,h:600},
     {key:'diagnostics',title:'DIAGNOSTICS',icon:'🩺',node:q('#rw-diagnostics'),x:330,y:125,w:500,h:600},
     {key:'export',title:'EXPORT STUDIO',icon:'📹',match:'Export Studio',x:360,y:145,w:410,h:420}
   ];
@@ -85,6 +90,7 @@
       mute:'Audio stummschalten oder wieder einschalten.',
       play:'Wiedergabe starten oder pausieren.',
       diagnostics:'Diagnose öffnen: Monitore, GPU, Runtime und JSON-Export.',
+      openCyberStudio:'MilkDrop Cyber Studio für Presets und Assets öffnen.',
       importPersonal:'Persönliche MilkDrop-Bibliothek aus ZIP importieren und lokal speichern.',
       top100:'Nur Presets aus der Top-100-Liste anzeigen.',
       classic:'Nur klassische .milk-Presets anzeigen.',
@@ -111,6 +117,7 @@
       mute:'Mute or unmute audio.',
       play:'Start or pause playback.',
       diagnostics:'Open diagnostics for displays, GPU, runtime and JSON export.',
+      openCyberStudio:'Open MilkDrop Cyber Studio for presets and assets.',
       importPersonal:'Import the personal MilkDrop library ZIP and store it locally.',
       top100:'Show only presets from the Top 100 list.',
       classic:'Show classic .milk presets only.',
@@ -276,10 +283,24 @@
     win.classList.add('rw-window-closed');saveWorkspace();
   }
 
+  async function toggleWindow(key){
+    if(detached.has(key)){
+      try{
+        const result=await window.api.closeDetachedOverlay(key);
+        if(!result?.ok)throw new Error('overlay_not_open');
+      }catch(error){console.error('Close detached overlay failed',key,error);window.alert('Could not close detached window: '+error.message);}
+      return;
+    }
+    const win=windows.get(key);
+    if(!win)return;
+    if(win.classList.contains('rw-window-closed'))openWindow(key);
+    else closeWindow(key);
+  }
+
   function controlsSnapshot(win){
-    return qaFrom(win,'input[id],select[id],textarea[id],button[id]').map(el=>({
-      id:el.id,tag:el.tagName,type:el.type||'',value:el.value??'',checked:!!el.checked,disabled:!!el.disabled
-    }));
+    return qaFrom(win,'input[id],select[id],textarea[id],button[id]').map(el=>el.type==='password'
+      ? {id:el.id,tag:el.tagName,type:el.type,hasValue:!!el.value,disabled:!!el.disabled}
+      : {id:el.id,tag:el.tagName,type:el.type||'',value:el.value??'',checked:!!el.checked,disabled:!!el.disabled});
   }
   function qaFrom(root,sel){return Array.from(root?.querySelectorAll?.(sel)||[]);}
   async function detachWindow(key,restoring=false){
@@ -367,9 +388,29 @@
     const btn=document.createElement('button');
     btn.type='button';btn.className='rw-dock-button';btn.id='rw-dock-open-'+def.key;btn.dataset.openWindow=def.key;btn.dataset.rwTipKey='open:'+def.key;
     btn.innerHTML=`<span>${def.icon}</span><small>${def.title}</small>`;
-    btn.addEventListener('click',()=>openWindow(def.key));
+    btn.addEventListener('click',()=>toggleWindow(def.key));
     dock.appendChild(btn);
   }
+
+  const cyberStudioButton=document.createElement('button');
+  cyberStudioButton.type='button';
+  cyberStudioButton.id='rw-dock-open-cyber-studio';
+  cyberStudioButton.className='rw-dock-button';
+  cyberStudioButton.dataset.rwTipKey='openCyberStudio';
+  cyberStudioButton.setAttribute('aria-label','MilkDrop Cyber Studio');
+  cyberStudioButton.innerHTML='<span aria-hidden="true">✦</span><small>MilkDrop Cyber Studio</small>';
+  cyberStudioButton.addEventListener('click',async()=>{
+    if(cyberStudioButton.disabled)return;
+    cyberStudioButton.disabled=true;
+    try {
+      const result=await window.api.openCyberStudio(languageCode());
+      if(result?.alreadyOpen)window.alert(languageCode()==='de'?'MilkDrop Cyber Studio ist bereits geöffnet.':'MilkDrop Cyber Studio is already open.');
+    } catch(error) {
+      console.error('MilkDrop Cyber Studio',error);
+      window.alert(languageCode()==='de'?'Studio-Start konnte nicht angefordert werden.':'Could not request the Studio launch.');
+    } finally {cyberStudioButton.disabled=false;}
+  });
+  dock.appendChild(cyberStudioButton);
 
   // Stream status remains inside the video frame so it moves with the visual canvas.
   const status=q('#radio-status-panel');
@@ -471,13 +512,28 @@
 
   // Keep the existing top button as dock toggle rather than old scrolling-sidebar toggle.
   window.RWWorkspace=Object.freeze({
-    open:openWindow,close:closeWindow,detach:detachWindow,fitVisualFrame:()=>window.RWVisualFrame?.fit?.(),
+    open:openWindow,close:closeWindow,toggle:toggleWindow,detach:detachWindow,fitVisualFrame:()=>window.RWVisualFrame?.fit?.(),
     toggleDock(){
       document.body.classList.toggle('rw-dock-collapsed');
       saveWorkspace();
       return !document.body.classList.contains('rw-dock-collapsed');
     },
     save(){saveSettings();saveWorkspace();}
+  });
+
+  document.querySelectorAll('[data-external-site]').forEach(button=>{
+    button.addEventListener('click',async()=>{
+      try{await window.api.openApprovedWebsite(button.dataset.externalSite);}
+      catch(error){console.error('Website open failed',error);window.alert('Could not open website: '+error.message);}
+    });
+  });
+  Promise.resolve().then(()=>window.api.appVersion()).then(version=>{
+    const label=document.getElementById('rw-app-version');
+    if(label)label.textContent='RADIO WAVE v6.66 · v'+version;
+  }).catch(error=>{
+    const label=document.getElementById('rw-app-version');
+    if(label)label.textContent='RADIO WAVE v6.66 · Version unavailable';
+    console.error('Version lookup failed',error);
   });
 
   window.api?.onDetachedOverlayAction?.(payload=>{
@@ -494,6 +550,7 @@
     const el=id?document.getElementById(id):(selector?win.querySelector(selector):null);
     if(!el||!win.contains(el))return;
     if(payload.kind==='click'&&el.tagName==='BUTTON'){el.click();return;}
+    if(payload.kind==='toggle'&&el.matches('details')){if(el.open!==!!payload.checked)el.open=!!payload.checked;return;}
     if(!el.matches('input,select,textarea'))return;
     if(el.type==='checkbox'||el.type==='radio')el.checked=!!payload.checked;
     else el.value=String(payload.value??'');
@@ -517,7 +574,7 @@
     for(const [key,win] of windows){
       const body=win.querySelector('.rw-floating-window-body');
       if(!body)continue;
-      new MutationObserver(()=>scheduleDetachedSync(key)).observe(body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class','disabled','aria-pressed','value']});
+      new MutationObserver(()=>scheduleDetachedSync(key)).observe(body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class','disabled','aria-pressed','value','open']});
       body.addEventListener('input',()=>scheduleDetachedSync(key),true);
       body.addEventListener('change',()=>scheduleDetachedSync(key),true);
     }

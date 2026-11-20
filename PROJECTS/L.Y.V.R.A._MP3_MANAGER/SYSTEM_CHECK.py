@@ -9,6 +9,7 @@ import sys
 import tkinter
 import traceback
 import time
+from restoration_overlay import SOURCES, source_directory
 
 ROOT=Path(__file__).resolve().parent
 VENV=ROOT/'.venv'
@@ -34,8 +35,11 @@ def require_package(name,minimum,maximum_major=None, module=None):
 def check_packages(build=False):
     major,minor=sys.version_info[:2]
     pillow_min='13.0' if (major,minor)>=(3,15) else '10.0'
-    pillow_max=14
-    deps=[('mutagen','1.47',2,'mutagen'),('Pillow',pillow_min,pillow_max,'PIL.Image'),('tkinterdnd2','0.4.3',1,'tkinterdnd2')]
+    pillow_max=13
+    deps=[('mutagen','1.47',2,'mutagen'),('Pillow',pillow_min,pillow_max,'PIL.Image'),('tkinterdnd2','0.4.3',1,'tkinterdnd2'),
+          ('numpy','1.24',3,'numpy'),('scipy','1.10',2,'scipy.signal'),
+          ('soundfile','0.13.1',1,'soundfile'),('PyWavelets','1.5',2,'pywt'),
+          ('sounddevice','0.4.6',1,'sounddevice'),('pyloudnorm','0.1.1',1,'pyloudnorm')]
     if build: deps.append(('pyinstaller','6.21' if (major,minor)>=(3,15) else '6.0',7,'PyInstaller'))
     ok=True
     for args in deps:
@@ -101,6 +105,11 @@ def main():
         app_name='L.Y.V.R.A._MP3_MANAGER'
         dist=ROOT/'dist'
         portable=dist/app_name
+        restoration=source_directory()
+        required=[restoration/name for name in SOURCES]+[restoration/'assets'/'RestorationLab.png']
+        missing=[str(path) for path in required if not path.is_file()]
+        if missing:
+            print('RESTORATION_SOURCE_MISSING: '+', '.join(missing));return 10
         cmd=[sys.executable,'-m','PyInstaller','--noconfirm','--clean',
              '--onedir','--contents-directory','_internal','--windowed',
              '--distpath',str(dist),'--workpath',str(ROOT/'build'),
@@ -110,7 +119,16 @@ def main():
              '--add-data',str(ROOT/'BEDIENUNGSANLEITUNG_DE.md')+os.pathsep+'.',
              '--add-data',str(ROOT/'MANUAL_EN.md')+os.pathsep+'.',
              '--collect-all','tkinterdnd2',
-             '--name',app_name,str(ROOT/'MP3_Manager.pyw')]
+             '--name',app_name]
+        for path in required:
+            destination='restoration_lab/assets' if path.parent.name=='assets' else 'restoration_lab'
+            cmd.extend(['--add-data',str(path)+os.pathsep+destination])
+        for module in ('numpy','scipy.signal','scipy.ndimage','scipy.stats','pywt',
+                       'soundfile','sounddevice','pyloudnorm'):
+            cmd.extend(['--hidden-import',module])
+        for module in ('sounddevice','_sounddevice_data','soundfile','_soundfile_data','pywt','pyloudnorm'):
+            cmd.extend(['--collect-all',module])
+        cmd.append(str(ROOT/'MP3_Manager.pyw'))
         result=subprocess.call(cmd,cwd=str(ROOT))
         if result:return result
         exe=portable/(app_name+'.exe')
@@ -119,7 +137,8 @@ def main():
         # Alle Arbeitsdateien im selben verschiebbaren Root-Ordner halten.
         shutil.copytree(ROOT/'assets',portable/'assets',dirs_exist_ok=True)
         for doc in ('BEDIENUNGSANLEITUNG_DE.md','MANUAL_EN.md','README.txt',
-                    'REPARATUR_AUDIO_TOOLS.bat', 'PORTABLE_VERIFY.bat','PORTABLE_VERIFY.ps1'):
+                    'L.Y.V.R.A._MP3_MANAGER.bat','PORTABLE_VERIFY.ps1',
+                    'HOST_ABNAHME_WINDOWS.bat','HOST_ABNAHME_WINDOWS.ps1'):
             shutil.copy2(ROOT/doc,portable/doc)
         tools_out=portable/'tools';tools_out.mkdir(parents=True,exist_ok=True)
         missing=[]
@@ -131,9 +150,10 @@ def main():
             else:
                 missing.append(name)
                 print('PORTABLE_TOOL_MISSING:',name)
-        (portable/'PORTABLE_STATUS.txt').write_text(
-            'Build: onedir\nAudio-Tools: '+('COMPLETE' if not missing else 'MISSING: '+', '.join(missing))+ '\n'
-            'Copy this entire folder; never move only the EXE.\n',encoding='utf-8')
+        status_file=portable/'PORTABLE_STATUS.txt'
+        status_file.write_text('Build: onedir\nAudio-Tools: '+
+                               ('MISSING: '+', '.join(missing) if missing else 'VERIFICATION_PENDING')+'\n',
+                               encoding='utf-8')
         if missing:
             print('PORTABLE_INCOMPLETE: missing audio tools. Installiere sie im Quellprojekt und baue neu,')
             print('oder lege sie in dist/'+app_name+'/tools/ ab. Keine irrefuehrende COMPLETE-Meldung.')
@@ -143,6 +163,12 @@ def main():
         if verification.returncode:
             print('PORTABLE_FOLDER_INVALID: Verzeichnispruefung fehlgeschlagen')
             return 9
+        if sys.platform != 'win32':
+            print('STATIC_PASS_WINDOWS_PENDING:',portable)
+            return 0
+        status_file.write_text('Build: onedir\nAudio-Tools: VERIFIED\n'
+                               'Copy this entire folder. GUI and Explorer-DnD require host acceptance.\n',
+                               encoding='utf-8')
         print('PORTABLE_FOLDER_READY:',portable)
         return 0
     return 0

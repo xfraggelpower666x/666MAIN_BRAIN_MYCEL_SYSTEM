@@ -76,6 +76,9 @@ npm install
 # Build the app
 npm run build
 
+# Run focused algorithm tests
+npm test
+
 # Run in development
 npm run electron:dev
 

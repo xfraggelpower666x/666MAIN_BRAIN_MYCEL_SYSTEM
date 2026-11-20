@@ -1,0 +1,55 @@
+{
+  "title": "Projektname",
+  "basis": "Projektbasis noch offen",
+  "views": [
+    {
+      "id": "overview",
+      "title": "Übersicht",
+      "summary": "Hier erscheinen die bestätigten Angaben zum Zielprojekt.",
+      "kind": "narrative",
+      "route_terms": [
+        "projekt",
+        "übersicht"
+      ],
+      "source": "Projektquelle offen",
+      "status": "OFFEN",
+      "items": [
+        {
+          "label": "Projektquelle",
+          "text": "Pfad und Revision aus der nativen Quelle übernehmen."
+        }
+      ]
+    }
+  ],
+  "gaps": [
+    "Geprüfte Projektquelle und Revision fehlen."
+  ],
+  "companion": {
+    "phase": "Aufnahme",
+    "status": "OFFEN",
+    "next_step": "Projektbasis abgleichen"
+  },
+  "actions": [
+    {
+      "id": "check-basis",
+      "kind": "readback",
+      "label": "Projektbasis lesen",
+      "source": "Beispieldatensatz · Projektbasis offen",
+      "reason": "Es liegt noch keine aktuelle Quelle vor.",
+      "effect": "Der nächste Schritt kann einer konkreten Revision zugeordnet werden.",
+      "countercheck": "Projektidentität und Revision gegen die native Quelle prüfen."
+    },
+    {
+      "id": "review-result",
+      "kind": "verify",
+      "label": "Ergebnis gegenprüfen",
+      "source": "Beispieldatensatz · neutrale Gegenprobe",
+      "reason": "Die fachliche Prüfung folgt auf den Quellenabgleich.",
+      "effect": "Ein gemeldetes Ergebnis kann gegen die tatsächliche Ausführung geprüft werden.",
+      "countercheck": "Beobachtung mit dem erwarteten Ergebnis vergleichen.",
+      "requires": [
+        "check-basis"
+      ]
+    }
+  ]
+}

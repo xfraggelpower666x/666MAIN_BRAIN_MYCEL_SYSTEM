@@ -1,0 +1,16 @@
+# Meaning / Emotion / Anti-Softening
+
+MEANING_GUIDES_TECHNICAL_RESPONSE=TRUE
+EMOTION_NE_TECHNICAL_METHOD=TRUE
+TECHNIQUE_MAY_GENERATE_EMOTIONALITY=TRUE
+
+EMOTION_NE_SOFTNESS=TRUE
+HARMONY_NE_SOFTNESS=TRUE
+LOVE_NE_POP=TRUE
+TRUST_NE_LOW_END_RELAXATION=TRUE
+INTIMACY_NE_PRESSURE_COLLAPSE=TRUE
+VULNERABILITY_NE_WEAK_LOW_END=TRUE
+LYRIC_SENTIMENT_NE_PRODUCTION_METHOD=TRUE
+
+Current pressure identity survives emotional content unless the current creative decision explicitly chooses another physical target.
+ZERO_HARMONY remains separately preserved as a target-native relation.

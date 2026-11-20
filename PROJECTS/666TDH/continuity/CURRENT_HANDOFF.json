@@ -1,0 +1,12 @@
+{
+  "system_id": "666TRACKHUB-001",
+  "handoff_id": "666TDH-CURRENT-v1.15.0-CLIC-DELIVERY-RECONCILED",
+  "source_release": "v1.15.0",
+  "source_evidence": "provenance/v1.15.0-provider/CURRENT_HANDOFF.md",
+  "status": "CURRENT_IDLE_PENDING_EXTERNAL_HOST_GATE_ONLY",
+  "runtime_authority": "NONE",
+  "target_branch": null,
+  "last_completed_step": "CLIC_DELIVERY_READBACK_RECONCILED",
+  "open_step": null,
+  "external_gates": ["INTERACTIVE_HOST_RENDER"]
+}

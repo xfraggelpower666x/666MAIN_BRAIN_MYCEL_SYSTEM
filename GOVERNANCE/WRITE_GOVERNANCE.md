@@ -43,3 +43,9 @@ PRIVATE_CONVERSATION_CONTEXT_IN_REPO=FORBIDDEN
 FOREIGN_NATIVE_WRITE_REQUIRES_FOREIGN_NATIVE_AUTHORITY=TRUE
 MAIN_BRAIN_MAY_CATALOG_FOREIGN_SYSTEM=TRUE
 MAIN_BRAIN_MAY_NOT_MUTATE_FOREIGN_SYSTEM_BY_CATALOGING=TRUE
+
+## MAIN BRAIN update scope
+
+`666MAIN BRAIN UPDATE` covers MAIN BRAIN itself and its programming and system tools. This includes CodeForge, repository analysis, test and evidence tooling, GitHub integration, plugin routing, LiveCircle and rehydration.
+
+Bind every proposed write to its owning system and purpose before creating recovery or changing a file. A shared repository, a path in its tree, a catalog entry or a historical Current entry does not grant project authority. Audio tools and application projects, including RADIO WAVE, ACE-Step and SunoCleanser, are outside this update scope. Changes to those projects require a separate project-scoped request and verified authority for that project. Preserve their existing files and historical receipts.

@@ -5,6 +5,8 @@ const { readFileSync } = require('node:fs');
 const { join } = require('node:path');
 const { test } = require('node:test');
 const { runInNewContext } = require('node:vm');
+const path = require('node:path');
+const { pathToFileURL } = require('node:url');
 
 const app = readFileSync(join(__dirname, '../src/app.js'), 'utf8');
 const code = (start, end) => {
@@ -13,6 +15,45 @@ const code = (start, end) => {
   assert.ok(first >= 0 && last > first);
   return app.slice(first, last);
 };
+
+test('local media revisions stay stable for queue edits and reject stale track requests', async () => {
+  const main = readFileSync(join(__dirname, '../main.js'), 'utf8');
+  const section = (start, end) => {
+    const first = main.indexOf(start), last = main.indexOf(end, first);
+    assert.ok(first >= 0 && last > first);
+    return main.slice(first, last);
+  };
+  const routes = {}, fetched = [];
+  let handler;
+  const context = {
+    path, URL, Response, pathToFileURL, selectedLocalAudioPath: '',
+    localAudioQueue: [], localAudioQueueIndex: -1, localAudioRevision: 0,
+    validLocalAudioPath: value => value, persistLocalQueue() {}, runtimeEvent() {}, broadcastSourceState() {},
+    registerIpc: (name, _role, fn) => { routes[name] = fn; },
+    protocol: { handle: (_scheme, fn) => { handler = fn; } },
+    net: { fetch: async url => { fetched.push(url); return new Response(url); } }
+  };
+  runInNewContext(section('function localQueuePublicState()', 'function trustedLocalFile(')
+    + section("registerIpc('local:queue-remove'", "registerIpc('local:queue-clear'")
+    + section("  protocol.handle('swmedia'", '  const displayChanged='), context);
+  const first = context.addLocalQueuePaths(['C:\\synthetic\\first.mp3']);
+  const request = url => ({ url, headers: new Headers({ range: 'bytes=0-9' }) });
+  assert.equal((await handler(request(first.mediaUrl))).status, 200);
+  const added = context.addLocalQueuePaths(['C:\\synthetic\\second.mp3']);
+  assert.equal(added.mediaUrl, first.mediaUrl);
+  assert.equal((await handler(request(first.mediaUrl))).status, 200);
+  await routes['local:queue-remove']({}, 1);
+  assert.equal(context.localQueuePublicState().mediaUrl, first.mediaUrl);
+  context.addLocalQueuePaths(['C:\\synthetic\\second.mp3']);
+  const second = context.activateLocalQueueIndex(1);
+  assert.notEqual(second.mediaUrl, first.mediaUrl);
+  assert.equal((await handler(request(first.mediaUrl))).status, 404);
+  assert.equal((await handler(request(second.mediaUrl))).status, 200);
+  assert.match(fetched.at(-1), /second\.mp3$/);
+  assert.equal((await handler(request(second.mediaUrl + '&v=1'))).status, 404);
+  await routes['local:queue-remove']({}, 1);
+  assert.equal((await handler(request(second.mediaUrl))).status, 404);
+});
 
 function player({ local = true } = {}) {
   const audio = new EventTarget();
@@ -61,6 +102,26 @@ function player({ local = true } = {}) {
   return { audio, context, waiting, get playCalls() { return playCalls; },
     get paused() { return paused; }, get playing() { return playing; }, timeout: () => timeout() };
 }
+
+test('queue track and removal buttons have IDs for detached overlay forwarding', () => {
+  const created = [];
+  const element = () => ({
+    dataset: {}, children: [], classList: { add() {}, remove() {} },
+    append(...items) { this.children.push(...items); },
+    replaceChildren() { this.children = []; },
+    appendChild(item) { this.children.push(item); }
+  });
+  const list = element();
+  const context = {
+    localQueueSnapshot: {}, localQueueList: list, localQueueState: {}, labelAudioFile: {},
+    audioMeta: element(), enableLocalPlayer() {},
+    document: { createElement: () => { const result = element(); created.push(result); return result; } }
+  };
+  runInNewContext(code('function renderLocalQueue(', 'function fadeAudioTo('), context);
+  context.renderLocalQueue({ count: 1, index: 0, current: 'Track', items: [{ index: 0, name: 'Track', active: true }] });
+  assert.equal(list.children[0].children[0].id, 'local-queue-play-0');
+  assert.equal(list.children[0].children[1].id, 'local-queue-remove-0');
+});
 
 for (const failure of ['error', 'timeout']) {
   test('B-01: ' + failure + ' beendet den Titelstart und meldet den Grund', async () => {

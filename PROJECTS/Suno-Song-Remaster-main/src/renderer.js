@@ -1477,15 +1477,15 @@ async function measureTruePeakDb(buffer) {
  * reconstructs the analog waveform between samples — they can exceed the
  * sample-peak ceiling and cause clipping in downstream encoders/players.
  *
- * We upsample 4x, measure the true peak there, and only if it exceeds the
- * ceiling do we clip in the oversampled domain and resample back. When the
- * signal is already true-peak safe the original buffer is returned untouched,
- * so we never colour audio that doesn't need it.
+ * We upsample 4x, clip against a small safety margin, then measure the
+ * downsampled result and correct any remaining inter-sample overshoot.
+ * Already-safe signals are returned untouched.
  */
 async function truePeakClip(buffer, ceilingDb) {
   const OS = 4;
   const baseRate = buffer.sampleRate;
-  const ceilingLin = Math.pow(10, ceilingDb / 20);
+  const safeCeilingDb = ceilingDb - 0.1;
+  const ceilingLin = Math.pow(10, safeCeilingDb / 20);
 
   const up = await resampleBuffer(buffer, baseRate * OS);
 
@@ -1494,11 +1494,28 @@ async function truePeakClip(buffer, ceilingDb) {
   }
 
   // Clip inter-sample overshoots in the oversampled domain, then come back.
-  applyCeilingClip(up, ceilingDb);
+  applyCeilingClip(up, safeCeilingDb);
   const out = await resampleBuffer(up, baseRate);
 
-  // Guard against any tiny ripple introduced by the downsampling filter.
-  applyCeilingClip(out, ceilingDb);
+  // Downsampling can recreate inter-sample peaks, so measure and correct the
+  // actual output rather than relying on its sample values alone.
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const measuredPeakDb = await measureTruePeakDb(out);
+    if (measuredPeakDb <= safeCeilingDb) return out;
+
+    const correction = Math.pow(10, (safeCeilingDb - measuredPeakDb) / 20);
+    for (let ch = 0; ch < out.numberOfChannels; ch++) {
+      const channelData = out.getChannelData(ch);
+      for (let i = 0; i < channelData.length; i++) {
+        channelData[i] *= correction;
+      }
+    }
+  }
+
+  const finalPeakDb = await measureTruePeakDb(out);
+  if (finalPeakDb > ceilingDb) {
+    throw new Error(`Could not meet the ${ceilingDb} dBTP true-peak ceiling.`);
+  }
   return out;
 }
 
@@ -1943,7 +1960,7 @@ function hasAnyMeta(item) {
 }
 
 function renderMetaFileList() {
-  batchDom.metaFileList.innerHTML = '';
+  batchDom.metaFileList.replaceChildren();
 
   if (batchState.queue.length === 0) {
     batchDom.metaEmpty.classList.remove('hidden');
@@ -2086,7 +2103,7 @@ async function loadMetadataForItem(item) {
 }
 
 function renderBatchList() {
-  batchDom.list.innerHTML = '';
+  batchDom.list.replaceChildren();
   batchState.queue.forEach((item, index) => {
     const el = document.createElement('div');
     const isLoaded = state.file.path === item.path;
@@ -2276,7 +2293,6 @@ batchDom.exportBtn.addEventListener('click', async () => {
   const total = batchState.queue.length;
   let completed = 0;
   let errors = 0;
-
   // Save original player state once
   const origBuffer = state.file.buffer;
   const origLufs = state.file.lufs;
@@ -2285,6 +2301,7 @@ batchDom.exportBtn.addEventListener('click', async () => {
   for (let i = 0; i < total; i++) {
     const item = batchState.queue[i];
     item.status = 'processing';
+    item.error = '';
     renderBatchList();
     batchDom.progressText.textContent = `Processing ${i + 1}/${total}: ${item.name}`;
 
@@ -2329,10 +2346,12 @@ batchDom.exportBtn.addEventListener('click', async () => {
       await window.electronAPI.writeBatchFile(outputDir, baseName, new Uint8Array(wavBuffer));
 
       item.status = 'done';
+      item.error = '';
       completed++;
     } catch (err) {
       console.error(`Batch error for ${item.name}:`, err);
       item.status = 'error';
+      item.error = err.message;
       errors++;
     }
 

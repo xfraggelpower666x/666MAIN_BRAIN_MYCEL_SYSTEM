@@ -279,7 +279,7 @@ export function ClaudeTerminal() {
           <div className="flex gap-2">
             <button
               onClick={handleInstallClaude}
-              className="rounded-md bg-daw-accent px-4 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-daw-accent/80"
+              className="rounded-md bg-daw-accent px-4 py-1.5 text-[12px] font-medium text-zinc-900 transition-colors hover:bg-daw-accent/80"
             >
               Install
             </button>

@@ -13,6 +13,11 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
+    environmentOptions: {
+      jsdom: {
+        url: 'http://localhost/',
+      },
+    },
     globals: true,
     pool: 'forks',
     setupFiles: ['./tests/setup.ts'],

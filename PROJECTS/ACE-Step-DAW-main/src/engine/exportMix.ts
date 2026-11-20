@@ -135,6 +135,8 @@ export async function buildTrackExportClips(
           project.bpm,
           track.synthPreset ?? 'piano',
           project.totalDuration,
+          undefined,
+          track.instrument?.kind === 'soundfont' ? track.instrument : undefined,
         );
       }
 
