@@ -3,6 +3,7 @@ Existing share, manual, browser and Scriptable paths are not modified.
 """
 from __future__ import annotations
 import hashlib
+import contextlib
 import json
 import re
 import sqlite3
@@ -200,14 +201,14 @@ class ArchiveCatalog:
         self.db.commit()
     def __enter__(self):return self
     def __exit__(self,*args):self.db.close()
-    def add(self,chats:list[ArchiveConversation],source_hash:str,source_name:str)->dict[str,int]:
+    def add(self,chats:list[ArchiveConversation],source_hash:str,source_name:str,*,transactional:bool=True)->dict[str,int]:
         result={'new':0,'updated':0,'unchanged':0}
         for chat in chats:
             rev=revision_hash(chat)
             existing=self.db.execute('SELECT revision_hash FROM conversations WHERE conversation_id=?',(chat.identity,)).fetchone()
             if existing and existing[0]==rev:
                 result['unchanged']+=1;continue
-            with self.db:
+            with (self.db if transactional else contextlib.nullcontext()):
                 self.db.execute('DELETE FROM conversations WHERE conversation_id=?',(chat.identity,))
                 self.db.execute('INSERT INTO conversations VALUES(?,?,?,?,?,?,?,?)',
                     (chat.identity,chat.title,rev,source_hash,source_name,chat.updated_at,len(chat.messages),completeness(chat)['status']))
