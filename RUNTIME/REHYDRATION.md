@@ -66,3 +66,7 @@ Repository source success never implies fresh-host acceptance; host status comes
 ## Plugin capability guidance
 
 When the request calls for a cataloged capability, read the catalog and workflow paths from the Current Pointer and compare them with the runtime registry at the same pinned commit. Resolve the requested capability to its PSYLLO facet and workflow. For provider-dependent entries, verify the actual provider and its authority before execution. If the references disagree, stop the affected capability route and report the mismatch in the Rehydration Monitor. Other rehydration steps may continue. Record catalog readback and host behavior separately.
+
+## MYCEL R01 · bounded sub-rehydration stage
+
+When Whole identity, pointer, authority, state, primary runtime and continuation have been rehydrated, resolve only the requested native facet via [Sub-Rehydration](FACET_SUB_REHYDRATION.md) and [Facet Registry](FACET_RUNTIME_REGISTRY.json). Then resolve [Shared Daemon Rehydration](../DAEMON/REHYDRATION.md) with a matching native adapter and [UI contract](../UI/INTELLIGENT_UI/UI_CONTRACT.md) if a visual view is requested. Whole must remain parent; native work checkpoint outranks optional UI preferences. Missing facet/daemon/host evidence produces PARTIAL for the relevant layer, not fabricated PASS. Existing Whole rehydration, plugin sourcing, Fresh HEAD Closeout and migration gates are unchanged.
