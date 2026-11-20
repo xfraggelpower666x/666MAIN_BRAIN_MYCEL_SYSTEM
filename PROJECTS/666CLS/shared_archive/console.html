@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="de">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>666CLS · Archivsteuerung</title>
+<style>
+:root{color-scheme:dark;font:16px system-ui;color:#eee9fb;background:#14111d}
+body{max-width:64rem;margin:2rem auto;padding:0 1rem}
+h1{font-size:clamp(1.6rem,4vw,2.6rem);letter-spacing:-.03em;margin:.5rem 0}
+nav,fieldset,form,.tools{display:flex;flex-wrap:wrap;gap:.65rem;align-items:center}
+nav{border-block:1px solid #39314e;padding:.8rem 0}
+button,select,input,textarea{font:inherit;border:1px solid #68568a;border-radius:.4rem;background:#251d37;color:inherit;padding:.55rem}
+button{cursor:pointer}button[aria-pressed=true],button.primary{background:#d3b7ff;color:#231334}
+:focus-visible{outline:2px solid #bda4fa;outline-offset:3px}
+section{margin-block:1rem;padding-bottom:1rem;border-bottom:1px solid #39314e}
+label{display:grid;gap:.35rem}textarea{width:min(34rem,80vw);min-height:7rem}
+fieldset{border:0;padding:0;margin:0}
+#feedback{min-height:1.6em;color:#e7cafb}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#1e182b;padding:.7rem}
+article{border-block-start:1px solid #39314e;padding:.5rem 0}
+[hidden]{display:none!important}
+</style>
+<h1>666CLS · Archivsteuerung</h1>
+<p id="release"></p>
+<nav aria-label="Hauptmenü">
+  <button type="button" data-panel="frameworks">Frameworks</button>
+  <button type="button" data-panel="intake">Systemaufnahme</button>
+  <button type="button" data-panel="archive">Archiv</button>
+  <button type="button" data-panel="inbox">Eingang</button>
+  <a href="overview">Nachweise und Visualisierung</a>
+</nav>
+<p id="feedback" role="status" aria-live="polite"></p>
+<label>Aktives Framework <select id="framework"></select></label>
+<section id="frameworks">
+  <h2>Framework steuern</h2>
+  <p id="authority"></p>
+  <div class="tools" id="actions"></div>
+  <label id="handoff-label" hidden>Trigger für den zugehörigen Chat <input id="handoff" readonly></label>
+  <pre id="framework-result" hidden></pre>
+</section>
+<section id="intake" hidden>
+  <h2>Einzelsystem einordnen</h2>
+  <p>JSON-Dossier mit Fundstellen einfügen oder laden. Im Dossier kannst du ein registriertes Framework als Vergleichsziel angeben.</p>
+  <form id="intake-form">
+    <label>Dossier laden <input id="intake-file" type="file" accept=".json,application/json"></label>
+    <label>Systemdossier <textarea id="dossier" required maxlength="350000"></textarea></label>
+    <button class="primary">Einordnung prüfen</button>
+  </form>
+  <div id="assessment" aria-live="polite"></div>
+</section>
+<section id="archive" hidden>
+  <h2>Archiv lesen und ablegen</h2>
+  <p id="counts"></p>
+  <div class="tools"><label>Archivbereich <select id="domain"></select></label>
+  <button type="button" id="read">Einträge lesen</button></div>
+  <p id="access"></p>
+  <form id="submit" hidden>
+    <label>Titel <input name="title" required maxlength="200"></label>
+    <label>Einreichungs-ID <input name="receipt" required maxlength="48" pattern="[A-Za-z0-9][A-Za-z0-9_\-]{0,47}"></label>
+    <label>Text <textarea name="text" required maxlength="500000"></textarea></label>
+    <button class="primary">Im Eingang ablegen</button>
+  </form>
+  <label id="archive-filter" hidden>Nach Archiv-ID oder Titel filtern <input id="archive-query" type="search"></label>
+  <div id="records"></div>
+</section>
+<section id="inbox" hidden>
+  <h2>Eingang prüfen</h2>
+  <button type="button" id="refresh">Einreichungen laden</button>
+  <form id="prepare" hidden>
+    <fieldset id="pending"></fieldset>
+    <label id="version-field">Zielversion <input name="version" required placeholder="1.24.3" pattern="[0-9]+\.[0-9]+\.[0-9]+"></label>
+    <button id="save-candidate" class="primary">Auswahl als Kandidaten sichern</button>
+  </form>
+</section>
+<script>
+const get = (id) => document.getElementById(id);
+const feedback = get('feedback');
+const framework = get('framework');
+const domain = get('domain');
+let model;
+let entries = [];
+const active = () => model?.frameworks.find((item) => item.id === framework.value);
+function element(tag, text) {
+  const node = document.createElement(tag);
+  node.textContent = text;
+  return node;
+}
+function openPanel(id) {
+  document.querySelectorAll('[data-panel]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.panel === id)));
+  ['frameworks','intake','archive','inbox'].forEach((name) => get(name).hidden = name !== id);
+}
+async function request(path, body) {
+  const opts = body ? {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)} : {};
+  const response = await fetch(path, opts);
+  const payload = await response.json();
+  if (!response.ok) throw new Error(payload.error || 'Anfrage fehlgeschlagen.');
+  return payload;
+}
+function run(handler) {
+  return async (event) => {
+    event?.preventDefault();
+    feedback.textContent = '';
+    try { await handler(event); }
+    catch (error) { feedback.textContent = error.message; }
+  };
+}
+function updateDomain() {
+  const entry = active();
+  const canRead = entry?.read.includes(domain.value);
+  const canSubmit = entry?.submit.includes(domain.value);
+  get('read').disabled = !canRead;
+  get('submit').hidden = !canSubmit;
+  get('access').textContent = !domain.value ? 'Für dieses Framework ist kein Archivbereich freigegeben.'
+    : [canRead && 'Archiv lesen', canSubmit && 'In den privaten Eingang ablegen'].filter(Boolean).join(' · ');
+  entries = [];
+  get('archive-query').value = '';
+  get('archive-filter').hidden = true;
+  renderEntries();
+}
+function renderEntries() {
+  const query = get('archive-query').value.trim().toLowerCase();
+  const visible = entries.filter((row) => row.id.toLowerCase().includes(query) || row.title.toLowerCase().includes(query));
+  get('records').replaceChildren(...visible.map((row) => {
+    const node = element('details','');
+    node.append(element('summary', row.title + ' · ' + row.id),
+      element('pre', row.clean_text || row.normalized_text || row.canonical_text || row.source_text || row.source_vault_ref || ''));
+    return node;
+  }));
+  if (query && !visible.length) get('records').append(element('p', 'Keine passenden Einträge.'));
+}
+function updateFramework() {
+  const entry = active();
+  get('authority').textContent = entry ? entry.authority + ' · ' + entry.revision : 'In frameworks.json ist kein Framework registriert.';
+  get('handoff-label').hidden = get('framework-result').hidden = true;
+  get('actions').replaceChildren(...(entry?.actions || []).map((action) => {
+    const b = element('button', action.label + (action.mode === 'chat' ? ' · Chat-Trigger' : ' · lokal'));
+    b.type = 'button';
+    b.onclick = run(async () => {
+      b.disabled = true;
+      let result;
+      try {
+        result = await request('action', {command:'framework',framework:entry.id,action:action.id});
+      } finally {
+        b.disabled = false;
+      }
+      if (entry.id !== framework.value) return;
+      if (result.status === 'HANDOFF') {
+        get('handoff').value = result.trigger;
+        get('handoff-label').hidden = false;
+        get('handoff').select();
+        feedback.textContent = 'Trigger für den Framework-Chat ist ausgewählt.';
+      } else {
+        get('framework-result').textContent = [result.status, result.output, result.error].filter(Boolean).join('\n');
+        get('framework-result').hidden = false;
+      }
+    });
+    return b;
+  }));
+  const scopes = new Set([...(entry?.read || []), ...(entry?.submit || [])]);
+  domain.replaceChildren(...Array.from(scopes, (name) => Object.assign(element('option', name), {value:name})));
+  updateDomain();
+}
+document.querySelectorAll('[data-panel]').forEach((b) => b.onclick = () => openPanel(b.dataset.panel));
+framework.onchange = updateFramework;
+get('intake-file').onchange = run(async (event) => {
+  const file = event.currentTarget.files[0];
+  if (!file) return;
+  if (file.size > 350000) throw new Error('Dossier ist zu groß.');
+  get('dossier').value = await file.text();
+});
+get('intake-form').onsubmit = run(async () => {
+  const dossier = JSON.parse(get('dossier').value);
+  const result = await request('action', {command:'analyze', dossier});
+  const block = get('assessment');
+  const findings = result.evidence.map((e) => element('li', e.label + ' · ' + (e.value ? 'ja' : 'nein') + ' · ' + e.source));
+  const gaps = result.gaps.map((gap) => element('li', gap));
+  block.replaceChildren(element('h3', result.decision.replaceAll('_',' ')),element('p',result.reason));
+  for (const [label, items] of [['Belege aus dem Dossier', findings], ['Offene Nachweise', gaps]]) {
+    if (!items.length) continue;
+    const list = element('ul','');
+    list.append(...items);
+    block.append(element('h4',label),list);
+  }
+});
+domain.onchange = updateDomain;
+get('archive-query').oninput = renderEntries;
+get('read').onclick = run(async () => {
+  const requested = {command:'read', framework:framework.value,domain:domain.value};
+  const reply = await request('action', requested);
+  if (requested.framework !== framework.value || requested.domain !== domain.value) return;
+  entries = reply.records;
+  get('archive-filter').hidden = !entries.length;
+  renderEntries();
+  feedback.textContent = reply.records.length + ' Einträge · v' + reply.version;
+});
+get('submit').onsubmit = run(async (event) => {
+  const form = event.currentTarget;
+  const reply = await request('action', {command:'submit',framework:framework.value,domain:domain.value,...Object.fromEntries(new FormData(form))});
+  feedback.textContent = reply.status === 'HOLD'
+    ? 'Quittung ' + reply.receipt + ' · HOLD · privat prüfen.'
+    : 'Quittung ' + reply.receipt;
+});
+get('refresh').onclick = run(async () => {
+  const reply = await request('action',{command:'pending'});
+  get('pending').replaceChildren(...reply.entries.map((item) => {
+    if (item.status === 'HOLD') {
+      return element('article', item.domain + ' · ' + item.receipt + ' · HOLD / SOURCE_VAULT_ONLY');
+    }
+    const box = Object.assign(element('input',''),{type:'checkbox',name:'receipt',value:item.receipt});
+    const label = element('label', item.domain + ' · ' + item.receipt + ' · ' + item.record.title);
+    label.prepend(box);
+    const details = element('details','');
+    details.append(element('summary','Einreichung lesen'),element('pre',item.record.source_text || item.record.canonical_text || item.record.clean_text || item.record.normalized_text || ''));
+    const row = element('article','');
+    row.append(label,details);
+    return row;
+  }));
+  get('prepare').hidden = !reply.entries.length;
+  const selectable = reply.entries.some((item) => item.status !== 'HOLD');
+  get('version-field').hidden = get('save-candidate').hidden = !selectable;
+  feedback.textContent = reply.entries.length + ' offene Einreichungen.';
+});
+get('prepare').onsubmit = run(async (event) => {
+  const form = new FormData(event.currentTarget);
+  const reply = await request('action',{command:'prepare',version:form.get('version'),receipts:form.getAll('receipt')});
+  feedback.textContent = 'Kandidat ' + reply.file + ' privat gesichert. Basis v' + reply.base_version + '.';
+});
+run(async () => {
+  model = await request('model');
+  get('release').textContent = 'Archivstand v' + model.archive_version;
+  get('counts').textContent = Object.entries(model.counts).map(([name,count]) => name + ' ' + count).join(' · ');
+  framework.replaceChildren(...model.frameworks.map((item) => Object.assign(element('option',item.name),{value:item.id})));
+  openPanel('frameworks');
+  updateFramework();
+})();
+</script>
+</html>

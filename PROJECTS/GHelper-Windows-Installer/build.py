@@ -177,7 +177,9 @@ def build_payload_manifest(payload: Path, manifest: Path) -> None:
         copy_lines.append(f'  SetOutPath "$INSTDIR{target}"')
         for path in files:
             if path.parent == directory:
-                copy_lines.append(f'  File "payload/{path.as_posix()}"')
+                # MakeNSIS zerlegt File-Pfade anhand des Separators seines Buildhosts.
+                source = os.path.join("payload", *path.parts)
+                copy_lines.append(f'  File "{source}"')
     delete_lines = [
         '  Delete /REBOOTOK "$INSTDIR\\' + "\\".join(path.parts) + '"' for path in files
     ]

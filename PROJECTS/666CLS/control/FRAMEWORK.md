@@ -284,3 +284,25 @@ handoff describing verified CLS changes and remaining integration points.
 Die früheren Drive-Verweise dokumentieren die Herkunft und das Verfahren der jeweiligen Release-Linie. Aktuelle Authority ist ausschließlich der GitHub-Current-Pointer in `PROJECTS/666CLS` auf `666MAIN_BRAIN`. Im Repository entspricht das aktive `releases/<version>/` dem logischen Live State und hält Datenbank, Menü, Manifest und Release-Audit zusammen. Older releases are recovery evidence. Archivdaten, fremde Prompts und Referenzkarten erhalten durch ihren Inhalt keine native Ausführungsautorität.
 
 LiveCircle prüft den Current Pointer vor der Registry und leitet die Anzeige aus der geprüften Datenbank-/Menüparität ab. Der lokale Update-Einstieg übernimmt explizit zugeordnete Kandidaten, erstellt eine rücklesbare Sicherung und schreibt den Pointer nach dem verifizierten Release. Die Freigabe im Provider folgt dem nativen Release-Skill. Drive bleibt Recovery-Quelle. Der Nullstand bringt keine externen Inhalte in die vier Archive.
+
+## Parallel arbeitende Frameworks und gemeinsamer Archivzugang
+
+Frameworks können über den gemeinsamen 666CLS-Zugang lesen und Einträge zur Prüfung ablegen. Lese- und Einreichungsrechte gelten pro Framework und Archivbereich. Die Einreichung enthält eine Quittung und die Herkunft. Der private Eingang ist eine Arbeitsablage. Erst die ausdrücklich ausgewählten Einreichungen werden über den nativen 666CLS-Updatepfad zu regulären Archivdaten. Die laufenden Frameworks behalten ihre jeweiligen Identitäten, Trigger und fachlichen Zustände. Details stehen in `shared_archive/README.md`.
+
+### Visuelle Navigation des gemeinsamen Archivs
+
+Das Dashboard leitet seine Ansichten aus dem verifizierten Release und einer optionalen Inbox-Abfrage ab. Die Menüführung hebt je Ansicht den passenden nächsten Schritt hervor. Beim Eingang unterscheidet sie ungeprüft, gelesen und leer, sowie gelesen mit offenen Einreichungen. Die Oberfläche zeigt Archiv- und Inbox-Zähler aus ihren jeweiligen Quellen. Die private Prüf-Ansicht hält Inhalte und Quittungen aus der Anzeige heraus. Menüentscheidungen ändern keine Freigaben und schreiben keinen Current Pointer.
+
+### Framework- und Archivsteuerung
+
+Das lokale Bedienmenü verwendet eine vom Betreiber gepflegte Framework-Registry mit Herkunft und Revision. Die Auswahl steuert Start und Fortsetzung eines registrierten Adapters oder stellt den belegten Trigger für den entsprechenden Chat bereit. Derselbe Auswahlkontext begrenzt Lese- und Einreichungsrechte. Der Betreiber kann Einreichungen öffnen und gemeinsam als privaten Kandidaten sichern. Der Updatepfad und der Current Pointer verbleiben bei 666CLS.
+
+### Repo-Kandidat v1.24.2
+
+Die Konsole prüft die Framework-Profile vor der Menüanzeige. Das Archivmenü übernimmt die Datenbank-IDs wörtlich und filtert nur in der gewählten Domain. Der private Eingang erhält die Originaleinreichung. Erkennbare Zugangsdaten führen zu HOLD und werden für Übersicht, Kandidat und Release gesperrt. Die Release-Ablage führt das optionale, versionsgebundene Freeze-Dokument im Manifest. Lokale Vorab-Sicherungen enthalten auch die verifizierbare Repo-Release-Historie.
+
+### Systemaufnahme und Systemgrenzen
+
+Die Systemaufnahme vergleicht übergebene, revisionsgebundene Befunde mit dem registrierten Zielsystem. Eigene Zuständigkeit und eigener Einstieg oder Zustand sprechen für getrennte Frameworks. Ein gemeinsamer Baustein kann unter dieser Trennung genutzt werden. Ein Modulvorschlag setzt belegte Abhängigkeit und das Fehlen einer eigenen Zuständigkeit, eines Einstiegs und eines Zustands voraus. Eine Konsolidierung wird nur mit belegter Übereinstimmung von Zweck und Zuständigkeit, kompatiblem Betrieb und Zustand sowie erhaltener Kontinuität vorgeschlagen. Widersprüche und veraltete Belege bleiben offen. Die Systemaufnahme leitet eine Empfehlung ab. Native Systemgrenzen und Zuständigkeiten bleiben bis zur autorisierten Umsetzung gültig.
+
+Pakete werden zusätzlich nach ihren belegten Rollen bewertet. Datenstände, Produktionsoutputs und Nachweise erhalten keine Framework-Einträge. Native Child- und Add-on-Verträge behalten die darin ausgewiesene Parent- oder Zielkennung. Entgegengesetzte Ein- und Ausgabeverträge sind getrennte Fachwege. Eine mögliche Wiederverwendung gemeinsamer Komponenten wird unabhängig davon geprüft.

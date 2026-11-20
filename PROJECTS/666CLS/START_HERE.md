@@ -25,6 +25,10 @@ python -m unittest discover -s tests
 
 Die erzeugte HTML-Datei lokal im Browser öffnen. Für einen revisionsgebundenen UI-Handoff `--checkpoint ../ui-handoff.json` mitgeben.
 
+Für die gemeinsame Bedienung `python runtime/archive_console.py --private-dir <privater-ordner> --operator <prüfprofil>` verwenden. Die [Einrichtung des gemeinsamen Archivs](shared_archive/README.md) beschreibt den privaten Host, die Profilrechte, registrierte Framework-Aktionen und die Übernahme aus der Inbox.
+
+Die statisch erzeugte HTML-Ansicht lässt sich als Datei öffnen. Die interaktive Bedienkonsole benötigt den laufenden lokalen Python-Dienst.
+
 ## Update einer lokalen Arbeitskopie
 
 `python runtime/cls_livecircle.py "666CLS UPDATE" --candidate ../candidate.json --backup-dir ../666cls-backups`
@@ -34,8 +38,8 @@ Der Kandidat enthält einen vollständigen Stand aus bereits redaktionell geprü
 ```json
 {
   "system_id": "666CLS-CORE-001",
-  "base_version": "1.24.1",
-  "version": "1.24.2",
+  "base_version": "1.24.2",
+  "version": "1.24.3",
   "records": {"LYRICS": [], "RAW_MATERIAL": [], "STORIES": [], "TEXT": []}
 }
 ```
