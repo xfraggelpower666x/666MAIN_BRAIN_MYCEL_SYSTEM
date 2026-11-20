@@ -5,6 +5,9 @@ on:
       - feature/chatbackup-archive-intelligence-r5-20261120
     paths:
       - .github/workflows/chatbackup-r52-validation.yml
+      - 'PROJECTS/ChatBackup PC Tool/app/archive_extensions.py'
+      - 'PROJECTS/ChatBackup PC Tool/app/archive_streaming.py'
+      - 'PROJECTS/ChatBackup PC Tool/tests/test_archive_streaming.py'
   workflow_dispatch:
 permissions:
   contents: read
