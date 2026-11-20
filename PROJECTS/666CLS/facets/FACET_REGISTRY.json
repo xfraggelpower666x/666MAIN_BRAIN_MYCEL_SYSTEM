@@ -18,9 +18,24 @@
       "member_count": 17,
       "member_sha256": "9c166e70e4a3b120e2c050ca99d6cda8312099116c54692c1185aab33682d99d",
       "source_status": "LOCAL_ARCHIVE_VERIFIED_NOT_REMOTE_CURRENT",
-      "open_gate": "NO_FOREIGN_AUTOACTIVATION",
+      "open_gate": "PFS_FUNCTIONAL_PAYLOAD_AND_NATIVE_READBACK_PENDING",
       "livecircle": "facets/cures/LIVECIRCLE.json",
-      "ui": "facets/cures/UI.json"
+      "ui": "facets/cures/UI.json",
+      "native_authority_readback": {
+        "repository": "xfraggelpower666x/666PFS_CSM",
+        "branch": "main",
+        "head": "199c24a1ad3b9a0baa218f2b97cd847dbbd0448c",
+        "entry": "children/CURES-16001",
+        "system_identity_blob": "3f6c38fbff54709e511bace3a0962c03853d53cb",
+        "rehydration_blob": "ff5c4364a6fdb59966c3e7865bf3893b302a38c0",
+        "pfs_state": "HOLD_FUNCTIONAL_PAYLOAD_SOURCE_NOT_FOUND",
+        "runtime_payload_state": "NOT_VERIFIED_IN_PFS_REPO",
+        "local_freeze": "FROZEN_LOCAL_RELEASE_V0.2.0",
+        "local_release_publication": "NOT_PUBLISHED_TO_666PFS_LIVE_AUTHORITY",
+        "reconciliation": "PFS_OWNER_REVIEW_REQUIRED",
+        "readback_scope": "PFS_METADATA_ONLY",
+        "no_owner_promotion": true
+      }
     },
     {
       "id": "lyrics-fulltext",
