@@ -92,3 +92,20 @@ Privates MAIN-BRAIN-Release `0.2.8` / `pluginrel_6afdcf591fb88191aaad24a6e8cef7b
 - Fresh Chat: offen. Zu prüfen sind Coding WEITER und NEXT CHAT im gebundenen Projekt, ein fehlendes oder falsches Laufartefakt, die Workbench-Navigation und der UI-Handoff nach Projekt- und Revisionsbindung.
 - Persistenz einer UI-Präferenz, Host-Klickpfade und Plugin-Ausführung benötigen einen eigenen Beleg.
 - Rückkehrbasis: [Pre-change recovery](../AUDIT/PRECHANGE_PSYLLO_CODING_2026-11-18.md).
+
+## Host-Observation · 2026-11-20 · begrenzter In-Session-Nachweis
+
+SCOPE=MAIN_BRAIN_NATIVE_ROUTING_ONLY
+EVIDENCE_CLASS=IN_SESSION_PARTIAL_NOT_FRESH_CHAT_ACCEPTANCE
+SOURCE_HEAD_AT_START=b24bb8d0adf1e9472f28b058d7963712e9c59fc4
+SOURCE=GitHub Current Pointer, Current State, Runtime Registry, Trigger Contract, native Continuity and Update skills
+
+- STATUS: In-session read-only Current-/State-Ausgabe beobachtet; kein eigenständiger Fresh-Chat-Host-Beweis und keine releasegebundene End-to-End-Zuordnung.
+- WEITER: Nativer Continuity-Skill über Host-Discovery auffindbar und direkt lesbar; Continuity-, Handoff-, Lineage- und Abnahmeverträge im GitHub-Current gelesen. In-session-Rehydration partiell; kein unabhängiger Fresh-Chat-Test.
+- UPDATE: Nativer Update-Skill auffindbar und direkt lesbar, Schreib-Governance samt Pre-change-Recovery angewandt. Repository-Write-Readback wird getrennt dokumentiert; er ist kein Beweis für Fresh-Chat-Verhalten.
+- Triggerfall-Matrix: 10/10 Fälle bleiben PENDING_FRESH_CHAT_ACCEPTANCE. Keine automatische Umstufung auf HOST_VERIFIED.
+- Plugin release attribution: nicht erneut im Host validiert. Frühere releasegebundene Nachweise werden erhalten, nicht auf diesen Lauf übertragen.
+- Migration: REPO_FIRST_AUTH bleibt FALSE bis Final Completion Gate; DRIVE_ROLE bleibt MIGRATION_SOURCE_RECOVERY.
+
+RECOVERY=AUDIT/PRECHANGE_MAIN_BRAIN_HOST_OBSERVATION_2026-11-20.md
+FOREIGN_SYSTEM_MUTATION=NONE
