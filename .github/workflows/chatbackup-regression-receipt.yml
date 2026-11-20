@@ -7,6 +7,7 @@ on:
       - .github/workflows/chatbackup-regression-receipt.yml
       - PROJECTS/ChatBackup PC Tool/app/**
       - PROJECTS/ChatBackup PC Tool/bootstrap/**
+      - PROJECTS/ChatBackup PC Tool/source_reference/**
       - PROJECTS/ChatBackup PC Tool/tests/**
       - PROJECTS/ChatBackup PC Tool/MANIFEST.sha256
       - PROJECTS/ChatBackup PC Tool/mobile_scriptable/source/**
