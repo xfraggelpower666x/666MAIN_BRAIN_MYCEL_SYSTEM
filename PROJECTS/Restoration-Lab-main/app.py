@@ -47,7 +47,7 @@ class App(ProcessingApp):
         initial_scale = max(.60, initial_scale)
         self.root.geometry(f'{int(WIDTH*initial_scale)}x{int(HEIGHT*initial_scale)}')
         self.root.minsize(1000, 708)
-        self.root.configure(background='#101415')
+        self.root.configure(background='#080913')
         self.renderer = Renderer()
         self.enabled = {key:True for key in BUTTONS}
         self.buttons_state = {}
@@ -75,7 +75,7 @@ class App(ProcessingApp):
         self.loop_range=None
         self.export_subtype='PCM_24'
         self.marker_drag=None
-        self.canvas = tk.Canvas(self.root, background='#101415', highlightthickness=0,
+        self.canvas = tk.Canvas(self.root, background='#080913', highlightthickness=0,
                                 borderwidth=0, takefocus=True)
         self.canvas.pack(fill='both', expand=True)
         self.canvas.bind('<Configure>', self.resized)
@@ -193,7 +193,7 @@ class App(ProcessingApp):
         window=tk.Toplevel(self.root)
         window.title('Restoration Lab — profile details')
         window.geometry('680x480')
-        output=tk.Text(window,background='#101617',foreground='#edf1ef',
+        output=tk.Text(window,background='#12132a',foreground='#f3efff',
                        insertbackground=TEAL,font=('Menlo',11),wrap='word',padx=18,pady=18)
         output.pack(fill='both',expand=True)
         output.insert('1.0',json.dumps(self.restoration.report,indent=2))

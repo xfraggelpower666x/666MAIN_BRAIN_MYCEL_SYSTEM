@@ -127,6 +127,23 @@ def test_invalid_params_rejected(kwargs) -> None:
         ProcessingParams(**kwargs)
 
 
+@pytest.mark.parametrize(
+    "field",
+    [
+        "quiet_fraction",
+        "bass_cut_hz",
+        "oversubtraction",
+        "freq_smooth_sigma",
+        "time_smooth_sigma",
+        "reconstruction_threshold_db",
+    ],
+)
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf")])
+def test_non_finite_float_params_rejected(field: str, value: float) -> None:
+    with pytest.raises(InvalidInputError, match=field):
+        ProcessingParams(**{field: value})
+
+
 def test_clipping_is_reported(tmp_path: Path) -> None:
     loud = np.clip(_noisy_stereo() * 8, -1.0, 1.0)
     src = _write(tmp_path / "loud.wav", loud)
@@ -149,12 +166,22 @@ def test_cli_exit_codes(tmp_path: Path, capsys) -> None:
 
 def test_cli_batch(tmp_path: Path) -> None:
     a = _write(tmp_path / "a.wav", _noisy_stereo())
-    b = _write(tmp_path / "b.wav", _noisy_stereo())
+    b = Path(__file__).parent / "fixtures" / "tone.mp3"
     out = tmp_path / "out"
     assert cli_main([str(a), str(b), "--out-dir", str(out), "--quiet"]) == 0
     assert (out / "a - Phase Cancelled Clean.wav").is_file()
-    assert (out / "b - Removed Noise.wav").is_file()
+    assert (out / "tone - Removed Noise.wav").is_file()
+    assert sf.info(out / "tone - Removed Noise.wav").format == "WAV"
+    assert json.loads((out / "tone.report.json").read_text())["input"] == "tone.mp3"
     # one bad file must not stop the others, and the exit code must signal the failure
     bad = _write(tmp_path / "bad.wav", np.zeros((10, 2)))
     assert cli_main([str(bad), str(a), "--out-dir", str(out), "--quiet"]) == 5
     assert cli_main([str(a), str(b), "--title", "X"]) == 5
+
+
+@pytest.mark.parametrize("threshold", ["nan", "inf", "-inf"])
+def test_cli_rejects_non_finite_threshold_before_writing(tmp_path: Path, threshold: str) -> None:
+    source = _write(tmp_path / "input.wav", _noisy_stereo())
+    output = tmp_path / "out"
+    assert cli_main([str(source), "--out-dir", str(output), f"--threshold-db={threshold}"]) == 5
+    assert not output.exists()

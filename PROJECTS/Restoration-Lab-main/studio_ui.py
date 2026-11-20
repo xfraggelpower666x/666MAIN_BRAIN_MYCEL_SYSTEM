@@ -17,7 +17,7 @@ from mastering_tools import validate
 
 W,H=1440,800
 TABS=('EQ','COMPRESSOR','STEREO & LOUDNESS')
-COLORS=(TEAL,GOLD,'#61b7ed','#dc916c')
+COLORS=(TEAL,GOLD,'#a476ff','#ff7be2')
 TYPES={'highpass':'High Pass','low_shelf':'Low Shelf','bell':'Bell','high_shelf':'High Shelf','lowpass':'Low Pass'}
 BANDS=('low','lowmid','mid','high')
 
@@ -36,14 +36,14 @@ class Hit:
 @lru_cache(maxsize=1)
 def background():
     im=metal((W,H),True).convert('RGBA');d=ImageDraw.Draw(im)
-    d.rounded_rectangle((3,3,W-4,H-4),radius=14,outline='#637173')
+    d.rounded_rectangle((3,3,W-4,H-4),radius=14,outline='#61527f')
     return im
 
 @lru_cache(maxsize=24)
 def button_art(w,h,active,tint):
     im=Image.new('RGBA',(w,h));d=ImageDraw.Draw(im)
-    d.rounded_rectangle((0,0,w-1,h-1),radius=3,fill='#050707',outline='#536163')
-    if active:d.rounded_rectangle((3,3,w-4,h-4),radius=2,fill='#123330' if tint==TEAL else '#352a15',outline=tint,width=2)
+    d.rounded_rectangle((0,0,w-1,h-1),radius=3,fill='#080913',outline='#61527f')
+    if active:d.rounded_rectangle((3,3,w-4,h-4),radius=2,fill='#191d38' if tint==TEAL else '#382044',outline=tint,width=2)
     else:
         im.paste(metal((w-10,h-10)),(5,5));d.line((5,5,w-6,5),fill='#f1f4f2');d.line((5,h-6,w-6,h-6),fill='#6e7476')
     return im
@@ -52,17 +52,17 @@ class StudioRenderer:
     """One complete, deterministic design surface; hit map shares its geometry."""
     def __init__(self):self.hits={};self.nodes=[];self.focus=None
     def box(self,rect):
-        self.d.rounded_rectangle(rect,radius=7,fill='#11191a',outline='#3d5557')
+        self.d.rounded_rectangle(rect,radius=7,fill='#12132a',outline='#4f456e')
     def button(self,key,rect,label,active=False,tint=TEAL,kind='button',target=None):
         x,y,w,h=rect;self.im.alpha_composite(button_art(w,h,active,tint),(x,y))
-        color=WHITE if active else '#142021'
+        color=WHITE if active else '#191d38'
         if label=='play':self.d.polygon(((x+w*.39,y+h*.26),(x+w*.67,y+h*.5),(x+w*.39,y+h*.74)),fill=color)
         elif label=='stop':self.d.rectangle((x+w*.35,y+h*.28,x+w*.65,y+h*.72),fill=color)
         else:text(self.d,(x+w/2,y+h/2),label,11 if h>=32 else 10,fill=color,anchor='mm',bold=True)
         self.hits[key]=Hit(rect,kind,target or key,label=label)
         if self.focus==key:self.d.rectangle((x+1,y+1,x+w-2,y+h-2),outline=TEAL)
     def select(self,key,rect,label,target):
-        x,y,w,h=rect;self.d.rounded_rectangle((x,y,x+w,y+h),radius=2,fill='#0a1213',outline='#546769')
+        x,y,w,h=rect;self.d.rounded_rectangle((x,y,x+w,y+h),radius=2,fill='#191d38',outline='#61527f')
         text(self.d,(x+10,y+h/2),label,12,anchor='lm');self.d.polygon(((x+w-19,y+h/2-3),(x+w-9,y+h/2-3),(x+w-14,y+h/2+3)),fill=MUTED)
         self.hits[key]=Hit(rect,'menu',target,label=label)
         if self.focus==key:self.d.rectangle((x,y,x+w,y+h),outline=TEAL)
@@ -73,11 +73,11 @@ class StudioRenderer:
         for i in range(31):
             a=math.radians(135+i*9);ra=r+5;rb=r+8+(i%5==0)*2
             self.d.line((cx+ra*math.cos(a),cy+ra*math.sin(a),cx+rb*math.cos(a),cy+rb*math.sin(a)),fill='#8f9fa1')
-        self.d.ellipse((cx-r-3,cy-r-3,cx+r+3,cy+r+3),fill='#060a0a',outline='#8b9698',width=2)
+        self.d.ellipse((cx-r-3,cy-r-3,cx+r+3,cy+r+3),fill='#080913',outline='#8b9698',width=2)
         disc=Renderer.disc(round(r*2));self.im.alpha_composite(disc,(round(cx-r),round(cy-r)))
-        a=math.radians(135+270*fraction);self.d.line((cx+r*.32*math.cos(a),cy+r*.32*math.sin(a),cx+r*.88*math.cos(a),cy+r*.88*math.sin(a)),fill='#141a1b',width=3)
+        a=math.radians(135+270*fraction);self.d.line((cx+r*.32*math.cos(a),cy+r*.32*math.sin(a),cx+r*.88*math.cos(a),cy+r*.88*math.sin(a)),fill='#191d38',width=3)
         readout=(x+5,y+(74 if compact else 103),x+w-5,y+(90 if compact else 123))
-        self.d.rectangle(readout,fill='#060c0d',outline=TEAL if self.focus==key else '#415456')
+        self.d.rectangle(readout,fill='#080913',outline=TEAL if self.focus==key else '#4f456e')
         if units=='Hz':display=f'{value/1000:.2f} kHz' if value>=1000 else f'{value:.0f} Hz'
         elif units=='%':display=f'{value*100:.0f}%'
         elif units==':1':display=f'{value:.1f}:1'
@@ -88,13 +88,13 @@ class StudioRenderer:
         self.hits[key]=Hit(rect,'knob',key,lo,hi,default,step,log,label)
     def grid(self,rect,sr,db_range=18):
         x,y,w,h=rect;self.plot=rect;self.maxfreq=min(20000,sr*.45)
-        self.d.rectangle((x,y,x+w,y+h),fill=BLACK,outline='#385052')
+        self.d.rectangle((x,y,x+w,y+h),fill=BLACK,outline='#4f456e')
         for f in (20,30,50,100,200,300,500,1000,2000,3000,5000,10000,20000):
             if f>self.maxfreq:continue
-            xx=self.fx(f);self.d.line((xx,y,xx,y+h),fill='#243d3e')
+            xx=self.fx(f);self.d.line((xx,y,xx,y+h),fill='#30264f')
             if f in (20,100,1000,10000,20000):text(self.d,(xx,y+h+10),f'{f//1000}k' if f>=1000 else str(f),10,fill=MUTED,anchor='mm')
         for gain in (-12,-6,0,6,12):
-            yy=y+h/2-gain*h/(2*db_range);self.d.line((x,yy,x+w,yy),fill='#385052' if gain==0 else '#203536')
+            yy=y+h/2-gain*h/(2*db_range);self.d.line((x,yy,x+w,yy),fill='#4f456e' if gain==0 else '#282246')
             text(self.d,(x-7,yy),f'{gain:+}',10,fill=MUTED,anchor='rm')
     def fx(self,f):return self.plot[0]+self.plot[2]*np.log(np.clip(f,20,self.maxfreq)/20)/np.log(self.maxfreq/20)
     def spectrum(self,audio,sr):
@@ -103,12 +103,12 @@ class StudioRenderer:
         f=np.fft.rfftfreq(n,1/sr);valid=(f>=20)&(f<=self.maxfreq);f=f[valid];m=m[valid]
         if not len(f):return
         x,y,w,h=self.plot;db=20*np.log10(np.maximum(m,1e-9));points=[(self.fx(a),y+h-np.clip((b+90)/90,0,1)*h*.8) for a,b in zip(f,db)]
-        if len(points)>1:self.d.polygon([(x,y+h)]+points+[(x+w,y+h)],fill='#283333');self.d.line(points,fill='#5a6465',width=1)
+        if len(points)>1:self.d.polygon([(x,y+h)]+points+[(x+w,y+h)],fill='#24203f');self.d.line(points,fill='#7c72a0',width=1)
     def bar(self,x,y,w,h,value,color=TEAL,maximum=60):
-        self.d.rectangle((x,y,x+w,y+h),fill='#030708',outline='#3a5052')
+        self.d.rectangle((x,y,x+w,y+h),fill='#080913',outline='#4f456e')
         for i in range(34):
             yy=y+h-6-i*(h-10)/34;on=i/34<np.clip(value/maximum,0,1)
-            self.d.rectangle((x+4,yy-3,x+w-4,yy),fill=color if on else '#152929')
+            self.d.rectangle((x+4,yy-3,x+w-4,yy),fill=color if on else '#24203f')
     def meters(self,state):
         x=1264;text(self.d,(1313,124),'OUTPUT',11,anchor='mm',bold=True);text(self.d,(1390,124),'GR',11,anchor='mm',bold=True)
         audio=state.get('audio');peaks=np.max(abs(audio),axis=0) if audio is not None and len(audio) else np.zeros(2)
@@ -197,17 +197,17 @@ class StudioRenderer:
     def stereo(self,c,state):
         self.box((37,148,625,697));self.box((643,148,1231,697))
         text(self.d,(59,176),'S T E R E O  I M A G E',18,bold=True);text(self.d,(665,176),'L O U D N E S S  &  L I M I T I N G',16,bold=True)
-        self.d.rectangle((60,211,380,526),fill=BLACK,outline='#3d5557')
+        self.d.rectangle((60,211,380,526),fill=BLACK,outline='#4f456e')
         cx,cy,r=220,369,137
-        for rr in (r,r*.5):self.d.ellipse((cx-rr,cy-rr,cx+rr,cy+rr),outline='#315153')
-        for a in (0,np.pi/4,np.pi/2,np.pi*3/4):self.d.line((cx-r*np.cos(a),cy-r*np.sin(a),cx+r*np.cos(a),cy+r*np.sin(a)),fill='#203d3e')
+        for rr in (r,r*.5):self.d.ellipse((cx-rr,cy-rr,cx+rr,cy+rr),outline='#4f456e')
+        for a in (0,np.pi/4,np.pi/2,np.pi*3/4):self.d.line((cx-r*np.cos(a),cy-r*np.sin(a),cx+r*np.cos(a),cy+r*np.sin(a)),fill='#30264f')
         text(self.d,(cx,cy-r-5),'M',12,anchor='mm');text(self.d,(cx-r-6,cy),'L',12,anchor='mm');text(self.d,(cx+r+6,cy),'R',12,anchor='mm');text(self.d,(cx,cy+r+7),'S',12,anchor='mm')
         audio=self.audio
         if audio is not None and len(audio):
             l=audio[:,0];rr=audio[:,min(1,audio.shape[1]-1)];mid=(l+rr)*.5;side=(l-rr)*.5
             scale=max(float(np.max(abs(mid))),float(np.max(abs(side))),.05)
             for m,s in zip(mid[::3],side[::3]):
-                xx=cx+s/scale*r*.88;yy=cy-m/scale*r*.88;self.d.ellipse((xx,yy,xx+1,yy+1),fill='#309f99')
+                xx=cx+s/scale*r*.88;yy=cy-m/scale*r*.88;self.d.ellipse((xx,yy,xx+1,yy+1),fill='#a476ff')
         self.knob('stereo_width',(407,214,180,130),'WIDTH',c.stereo_width,0,2,1,.01,'%',False)
         self.knob('bass_protect_hz',(407,382,180,130),'BASS PROTECT',c.bass_protect_hz,40,400,120,5,'Hz',True)
         self.button('width_enabled',(413,539,179,30),'WIDTH ON' if c.stereo_enabled else 'WIDTH BYPASS',c.stereo_enabled,target='stereo_enabled')
@@ -218,7 +218,7 @@ class StudioRenderer:
         for value,x in ((-1,60),(0,220),(1,380)):text(self.d,(x,612),f'{value:+}',10,anchor='mm',fill=MUTED)
         self.button('bass_protect',(60,647,253,31),'BASS PROTECT ON' if c.bass_protect else 'BASS PROTECT OFF',c.bass_protect,target='bass_protect')
         self.button('mono_audition',(328,647,273,31),'MONO AUDITION',c.mono_audition,target='mono_audition')
-        self.d.rectangle((664,211,1209,349),fill=BLACK,outline='#3d5557')
+        self.d.rectangle((664,211,1209,349),fill=BLACK,outline='#4f456e')
         meters=state.get('meters',{});report=state.get('export',{})
         for i,(label,value,units) in enumerate((('INTEGRATED',meters.get('integrated_lufs'),'LUFS'),('SHORT TERM',meters.get('short_term_lufs'),'LUFS'),('TRUE PEAK',report.get('true_peak_dbtp'),'dBTP · LAST EXPORT'))):
             x=675+i*177;text(self.d,(x+80,231),label,11,anchor='mm',bold=True)
@@ -236,9 +236,9 @@ ControlsDefaults=Controls()
 class MasteringStudio:
     def __init__(self,app):
         self.app=app;self.tab=0;self.renderer=StudioRenderer();self.drag=None;self.focus=None;self.job=None;self.photo=None;self.size=None
-        self.window=tk.Toplevel(app.root);self.window.title('Restoration Lab 3.0 · Mastering Studio');self.window.geometry('1200x667');self.window.minsize(1008,560);self.window.configure(background='#111718')
+        self.window=tk.Toplevel(app.root);self.window.title('Restoration Lab 3.0 · Mastering Studio');self.window.geometry('1200x667');self.window.minsize(1008,560);self.window.configure(background='#080913')
         app.mastering_window=self.window
-        self.canvas=tk.Canvas(self.window,background='#101617',highlightthickness=0,takefocus=True);self.canvas.pack(fill='both',expand=True)
+        self.canvas=tk.Canvas(self.window,background='#080913',highlightthickness=0,takefocus=True);self.canvas.pack(fill='both',expand=True)
         self.canvas.bind('<Configure>',lambda event:self.paint())
         self.canvas.bind('<Button-1>',self.down);self.canvas.bind('<B1-Motion>',self.motion);self.canvas.bind('<ButtonRelease-1>',lambda e:setattr(self,'drag',None))
         self.canvas.bind('<Double-Button-1>',self.edit);self.canvas.bind('<Button-3>',self.reset)
@@ -360,7 +360,7 @@ class MasteringStudio:
             value=hit.low if event.keysym=='Home' else hit.high if event.keysym=='End' else self.variable(hit.target).get()+hit.step*(-1 if event.keysym in ('Left','Down') else 1)
             self.set_value(hit.target,value,hit);return 'break'
     def menu(self,hit,event):
-        menu=tk.Menu(self.window,tearoff=False,bg='#142022',fg=WHITE,activebackground='#20514c',activeforeground=WHITE)
+        menu=tk.Menu(self.window,tearoff=False,bg='#12132a',fg=WHITE,activebackground='#302050',activeforeground=WHITE)
         if hit.target=='preset':
             from reference_engine import PRESETS
             choices={k:k for k in PRESETS}

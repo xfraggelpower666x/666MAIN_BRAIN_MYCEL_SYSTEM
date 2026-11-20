@@ -11,11 +11,11 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 WIDTH, HEIGHT = 1440, 1020
-WHITE = '#f0f2f2'
-MUTED = '#9ca6a9'
-TEAL = '#40d2c5'
-GOLD = '#e8b557'
-BLACK = '#080d0e'
+WHITE = '#f3efff'
+MUTED = '#b7b2d0'
+TEAL = '#31eaff'
+GOLD = '#ff37d1'
+BLACK = '#080913'
 
 
 @lru_cache(maxsize=40)
@@ -104,14 +104,14 @@ class Renderer:
     def faceplate(self):
         im=metal((WIDTH,HEIGHT),dark=True)
         d=ImageDraw.Draw(im)
-        d.rounded_rectangle((3,3,WIDTH-4,HEIGHT-4),radius=12,outline='#596367')
+        d.rounded_rectangle((3,3,WIDTH-4,HEIGHT-4),radius=12,outline='#61527f')
         text(d,(40,36),'RESTORATION LAB',29,anchor='lm',bold=True)
         text(d,(365,36),'Version 3.0',17,anchor='lm')
         text(d,(505,36),'ADAPTIVE RESTORATION & MASTERING',11,fill=MUTED,anchor='lm')
         for box in [(28,82,1412,342),(28,350,1412,415),(28,425,630,760),
                     (650,425,1412,760),(28,778,1412,940),(28,947,1412,991)]:
-            d.rounded_rectangle(box,radius=8,fill='#15191a',outline='#455354')
-        d.rounded_rectangle((36,87,1404,336),radius=6,fill=BLACK,outline='#1e3737')
+            d.rounded_rectangle(box,radius=8,fill='#12132a',outline='#4f456e')
+        d.rounded_rectangle((36,87,1404,336),radius=6,fill=BLACK,outline='#30264f')
         text(d,(48,445),'C L E A N U P',18,anchor='lm',bold=True)
         text(d,(690,450),'F R E Q U E N C Y   F O C U S',17,anchor='lm',bold=True)
         text(d,(514,653),'Detail ↔ Smooth',10,fill=MUTED,anchor='mm')
@@ -130,16 +130,16 @@ class Renderer:
         d = ImageDraw.Draw(im)
         tint = GOLD if key in ('ab','match','preset') else TEAL
         if key == 'bypass': tint = GOLD
-        d.rounded_rectangle((0,0,w-1,h-1),radius=3,fill='#050707',outline='#50585a')
+        d.rounded_rectangle((0,0,w-1,h-1),radius=3,fill='#080913',outline='#61527f')
         if active:
-            d.rounded_rectangle((2,2,w-3,h-3),radius=2,fill='#10302f' if tint==TEAL else '#352a15',outline=tint,width=2)
+            d.rounded_rectangle((2,2,w-3,h-3),radius=2,fill='#191d38' if tint==TEAL else '#382044',outline=tint,width=2)
         else:
             inner = metal((w-8,h-8))
             im.paste(inner,(4,4))
             d.line((4,4,w-5,4),fill='#eeeeec')
             d.line((4,h-5,w-5,h-5),fill='#6e7476')
             d.line((w-5,5,w-5,h-5),fill='#72787a')
-        color = WHITE if active else '#161b1c'
+        color = WHITE if active else '#191d38'
         if not enabled:
             color = '#777f80'
         cx, cy = w//2, h//2
@@ -169,7 +169,7 @@ class Renderer:
             color = TEAL if key in ('spectral_amount','wavelet_amount') and i/30 <= (value-low)/(high-low) else '#a7afb2'
             d.line((cx+a*math.cos(angle),cy+a*math.sin(angle),
                     cx+b*math.cos(angle),cy+b*math.sin(angle)),fill=color,width=1)
-        d.ellipse((cx-r-4,cy-r-3,cx+r+4,cy+r+5),fill='#070909',outline='#616a6e',width=2)
+        d.ellipse((cx-r-4,cy-r-3,cx+r+4,cy+r+5),fill='#080913',outline='#616a6e',width=2)
         # Brushed, radial aluminum with a machined rim. Cached by geometry.
         disc = self.disc(round(r*2))
         im.alpha_composite(disc,(round(cx-r),round(cy-r)))
@@ -177,8 +177,8 @@ class Renderer:
         angle = math.radians(135+270*fraction)
         p1=(cx+(r*.36)*math.cos(angle),cy+(r*.36)*math.sin(angle))
         p2=(cx+(r*.86)*math.cos(angle),cy+(r*.86)*math.sin(angle))
-        d.line((*p1,*p2),fill='#171b1b',width=3)
-        d.rounded_rectangle((cx-46,119,cx+46,138),radius=2,fill='#070c0d',outline='#3b4547')
+        d.line((*p1,*p2),fill='#191d38',width=3)
+        d.rounded_rectangle((cx-46,119,cx+46,138),radius=2,fill='#080913',outline='#4f456e')
         display = (f'{value:.0f}%' if units=='%' else f'{value/1000:.2f} kHz' if units=='Hz' and value>=1000 else f'{value:.0f} Hz' if units=='Hz' else f'{value:.2f} oct' if units=='oct' else f'{value:+.1f} dB' if abs(value)>.049 else '0.0 dB')
         text(d,(cx,129),display,12,anchor='mm',bold=True)
         if focus: d.rounded_rectangle((cx-49,116,cx+49,138),radius=3,outline=TEAL)
@@ -190,7 +190,7 @@ class Renderer:
         d=ImageDraw.Draw(im)
         text(d,(0,5),title,10,anchor='lm',bold=True)
         text(d,(w-2,5),f'{value:.0f}%',10,anchor='rm')
-        d.rounded_rectangle((0,18,w-1,31),radius=3,fill='#040809',outline='#4a5558')
+        d.rounded_rectangle((0,18,w-1,31),radius=3,fill='#080913',outline='#4f456e')
         end=12+(w-25)*(value-low)/(high-low)
         d.rectangle((8,23,max(9,end),26),fill=TEAL)
         cap=metal((20,21))
@@ -227,10 +227,10 @@ class Renderer:
         if key != self._wave_key or view != 'wave':
             im=Image.new('RGB',(w,h),BLACK)
             d=ImageDraw.Draw(im)
-            for x in range(0,w,99): d.line((x,0,x,167),fill='#16312f')
+            for x in range(0,w,99): d.line((x,0,x,167),fill='#282246')
             if view=='wave':
-                for center in (39,117): d.line((0,center,w,center),fill='#24423f')
-                for y in (0,78,156): d.line((0,y,w,y),fill='#182e2d')
+                for center in (39,117): d.line((0,center,w,center),fill='#30264f')
+                for y in (0,78,156): d.line((0,y,w,y),fill='#24203f')
                 if peaks is not None:
                     channels=peaks.shape[0]
                     for ch in range(channels):
@@ -252,7 +252,7 @@ class Renderer:
             elif view=='spectrum':
                 for db in (-12,-36,-60,-84):
                     y=9+(-db)/96*140
-                    d.line((0,y,w,y),fill='#24403d')
+                    d.line((0,y,w,y),fill='#30264f')
                     text(d,(w-5,y-3),f'{db} dBFS',9,fill=MUTED,anchor='rd')
                 snapshot=state.get('monitor')
                 if snapshot is not None and state.get('playing'):
@@ -264,7 +264,7 @@ class Renderer:
                     logfreq=np.geomspace(25,20000,400)
                     level=np.interp(logfreq,freq,20*np.log10(np.maximum(magnitude,1e-8)))
                     points=[(i*(w-1)/399,9+np.clip(-db,0,96)/96*140) for i,db in enumerate(level)]
-                    d.polygon([(0,155),*points,(w-1,155)],fill='#0b302c')
+                    d.polygon([(0,155),*points,(w-1,155)],fill='#211b3c')
                     d.line(points,fill=TEAL,width=2)
                 else:
                     text(d,(w//2,75),'PLAY AUDIO TO VIEW THE OUTPUT SPECTRUM',13,fill=MUTED,anchor='mm')
@@ -274,7 +274,7 @@ class Renderer:
             else:
                 for db in (0,3,6,9,12):
                     y=10+db/12*140
-                    d.line((0,y,w,y),fill='#24403d')
+                    d.line((0,y,w,y),fill='#30264f')
                     text(d,(w-5,y+1),str(db)+' dB',9,fill=MUTED,anchor='ra')
                 self.reduction_lines(d,state.get('history',[]),w,10,140)
                 text(d,(0,165),'RECENT PLAYBACK  /  0–12 dB',9,fill=MUTED)
@@ -299,7 +299,7 @@ class Renderer:
             x=round(np.clip(state.get('position',0)/state['duration'],0,1)*(w-1))
             d.line((x,0,x,157),fill='#e4ebe8',width=1)
         if view!='reduction':
-            d.rectangle((0,180,w,202),fill='#090f10')
+            d.rectangle((0,180,w,202),fill='#12132a')
             self.reduction_lines(d,state.get('history',[]),w,182,18)
         return im
 
@@ -321,7 +321,7 @@ class Renderer:
         peaks=state.get('meter_peaks',[-90,-90])
         gr=state.get('gr',0)
         for ch,x in enumerate((37,78,139)):
-            d.rectangle((x-4,47,x+23,220),fill='#030707',outline='#2d4140')
+            d.rectangle((x-4,47,x+23,220),fill='#080913',outline='#4f456e')
             for i in range(28):
                 if ch<2:
                     threshold=-60+i/27*60
@@ -332,7 +332,7 @@ class Renderer:
                     lit=gr>=(i+1)/28*12
                     color=GOLD
                     y=51+i*5.9
-                d.rectangle((x,y,x+18,y+3),fill=color if lit else '#182423')
+                d.rectangle((x,y,x+18,y+3),fill=color if lit else '#24203f')
         for db in (0,-12,-24,-36,-48,-60):
             y=52+(-db)/60*160
             text(d,(25,y),str(db),8,fill=MUTED,anchor='rm')
@@ -343,7 +343,7 @@ class Renderer:
         return im
 
     def footer(self,state):
-        im=Image.new('RGB',(970,55),'#15191a'); d=ImageDraw.Draw(im)
+        im=Image.new('RGB',(970,55),'#12132a'); d=ImageDraw.Draw(im)
         def stamp(v): return f'{int(v)//60:02}:{v%60:06.3f}'
         text(d,(125,28),stamp(state.get('position',0))+' / '+stamp(state.get('duration',0)),16,anchor='mm')
         text(d,(455,28),'A  '+stamp(state.get('loop_a',0)),12,anchor='mm',fill=TEAL)
@@ -357,10 +357,10 @@ class Renderer:
         freq=np.geomspace(20,24000,w)
         for db in (0,30,60,90):
             y=5+db/90*85
-            d.line((0,y,w,y),fill='#243a38')
+            d.line((0,y,w,y),fill='#30264f')
         for f in (100,500,1000,5000,10000,20000):
             x=np.log(f/20)/np.log(1200)*(w-1)
-            d.line((x,0,x,92),fill='#243a38')
+            d.line((x,0,x,92),fill='#30264f')
             text(d,(x,99),f'{f/1000:g}k' if f>=1000 else str(f),9,fill=MUTED,anchor='ma')
         snapshot=state.get('monitor')
         if snapshot is not None:
@@ -392,11 +392,11 @@ class Renderer:
                'spectrum':'OUTPUT SPECTRUM · MONITOR SIGNAL',
                'reduction':'REDUCTION · RECENT PLAYBACK HISTORY'}[view]
         text(d,(0,6),label,8,fill=MUTED,anchor='lm')
-        text(d,(995,6),'TEAL: NR RMS DECREASE   /   AMBER: COMPRESSION',8,fill=MUTED,anchor='rm')
+        text(d,(995,6),'CYAN: NR RMS DECREASE   /   PINK: COMPRESSION',8,fill=MUTED,anchor='rm')
         return im
 
     def status(self,state):
-        im=Image.new('RGB',(1190,19),'#181d1f')
+        im=Image.new('RGB',(1190,19),'#191d38')
         d=ImageDraw.Draw(im)
         text(d,(4,9),shorten(state.get('status','Open a WAV or MP3 to begin.'),122),10,fill=MUTED,anchor='lm')
         return im
@@ -410,13 +410,13 @@ class Renderer:
         yield 'loop_b',(955,354),footer.crop((645,0,795,55))
         yield 'filename',(635,94),self.screen_labels(state)
         yield 'focus_plot',self.focus_rect[:2],self.focus_plot(state)
-        banner=Image.new('RGB',(1100,21),'#15191a')
+        banner=Image.new('RGB',(1100,21),'#12132a')
         text(ImageDraw.Draw(banner),(0,10),shorten(state.get('mastering_status','MASTERING OFF'),130),10,fill=GOLD,anchor='lm')
         yield 'mastering_status',(280,781),banner
-        levels=Image.new('RGB',(245,22),'#15191a')
+        levels=Image.new('RGB',(245,22),'#12132a')
         text(ImageDraw.Draw(levels),(0,11),state.get('loudness_status','SESSION LUFS —'),8,fill=TEAL,anchor='lm')
         yield 'loudness_status',(48,920),levels
-        status=Image.new('RGB',(1340,20),'#181d1f')
+        status=Image.new('RGB',(1340,20),'#191d38')
         label=f'{state.get("format","NO AUDIO")}   ·   NR LOAD {state.get("load",0):.0f}%   ·   MISSES {state.get("misses",0)}   |   '+state.get('status','Load a WAV or MP3 to begin.')
         text(ImageDraw.Draw(status),(0,10),shorten(label,190),10,fill=MUTED,anchor='lm')
         yield 'status',(48,995),status

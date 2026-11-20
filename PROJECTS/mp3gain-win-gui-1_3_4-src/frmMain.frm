@@ -1595,9 +1595,9 @@ Public Function AddSingleFile(strName As String) As String
             blnHaveTag = False
             
             If blnHaveUnicode Then
-                strCmdCheckTag = """" & strAppPath & "mp3Gain"" /o /s c """ & strNewKeyVal & """"
+                strCmdCheckTag = """" & strAppPath & "mp3gain.exe"" /o /s c """ & strNewKeyVal & """"
             Else
-                strCmdCheckTag = """" & strAppPath & "mp3Gain"" /o /s c """ & strName & """"
+                strCmdCheckTag = """" & strAppPath & "mp3gain.exe"" /o /s c """ & strName & """"
             End If
             
             If mnuSkipTags.Checked Or mnuReCalcTags.Checked Or mnuSkipTagsWhileAdding.Checked Then
@@ -1677,10 +1677,10 @@ End Function
 
 Public Sub DispJunk(itmX As ListItem, mp3Inf As Mp3Info)
     On Error GoTo DispJunk_Error
-    itmX.ForeColor = vbBlack
-    itmX.ListSubItems(glPath).ForeColor = vbBlack
+    itmX.ForeColor = LYVRA_TEXT
+    itmX.ListSubItems(glPath).ForeColor = LYVRA_TEXT
     itmX.ListSubItems(glPath) = itmX.ListSubItems(glPath)
-    itmX.ListSubItems(glFile).ForeColor = vbBlack
+    itmX.ListSubItems(glFile).ForeColor = LYVRA_TEXT
     itmX.ListSubItems(glFile) = itmX.ListSubItems(glFile)
     If mp3Inf.RadiodBGain <> NOREALNUM Then
         itmX.ListSubItems(lsVolume).Text = Format$(DEFAULTTARGET + mp3Inf.ModifydBGain - mp3Inf.RadiodBGain, "0.0")
@@ -1696,27 +1696,27 @@ Public Sub DispJunk(itmX As ListItem, mp3Inf As Mp3Info)
             itmX.ListSubItems(lsMaxNoClip) = Format$(CDbl(mp3Inf.MaxNoclipMp3Gain) * 1.505, "0.0")
             If mp3Inf.MaxNoclipMp3Gain < 0 Then
                 itmX.ListSubItems(lsClip) = strClipYes
-                itmX.ListSubItems(lsClip).ForeColor = vbRed
-                itmX.ListSubItems(lsMaxNoClip).ForeColor = vbRed
-                itmX.ForeColor = vbRed
-                itmX.ListSubItems(glPath).ForeColor = vbRed
+                itmX.ListSubItems(lsClip).ForeColor = LYVRA_PINK
+                itmX.ListSubItems(lsMaxNoClip).ForeColor = LYVRA_PINK
+                itmX.ForeColor = LYVRA_PINK
+                itmX.ListSubItems(glPath).ForeColor = LYVRA_PINK
                 itmX.ListSubItems(glPath) = itmX.ListSubItems(glPath)
-                itmX.ListSubItems(glFile).ForeColor = vbRed
+                itmX.ListSubItems(glFile).ForeColor = LYVRA_PINK
                 itmX.ListSubItems(glFile) = itmX.ListSubItems(glFile)
             Else
-                itmX.ListSubItems(lsMaxNoClip).ForeColor = vbBlack
+                itmX.ListSubItems(lsMaxNoClip).ForeColor = LYVRA_TEXT
                 itmX.ListSubItems(lsClip) = ""
-                itmX.ListSubItems(lsClip).ForeColor = vbBlack
+                itmX.ListSubItems(lsClip).ForeColor = LYVRA_TEXT
             End If
         Else
             itmX.ListSubItems(lsMaxNoClip) = strClipMaybe
-            itmX.ListSubItems(lsMaxNoClip).ForeColor = vbBlue
+            itmX.ListSubItems(lsMaxNoClip).ForeColor = LYVRA_CYAN
             itmX.ListSubItems(lsClip) = strClipMaybe
-            itmX.ListSubItems(lsClip).ForeColor = vbBlue
-            itmX.ForeColor = vbBlue
-            itmX.ListSubItems(glPath).ForeColor = vbBlue
+            itmX.ListSubItems(lsClip).ForeColor = LYVRA_CYAN
+            itmX.ForeColor = LYVRA_CYAN
+            itmX.ListSubItems(glPath).ForeColor = LYVRA_CYAN
             itmX.ListSubItems(glPath) = itmX.ListSubItems(glPath)
-            itmX.ListSubItems(glFile).ForeColor = vbBlue
+            itmX.ListSubItems(glFile).ForeColor = LYVRA_CYAN
             itmX.ListSubItems(glFile) = itmX.ListSubItems(glFile)
         End If
         
@@ -1725,24 +1725,24 @@ Public Sub DispJunk(itmX As ListItem, mp3Inf As Mp3Info)
             If mp3Inf.CurrMaxAmp * 2# ^ (CDbl(mp3Inf.RadioMp3Gain) / 4#) > 32767# Then
                 If mp3Inf.CurrMaxAmp * 2# ^ ((83# - (DEFAULTTARGET + mp3Inf.ModifydBGain - mp3Inf.RadiodBGain)) / 6.0206) > 32767# Then
                     itmX.ListSubItems(lsRadioClip).Text = strClipMaybe
-                    itmX.ListSubItems(lsRadioClip).ForeColor = vbBlue
-                    itmX.ForeColor = vbBlue
-                    itmX.ListSubItems(glPath).ForeColor = vbBlue
+                    itmX.ListSubItems(lsRadioClip).ForeColor = LYVRA_CYAN
+                    itmX.ForeColor = LYVRA_CYAN
+                    itmX.ListSubItems(glPath).ForeColor = LYVRA_CYAN
                     itmX.ListSubItems(glPath) = itmX.ListSubItems(glPath)
-                    itmX.ListSubItems(glFile).ForeColor = vbBlue
+                    itmX.ListSubItems(glFile).ForeColor = LYVRA_CYAN
                     itmX.ListSubItems(glFile) = itmX.ListSubItems(glFile)
                 Else
                     itmX.ListSubItems(lsRadioClip).Text = strClipYes
-                    itmX.ListSubItems(lsRadioClip).ForeColor = vbRed
-                    itmX.ForeColor = vbRed
-                    itmX.ListSubItems(glPath).ForeColor = vbRed
+                    itmX.ListSubItems(lsRadioClip).ForeColor = LYVRA_PINK
+                    itmX.ForeColor = LYVRA_PINK
+                    itmX.ListSubItems(glPath).ForeColor = LYVRA_PINK
                     itmX.ListSubItems(glPath) = itmX.ListSubItems(glPath)
-                    itmX.ListSubItems(glFile).ForeColor = vbRed
+                    itmX.ListSubItems(glFile).ForeColor = LYVRA_PINK
                     itmX.ListSubItems(glFile) = itmX.ListSubItems(glFile)
                 End If
             Else
                 itmX.ListSubItems(lsRadioClip).Text = ""
-                itmX.ListSubItems(lsRadioClip).ForeColor = vbBlack
+                itmX.ListSubItems(lsRadioClip).ForeColor = LYVRA_TEXT
             End If
         End If
         
@@ -1750,38 +1750,38 @@ Public Sub DispJunk(itmX As ListItem, mp3Inf As Mp3Info)
             If mp3Inf.CurrMaxAmp * 2# ^ (CDbl(mp3Inf.AlbumMp3Gain) / 4#) > 32767# Then
                 If mp3Inf.CurrMaxAmp * 2# ^ ((83# - (DEFAULTTARGET + mp3Inf.ModifydBGain - mp3Inf.AlbumdBGain)) / 6.0206) > 32767# Then
                     itmX.ListSubItems(lsAlbumClip).Text = strClipMaybe
-                    itmX.ListSubItems(lsAlbumClip).ForeColor = vbBlue
-                    If itmX.ForeColor = vbBlack Then 'Don't change to blue if already red
-                        itmX.ForeColor = vbBlue
-                        itmX.ListSubItems(glPath).ForeColor = vbBlue
+                    itmX.ListSubItems(lsAlbumClip).ForeColor = LYVRA_CYAN
+                    If itmX.ForeColor = LYVRA_TEXT Then 'Don't change cyan if already pink
+                        itmX.ForeColor = LYVRA_CYAN
+                        itmX.ListSubItems(glPath).ForeColor = LYVRA_CYAN
                         itmX.ListSubItems(glPath) = itmX.ListSubItems(glPath)
-                        itmX.ListSubItems(glFile).ForeColor = vbBlue
+                        itmX.ListSubItems(glFile).ForeColor = LYVRA_CYAN
                         itmX.ListSubItems(glFile) = itmX.ListSubItems(glFile)
                     End If
                 Else
                     itmX.ListSubItems(lsAlbumClip).Text = strClipYes
-                    itmX.ListSubItems(lsAlbumClip).ForeColor = vbRed
-                    itmX.ForeColor = vbRed
-                    itmX.ListSubItems(glPath).ForeColor = vbRed
+                    itmX.ListSubItems(lsAlbumClip).ForeColor = LYVRA_PINK
+                    itmX.ForeColor = LYVRA_PINK
+                    itmX.ListSubItems(glPath).ForeColor = LYVRA_PINK
                     itmX.ListSubItems(glPath) = itmX.ListSubItems(glPath)
-                    itmX.ListSubItems(glFile).ForeColor = vbRed
+                    itmX.ListSubItems(glFile).ForeColor = LYVRA_PINK
                     itmX.ListSubItems(glFile) = itmX.ListSubItems(glFile)
                 End If
             Else
                 itmX.ListSubItems(lsAlbumClip).Text = ""
-                itmX.ListSubItems(lsAlbumClip).ForeColor = vbBlack
+                itmX.ListSubItems(lsAlbumClip).ForeColor = LYVRA_TEXT
             End If
         End If
     Else
         itmX.ListSubItems(lsRadioClip).Text = ""
-        itmX.ListSubItems(lsRadioClip).ForeColor = vbBlack
+        itmX.ListSubItems(lsRadioClip).ForeColor = LYVRA_TEXT
         itmX.ListSubItems(lsMaxNoClip).Text = " "
-        itmX.ListSubItems(lsMaxNoClip).ForeColor = vbBlack
+        itmX.ListSubItems(lsMaxNoClip).ForeColor = LYVRA_TEXT
         itmX.ListSubItems(lsClip) = ""
-        itmX.ListSubItems(lsClip).ForeColor = vbBlack
+        itmX.ListSubItems(lsClip).ForeColor = LYVRA_TEXT
         itmX.ListSubItems(lsMaxAmp).Text = " "
         itmX.ListSubItems(lsAlbumClip).Text = ""
-        itmX.ListSubItems(lsAlbumClip).ForeColor = vbBlack
+        itmX.ListSubItems(lsAlbumClip).ForeColor = LYVRA_TEXT
     End If
 
     If mp3Inf.AlbumdBGain <> NOREALNUM Then
@@ -2138,7 +2138,7 @@ Private Sub SingleAlbum(strAlbum As String, Optional blnFromGain As Boolean = Fa
     Dim strBlah As String
     Dim lngRetVal As Long
     
-    strCmd = """" & strAppPath & "mp3Gain"" /o "
+    strCmd = """" & strAppPath & "mp3gain.exe"" /o "
     
     If mnuKeepTime.Checked Then
         strCmd = strCmd & "/p "
@@ -2212,10 +2212,10 @@ Private Sub ClearAlbumResults(strAlbum As String)
             If subItmX.ListSubItems(glPath) = strAlbum Then
                 subItmX.Tag = "C" 'Checked
                 If subItmX.ListSubItems(lsAlbumVolume) <> "" Then
-                    subItmX.ForeColor = vbBlack
-                    subItmX.ListSubItems(glPath).ForeColor = vbBlack
+                    subItmX.ForeColor = LYVRA_TEXT
+                    subItmX.ListSubItems(glPath).ForeColor = LYVRA_TEXT
                     subItmX.ListSubItems(glPath) = subItmX.ListSubItems(glPath)
-                    subItmX.ListSubItems(glFile).ForeColor = vbBlack
+                    subItmX.ListSubItems(glFile).ForeColor = LYVRA_TEXT
                     subItmX.ListSubItems(glFile) = subItmX.ListSubItems(glFile)
                     Set subMp3Inf = flsMaster.Item(subItmX.Key)
                     subMp3Inf.ResetVals
@@ -2331,10 +2331,10 @@ Private Sub Album(Optional blnFromGain As Boolean = False)
                 If mp3Inf.AlbumdBGain = NOREALNUM Then
                     For Each subItmX In lstvMain.ListItems
                         If (Not mnuSelectedFiles.Checked) Or (subItmX.Checked) Then
-                            subItmX.ForeColor = vbBlack
-                            subItmX.ListSubItems(glPath).ForeColor = vbBlack
+                            subItmX.ForeColor = LYVRA_TEXT
+                            subItmX.ListSubItems(glPath).ForeColor = LYVRA_TEXT
                             subItmX.ListSubItems(glPath) = subItmX.ListSubItems(glPath)
-                            subItmX.ListSubItems(glFile).ForeColor = vbBlack
+                            subItmX.ListSubItems(glFile).ForeColor = LYVRA_TEXT
                             subItmX.ListSubItems(glFile) = subItmX.ListSubItems(glFile)
                             Set subMp3Inf = flsMaster.Item(subItmX.Key)
                             subMp3Inf.ResetVals
@@ -2380,7 +2380,7 @@ Private Sub Album(Optional blnFromGain As Boolean = False)
                     End If
                 End If
                 
-                strCmd = """" & strAppPath & "mp3Gain"" /o "
+                strCmd = """" & strAppPath & "mp3gain.exe"" /o "
                 
                 If mnuKeepTime.Checked Then
                     strCmd = strCmd & "/p "
@@ -2572,7 +2572,7 @@ Private Sub AlbumGain()
 
                     Refresh
                     strBlah = ""
-                    strCmd = """" & strAppPath & "mp3gain"" /g " & mp3Inf.AlbumMp3Gain & " "
+                    strCmd = """" & strAppPath & "mp3gain.exe"" /g " & mp3Inf.AlbumMp3Gain & " "
                     If blnUseTempFiles Then
                         strCmd = strCmd & "/t "
                     End If
@@ -2762,7 +2762,7 @@ Private Sub ApplyConstGain(intGainChange As Integer, _
     For Each itmX In lstvMain.ListItems
         If ((Not mnuSelectedFiles.Checked) Or (itmX.Checked)) And (itmX.Tag = "Y") Then
             If Not blnCancel Then
-                strCmd = """" & strAppPath & "mp3Gain"" "
+                strCmd = """" & strAppPath & "mp3gain.exe"" "
                 
                 strDBChange = Format$(CDbl(intGainChange) * 1.505, "0.0")
                 If blnSingleChannel Then
@@ -2903,7 +2903,7 @@ Private Sub RadioSingleFile(itmX As ListItem, mp3Inf As Mp3Info)
         "Analyzing %%filename%%"), "%%filename%%", itmX.Text)
     Refresh
     strBlah = ""
-    strCmd = """" & strAppPath & "mp3gain"" /o "
+    strCmd = """" & strAppPath & "mp3gain.exe"" /o "
     
     If mnuKeepTime.Checked Then
         strCmd = strCmd & "/p "
@@ -3184,7 +3184,7 @@ Private Sub RadioGain()
 
                     Refresh
                     
-                    strCmd = """" & strAppPath & "mp3gain"" /g " & intGainChange & " "
+                    strCmd = """" & strAppPath & "mp3gain.exe"" /g " & intGainChange & " "
                     
                     If blnUseTempFiles Then
                         strCmd = strCmd & "/t "
@@ -3523,7 +3523,7 @@ Private Sub MaxNoClipGain()
                     
                     Refresh
                     strBlah = ""
-                    strCmd = """" & strAppPath & "mp3gain"" /g " & mp3Inf.MaxNoclipMp3Gain & " "
+                    strCmd = """" & strAppPath & "mp3gain.exe"" /g " & mp3Inf.MaxNoclipMp3Gain & " "
                     If blnUseTempFiles Then
                         strCmd = strCmd & "/t "
                     End If
@@ -3915,7 +3915,7 @@ Private Sub Form_Load()
     blnBackEndOK = False
     blnHaveAACGain = False
     
-    lngRetVal = GetCommandOutput(sBlah, strAppPath & "mp3gain /v", strAppPath, False, True, False)
+    lngRetVal = GetCommandOutput(sBlah, """" & strAppPath & "mp3gain.exe"" /v", strAppPath, True, True, False)
     
     If LCase$(Left$(sBlah, 7)) = "aacgain" Then
         blnHaveAACGain = True
@@ -5853,7 +5853,7 @@ On Error GoTo DeleteFileTags_Error
     For Each itmX In lstvMain.ListItems
         If ((Not mnuSelectedFiles.Checked) Or (itmX.Checked)) And (itmX.Tag = "Y") Then
             If Not blnCancel Then
-                strCmd = """" & strAppPath & "mp3Gain"" /o /s d "
+                strCmd = """" & strAppPath & "mp3gain.exe"" /o /s d "
                 
                 stbStat.Panels(1).Text = Replace(GetLocalString("frmMain.LCL_REMOVING_TAGS", _
                     "Removing MP3Gain tags from %%filename%%"), _
@@ -5938,7 +5938,7 @@ On Error GoTo UndoFileGain_Error
     For Each itmX In lstvMain.ListItems
         If ((Not mnuSelectedFiles.Checked) Or (itmX.Checked)) And (itmX.Tag = "Y") Then
             If Not blnCancel Then
-                strCmd = """" & strAppPath & "mp3Gain"" /o /u "
+                strCmd = """" & strAppPath & "mp3gain.exe"" /o /u "
                 
                 stbStat.Panels(1).Text = Replace(GetLocalString("frmMain.LCL_UNDOING_CHANGES", _
                     "Un-doing MP3Gain changes to %%filename%%"), _

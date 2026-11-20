@@ -59,7 +59,7 @@ class App:
         ttk.Button(top, text='Stop', command=self.stop).pack(side='left')
         self.export_button = ttk.Button(top, text='Export WAV…', command=self.export)
         self.export_button.pack(side='right')
-        self.canvas = tk.Canvas(outer, height=150, background='#17202b', highlightthickness=0)
+        self.canvas = tk.Canvas(outer, height=150, background='#191d38', highlightthickness=0)
         self.canvas.pack(fill='x')
         self.canvas.bind('<Button-1>', self.seek)
         self.canvas.bind('<Configure>', lambda event: self.draw_wave())
@@ -103,7 +103,7 @@ class App:
             self.slider(mast, title, key, lo, hi, value)
         self.meter_label = ttk.Label(outer, text='Output —   Compressor —   Limiter —')
         self.meter_label.pack(anchor='w')
-        self.reduction_canvas = tk.Canvas(outer,height=70,background='#17202b',highlightthickness=0)
+        self.reduction_canvas = tk.Canvas(outer,height=70,background='#191d38',highlightthickness=0)
         self.reduction_canvas.pack(fill='x',pady=5)
         self.history = []
         ttk.Label(outer,text='Reduction history, 0–12 dB: teal = NR RMS level decrease; gold = compression.').pack(anchor='w')
@@ -355,7 +355,7 @@ class App:
                 f'{int(duration)//60}:{int(duration)%60:02} — source waveform; reduction shown below')
             self.canvas.delete('playhead')
             pos = self.position/len(self.restoration.source)*self.canvas.winfo_width()
-            self.canvas.create_line(pos, 0, pos, 150, fill='#ffc857', width=2, tags='playhead')
+            self.canvas.create_line(pos, 0, pos, 150, fill='#ff37d1', width=2, tags='playhead')
             m = self.last_meters
             if m:
                 transport=self.transport
@@ -381,7 +381,7 @@ class App:
             y=5+value/12*55
             canvas.create_line(28,y,width,y,fill='#364252')
             canvas.create_text(13,y,text=str(value),fill='#aeb8c6')
-        for band,color in [(0,'#46c6bc'),(1,'#ffc857')]:
+        for band,color in [(0,'#31eaff'),(1,'#ff37d1')]:
             points=[]
             for i,pair in enumerate(self.history):
                 points.extend([30+i/239*(width-32),5+min(12,pair[band])/12*55])

@@ -14,10 +14,13 @@ Cover: »Ein Cover für alle gewählten MP3« oder »Cover nur für markierte MP
 ## 4. Audio-Konvertierung
 Quellformat WAV, MP3 oder GEMISCHT wählen. Zielprofil nach Wunsch: Standard 48000 Hz / 320 kbit/s / Stereo, optional Normalisierung −14 LUFS und True Peak −2 dBTP. `s16p` bezeichnet das PCM-Zwischenformat, nicht die Bit-Tiefe der MP3. WAV→MP3 ist verlustbehaftet. MP3→MP3 kann keine verlorenen Klanginformationen zurückbringen. Prüfe Ausgabe und Lautheit nach dem Umkodieren. STOPP beendet laufende FFmpeg-Aufträge; nur unvollständige Ausgaben werden entfernt.
 
-## 5. Zwei Monitore und Drag & Drop
+## 5. Audio Labs
+Der Reiter AUDIO LABS startet Suno Song Remaster, Restoration Lab, SunoCleanser und die MP3Gain-VB6-GUI; Sunscreen und wav2mp3 laufen als Kommandozeilenwerkzeuge. Im Quellprojekt müssen die Projektordner neben dem MP3-Manager unter `PROJECTS` liegen. Suno benötigt lokale Electron-Abhängigkeiten und einen Renderer-Build (`npm run build` im Projektordner); der Manager startet keinen Entwicklungsserver. Restoration Lab verwendet sein eigenes `STARTEN.bat` und SunoCleanser die Conda-Umgebung `sunocleanser`. MP3Gain ist Windows-only und benötigt `MP3GainGUI.exe` sowie den vollständigen Build `electron-bridge/release/win-unpacked` neben der GUI. Sunscreen akzeptiert MP3, WAV, FLAC und M4A; eine einzelne ausgewählte Datei wird mit `--smooth --widen --excite --match --master` verarbeitet. Die Ausgaben liegen im Ordner `sunscreen` neben der Quelle und sind 24-Bit-WAVs. wav2mp3 verarbeitet alle WAV-Dateien direkt im gewählten Ordner und legt die MP3-Ausgaben dort ab; der Manager startet es nicht, wenn gleichnamige MP3-Ausgaben vorhanden sind. Zum Bauen werden die C++- und LAME-Entwicklungsdateien aus dem Makefile benötigt. Für portable Builds werden vorhandene Apps, die MP3Gain-GUI samt Bridge sowie vorhandene Sunscreen- und wav2mp3-Windows-Binaries optional mitkopiert. Fehlende Pakete werden niemals still installiert. Die Manager- und VB6-Oberflächen verwenden die L.Y.V.R.A.-Palette aus Dunkelblau, Cyan, Pink und Violett.
+
+## 6. Zwei Monitore und Drag & Drop
 In jedem Reiter »DATEIMANAGER / 2. BILDSCHIRM« öffnen, Fenster auf anderen Monitor ziehen. Dateien/Ordner aus dem Explorer in die GUI ziehen. Der separate Live-Statusmonitor zeigt aktuelle Datei, Umbenennung, Audio und Gesamt. Die Anzeigen werden von aktiven Prozessen gespeist und können bei inaktiven Vorgängen 0 anzeigen.
 
-## 6. System, EXE und Sprache
+## 7. System, EXE und Sprache
 Der Reiter SYSTEM prüft Komponenten; der EXE-Build läuft **nur über die externe Batchdatei**. DE/EN oben im Hauptfenster auswählen. Hilfe über »? HILFE / HELP«. Dateinamen, Liedtitel, vom Benutzer eingetragene Texte und Metadaten werden bei Sprachwechsel niemals übersetzt.
 
 ## Sicherheit / Grenzen
