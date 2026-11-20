@@ -1,0 +1,31 @@
+name: ChatBackup - materialize editable iPhone source (migration only)
+on:
+  push:
+    branches:
+      - migration/chatbackup-r1-detach-20261120
+    paths:
+      - .github/workflows/chatbackup-materialize-migration.yml
+      - PROJECTS/ChatBackup PC Tool/tools/materialize_mobile_source.py
+      - PROJECTS/ChatBackup PC Tool/mobile_scriptable/666_CHATBACKUP_SCRIPTABLE_IPHONE_v1.0.9.zip
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: migration/chatbackup-r1-detach-20261120
+          persist-credentials: true
+      - name: Extract checked-in release archive as ordinary source files
+        run: python3 "PROJECTS/ChatBackup PC Tool/tools/materialize_mobile_source.py" --write
+      - name: Commit extracted editable files only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- "PROJECTS/ChatBackup PC Tool/mobile_scriptable/source/"
+          if ! git diff --cached --quiet; then
+            git commit -m "feat(chatbackup): materialize editable Scriptable iPhone v1.0.9 sources"
+            git push origin HEAD:migration/chatbackup-r1-detach-20261120
+          fi
