@@ -5,6 +5,7 @@ on:
       - feature/chatbackup-archive-intelligence-r5-20261120
     paths:
       - .github/workflows/chatbackup-r5-integration.yml
+      - 'PROJECTS/ChatBackup PC Tool/tests/test_archive_intelligence.py'
   workflow_dispatch:
 permissions:
   contents: write
