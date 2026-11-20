@@ -1,0 +1,111 @@
+name: ChatBackup Windows host and EXE validation
+on:
+  push:
+    branches:
+      - 666MAIN_BRAIN
+    paths:
+      - .github/workflows/chatbackup-windows-host-exe-validation.yml
+      - 'PROJECTS/ChatBackup PC Tool/**'
+  workflow_dispatch:
+    inputs:
+      public_share_url:
+        description: 'Optional public ChatGPT share URL for Windows runner live parser test. Do not enter private tokens.'
+        required: false
+        type: string
+permissions:
+  contents: read
+jobs:
+  windows-host-build:
+    runs-on: windows-latest
+    timeout-minutes: 35
+    defaults:
+      run:
+        working-directory: 'PROJECTS/ChatBackup PC Tool'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Dependencies (isolated runner only)
+        shell: pwsh
+        run: |
+          python -m pip install --disable-pip-version-check -r requirements-runtime.txt -r requirements-build.txt pytest
+      - name: Unit regression + integrity
+        shell: pwsh
+        run: |
+          python -m pytest -q tests
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tests/run_tests.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tests/release_integrity_probe.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Native Windows Tkinter GUI and browser recovery readback
+        shell: pwsh
+        run: |
+          python tests/runtime_readback_probe.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Windows fixture host pipeline (must NOT promote to live PASS)
+        shell: pwsh
+        run: |
+          python tests/host_acceptance_probe.py --fixture
+          if ($LASTEXITCODE -ne 3) { throw "Expected fixture exit 3 (host gate open); got $LASTEXITCODE" }
+      - name: Optional Windows runner live public Share parse and readback
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.public_share_url != '' }}
+        env:
+          CHATBACKUP_PUBLIC_SHARE_URL: ${{ inputs.public_share_url }}
+        shell: pwsh
+        run: |
+          python tests/host_acceptance_probe.py --share-url "$env:CHATBACKUP_PUBLIC_SHARE_URL"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Build Windows EXE with existing PyInstaller spec
+        shell: pwsh
+        run: |
+          python -m PyInstaller --noconfirm --clean 666_CHATBACKUP_PC_TOOL.spec
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (!(Test-Path 'dist/666_CHATBACKUP_PC_TOOL.exe')) { throw 'EXE missing' }
+          Get-FileHash 'dist/666_CHATBACKUP_PC_TOOL.exe' -Algorithm SHA256 | Format-List
+      - name: EXE existence, PE header and startup smoke
+        shell: pwsh
+        run: |
+          $exe = (Resolve-Path 'dist/666_CHATBACKUP_PC_TOOL.exe').Path
+          $stream = [IO.File]::OpenRead($exe)
+          try {
+            $head = New-Object byte[] 2
+            [void]$stream.Read($head,0,2)
+            if ($head[0] -ne 77 -or $head[1] -ne 90) { throw 'Invalid PE DOS header' }
+          } finally { $stream.Dispose() }
+          $proc = Start-Process -FilePath $exe -PassThru -WorkingDirectory (Get-Location).Path
+          Start-Sleep -Seconds 8
+          $proc.Refresh()
+          if ($proc.HasExited) { throw "EXE exited unexpectedly, code $($proc.ExitCode)" }
+          Stop-Process -Id $proc.Id -Force
+          Write-Host 'WINDOWS_EXE_STARTUP_SMOKE_PASS (no real user interaction)'
+      - name: Collect Windows CI evidence (no chat content)
+        if: always()
+        shell: pwsh
+        run: |
+          $out = 'runtime_readback/windows_ci_evidence.json'
+          New-Item -ItemType Directory -Force runtime_readback | Out-Null
+          $exe = 'dist/666_CHATBACKUP_PC_TOOL.exe'
+          $state = [ordered]@{
+            schema = '666.chatbackup.windows-ci-evidence.v1'
+            mode = 'github-actions-windows-runner'
+            doesNotClosePhysicalUserDeviceGate = $true
+            runId = '$env:GITHUB_RUN_ID'
+            commit = '$env:GITHUB_SHA'
+            exePresent = Test-Path $exe
+            exeSha256 = if (Test-Path $exe) { (Get-FileHash $exe -Algorithm SHA256).Hash } else { $null }
+            runtimeReceiptPresent = Test-Path runtime_readback/windows_runtime_readback.json
+          }
+          $state | ConvertTo-Json -Depth 5 | Set-Content -Encoding utf8 $out
+      - name: Upload Windows CI receipts and EXE
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chatbackup-windows-exe-and-ci-receipts
+          path: |
+            PROJECTS/ChatBackup PC Tool/dist/666_CHATBACKUP_PC_TOOL.exe
+            PROJECTS/ChatBackup PC Tool/runtime_readback/windows_ci_evidence.json
+            PROJECTS/ChatBackup PC Tool/runtime_readback/windows_runtime_readback.json
+          if-no-files-found: warn
+          retention-days: 14
