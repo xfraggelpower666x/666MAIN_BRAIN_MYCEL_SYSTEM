@@ -1,17 +1,17 @@
 {
   "schema": "chatbackup.repo-regression.v1",
-  "date_utc": "2026-11-20T21:09:10.193639+00:00",
+  "date_utc": "2026-11-20T21:11:47.767936+00:00",
   "source": "github-actions-linux",
   "physical_windows_host": "READBACK_PENDING",
   "physical_iphone_host": "READBACK_PENDING",
   "tests": {
     "pytest": {
-      "exit_code": 1,
-      "tail": "with(b\"\\xef\\xbb\\xbf\")\n        body = data[3:]\n        assert body\n        assert all(byte < 128 for byte in body)\n>       assert b\"\\r\\n\" in body\nE       assert b'\\r\\n' in b'# Windows PowerShell 5.1 compatibility: this bootstrap is intentionally ASCII-only.\\n# Do not add Unicode punctuatio...Write-Host \"BLOCKIERT: $message\" -ForegroundColor Red\\n        Write-Host \"Logdatei: $LogPath\"\\n    }\\n    exit 1\\n}\\n'\n\ntests/test_core.py:382: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_core.py::test_windows_powershell51_bootstrap_is_ascii_only - assert b'\\r\\n' in b'# Windows PowerShell 5.1 compatibility: this bootstrap is intentionally ASCII-only.\\n# Do not add Unicode punctuatio...Write-Host \"BLOCKIERT: $message\" -ForegroundColor Red\\n        Write-Host \"Logdatei: $LogPath\"\\n    }\\n    exit 1\\n}\\n'\n1 failed, 49 passed in 0.41s\n"
+      "exit_code": 0,
+      "tail": "..................................................                       [100%]\n50 passed in 0.42s\n"
     },
     "baseline": {
-      "exit_code": 1,
-      "tail": "Traceback (most recent call last):\n  File \"/home/runner/work/666MAIN_BRAIN_MYCEL_SYSTEM/666MAIN_BRAIN_MYCEL_SYSTEM/PROJECTS/ChatBackup PC Tool/tests/run_tests.py\", line 191, in <module>\n    main()\n  File \"/home/runner/work/666MAIN_BRAIN_MYCEL_SYSTEM/666MAIN_BRAIN_MYCEL_SYSTEM/PROJECTS/ChatBackup PC Tool/tests/run_tests.py\", line 174, in main\n    assert b\"\\r\\n\" in bootstrap_body\n           ^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+      "exit_code": 0,
+      "tail": "ALL TESTS PASSED (16/16)\n"
     },
     "integrity": {
       "exit_code": 2,
