@@ -138,5 +138,26 @@
     "foreign_autoload": false,
     "host_acceptance": "PENDING",
     "migration_status": "IN_PROGRESS_UNCHANGED"
+  },
+  "mycel_r02": {
+    "version": "R02",
+    "class": "SOURCE_EXECUTABLE_LOCAL_PYTHON_VERIFIED",
+    "adapter": "INTEGRATIONS/PSYLLO_CODING/workbench/scripts/mycel_bridge.py",
+    "adapter_tests": "INTEGRATIONS/PSYLLO_CODING/workbench/tests/test_mycel_bridge.py",
+    "guide": "INTEGRATIONS/PSYLLO_CODING/workbench/README_MYCEL_R02.md",
+    "renderer": "INTEGRATIONS/PSYLLO_CODING/workbench/scripts/render_ui.py",
+    "renderer_modified": false,
+    "menu": "UI/INTELLIGENT_UI/MENU_REGISTRY.json",
+    "daemon_schema": "DAEMON/STATE_SCHEMA.json",
+    "facets": "RUNTIME/FACET_RUNTIME_REGISTRY.json",
+    "ui_handoff": "psyllo.ui-handoff.1",
+    "renderer_handoff": "scevi.visual.handoff.1",
+    "local_tests": "10_OF_10_PASS",
+    "local_cli_smoke": "PASS",
+    "host_html_acceptance": "PENDING",
+    "plugin_release_parity": "PENDING",
+    "fresh_chat_acceptance": "PENDING",
+    "foreign_autoload": false,
+    "authority": "MAIN_BRAIN_ONLY"
   }
 }
