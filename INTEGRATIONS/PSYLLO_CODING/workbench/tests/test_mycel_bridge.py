@@ -56,6 +56,14 @@ class MycelBridgeTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             project(menu(), state(), handoff=handoff)
 
+    def test_missing_lineage_cannot_restore_handoff(self):
+        s = state()
+        s.pop("lineage_id")
+        handoff = {"schema": "psyllo.ui-handoff.1", "project_id": "666MAIN-BRAIN",
+                   "source_commit": HEAD}
+        with self.assertRaises(ValueError):
+            project(menu(), s, handoff=handoff)
+
     def test_foreign_owner_rejected(self):
         bad = menu()
         bad["owner"] = "666DEV"
