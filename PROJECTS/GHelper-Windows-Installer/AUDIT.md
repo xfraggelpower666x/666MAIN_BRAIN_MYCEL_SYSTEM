@@ -26,3 +26,9 @@
 Das Windows-Protokoll bestätigt Restore und Publish von G-Helper. Die anschließende NSIS-Kompilierung stoppte wegen des fehlenden `Stubs/zlib-amd64-unicode`. Das offizielle Windows-ZIP von NSIS 3.13 enthält die entsprechenden x86-Unicode-Stubs.
 
 `GHelper.nsi` wählt anhand der vorhandenen Stubs und Plugins zwischen amd64 und x86. Der x86-Starter nutzt die 64-Bit-Registry und startet native PowerShell über `Sysnative`. Die x64-Voraussetzung und der x64-Programm-Payload gelten in beiden Varianten. Beide NSIS-Ziele wurden mit als Fehler behandelten Compilerwarnungen geprüft. Zusätzlich hat ein Buildtest mit den Ressourcen aus dem offiziellen NSIS-Windows-ZIP den x86-Pfad bestätigt. Die erneute praktische Prüfung auf Windows steht aus.
+
+## Windows-Pfadkorrektur für den NSIS-Payload
+
+Das zweite Windows-Protokoll erreicht den Kopierabschnitt von NSIS und meldet `payload/GHelper.dll.config -> no files found`. Die Datei war im Publish-Verzeichnis vorhanden. Der Python-Generator hatte `File`-Quellpfade in POSIX-Schreibweise ausgegeben. MakeNSIS zerlegt diese Dateimuster anhand des Pfadtrenners des Buildhosts.
+
+Der Manifestgenerator verwendet jetzt den Pfadtrenner des Buildhosts. Eine Gegenprobe bestätigte die Windows-Ausgabe `payload\GHelper.dll.config` und einen verschachtelten Pfad mit Leerzeichen, sowie die entsprechende Linux-Ausgabe. Die frühere Korrektur für fehlende amd64-Stubs gilt weiterhin. Der erneute Build auf dem Windows-PC steht aus.
