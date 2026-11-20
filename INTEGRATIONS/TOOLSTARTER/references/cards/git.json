@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "id": "git",
+  "name": "Git, Git LFS und Submodule",
+  "evidence": [
+    ".git",
+    ".gitattributes",
+    ".gitmodules"
+  ],
+  "roles": [
+    "development",
+    "build"
+  ],
+  "check": "Version, Arbeitsbaum, Submodule und benötigte LFS-Objekte lokal prüfen.",
+  "repair": "Nur fehlende Projektobjekte oder Werkzeuge über die konfigurierte Quelle nachladen. Lokale Änderungen und bestehende Branches bewahren.",
+  "delivery": "Git am Ziel nur mitliefern, falls die ausgelieferte Anwendung selbst einen belegten Git-Einstieg hat.",
+  "acceptance": "Benötigte Assets liegen als tatsächliche Dateien vor und der Build arbeitet mit der freigegebenen Revision."
+}

@@ -67,8 +67,6 @@ Then open the app normally. You only need to do this once.
 5. Click "Export All" and choose an output folder
 6. Existing output names are preserved; duplicate names get a numbered suffix.
 
-Batch exports with duplicate basenames receive numbered filenames (for example, `_mastered_2.wav`). Existing files are never overwritten; a colliding output is reported as failed.
-
 ## Building from Source
 
 ```bash

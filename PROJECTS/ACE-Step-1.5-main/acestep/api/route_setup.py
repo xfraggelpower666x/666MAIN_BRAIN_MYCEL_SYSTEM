@@ -61,7 +61,7 @@ def configure_api_routes(
 
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["null", "http://localhost", "http://127.0.0.1"],
+        allow_origins=["null", "http://localhost", "http://127.0.0.1", "http://tauri.localhost", "https://tauri.localhost", "tauri://localhost"],
         allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
         allow_methods=["GET", "POST", "OPTIONS"],
         allow_headers=["Content-Type", "Authorization"],

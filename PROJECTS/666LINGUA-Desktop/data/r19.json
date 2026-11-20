@@ -1,0 +1,212 @@
+[
+  {
+    "source": "Ich liebe dich wirklich, auch wenn du mich manchmal völlig verrückt machst. Komm trotzdem her - ich brauche gerade deine Nähe.",
+    "target": "I really love you, even when you drive me completely crazy sometimes. Come here anyway - I need to feel close to you right now.",
+    "fromProfile": "GERMAN_STANDARD",
+    "toProfile": "INTERNATIONAL_ENGLISH",
+    "id": "LING-MATRIX-001"
+  },
+  {
+    "source": "Ich liebe dich wirklich, auch wenn du mich manchmal völlig verrückt machst. Komm trotzdem her - ich brauche gerade deine Nähe.",
+    "target": "I really love you, even when you drive me absolutely crazy sometimes. Come here anyway - I need you close right now.",
+    "fromProfile": "GERMAN_STANDARD",
+    "toProfile": "AMERICAN_ENGLISH",
+    "id": "LING-MATRIX-002"
+  },
+  {
+    "source": "Ich liebe dich wirklich, auch wenn du mich manchmal völlig verrückt machst. Komm trotzdem her - ich brauche gerade deine Nähe.",
+    "target": "I really love you, even when you drive me completely mad sometimes. Come here anyway - I need you close right now.",
+    "fromProfile": "GERMAN_STANDARD",
+    "toProfile": "BRITISH_ENGLISH",
+    "id": "LING-MATRIX-003"
+  },
+  {
+    "source": "Ich liebe dich wirklich, auch wenn du mich manchmal völlig verrückt machst. Komm trotzdem her - ich brauche gerade deine Nähe.",
+    "target": "Te amo de verdad, aunque a veces me vuelvas completamente loco. Aun así, ven aquí - ahora mismo necesito sentirte cerca.",
+    "fromProfile": "GERMAN_STANDARD",
+    "toProfile": "SPANISH_NEUTRAL",
+    "id": "LING-MATRIX-004"
+  },
+  {
+    "source": "Ich liebe dich wirklich, auch wenn du mich manchmal völlig verrückt machst. Komm trotzdem her - ich brauche gerade deine Nähe.",
+    "target": "Eu realmente te amo, mesmo quando às vezes você me deixa completamente maluco. Mesmo assim, vem cá - agora eu preciso sentir você perto de mim.",
+    "fromProfile": "GERMAN_STANDARD",
+    "toProfile": "BRAZILIAN_PORTUGUESE",
+    "id": "LING-MATRIX-005"
+  },
+  {
+    "source": "The connection was crystal clear at first, but then everything became distorted and kept cutting out. I have no idea what happened.",
+    "target": "Die Verbindung war zuerst glasklar, aber dann wurde alles verzerrt und brach ständig ab. Ich habe keine Ahnung, was passiert ist.",
+    "fromProfile": "INTERNATIONAL_ENGLISH",
+    "toProfile": "GERMAN_STANDARD",
+    "id": "LING-MATRIX-006"
+  },
+  {
+    "source": "The connection was crystal clear at first, but then everything became distorted and kept cutting out. I have no idea what happened.",
+    "target": "The connection was crystal clear at first, but then everything got distorted and kept cutting out. I have no idea what happened.",
+    "fromProfile": "INTERNATIONAL_ENGLISH",
+    "toProfile": "AMERICAN_ENGLISH",
+    "id": "LING-MATRIX-007"
+  },
+  {
+    "source": "The connection was crystal clear at first, but then everything became distorted and kept cutting out. I have no idea what happened.",
+    "target": "The connection was crystal clear at first, but then everything became distorted and kept breaking up. I have no idea what happened.",
+    "fromProfile": "INTERNATIONAL_ENGLISH",
+    "toProfile": "BRITISH_ENGLISH",
+    "id": "LING-MATRIX-008"
+  },
+  {
+    "source": "The connection was crystal clear at first, but then everything became distorted and kept cutting out. I have no idea what happened.",
+    "target": "Al principio la conexión se escuchaba perfectamente, pero después todo empezó a sonar distorsionado y a cortarse. No tengo ni idea de qué pasó.",
+    "fromProfile": "INTERNATIONAL_ENGLISH",
+    "toProfile": "SPANISH_NEUTRAL",
+    "id": "LING-MATRIX-009"
+  },
+  {
+    "source": "The connection was crystal clear at first, but then everything became distorted and kept cutting out. I have no idea what happened.",
+    "target": "No começo, a conexão estava perfeitamente clara, mas depois tudo ficou distorcido e começou a falhar o tempo todo. Não faço ideia do que aconteceu.",
+    "fromProfile": "INTERNATIONAL_ENGLISH",
+    "toProfile": "BRAZILIAN_PORTUGUESE",
+    "id": "LING-MATRIX-010"
+  },
+  {
+    "source": "I’m gonna finish my yogurt, get my stuff together, and head out. Don’t worry - I’m being careful, and I’m thinking about you.",
+    "target": "Ich löffle jetzt meinen Joghurt zu Ende, packe meine Sachen zusammen und mache mich dann auf den Weg. Keine Sorge - ich passe auf mich auf und denke an dich.",
+    "fromProfile": "AMERICAN_ENGLISH",
+    "toProfile": "GERMAN_STANDARD",
+    "id": "LING-MATRIX-011"
+  },
+  {
+    "source": "I’m gonna finish my yogurt, get my stuff together, and head out. Don’t worry - I’m being careful, and I’m thinking about you.",
+    "target": "I’m going to finish my yogurt, get my things together, and head out. Don’t worry - I’m being careful, and I’m thinking about you.",
+    "fromProfile": "AMERICAN_ENGLISH",
+    "toProfile": "INTERNATIONAL_ENGLISH",
+    "id": "LING-MATRIX-012"
+  },
+  {
+    "source": "I’m gonna finish my yogurt, get my stuff together, and head out. Don’t worry - I’m being careful, and I’m thinking about you.",
+    "target": "I’m going to finish my yoghurt, get my things together, and head out. Don’t worry - I’m being careful, and I’m thinking of you.",
+    "fromProfile": "AMERICAN_ENGLISH",
+    "toProfile": "BRITISH_ENGLISH",
+    "id": "LING-MATRIX-013"
+  },
+  {
+    "source": "I’m gonna finish my yogurt, get my stuff together, and head out. Don’t worry - I’m being careful, and I’m thinking about you.",
+    "target": "Voy a terminarme el yogur, preparar mis cosas y salir. No te preocupes - voy con cuidado y estoy pensando en ti.",
+    "fromProfile": "AMERICAN_ENGLISH",
+    "toProfile": "SPANISH_NEUTRAL",
+    "id": "LING-MATRIX-014"
+  },
+  {
+    "source": "I’m gonna finish my yogurt, get my stuff together, and head out. Don’t worry - I’m being careful, and I’m thinking about you.",
+    "target": "Vou terminar meu iogurte, arrumar minhas coisas e sair. Não se preocupa - estou tomando cuidado e pensando em você.",
+    "fromProfile": "AMERICAN_ENGLISH",
+    "toProfile": "BRAZILIAN_PORTUGUESE",
+    "id": "LING-MATRIX-015"
+  },
+  {
+    "source": "I was absolutely knackered after that little nap, and it took me ages to feel properly awake again.",
+    "target": "Nach diesem kleinen Nickerchen war ich völlig fertig, und es hat ewig gedauert, bis ich mich wieder richtig wach gefühlt habe.",
+    "fromProfile": "BRITISH_ENGLISH",
+    "toProfile": "GERMAN_STANDARD",
+    "id": "LING-MATRIX-016"
+  },
+  {
+    "source": "I was absolutely knackered after that little nap, and it took me ages to feel properly awake again.",
+    "target": "I was completely exhausted after that short nap, and it took me a long time to feel fully awake again.",
+    "fromProfile": "BRITISH_ENGLISH",
+    "toProfile": "INTERNATIONAL_ENGLISH",
+    "id": "LING-MATRIX-017"
+  },
+  {
+    "source": "I was absolutely knackered after that little nap, and it took me ages to feel properly awake again.",
+    "target": "I was totally wiped out after that little nap, and it took me forever to feel fully awake again.",
+    "fromProfile": "BRITISH_ENGLISH",
+    "toProfile": "AMERICAN_ENGLISH",
+    "id": "LING-MATRIX-018"
+  },
+  {
+    "source": "I was absolutely knackered after that little nap, and it took me ages to feel properly awake again.",
+    "target": "Después de esa pequeña siesta estaba completamente agotado, y tardé muchísimo en volver a sentirme bien despierto.",
+    "fromProfile": "BRITISH_ENGLISH",
+    "toProfile": "SPANISH_NEUTRAL",
+    "id": "LING-MATRIX-019"
+  },
+  {
+    "source": "I was absolutely knackered after that little nap, and it took me ages to feel properly awake again.",
+    "target": "Depois daquele cochilo curto, eu estava completamente acabado, e demorou um tempão para me sentir realmente acordado de novo.",
+    "fromProfile": "BRITISH_ENGLISH",
+    "toProfile": "BRAZILIAN_PORTUGUESE",
+    "id": "LING-MATRIX-020"
+  },
+  {
+    "source": "Te extraño muchísimo, pero también me haces reír incluso cuando estoy enfadado contigo. Supongo que eso también es amor.",
+    "target": "Ich vermisse dich unglaublich, aber du bringst mich sogar dann zum Lachen, wenn ich sauer auf dich bin. Ich schätze, auch das ist Liebe.",
+    "fromProfile": "SPANISH_NEUTRAL",
+    "toProfile": "GERMAN_STANDARD",
+    "id": "LING-MATRIX-021"
+  },
+  {
+    "source": "Te extraño muchísimo, pero también me haces reír incluso cuando estoy enfadado contigo. Supongo que eso también es amor.",
+    "target": "I miss you terribly, but you still make me laugh even when I am upset with you. I suppose that is love too.",
+    "fromProfile": "SPANISH_NEUTRAL",
+    "toProfile": "INTERNATIONAL_ENGLISH",
+    "id": "LING-MATRIX-022"
+  },
+  {
+    "source": "Te extraño muchísimo, pero también me haces reír incluso cuando estoy enfadado contigo. Supongo que eso también es amor.",
+    "target": "I miss you like crazy, but you still make me laugh even when I’m mad at you. I guess that’s love too.",
+    "fromProfile": "SPANISH_NEUTRAL",
+    "toProfile": "AMERICAN_ENGLISH",
+    "id": "LING-MATRIX-023"
+  },
+  {
+    "source": "Te extraño muchísimo, pero también me haces reír incluso cuando estoy enfadado contigo. Supongo que eso también es amor.",
+    "target": "I miss you terribly, but you still make me laugh even when I’m cross with you. I suppose that’s love too.",
+    "fromProfile": "SPANISH_NEUTRAL",
+    "toProfile": "BRITISH_ENGLISH",
+    "id": "LING-MATRIX-024"
+  },
+  {
+    "source": "Te extraño muchísimo, pero también me haces reír incluso cuando estoy enfadado contigo. Supongo que eso también es amor.",
+    "target": "Sinto muita saudade de você, mas você ainda consegue me fazer rir até quando estou bravo com você. Acho que isso também é amor.",
+    "fromProfile": "SPANISH_NEUTRAL",
+    "toProfile": "BRAZILIAN_PORTUGUESE",
+    "id": "LING-MATRIX-025"
+  },
+  {
+    "source": "Eu confio em você, mas fiquei chateado porque você não me avisou. Não quero brigar; só quero que a gente converse com sinceridade.",
+    "target": "Ich vertraue dir, aber ich war verletzt, weil du mir nicht Bescheid gesagt hast. Ich will keinen Streit; ich möchte nur, dass wir ehrlich miteinander reden.",
+    "fromProfile": "BRAZILIAN_PORTUGUESE",
+    "toProfile": "GERMAN_STANDARD",
+    "id": "LING-MATRIX-026"
+  },
+  {
+    "source": "Eu confio em você, mas fiquei chateado porque você não me avisou. Não quero brigar; só quero que a gente converse com sinceridade.",
+    "target": "I trust you, but I was hurt because you did not let me know. I do not want to argue; I just want us to talk honestly.",
+    "fromProfile": "BRAZILIAN_PORTUGUESE",
+    "toProfile": "INTERNATIONAL_ENGLISH",
+    "id": "LING-MATRIX-027"
+  },
+  {
+    "source": "Eu confio em você, mas fiquei chateado porque você não me avisou. Não quero brigar; só quero que a gente converse com sinceridade.",
+    "target": "I trust you, but it hurt that you didn’t tell me. I don’t want to fight; I just want us to talk honestly.",
+    "fromProfile": "BRAZILIAN_PORTUGUESE",
+    "toProfile": "AMERICAN_ENGLISH",
+    "id": "LING-MATRIX-028"
+  },
+  {
+    "source": "Eu confio em você, mas fiquei chateado porque você não me avisou. Não quero brigar; só quero que a gente converse com sinceridade.",
+    "target": "I trust you, but I was hurt that you didn’t let me know. I don’t want us to argue; I just want us to talk honestly.",
+    "fromProfile": "BRAZILIAN_PORTUGUESE",
+    "toProfile": "BRITISH_ENGLISH",
+    "id": "LING-MATRIX-029"
+  },
+  {
+    "source": "Eu confio em você, mas fiquei chateado porque você não me avisou. Não quero brigar; só quero que a gente converse com sinceridade.",
+    "target": "Confío en ti, pero me dolió que no me avisaras. No quiero pelear; solo quiero que hablemos con sinceridad.",
+    "fromProfile": "BRAZILIAN_PORTUGUESE",
+    "toProfile": "SPANISH_NEUTRAL",
+    "id": "LING-MATRIX-030"
+  }
+]

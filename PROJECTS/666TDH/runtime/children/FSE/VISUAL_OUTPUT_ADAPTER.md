@@ -1,0 +1,18 @@
+# FSE Target-Native Visual / Output Adapter
+
+OPEN_RIGHT_FRAME=TRUE
+SEMANTIC_STATUS_COLORS=TRUE
+STATUS_BAR_SEGMENTS=20
+FAKE_PRECISION=FORBIDDEN
+FAKE_COMPLETION=FORBIDDEN
+TARGET_NATIVE_AXES=TRUE
+
+FSE_NATIVE_OUTPUT_PROTOCOL:
+BOX_1=TITLE
+BOX_2=STYLE
+BOX_3=LYRICS_CONTENT
+BOX_4=CONTROL
+
+Presentation wrapper may show PRE-AUDIT before native boxes and SYSTEM BARS / LIMIT VIEW after native boxes.
+Native 4-box order itself is preserved.
+No TD or DTSTE box semantics are imported.

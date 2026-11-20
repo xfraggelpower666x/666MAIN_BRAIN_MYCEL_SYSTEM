@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { AppShell } from '../../src/components/layout/AppShell';
 import { useProjectStore } from '../../src/store/projectStore';
 import { useUIStore } from '../../src/store/uiStore';
@@ -182,5 +182,25 @@ describe('AppShell dialog lazy loading', () => {
     expect(await screen.findByText('Toolbar')).toBeInTheDocument();
     expect(screen.getByText('StatusBar')).toBeInTheDocument();
     expect(screen.getByRole('application')).toHaveAttribute('aria-label', 'ACE-Step DAW');
+  });
+
+  it('preserves the ComfyUI editor when switching back to the DAW', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ system: {}, devices: [] }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    try {
+      render(<AppShell />);
+      fireEvent.click(await screen.findByRole('button', { name: 'ComfyUI' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Connect' }));
+      const frame = await screen.findByTitle('ComfyUI workflow editor');
+      fireEvent.click(screen.getByRole('button', { name: 'DAW' }));
+      fireEvent.click(screen.getByRole('button', { name: 'ComfyUI' }));
+      expect(screen.getByTitle('ComfyUI workflow editor')).toBe(frame);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

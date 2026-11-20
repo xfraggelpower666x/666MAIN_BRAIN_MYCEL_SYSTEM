@@ -9,10 +9,16 @@ import tkinter as tk
 from tkinter import messagebox, ttk, filedialog
 import numpy as np
 from PIL import Image, ImageTk
-from legacy_app import App as ProcessingApp
-from reference_engine import Controls, EQBand, PRESETS, PRESET_DESCRIPTIONS
-from manual import open_manual
-from metal_ui import Renderer, BUTTONS, KNOBS, SLIDERS, WIDTH, HEIGHT, TEAL
+if __package__:
+    from .legacy_app import App as ProcessingApp
+    from .reference_engine import Controls, EQBand, PRESETS, PRESET_DESCRIPTIONS
+    from .manual import open_manual
+    from .metal_ui import Renderer, BUTTONS, KNOBS, SLIDERS, WIDTH, HEIGHT, TEAL
+else:
+    from legacy_app import App as ProcessingApp
+    from reference_engine import Controls, EQBand, PRESETS, PRESET_DESCRIPTIONS
+    from manual import open_manual
+    from metal_ui import Renderer, BUTTONS, KNOBS, SLIDERS, WIDTH, HEIGHT, TEAL
 
 VALUE_CONTROLS = {**KNOBS, **SLIDERS}
 
@@ -458,7 +464,10 @@ class App(ProcessingApp):
         self.drift.set(not self.drift.get())
         if self.restoration is None: return
         import threading
-        from realtime import RealtimeRestoration
+        if __package__:
+            from .realtime import RealtimeRestoration
+        else:
+            from realtime import RealtimeRestoration
         engine,path=self.restoration,self.path
         self.playing=False
         self.shutdown_stream()
@@ -544,7 +553,10 @@ class App(ProcessingApp):
     def mastering_settings(self):
         existing=getattr(self,'mastering_window',None)
         if existing is not None and existing.winfo_exists():existing.lift();return
-        from studio_ui import MasteringStudio
+        if __package__:
+            from .studio_ui import MasteringStudio
+        else:
+            from studio_ui import MasteringStudio
         self.studio=MasteringStudio(self)
 
     def save_studio_preset(self):
@@ -555,8 +567,12 @@ class App(ProcessingApp):
         filename=filedialog.askopenfilename(parent=self.mastering_window,filetypes=[('Restoration Lab preset','*.json')])
         if not filename:return
         try:
-            from studio_tools import eq_filters, StereoWidth
-            from mastering_tools import validate
+            if __package__:
+                from .studio_tools import eq_filters, StereoWidth
+                from .mastering_tools import validate
+            else:
+                from studio_tools import eq_filters, StereoWidth
+                from mastering_tools import validate
             data=json.loads(Path(filename).read_text())
             if data.get('version')!=3:raise ValueError('A Version 3 preset is required')
             values=data['controls'];values['eq_bands']=tuple(EQBand(**row) for row in values['eq_bands'])
@@ -722,6 +738,9 @@ class App(ProcessingApp):
                 elif kind=='exported':
                     self.set_busy(False)
                     self.show_export_report(payload)
+                    callback=getattr(self,'on_export',None)
+                    if callback is not None:
+                        callback(payload)
                 elif kind=='error':
                     self.set_busy(False)
                     self.drift_check.config(state='normal')

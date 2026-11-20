@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useProjectStore } from '../projectStore';
 import { useCollaborationStore } from '../collaborationStore';
 import { DEFAULT_GENERATION, DEFAULT_MEASURES, MAX_PROJECT_TRACKS } from '../../constants/defaults';
-import type { Project } from '../../types/project';
+import type { Project, SoundfontTrackInstrument } from '../../types/project';
 import { createDefaultFmInstrument } from '../../utils/trackInstrument';
 
 // Mock projectStorage to prevent IndexedDB calls during testing
@@ -55,6 +55,46 @@ describe('projectStore', () => {
   describe('updateProject', () => {
     beforeEach(() => {
       useProjectStore.getState().createProject();
+    });
+
+    describe('ComfyUI exchange', () => {
+      it('saves workflow only to the project it was captured for and supports undo', () => {
+        useProjectStore.getState().createProject({ name: 'First' });
+        const firstId = useProjectStore.getState().project!.id;
+        expect(useProjectStore.getState().saveComfyWorkflow(firstId, '{"nodes":[]}')).toBe(true);
+        expect(useProjectStore.getState().project!.comfyWorkflow).toBe('{"nodes":[]}');
+        useProjectStore.getState().undo();
+        expect(useProjectStore.getState().project!.comfyWorkflow).toBeUndefined();
+        useProjectStore.getState().redo();
+        expect(useProjectStore.getState().project!.comfyWorkflow).toBe('{"nodes":[]}');
+        useProjectStore.getState().createProject({ name: 'Second' });
+        expect(useProjectStore.getState().saveComfyWorkflow(firstId, '{"nodes":[]}')).toBe(false);
+        expect(useProjectStore.getState().project!.comfyWorkflow).toBeUndefined();
+      });
+
+      it('adds audio as one undoable track without changing the existing project', () => {
+        useProjectStore.getState().createProject();
+        const id = useProjectStore.getState().project!.id;
+        const input = {
+          projectId: id, clipId: 'comfy-audio', audioKey: `audio:${id}:comfy-audio:isolated:1`,
+          name: 'result.wav', duration: 12, peaks: [1, -1, 1, -1],
+        };
+        expect(useProjectStore.getState().addComfyAudio(input)).toBe(true);
+        const project = useProjectStore.getState().project!;
+        expect(project.id).toBe(id);
+        expect(project.tracks).toHaveLength(1);
+        expect(project.tracks[0].clips[0]).toMatchObject({
+          isolatedAudioKey: input.audioKey, generationStatus: 'ready', duration: 12,
+        });
+        expect(project.assets).toHaveLength(1);
+        useProjectStore.getState().undo();
+        expect(useProjectStore.getState().project!.tracks).toHaveLength(0);
+        useProjectStore.getState().redo();
+        expect(useProjectStore.getState().project!.tracks[0].clips[0].isolatedAudioKey).toBe(input.audioKey);
+        useProjectStore.getState().createProject();
+        expect(useProjectStore.getState().addComfyAudio(input)).toBe(false);
+        expect(useProjectStore.getState().project!.tracks).toHaveLength(0);
+      });
     });
 
     it('updates BPM', () => {
@@ -621,6 +661,32 @@ describe('projectStore', () => {
       expect(updated.synthPreset).toBe('lead');
       expect(updated.sampler).toBeUndefined();
       expect(updated.samplerConfig).toBeUndefined();
+    });
+
+    it('clears the legacy preset selection when assigning a SoundFont instrument', () => {
+      const store = useProjectStore.getState();
+      const track = store.addTrack('synth', 'pianoRoll');
+      store.updateTrack(track.id, { synthPresetDefinitionId: 'old-preset' });
+      const soundfont: SoundfontTrackInstrument = {
+        kind: 'soundfont',
+        preset: 'soundfont',
+        name: 'Cello',
+        settings: {
+          soundBankId: 'local-bank',
+          soundBankName: 'Orchestra',
+          bankOffset: 0,
+          bank: 0,
+          bankLsb: 0,
+          program: 42,
+        },
+      };
+
+      store.setTrackInstrument(track.id, soundfont);
+
+      const updated = useProjectStore.getState().project!.tracks.find((candidate) => candidate.id === track.id)!;
+      expect(updated.instrument).toEqual(soundfont);
+      expect(updated.synthPreset).toBe('piano');
+      expect(updated.synthPresetDefinitionId).toBeUndefined();
     });
   });
 

@@ -1,0 +1,22 @@
+{
+  "schema": "lyvra-portable-upload-visibility-contract-v1",
+  "system_id": "LYVRA-DOLMETSCHER-001",
+  "version": "2.1.1",
+  "portable_revision": "R2P7",
+  "first_visible_response_required": true,
+  "first_visible_response_must_explain_start": true,
+  "fallback_start_command": "START LYVRA INTERPRETER",
+  "system_language_priority": [
+    "HOST_GPT_SYSTEM_OR_CONVERSATION_LANGUAGE_IF_EXPOSED",
+    "CURRENT_CONVERSATION_LANGUAGE",
+    "FIRST_USER_MESSAGE_LANGUAGE",
+    "RECENT_USER_LANGUAGE",
+    "INTERNATIONAL_ENGLISH"
+  ],
+  "truthfulness_rule": "Never claim access to GPT/UI language settings unless the host exposes them.",
+  "external_666pfs_required": false,
+  "external_drive_required": false,
+  "archive_filename_visibility_hint": "IF_NO_AUTOSTART_TYPE_START_LYVRA_INTERPRETER",
+  "zip_comment_start_hint": "IF NOTHING STARTS AUTOMATICALLY, TYPE: START LYVRA INTERPRETER",
+  "host_autoread_cannot_be_forced_by_archive": true
+}

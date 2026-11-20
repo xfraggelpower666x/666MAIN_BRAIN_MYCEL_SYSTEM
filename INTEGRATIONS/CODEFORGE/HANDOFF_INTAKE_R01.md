@@ -21,6 +21,8 @@ Lokal geprüft wurden ZIP-Integrität und das Checkpoint-Beispiel gegen das mitg
 
 ## Integrationsvertrag für den Zielagenten
 
+Bei Untersuchungen, Analysen, Verbesserungen und Neubau gilt der [ToolStarter-Coding-Workflow](../PLUGIN_CAPABILITIES/WORKFLOWS_R01.md#toolstarter-bei-coding-aufträgen) ab der Projektaufnahme. Verwende den Werkzeugbefund für den in Scope liegenden Prüf- und Buildweg und übergib offene Werkzeugprüfungen mit dem Rückkehranker.
+
 1. **Projekt auflösen.** Der Router akzeptiert direkte Nutzertrigger. Die Ziel-Registry liefert Projekt-ID und erlaubten Scope. Bei mehrdeutigem Alias erst das Ziel klären. Je Sitzung das Projekt gesondert binden. Repository-HEAD, Struktur-Body, Projekt-Commit und Deployment jeweils separat ausweisen.
 2. **Basis und Rückkehranker prüfen.** Projekt-Ref auf Commit fixieren, Manifest und erforderliche Quellen lesen. Checkpoint an Projekt, Commit, Scope und Lineage binden. Nach HEAD-Wechsel die betroffenen Pfade und Belege erneut bewerten.
 3. **Reparatur isolieren.** Symptom am normalen Einstieg belegen. Patch auf die erlaubten Pfade begrenzen. Preimage, Diff, Backup und Rollback-Ziel festhalten. Ausführung und Veröffentlichung folgen der Authority des Zielprojekts.
@@ -95,3 +97,33 @@ Die Kandidatenprüfung meldet im Feld `patch_path_coverage`, welche geänderten 
 Ergänze den Aufruf aus R06 um `--require-patch-coverage`, wenn der Beleg jeden geänderten Kandidatenpfad enthalten muss. Falls der übrige Review konsistent ist und Pfade fehlen, liefert die CLI Exit 1 und `PATCH_PATH_COVERAGE_INCOMPLETE`. Ohne Flag bleibt der bisherige Exit-Vertrag erhalten.
 
 Die Abdeckung bezieht sich auf deklarierte Pfade. Eine fachliche Testabdeckung, der Umgang mit Löschungen und die Herkunft des tatsächlichen Runs werden unabhängig geprüft.
+
+## 666CF v1.2.0 · Repo-Karten und Wiederaufnahme
+
+Die Systemsicherung wurde anhand aller 25 archivinternen SHA-256-Einträge verifiziert. SHA-256 des gelieferten ZIPs: `2cd0bb70c1a711d9e1081b2d89c7dd3b7b0363df4beb9e8f2677236b98979684`. Eingangsklasse: Freeze-Referenz. Der exportierte Quellpointer weist einen geteilten Abschlussmarker auf. Sein Live-Readback bleibt offen.
+
+1. **Repo-Karten isolieren.** Beim Fortsetzen eines Programmier- oder Systemprojekts Karten nach Repository-ID und Branch trennen. 30 Tage als aktives Referenzfenster verwenden. Ältere Karten und relevante Prüfbelege als Historie behalten. Nur den letzten verifizierten Stand als Vergleichsbasis verwenden.
+2. **Delta prüfen.** Aktuellen Branch-HEAD direkt aus GitHub bestätigen. Beide vollständigen Commit-IDs in demselben, zur Repository-ID verifizierten Checkout vergleichen. Fehlende Objekte oder unbekannte Abstammung offen ausweisen. Bei Divergenz betroffene Belege neu auflösen und ausstehende Writes pausieren.
+3. **Fortsetzen.** Den letzten bestätigten Schritt, den letzten abgeschlossenen Write und die zuletzt unbestätigte Aktion getrennt lesen. Bei ungewissem Write direkt Zielzustand prüfen und zwischen abgeschlossen, ausstehend, teilweise und Konflikt unterscheiden. Aus dem Vergleich nur betroffene Kartenbelege aktualisieren und den nächsten Schritt an Scope und Return-Anchor binden. Der Beobachtungsschritt läuft im nativen LiveCircle und liefert Befunde zur Entscheidung.
+4. **Release belegen.** Relevante Defekte vor Reparatur reproduzieren, nach Reparatur erneut prüfen und angeforderten Freeze und Systembackup an Quellrevision und Hashmanifest binden. History und Handoff vor den ggf. autorisierten Pointer-Write legen. Danach nur Readback.
+
+```sh
+python3 INTEGRATIONS/CODEFORGE/compare_repo_card.py \
+  --checkout REPO --previous LAST_VERIFIED_SHA --current VERIFIED_GITHUB_SHA
+```
+
+Das Werkzeug liest Git-Objekte und meldet einen Netto-Dateidiff mit Umbenennungen sowie den Stand der Abstammung. Exit 0 gilt für gleiche oder nachweisbar vorwärts entwickelte Commits. Exit 1 meldet eine umgeschriebene oder nicht nachweisbare Abstammung. Exit 2 meldet ungültige oder fehlende Eingaben. Das Werkzeug führt keinen Remote-Readback aus. Der Workflow bindet diesen Nachweis vor dem Aufruf. Roharchive, fremde Pointer und Child-Sync gehören zur ursprünglichen 666CF-/PFS-Authority.
+
+## CLIC R02 · Laufbeleg und Rückkehranker
+
+Der optionale Modus `--run-claim run-claim.json --repository OWNER/REPO --execution-context CONTEXT` prüft einen vorgelegten Herkunftsbeleg gegen den Kandidaten. Die erwartete Ausführungskonfiguration bestimmt der native Auftrag. Der Beleg hat das Schema `codeforge-run-claim/v1` und die String-Felder `repository`, `checkout_commit`, `execution_context`, `receipt_sha256`, `run_id` und `artifact_id`. `checkout_commit` bezeichnet den tatsächlich behaupteten Checkout und keinen bloßen PR-Head. Ein abweichender Merge-Checkout bleibt ein Konflikt, bis eine gesonderte Bindung implementiert ist.
+
+Die CLI liest die exakten Receipt-Bytes einmal für Qualitätsprüfung und Hash. Sie meldet `run_provenance` getrennt vom lokalen Review. Fehlende oder übereinstimmende Angaben ergeben `READBACK_PENDING`. Abweichende Repository-, Checkout-, Kontext- oder Hashangaben ergeben `CONFLICT_QUARANTINE`. Im optionalen Modus signalisiert Exit 1 die offene Herkunft. Das bisherige Ausgabe- und Exit-Verhalten ohne Modus bleibt gültig.
+
+Zur Abnahme von Laufherkunft sind der direkt gelesene Run mit tatsächlich ausgechecktem Commit, Workflow oder Runner-Konfiguration, Jobabschluss, erwarteten Checks und die direkt von diesem Run gelesenen Artefaktbytes nötig. Provider-, fachliche und Fresh-Chat-Abnahme sind offen.
+
+Für die Wiederaufnahme gilt der [native Checkpoint-Vertrag](../../CONTINUITY/HANDOFF_CONTRACT.md#codeforge-checkpoint). Der Graph-Hash des RepoBrain-Exports belegt den Carrier. Die Herkunft eines Scanner-Laufs bleibt bis zum separaten Scanner- und Checkout-Readback offen.
+
+### CLIC R04 · Ursachenprüfung und Recovery
+
+Für verallgemeinerte Ursachenbefunde zwei unterscheidbare Fälle festhalten. Pro Fall erwartetes und beobachtetes Verhalten, belegte Fundstellen und betroffene Aufrufer nennen. Gegenbeispiel und alternative Erklärung gegen die Hypothese prüfen. Struktur und Referenzen, fachliche Wirkung und frische Wiederaufnahme getrennt abnehmen. Für Änderungen mit größerer Tragweite vorab prüfen, ob Commit-Anker, Recovery-Branch oder Release-Sicherung der tatsächlich benötigte Rückweg ist.

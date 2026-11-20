@@ -8,9 +8,14 @@ import threading
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import numpy as np
-from reference_engine import Controls, Mastering, PRESETS
-from realtime import RealtimeRestoration, RealtimeTransport, export_audio
-from audio_input import read_audio
+if __package__:
+    from .reference_engine import Controls, Mastering, PRESETS
+    from .realtime import RealtimeRestoration, RealtimeTransport, export_audio
+    from .audio_input import read_audio
+else:
+    from reference_engine import Controls, Mastering, PRESETS
+    from realtime import RealtimeRestoration, RealtimeTransport, export_audio
+    from audio_input import read_audio
 
 
 class App:
@@ -154,6 +159,11 @@ class App:
         filename = filedialog.askopenfilename(filetypes=[('WAV or MP3 audio', ('*.wav', '*.mp3', '*.WAV', '*.MP3')), ('WAV audio', '*.wav'), ('MP3 audio', '*.mp3')])
         if not filename:
             return
+        self.load_file(filename)
+
+    def load_file(self, filename):
+        if self.busy:
+            raise RuntimeError('Restoration Lab is busy.')
         self.stop()
         self.shutdown_stream()
         self.restoration = None

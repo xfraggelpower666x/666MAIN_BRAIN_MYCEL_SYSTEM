@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { ErrorBoundary } from '../ui/ErrorBoundary';
 import { Toolbar } from './Toolbar';
 import { NewProjectDialog } from '../dialogs/NewProjectDialog';
@@ -23,6 +23,8 @@ import { WelcomeOverlay } from '../dialogs/WelcomeOverlay';
 import { useOnboardingTracking } from '../../hooks/useOnboardingTracking';
 import { BottomPanelTransition } from '../ui/BottomPanelTransition';
 import { PanelSkeleton } from '../ui/PanelSkeleton';
+import { Button } from '../ui/Button';
+import { ComfyWorkspace } from './ComfyWorkspace';
 
 // Lazy-loaded main views (code-split, loaded when project opens)
 const Timeline = lazy(() => import('../timeline/Timeline').then(m => ({ default: m.Timeline })));
@@ -74,6 +76,8 @@ const CustomModelsPanel = lazy(() => import('../models/CustomModelsPanel').then(
 const VirtualKeyboard = lazy(() => import('../midi/VirtualKeyboard').then(m => ({ default: m.VirtualKeyboard })));
 
 export function EditorShell() {
+  const [workspace, setWorkspace] = useState<'daw' | 'comfy'>('daw');
+  const [comfyOpened, setComfyOpened] = useState(false);
   useAudioEngine();
   useReducedMotionSync();
   useAccessibilitySync();
@@ -148,15 +152,21 @@ export function EditorShell() {
   useMidiController();
 
   return (
+    <div className="h-screen overflow-auto">
     <div
       className="flex flex-col h-screen min-w-[900px] overflow-hidden bg-daw-bg text-zinc-300"
       role="application"
       aria-label="ACE-Step DAW"
       tabIndex={-1}
     >
-      <SkipLinks />
+      <SkipLinks workspace={workspace} />
       <Toolbar />
 
+      <nav className="flex gap-2 border-b border-daw-border-strong bg-daw-surface-2 px-3 py-1" aria-label="Workspaces">
+        <Button size="sm" active={workspace === 'daw'} aria-pressed={workspace === 'daw'} onClick={() => setWorkspace('daw')}>DAW</Button>
+        <Button size="sm" active={workspace === 'comfy'} aria-pressed={workspace === 'comfy'} onClick={() => { setComfyOpened(true); setWorkspace('comfy'); }}>ComfyUI</Button>
+      </nav>
+      <div className={workspace === 'daw' ? 'flex min-h-0 flex-1' : 'hidden'}>
       <section
         id="main-content"
         className="flex flex-1 min-h-0 min-w-0"
@@ -175,6 +185,12 @@ export function EditorShell() {
         </ErrorBoundary>
         {project && <Suspense fallback={null}><LoopBrowser /></Suspense>}
       </section>
+      </div>
+      {comfyOpened && (
+        <div className={workspace === 'comfy' ? 'flex min-h-0 flex-1' : 'hidden'}>
+          <ComfyWorkspace />
+        </div>
+      )}
 
       <StatusBar saveStatus={saveStatus} lastSavedAt={lastSavedAt} />
 
@@ -240,6 +256,7 @@ export function EditorShell() {
       </Suspense>
       {!hasBlockingDialog && <Suspense fallback={null}><CommandPalette /></Suspense>}
       {!hasBlockingDialog && <Suspense fallback={null}><ClaudeTerminal /></Suspense>}
+    </div>
     </div>
   );
 }

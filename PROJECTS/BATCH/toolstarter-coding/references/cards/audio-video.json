@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "id": "audio-video",
+  "name": "Audio, Video, FFmpeg und FFprobe",
+  "evidence": [
+    "Medienkonvertierung",
+    "Audioaufnahme",
+    "FFmpeg-Aufruf",
+    "Codec-Anforderung"
+  ],
+  "roles": [
+    "development",
+    "build",
+    "target"
+  ],
+  "check": "Binärpaar und benötigte Encoder, Decoder, Protokolle und Gerätetreiber aus der Anwendung ableiten. Kurze WAV schreiben und per FFprobe zurücklesen.",
+  "repair": "Geprüftes projektlokales Paar oder deklarierte vertrauenswürdige Paketquelle verwenden. Die für den Auftrag nötige Audio- oder Videofunktion erneut testen.",
+  "delivery": "FFmpeg und FFprobe derselben Buildfamilie mit nötigen DLLs und Lizenzmaterial paketieren. Zielcode auf lokale Binärpfade richten.",
+  "acceptance": "Der verteilte Build konvertiert die tatsächlich benötigten Formate. Reale Aufnahme oder Ausgabe auf Zielhardware abnehmen, wenn die App Geräte nutzt."
+}

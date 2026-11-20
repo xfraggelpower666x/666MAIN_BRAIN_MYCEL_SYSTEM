@@ -2292,7 +2292,6 @@ batchDom.exportBtn.addEventListener('click', async () => {
   const total = batchState.queue.length;
   let completed = 0;
   let errors = 0;
-
   // Save original player state once
   const origBuffer = state.file.buffer;
   const origLufs = state.file.lufs;

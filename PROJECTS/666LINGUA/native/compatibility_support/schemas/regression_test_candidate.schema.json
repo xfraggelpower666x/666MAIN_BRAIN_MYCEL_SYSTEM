@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:lyvra:dolmetscher:regression-test-candidate:1.5.0",
+  "title": "Regression Test Candidate",
+  "type": "object",
+  "required": [
+    "test_candidate_id",
+    "source_profile",
+    "target_profile",
+    "input_fixture_hash",
+    "expected_constraints",
+    "forbidden_regressions",
+    "source_learning_candidate_id",
+    "status"
+  ],
+  "properties": {
+    "test_candidate_id": {
+      "type": "string"
+    },
+    "source_profile": {
+      "type": "string"
+    },
+    "target_profile": {
+      "type": "string"
+    },
+    "input_fixture_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "expected_constraints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "forbidden_regressions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source_learning_candidate_id": {
+      "type": "string"
+    },
+    "status": {
+      "const": "PROPOSED_FOR_NEXT_CYCLE"
+    }
+  },
+  "additionalProperties": false
+}

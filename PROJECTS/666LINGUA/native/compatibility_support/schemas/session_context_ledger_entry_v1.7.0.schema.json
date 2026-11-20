@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Session Context Ledger Entry",
+  "type": "object",
+  "required": [
+    "ledger_id",
+    "session_id",
+    "source_hash",
+    "target_profile",
+    "lineage_id",
+    "retention_mode",
+    "created_at"
+  ],
+  "properties": {
+    "ledger_id": {
+      "type": "string"
+    },
+    "session_id": {
+      "type": "string"
+    },
+    "source_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "target_profile": {
+      "type": "string"
+    },
+    "lineage_id": {
+      "type": "string"
+    },
+    "retention_mode": {
+      "enum": [
+        "session",
+        "explicit_persistent"
+      ]
+    },
+    "expires_at": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "created_at": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

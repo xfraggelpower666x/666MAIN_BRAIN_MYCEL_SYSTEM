@@ -2748,7 +2748,8 @@ void main(){
         set3('blur' + i + '_scale', sc, sc, sc);
       }
 
-      const q = (i) => P.get('q' + i) || 0;
+      // Shaders read the per-frame snapshot, not per-vertex mutations.
+      const q = (i) => accurate && P._qFrame ? P._qFrame[i - 1] : (P.get('q' + i) || 0);
       const packs = ['_qa', '_qb', '_qc', '_qd', '_qe', '_qf', '_qg', '_qh'];
       for (let p = 0; p < 8; p++) {
         set4(packs[p], q(p * 4 + 1), q(p * 4 + 2), q(p * 4 + 3), q(p * 4 + 4));

@@ -6,7 +6,10 @@ import time
 import numpy as np
 import pywt
 from scipy import signal, ndimage
-from reference_engine import Controls, Mastering, drift_correct, quiet_mask, blocks, swt, db
+if __package__:
+    from .reference_engine import Controls, Mastering, drift_correct, quiet_mask, blocks, swt, db
+else:
+    from reference_engine import Controls, Mastering, drift_correct, quiet_mask, blocks, swt, db
 
 
 def spectral_profile(x, sr):
@@ -302,7 +305,10 @@ def export_audio(engine,path,controls,progress=lambda value:None,subtype="PCM_24
     """Render once, then finalize loudness/peak and verify the encoded WAV."""
     import soundfile as sf
     import tempfile
-    from mastering_tools import finalize, integrated_lufs, true_peak
+    if __package__:
+        from .mastering_tools import finalize, integrated_lufs, true_peak
+    else:
+        from mastering_tools import finalize, integrated_lufs, true_peak
     if subtype not in ('PCM_24','FLOAT'):
         raise ValueError('Choose 24-bit PCM or 32-bit float WAV.')
     c=replace(controls,match=False,removed=False,preview_original=False,mono_audition=False,

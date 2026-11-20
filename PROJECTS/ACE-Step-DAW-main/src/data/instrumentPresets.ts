@@ -191,6 +191,9 @@ export function createUserPreset(
   if (instrument.kind === 'granular') {
     throw new Error('Granular instruments cannot be saved as presets (source audio is project-scoped)');
   }
+  if (instrument.kind === 'soundfont') {
+    throw new Error('SoundFont presets depend on a locally imported bank and cannot be saved as standalone instrument presets');
+  }
   return {
     id: `user-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     name,

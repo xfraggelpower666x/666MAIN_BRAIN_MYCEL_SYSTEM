@@ -1,0 +1,100 @@
+{
+  "schema_version": "1.0",
+  "system_id": "LYVRA-DOLMETSCHER-001",
+  "active_name": "666LINGUA",
+  "version": "3.4.6",
+  "status": "ACTIVE_EXTENSIBLE",
+  "principle": "MYCEL_NETWORK_NOT_LINEAR_PIPELINE",
+  "facets": {
+    "translation_semantics": {
+      "status": "ACTIVE",
+      "subintelligences": "OPEN_ENUMERATION",
+      "edges": [
+        "context",
+        "relationship",
+        "culture",
+        "emotion",
+        "memory"
+      ]
+    },
+    "language_locale_routing": {
+      "status": "ACTIVE",
+      "subintelligences": "OPEN_ENUMERATION",
+      "edges": [
+        "system_language",
+        "source_language",
+        "target_language",
+        "locale"
+      ]
+    },
+    "temporal_context": {
+      "status": "ACTIVE",
+      "subintelligences": "OPEN_ENUMERATION",
+      "edges": [
+        "date",
+        "timezone",
+        "dst",
+        "locale"
+      ]
+    },
+    "relationship_learning": {
+      "status": "ACTIVE",
+      "subintelligences": "OPEN_ENUMERATION",
+      "edges": [
+        "confirmed_preferences",
+        "memory",
+        "evidence"
+      ]
+    },
+    "continuity_rehydration": {
+      "status": "ACTIVE",
+      "subintelligences": "OPEN_ENUMERATION",
+      "edges": [
+        "pointer",
+        "live_state",
+        "handoff",
+        "checkpoint",
+        "auto_weiter"
+      ]
+    },
+    "force_intelligence": {
+      "status": "ACTIVE_MANDATORY",
+      "subintelligences": "GATED",
+      "edges": [
+        "read",
+        "rehydrate",
+        "write",
+        "readback",
+        "handoff",
+        "pointer",
+        "restore"
+      ]
+    },
+    "visual_guidance": {
+      "status": "ACTIVE",
+      "subintelligences": "OPEN_ENUMERATION",
+      "edges": [
+        "identity_symbol",
+        "semantic_emoji",
+        "status_truth",
+        "menu"
+      ]
+    },
+    "historical_capability_recovery": {
+      "status": "OPEN",
+      "subintelligences": "FORENSIC_ENUMERATION_REQUIRED",
+      "edges": [
+        "history",
+        "recovery",
+        "supersession",
+        "parity"
+      ]
+    }
+  },
+  "rules": {
+    "unknown_facet": "PRESERVE_AND_MAP",
+    "unknown_edge": "PRESERVE_AND_MAP",
+    "cleanup_before_map": "FORBIDDEN",
+    "flattening": "FORBIDDEN"
+  }
+}

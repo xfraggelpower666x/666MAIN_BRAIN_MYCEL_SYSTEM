@@ -123,12 +123,12 @@ export async function listTemplates(): Promise<TemplateSummary[]> {
 //   [concatenated audio blobs]
 //
 // Manifest:
-//   { version: 1, project: Project, files: [{ key, offset, size }] }
+//   { version: 1, project: Project, files: [{ key, offset, size, type? }] }
 
 interface ArchiveManifest {
   version: number;
   project: Project;
-  files: { key: string; offset: number; size: number }[];
+  files: { key: string; offset: number; size: number; type?: string }[];
 }
 
 export async function exportProjectArchive(project: Project): Promise<void> {
@@ -148,9 +148,9 @@ export async function exportProjectArchive(project: Project): Promise<void> {
 
   // Build file table with offsets
   let offset = 0;
-  const fileTable: { key: string; offset: number; size: number }[] = [];
+  const fileTable: ArchiveManifest['files'] = [];
   for (const entry of audioEntries) {
-    fileTable.push({ key: entry.key, offset, size: entry.blob.size });
+    fileTable.push({ key: entry.key, offset, size: entry.blob.size, type: entry.blob.type });
     offset += entry.blob.size;
   }
 
@@ -233,7 +233,7 @@ export async function importProjectArchive(): Promise<Project | null> {
             dataStart + entry.offset,
             dataStart + entry.offset + entry.size,
           );
-          const blob = new Blob([blobBytes], { type: 'audio/wav' });
+          const blob = new Blob([blobBytes], { type: entry.type ?? 'audio/wav' });
           await set(entry.key, blob);
         }
 

@@ -1,0 +1,178 @@
+{
+  "system_id": "LYVRA-DOLMETSCHER-001",
+  "version": "1.3.0",
+  "stage": "STAGE_03_DOLMETSCHER_RUNTIME_VALIDATION",
+  "generated_at": "2026-08-06T14:49:18.976314+00:00",
+  "requirements_count": 20,
+  "requirements": [
+    {
+      "id": "REQ-RT-001",
+      "requirement": "Eine unabhängige neue Nachricht darf nicht ungefragt mit der vorherigen Übersetzung verschmolzen werden.",
+      "runtime_case_ids": [
+        "RT-REL-002",
+        "RT-REL-004",
+        "RT-REL-008"
+      ]
+    },
+    {
+      "id": "REQ-RT-002",
+      "requirement": "Eine erkannte Korrektur muss die aktive Vorversion ersetzen und den betroffenen Absatz vollständig neu verarbeiten.",
+      "runtime_case_ids": [
+        "RT-REL-001",
+        "RT-REL-003",
+        "RT-REL-005"
+      ]
+    },
+    {
+      "id": "REQ-RT-003",
+      "requirement": "Eine semantisch gleiche Ergänzung darf als Extension der vorherigen Aussage klassifiziert werden.",
+      "runtime_case_ids": [
+        "RT-REL-006",
+        "RT-REL-007"
+      ]
+    },
+    {
+      "id": "REQ-RT-004",
+      "requirement": "Diktierrekonstruktion muss doppelte Wörter konservativ entfernen.",
+      "runtime_case_ids": [
+        "RT-DICT-001",
+        "RT-DICT-006"
+      ]
+    },
+    {
+      "id": "REQ-RT-005",
+      "requirement": "ASR-Kandidaten dürfen nur bei hoher und deutlich überlegener Plausibilität automatisch übernommen werden.",
+      "runtime_case_ids": [
+        "RT-DICT-002",
+        "RT-DICT-003",
+        "RT-DICT-005"
+      ]
+    },
+    {
+      "id": "REQ-RT-006",
+      "requirement": "Bei unzureichender Diktierkonfidenz muss HOLD oder unveränderter Rohtext verwendet werden.",
+      "runtime_case_ids": [
+        "RT-DICT-004"
+      ]
+    },
+    {
+      "id": "REQ-RT-007",
+      "requirement": "Die bloße Erwähnung von Framework-Bearbeitung darf keinen Edit-Modus aktivieren.",
+      "runtime_case_ids": [
+        "RT-INT-001",
+        "RT-INT-004",
+        "RT-INT-006"
+      ]
+    },
+    {
+      "id": "REQ-RT-008",
+      "requirement": "Ein aktueller expliziter Entwicklungsauftrag darf als Edit-Intent erkannt werden.",
+      "runtime_case_ids": [
+        "RT-INT-003",
+        "RT-INT-005"
+      ]
+    },
+    {
+      "id": "REQ-RT-009",
+      "requirement": "Erklärfragen müssen von Entwicklungsaufträgen getrennt bleiben.",
+      "runtime_case_ids": [
+        "RT-INT-002"
+      ]
+    },
+    {
+      "id": "REQ-RT-010",
+      "requirement": "Alltags- und persönliche Texte priorisieren kausale, natürliche Zielsprache.",
+      "runtime_case_ids": [
+        "RT-PRI-001",
+        "RT-PRI-002"
+      ]
+    },
+    {
+      "id": "REQ-RT-011",
+      "requirement": "Technische und sensitive Kontexte müssen ihre fachliche Priorität anheben.",
+      "runtime_case_ids": [
+        "RT-PRI-003",
+        "RT-PRI-004"
+      ]
+    },
+    {
+      "id": "REQ-RT-012",
+      "requirement": "Mehrere emotionale und kommunikative Ebenen dürfen parallel bestehen.",
+      "runtime_case_ids": [
+        "RT-HUM-001",
+        "RT-HUM-002"
+      ]
+    },
+    {
+      "id": "REQ-RT-013",
+      "requirement": "Emojis dürfen Wörter oder Informationen niemals ersetzen.",
+      "runtime_case_ids": [
+        "RT-OUT-001",
+        "RT-OUT-002",
+        "RT-OUT-003"
+      ]
+    },
+    {
+      "id": "REQ-RT-014",
+      "requirement": "Bedeutungstragende Begriffe dürfen regelkonform fett-kursiv hervorgehoben werden, geschützte Tokens nicht.",
+      "runtime_case_ids": [
+        "RT-OUT-004",
+        "RT-OUT-005"
+      ]
+    },
+    {
+      "id": "REQ-RT-015",
+      "requirement": "Die teilbare Übersetzung muss ohne vermischten Assistentenkommentar isoliert bleiben.",
+      "runtime_case_ids": [
+        "RT-OUT-006"
+      ]
+    },
+    {
+      "id": "REQ-RT-016",
+      "requirement": "HOLD muss Ziel-, Nachrichtenbeziehungs- und Diktierunsicherheit unterscheiden und automatisch auflösen können.",
+      "runtime_case_ids": [
+        "RT-HOLD-001",
+        "RT-HOLD-002",
+        "RT-HOLD-003",
+        "RT-HOLD-004"
+      ]
+    },
+    {
+      "id": "REQ-RT-017",
+      "requirement": "Confidence ist ein Qualitätsindikator und keine Perfektionsgarantie.",
+      "runtime_case_ids": [
+        "RT-CONF-001",
+        "RT-CONF-002",
+        "RT-CONF-003",
+        "RT-CONF-004"
+      ]
+    },
+    {
+      "id": "REQ-RT-018",
+      "requirement": "Der 🧐🦆-Companion muss optional, nachgelagert, zweisprachig und getrennt teilbar sein.",
+      "runtime_case_ids": [
+        "RT-DUCK-001",
+        "RT-DUCK-002",
+        "RT-DUCK-003",
+        "RT-DUCK-004"
+      ]
+    },
+    {
+      "id": "REQ-RT-019",
+      "requirement": "Erweiterte Zustände müssen gegen State- und Checkpoint-Schema validierbar sein.",
+      "runtime_case_ids": [
+        "RT-SCHEMA-001",
+        "RT-SCHEMA-002"
+      ]
+    },
+    {
+      "id": "REQ-RT-020",
+      "requirement": "Lokale Runtime-Tests dürfen weder externe Systemmutation noch eine nicht ausgeführte Sprachmodellprüfung behaupten.",
+      "runtime_case_ids": [
+        "RT-ISO-001",
+        "RT-ISO-002",
+        "RT-EXT-001"
+      ]
+    }
+  ]
+}

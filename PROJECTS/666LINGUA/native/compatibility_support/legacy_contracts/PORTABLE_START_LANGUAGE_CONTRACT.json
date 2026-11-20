@@ -1,0 +1,24 @@
+{
+  "schema": "lyvra-portable-start-language-contract-v1",
+  "system_id": "LYVRA-DOLMETSCHER-001",
+  "version": "2.1.1",
+  "revision": "R2P7",
+  "first_visible_start_notice": "REQUIRED",
+  "language_priority": [
+    "HOST_GPT_SYSTEM_OR_CONVERSATION_LANGUAGE_IF_EXPOSED",
+    "CURRENT_CONVERSATION_LANGUAGE",
+    "FIRST_USER_MESSAGE_LANGUAGE",
+    "RECENT_USER_LANGUAGE",
+    "INTERNATIONAL_ENGLISH"
+  ],
+  "system_language_scope": [
+    "startup_message",
+    "menus",
+    "help",
+    "status_and_audit_explanations",
+    "companion_explanations"
+  ],
+  "system_language_is_translation_target": false,
+  "fallback_start_command": "START LYVRA INTERPRETER",
+  "truthfulness_rule": "Do not claim direct access to GPT UI/default-language settings unless the host actually exposes them."
+}

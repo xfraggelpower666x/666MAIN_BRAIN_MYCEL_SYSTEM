@@ -7,7 +7,7 @@ description: Perform governed repository-native additive updates for 666MAIN BRA
 
 1. Rehydrate current MAIN BRAIN authority and current work scope.
 2. Read fresh HEAD and bind expected target blob SHAs.
-3. Extract material delta from direct user intent plus validated unconsumed native handoffs.
+3. Extract material delta from direct user intent plus validated unconsumed native handoffs. Apply [MAIN BRAIN update scope](../../GOVERNANCE/WRITE_GOVERNANCE.md#main-brain-update-scope) before choosing work or preparing writes. If there is no authorized MAIN BRAIN delta, report the current state without publishing a new pointer.
 4. Preserve active work and valid newer evolution.
 5. Peer input remains proposal until locally validated.
 6. Verify repository, branch, permissions, targets and recovery points.

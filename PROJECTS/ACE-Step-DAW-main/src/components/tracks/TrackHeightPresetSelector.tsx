@@ -53,7 +53,7 @@ export function TrackHeightPresetSelector() {
             <button
               key={value}
               onClick={() => handleSelect(value)}
-              className="w-full text-left px-3 py-1.5 text-[11px] text-zinc-200 hover:bg-daw-accent hover:text-white transition-colors"
+              className="w-full text-left px-3 py-1.5 text-[11px] text-zinc-200 hover:bg-daw-accent hover:text-zinc-900 transition-colors"
             >
               {label}
             </button>

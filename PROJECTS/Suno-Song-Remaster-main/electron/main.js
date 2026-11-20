@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
-const { fileURLToPath } = require('url');
+const { pathToFileURL } = require('url');
 
 let mainWindow;
 const authorizedReadPaths = new Set();
@@ -17,25 +17,10 @@ function normalizePath(filePath) {
 const previewDir = path.join(os.tmpdir(), 'spotify-worthy-preview');
 const audioExtensions = new Set(['.mp3', '.wav', '.flac', '.aac', '.m4a']);
 
-if (!fs.existsSync(previewDir)) {
-  fs.mkdirSync(previewDir, { recursive: true });
-}
-
-function isAppUrl(value) {
-  try {
-    const url = new URL(value);
-    if (!app.isPackaged && url.origin === 'http://localhost:5173') return true;
-    return url.protocol === 'file:' &&
-      path.resolve(fileURLToPath(url)) === path.resolve(__dirname, '../dist/index.html');
-  } catch {
-    return false;
-  }
-}
-
 function assertTrustedSender(event) {
   if (!mainWindow || event.sender !== mainWindow.webContents ||
       event.senderFrame !== mainWindow.webContents.mainFrame ||
-      !isAppUrl(event.senderFrame.url)) {
+      !isAppUrl(event.senderFrame?.url)) {
     throw new Error('Untrusted IPC sender');
   }
 }
@@ -53,6 +38,20 @@ function toBuffer(data) {
     return Buffer.from(data.buffer, data.byteOffset, data.byteLength);
   }
   throw new Error('Invalid file data');
+}
+
+if (!fs.existsSync(previewDir)) {
+  fs.mkdirSync(previewDir, { recursive: true });
+}
+
+function isAppUrl(value) {
+  try {
+    const url = new URL(value);
+    if (!app.isPackaged && url.origin === 'http://localhost:5173') return true;
+    return url.href === pathToFileURL(path.join(__dirname, '../dist/index.html')).href;
+  } catch {
+    return false;
+  }
 }
 
 function createWindow() {

@@ -302,7 +302,7 @@ export function ShortcutEditorDialog() {
                 onClick={() => setActiveCategory(cat.id)}
                 className={`px-2.5 py-1 rounded text-[10px] font-semibold uppercase tracking-wide transition-colors whitespace-nowrap ${
                   activeCategory === cat.id
-                    ? 'bg-daw-accent text-white'
+                    ? 'bg-daw-accent text-zinc-900'
                     : 'text-zinc-400 hover:text-zinc-300 hover:bg-white/5'
                 }`}
               >
@@ -366,7 +366,7 @@ export function ShortcutEditorDialog() {
             </button>
             <button
               onClick={() => setShow(false)}
-              className="px-3 py-1 text-[10px] rounded bg-daw-accent text-white hover:brightness-110 transition-colors"
+              className="px-3 py-1 text-[10px] rounded bg-daw-accent text-zinc-900 hover:brightness-110 transition-colors"
             >
               Done
             </button>

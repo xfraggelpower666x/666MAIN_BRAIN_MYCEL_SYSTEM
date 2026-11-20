@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:lyvra:dolmetscher:device-share-adapter:1.5.0",
+  "title": "Device and Share Adapter Envelope",
+  "type": "object",
+  "required": [
+    "adapter_id",
+    "platform",
+    "input_kind",
+    "raw_payload_hash",
+    "language_hint",
+    "target_profile",
+    "format_constraints",
+    "share_target",
+    "privacy_scope",
+    "translation_output",
+    "companion_system_language_output",
+    "companion_target_language_output",
+    "confidence_evidence",
+    "adapter_metadata",
+    "translation_mutated"
+  ],
+  "properties": {
+    "adapter_id": {
+      "type": "string"
+    },
+    "platform": {
+      "enum": [
+        "GENERIC",
+        "IOS",
+        "ANDROID",
+        "DESKTOP",
+        "WEB"
+      ]
+    },
+    "input_kind": {
+      "enum": [
+        "TEXT_INPUT",
+        "ASR_INPUT",
+        "CLIPBOARD_INPUT",
+        "DOCUMENT_INPUT"
+      ]
+    },
+    "raw_payload_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "language_hint": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "target_profile": {
+      "type": "string"
+    },
+    "format_constraints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "share_target": {
+      "enum": [
+        "SHARE_OUTPUT",
+        "WHATSAPP_SHARE",
+        "GENERIC_MESSENGER_SHARE",
+        "COPY_TO_CLIPBOARD"
+      ]
+    },
+    "privacy_scope": {
+      "enum": [
+        "SESSION_ONLY",
+        "EXPLICIT_EXPORT"
+      ]
+    },
+    "translation_output": {
+      "type": "string"
+    },
+    "companion_system_language_output": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "companion_target_language_output": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "confidence_evidence": {
+      "type": "object"
+    },
+    "adapter_metadata": {
+      "type": "object"
+    },
+    "translation_mutated": {
+      "const": false
+    },
+    "device_runtime_verified": {
+      "const": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -25,8 +25,8 @@ test('filesystem IPC requires dialog authorization and avoids batch collisions',
       constructor() {
         this.webContents = {
           mainFrame: { url: pathToFileURL(path.join(__dirname, '../dist/index.html')).href },
-          on: () => {},
-          setWindowOpenHandler: () => {},
+          on: (name, handler) => { this.webContents[name] = handler; },
+          setWindowOpenHandler: handler => { this.webContents.windowOpenHandler = handler; },
           openDevTools: () => {}
         };
         window = this;
@@ -58,6 +58,10 @@ test('filesystem IPC requires dialog authorization and avoids batch collisions',
     await assert.rejects(handlers.get('read-audio-file')(
       { sender: {}, senderFrame: window.webContents.mainFrame }, input
     ), /Untrusted/);
+    let blocked = false;
+    window.webContents['will-navigate']({ preventDefault: () => { blocked = true; } }, 'https://example.com');
+    assert.equal(blocked, true);
+    assert.deepEqual(window.webContents.windowOpenHandler(), { action: 'deny' });
 
     await assert.rejects(invoke('write-file', save, new Uint8Array([4])), /not selected/);
     dialogs.push({ filePath: save });

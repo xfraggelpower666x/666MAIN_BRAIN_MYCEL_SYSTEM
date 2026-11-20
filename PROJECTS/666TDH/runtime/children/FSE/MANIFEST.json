@@ -1,0 +1,114 @@
+{
+  "system_id": "666FSE-001",
+  "control_plane_version": "v1.0.0",
+  "source_package_version": "V4.1-SAFETY-FREEZE",
+  "source_native_system": "UNRESOLVED_HOLD",
+  "source_sha256": "19b6e7d68bfce5d6a85d09bac13cdcb2dcad2970fc53c4ae5f34b72742486ba0",
+  "files": [
+    {
+      "path": "AUDIT_REPORT.md",
+      "size": 386,
+      "sha256": "d21c31665decb422ef62d48df574b8589c1b70ba6d4bad3dc088147ceb366652"
+    },
+    {
+      "path": "CURRENT_POINTER.md",
+      "size": 289,
+      "sha256": "c42e15a7232a4c6a89664dbb8ba6bde76308e18606a4787d327a0dbeb232bb6f"
+    },
+    {
+      "path": "DAEMON_ADAPTER.md",
+      "size": 684,
+      "sha256": "043bbd95df3078aaefc451541b908a8cc053231cd3185ada10f4805050724f82"
+    },
+    {
+      "path": "ISOLATION_CONTRACT.md",
+      "size": 381,
+      "sha256": "5eafcab7c69d943547b8d1801ef6b0782132e73f3e3b3d3d043951883e3b28e3"
+    },
+    {
+      "path": "RUNTIME_MAP.md",
+      "size": 494,
+      "sha256": "0ce0b732aa02550c0cb1ab507d54a8389a5b8989450d21955381ee5ab6ecca09"
+    },
+    {
+      "path": "SOURCE_AUTHORITY.md",
+      "size": 295,
+      "sha256": "df76da89b606de87c331aead2ddb6621d73fcd04500a7f469f8130faa12b2ac6"
+    },
+    {
+      "path": "SOURCE_SNAPSHOTS/AUDIT/POST_REPAIR_AUDIT.md",
+      "size": 626,
+      "sha256": "367033e47c04f5e56ca73e4f72875f1c7bfd2780299b99c6a2b4a091f9828de4"
+    },
+    {
+      "path": "SOURCE_SNAPSHOTS/AUTOMATION/AUTOMATION_ENGINE_V3_ULTRA.md",
+      "size": 1584,
+      "sha256": "4dba9d0cd8e99f57c8987266bb6cbdecdc06b4ea202966056eb46e75b07fbdcf"
+    },
+    {
+      "path": "SOURCE_SNAPSHOTS/CONTROL/FRAGGLE_UNIVERSAL_PROMPT_v4_PRO.txt",
+      "size": 4645,
+      "sha256": "732f0180a3f677cdca6bb9371e4a19b6644c3682d0aecc1ee3cfc50c43cecdad"
+    },
+    {
+      "path": "SOURCE_SNAPSHOTS/CORE/execution_logic.md",
+      "size": 370,
+      "sha256": "69cdc46dd7897a98835e83aabeef64454a2a627e0796a67d1c3318c8e9f828f1"
+    },
+    {
+      "path": "SOURCE_SNAPSHOTS/CORE/kernel.md",
+      "size": 273,
+      "sha256": "8e2d6c286b8256c0565e60f91b361c26c7cfc0a4fad8c35832fca7c56e7d4f24"
+    },
+    {
+      "path": "SOURCE_SNAPSHOTS/CORE/system_map.md",
+      "size": 451,
+      "sha256": "d198dea0c1bca9597a09348a1d1457482d58277b4701f1438281282e07e3c4a7"
+    },
+    {
+      "path": "SOURCE_SNAPSHOTS/FREEZE/FREEZE_LOCK.json",
+      "size": 269,
+      "sha256": "e36b48493eda8c7a70dd178e70cdccfedb71dd34e819d74e0a448b172cb6a473"
+    },
+    {
+      "path": "SOURCE_SNAPSHOTS/PROJECT_ID.json",
+      "size": 254,
+      "sha256": "cf23b4ae4f1e196b0a855ec81612e4bf393c113ec1014943c18c861d69815730"
+    },
+    {
+      "path": "SOURCE_SNAPSHOTS/V4_RUNTIME/BOOT_SEQUENCE_V4.md",
+      "size": 737,
+      "sha256": "2ea06c06b149b2395908b2ab32c7194d8f52d733637d0d0e2444f526c1461f85"
+    },
+    {
+      "path": "SOURCE_SNAPSHOTS/V4_RUNTIME/START_HERE_V4.md",
+      "size": 1430,
+      "sha256": "d54a0d18de1864336c76d27b3f0f6a1967ce08d6c3a7ea05c7990d07fca01f14"
+    },
+    {
+      "path": "SOURCE_SNAPSHOTS/V4_RUNTIME/SYSTEM_ACTIVE_V4.json",
+      "size": 2887,
+      "sha256": "0c33fa2924a58c96e34f911a197388b6588905b0b188950b054068ee89166018"
+    },
+    {
+      "path": "SOURCE_VAULT/FRAGGLE_SYSTEM_EXPORT_V4_1_SAFETY_REPAIR_FREEZE_SYSTEM_BACKUP_FULL.zip",
+      "size": 69299620,
+      "sha256": "19b6e7d68bfce5d6a85d09bac13cdcb2dcad2970fc53c4ae5f34b72742486ba0"
+    },
+    {
+      "path": "SYSTEM_IDENTITY.md",
+      "size": 514,
+      "sha256": "7a2388ec486fb7884bf4157933561fd0de2924c14374536d85df01c16eeca4c0"
+    },
+    {
+      "path": "TRIGGER_CONTRACT.md",
+      "size": 302,
+      "sha256": "e353d05df6a4cc98b998bfbb3ada12a37cf31b64d038323590f4ae6b9458f4e0"
+    },
+    {
+      "path": "VISUAL_OUTPUT_ADAPTER.md",
+      "size": 474,
+      "sha256": "42f301530ca2d34a1e8e666d1670add31e261bbf3b8dd4be850140d0e9f270f7"
+    }
+  ]
+}

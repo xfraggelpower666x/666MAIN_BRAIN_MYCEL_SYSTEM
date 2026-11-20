@@ -1,0 +1,22 @@
+{
+  "schema": "lyvra-dolmetscher-quality-cycle-freeze-v1",
+  "system_id": "LYVRA-DOLMETSCHER-001",
+  "version": "2.2.3",
+  "portable_revision": null,
+  "quality_cycle": {
+    "audit": "PASS_WITH_REPAIR_ITEMS",
+    "repair": "COMPLETE",
+    "improvement": "COMPLETE",
+    "re_audit": "PASS",
+    "freeze": "PASS_FROZEN"
+  },
+  "four_frame_native_perception": true,
+  "separate_inspector": false,
+  "separate_service": false,
+  "separate_worker": false,
+  "visible_variant_count": 4,
+  "single_output_default_forbidden": true,
+  "share_truthfulness": true,
+  "learning_owner": "WHOLE_TRANSLATOR",
+  "status": "PASS_FROZEN"
+}
