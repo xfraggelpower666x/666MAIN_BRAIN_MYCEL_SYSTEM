@@ -710,13 +710,46 @@ async function browseImages(images) {
   await table.present(false);
 }
 
+// Safety boundary for image URLs from untrusted share transcript metadata.
+// Scriptable Request has no streaming response API: MAX is checked after load.
+// Do not treat this as DNS pinning, redirect control or a pre-download memory cap.
+const MAX_IMAGE_DOWNLOAD_BYTES = 30 * 1024 * 1024;
+function isSafeRemoteImageUrl(value) {
+  const url = String(value || '').trim();
+  if (url.length > 4096 || Array.from(url).some(ch => ch.charCodeAt(0) <= 32 || ch.charCodeAt(0) === 127)) return false;
+  const match = /^https:\/\/([^\/?#]+)(?:[\/?#]|$)/i.exec(url);
+  if (!match || url.includes('#') || match[1].includes('@')) return false;
+  const authority = match[1].toLowerCase();
+  if (authority.includes(':') || authority.includes('[') || authority.includes(']')) return false;
+  const hostname = authority.replace(/\.$/, '');
+  if (!hostname || hostname.length > 253 || !/^[a-z0-9.-]+$/.test(hostname)) return false;
+  if (hostname.split('.').length < 2 || /(^|\.)(localhost|local|internal|lan|home|test|invalid|onion)$/.test(hostname)) return false;
+  if (/^[0-9.]+$/.test(hostname)) return false;
+  return hostname.split('.').every(label => label && label.length <= 63 && !label.startsWith('-') && !label.endsWith('-'));
+}
+async function fetchSafeImageBytes(url) {
+  if (!isSafeRemoteImageUrl(url)) throw new Error('Blocked unsafe image URL');
+  const request = new Request(url);
+  request.timeoutInterval = CONFIG.REQUEST_TIMEOUT_SECONDS;
+  const data = await request.load();
+  if (!data || data.length <= 0 || data.length > MAX_IMAGE_DOWNLOAD_BYTES) {
+    throw new Error('Image is empty or exceeds the 30 MB file limit');
+  }
+  const lengthHeader = request.response && request.response.headers &&
+    (request.response.headers['Content-Length'] || request.response.headers['content-length']);
+  if (lengthHeader && Number(lengthHeader) > MAX_IMAGE_DOWNLOAD_BYTES) {
+    throw new Error('Image exceeds the 30 MB declared size limit');
+  }
+  return data;
+}
+
 async function imageAction(asset, i) {
   const a=new Alert(); a.title=asset.name||`Image ${i+1}`; a.message=[`URL: ${asset.url||'-'}`,`Pointer: ${asset.assetPointer||'-'}`,`MIME: ${asset.mimeType||'-'}`].join('\n');
-  if (/^https?:\/\//i.test(asset.url||'')) { a.addAction(t('Preview','Vorschau')); a.addAction(t('Download','Herunterladen')); }
+  if (isSafeRemoteImageUrl(asset.url)) { a.addAction(t('Preview','Vorschau')); a.addAction(t('Download','Herunterladen')); }
   a.addAction(t('Copy Metadata','Metadaten kopieren')); a.addCancelAction(t('Close','Schließen'));
   const c=await a.presentAlert();
-  if (/^https?:\/\//i.test(asset.url||'')) {
-    if (c===0) { try { const img=await new Request(asset.url).loadImage(); await QuickLook.present(img); } catch(e){ await info(String(e)); } }
+  if (isSafeRemoteImageUrl(asset.url)) {
+    if (c===0) { try { const img=Image.fromData(await fetchSafeImageBytes(asset.url)); await QuickLook.present(img); } catch(e){ await info(String(e)); } }
     if (c===1) await downloadImages([asset]);
     if (c===2) Pasteboard.copyString(JSON.stringify(asset,null,2));
   } else if (c===0) Pasteboard.copyString(JSON.stringify(asset,null,2));
@@ -729,7 +762,7 @@ async function downloadImages(images) {
   for (let i=0;i<images.length;i++) {
     const a=images[i];
     try {
-      const r=new Request(a.url); r.timeoutInterval=CONFIG.REQUEST_TIMEOUT_SECONDS; const data=await r.load();
+      const data=await fetchSafeImageBytes(a.url);
       const ext=guessExt(a); const name=safeFilename(a.name||`image_${i+1}`.replace(/\.[^.]+$/,'')); const path=uniquePath(dir,name,ext);
       fm.write(path,data); const rb=fm.read(path); if(rb.length!==data.length) throw new Error('binary readback mismatch'); saved.push(path);
     } catch(e){ failed.push({asset:a,error:String(e&&e.message||e)}); }
@@ -768,8 +801,9 @@ async function saveAll() {
   const raw={version:2,exportedAt:new Date().toISOString(),sourceUrl:currentChat.sourceUrl||'',parser:currentChat.parser,parserDetails:currentChat.parserDetails,title:currentChat.title,shareId:currentChat.shareId,participants:currentChat.participants,messages:currentChat.messages.map(m=>({id:m.id,role:m.role,author:m.author,participantId:m.participantId,participantDisplayName:m.participantDisplayName,createdAt:m.createdAt,contentType:m.contentType,rawContent:m.rawContent,rawMetadata:m.rawMetadata,renderedText:m.renderedText,copyFields:m.copyFields,warnings:m.warnings,assets:m.assets}))};
   const rawp=fm.joinPath(sourceDir,'conversation.raw.json');fm.writeString(rawp,JSON.stringify(raw,null,2));files.push(rawp);
   if(currentSourceHtml && currentSourceHtml.length<=CONFIG.MAX_RAW_HTML_CHARS){const hp=fm.joinPath(sourceDir,'share-source.html');fm.writeString(hp,currentSourceHtml);files.push(hp);}
-  if(settings.saveImages){const images=collectImageAssets(currentChat).filter(x=>/^https?:\/\//i.test(x.url||'')); if(images.length){const idir=fm.joinPath(dir,'assets');if(!fm.fileExists(idir))fm.createDirectory(idir,true);for(let i=0;i<images.length;i++){try{const data=await new Request(images[i].url).load();const p=uniquePath(idir,safeFilename(images[i].name||`image_${i+1}`),guessExt(images[i]));fm.write(p,data);files.push(p);}catch(_){}}}}
-  const manifest={tool:APP.name,version:APP.version,createdAt:new Date().toISOString(),note:'Scriptable has no native ZIP writer. This is a portable iCloud folder. Use Share Sheet / Files to compress the folder if desired.',files:files.map(p=>({path:p.replace(dir+'/',''),size:fm.fileSize(p)}))};
+  const assetDownloadFailures=[];
+  if(settings.saveImages){const images=collectImageAssets(currentChat).filter(x=>isSafeRemoteImageUrl(x.url)); if(images.length){const idir=fm.joinPath(dir,'assets');if(!fm.fileExists(idir))fm.createDirectory(idir,true);for(let i=0;i<images.length;i++){try{const data=await fetchSafeImageBytes(images[i].url);const p=uniquePath(idir,safeFilename(images[i].name||`image_${i+1}`),guessExt(images[i]));fm.write(p,data);files.push(p);}catch(error){assetDownloadFailures.push({name:images[i].name||`image_${i+1}`,error:String(error&&error.message||error)});}}}}
+  const manifest={tool:APP.name,version:APP.version,createdAt:new Date().toISOString(),note:'Scriptable has no native ZIP writer. This is a portable iCloud folder. Use Share Sheet / Files to compress the folder if desired.',files:files.map(p=>({path:p.replace(dir+'/',''),size:fm.fileSize(p)})),assetDownloadFailures};
   const mp=fm.joinPath(dir,'package_manifest.json');fm.writeString(mp,JSON.stringify(manifest,null,2));files.push(mp);
   lastSaved=files; await info(t(`Portable folder saved with ${files.length} files.`, `Portabler Ordner mit ${files.length} Dateien gespeichert.`)); await shareOrDone(files.slice(0,Math.min(files.length,20)));
 }
