@@ -76,7 +76,7 @@ def project(menu: dict, state: dict, *, handoff: dict | None = None) -> dict:
                        "text": scope + " @ " + head},
                       {"label": "Funktion", "text": description}],
         })
-    blocker = state["blockers"][0] if state["blockers"] else "Keine weitere Blockeraussage belegt"
+    blocker = state["blockers"][0] if state["blockers"] else None
     next_action = state.get("next_action")
     next_text = (next_action.get("label") if isinstance(next_action, dict) else None)
     if next_text is None:
@@ -87,12 +87,39 @@ def project(menu: dict, state: dict, *, handoff: dict | None = None) -> dict:
         "project_key": scope,
         "source_revision": head,
         "last_evidence": _text(state.get("last_verified_step") or "Kein letzter Schritt belegt", "last_verified_step"),
-        "blocker": _text(str(blocker), "blocker"),
         "next_step": _text(next_text, "next_step"),
         "reason": "MAIN-BRAIN Current und Zustandsnachweis; keine autonome Ausführung",
         "countercheck": "Pointer, Source-HEAD, Scope und tatsächliches Hostverhalten gegenprüfen",
         "start_mode": "project",
     }
+    if blocker is not None:
+        companion["blocker"] = _text(str(blocker), "blocker")
+    native_actions = menu.get("native_actions", [])
+    allowed = {
+        "666MAIN BRAIN STATUS", "666MAIN BRAIN WEITER",
+        "666MAIN BRAIN DASHBOARD", "666MAIN BRAIN HELP",
+    }
+    if not isinstance(native_actions, list) or len(native_actions) > 4:
+        raise ValueError("MENU: native Aktionen müssen höchstens vier Einträge sein")
+    seen = set()
+    actions = []
+    for item in native_actions:
+        if not isinstance(item, dict):
+            raise ValueError("MENU: Aktionsdatensatz muss Objekt sein")
+        trigger = item.get("trigger")
+        if (trigger not in allowed or trigger in seen
+                or item.get("requires_direct_user_click") is not True):
+            raise ValueError("MENU: unbekannte, doppelte oder ungebundene native Aktion")
+        seen.add(trigger)
+        ident = "native-" + trigger.rsplit(" ", 1)[-1].lower()
+        actions.append({
+            "id": ident, "kind": "navigate", "label": trigger,
+            "source": "UI/INTELLIGENT_UI/MENU_REGISTRY.json @ " + head,
+            "reason": "Gültiger MAIN-BRAIN-Texttrigger; nur anzeigen/kopieren, keine automatische Ausführung",
+            "effect": "Der Nutzer kann den exakten Befehl selbst im Chat senden",
+            "countercheck": "Nach direktem Nutzertrigger native Authority und beobachteten Hosteffekt prüfen",
+            "status": "VORGESCHLAGEN",
+        })
     if handoff is not None:
         if not isinstance(handoff, dict) or not _same_context(state, handoff):
             raise ValueError("UI-Handoff: Projekt, Revision oder Lineage abweichend")
@@ -107,7 +134,7 @@ def project(menu: dict, state: dict, *, handoff: dict | None = None) -> dict:
         "title": "PSYLLO · MYCEL Intelligent UI",
         "basis": "CURRENT_POINTER.md / " + head,
         "handoff_format": "neutral",
-        "views": views, "gaps": gaps, "companion": companion,
+        "views": views, "gaps": gaps, "companion": companion, "actions": actions,
     }
 
 
