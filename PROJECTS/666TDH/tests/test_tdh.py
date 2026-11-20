@@ -62,5 +62,18 @@ class RepoCurrentTest(unittest.TestCase):
         self.assertEqual(self.current.execute("666TDH VISUAL")["visual_host_acceptance"], "OPEN_NOT_VERIFIED")
 
 
+    def test_repo_update_is_pfs_independent(self):
+        result = self.current.execute("666TDH UPDATE", True)
+        authority = "runtime/REPO_UPDATE_AUTHORITY.md"
+        self.assertEqual(result["publication"]["target"], "666MAIN_BRAIN:PROJECTS/666TDH")
+        self.assertIn(authority, result["bootstrap_order"])
+        policy = result["bootstrap"][authority]
+        self.assertIn("PFS_RUNTIME_AUTHORITY=NONE", policy)
+        self.assertIn("PFS_MUTATION_FROM_TDH=FORBIDDEN", policy)
+        self.assertIn("CURRENT_POINTER_LAST=TRUE", policy)
+        self.assertIn("FSE source-original archive: SOURCE_VAULT_ONLY", policy)
+        self.assertEqual(len(self.current.registry["children"]), 5)
+
+
 if __name__ == "__main__":
     unittest.main()

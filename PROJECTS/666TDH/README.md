@@ -18,3 +18,18 @@ TD, LCTS, DTSTE, FSE und SHACHIVITI bleiben eigenständige Childs von 666TDH. De
 - [LiveCircle und Update](runtime/LIVECIRCLE.md)
 - [Chat-Host-Bindung](skills/666tdh/SKILL.md)
 - [Migration und Datenprovenienz](provenance/MIGRATION.md)
+
+## Repo-native update authority
+
+The standalone repository update contract is
+[runtime/REPO_UPDATE_AUTHORITY.md](runtime/REPO_UPDATE_AUTHORITY.md).
+The historical Drive/PFS dual-publish policies in the extracted Hub
+are retained as evidence; they cannot authorize PFS or Drive mutation.
+`666TDH UPDATE` changes only this project's repository tree, with
+pre-change recovery, verified data, and CURRENT_POINTER.json last.
+The native provider source release is still v1.15.0; repo policy revision R1
+does not relabel child data versions.
+
+The original FSE source-vault archive is not published here because it may
+contain credentials. See provenance/SOURCE_VAULT_ONLY.json for safe recovery
+metadata. The interactive ChatGPT host acceptance remains open.
