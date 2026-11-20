@@ -1,0 +1,39 @@
+name: ChatBackup R5.1 additive regression
+on:
+  push:
+    branches: [feature/chatbackup-archive-intelligence-r5-20261120]
+    paths:
+      - .github/workflows/chatbackup-r51-validation.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: 'PROJECTS/ChatBackup PC Tool'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: python -m pip install pytest 'Pillow>=11,<13'
+      - name: Optional archive add-on tests
+        run: python -m pytest -q tests/test_archive_intelligence.py tests/test_archive_extensions.py
+      - name: Existing Python regression
+        run: python -m pytest -q tests
+      - name: Existing baseline
+        run: python tests/run_tests.py
+      - name: Existing Scriptable tests
+        run: |
+          node mobile_scriptable/source/tests/host_acceptance.test.cjs mobile_scriptable/source/666_CHATBACKUP_SCRIPTABLE_IPHONE_v1.0.9.js
+          node mobile_scriptable/source/tests/image_download_security.test.cjs
+      - name: Syntax and CLI check
+        run: |
+          python -m py_compile app/archive_intelligence.py app/archive_extensions.py app/archive_research.py tools/archive_intelligence_cli.py tools/archive_intelligence_gui.py
+          python tools/archive_intelligence_cli.py --help
