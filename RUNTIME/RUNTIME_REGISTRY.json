@@ -112,5 +112,31 @@
     "666MAINSYSTEM SYSTEMSTART",
     "666MAINSYSTEM UPDATE",
     "666MAINSYSTEM WEITER"
-  ]
+  ],
+  "mycel_r01": {
+    "version": "R01",
+    "status": "REPOSITORY_SOURCE_INTEGRATED_HOST_PENDING",
+    "facet_registry": "RUNTIME/FACET_RUNTIME_REGISTRY.json",
+    "facet_sub_lifecircle": "RUNTIME/FACET_SUB_LIVECIRCLE.md",
+    "facet_sub_rehydration": "RUNTIME/FACET_SUB_REHYDRATION.md",
+    "shared_daemon": {
+      "contract": "DAEMON/GUIDANCE_CONTRACT.md",
+      "lifecircle": "DAEMON/LIVECIRCLE.md",
+      "rehydration": "DAEMON/REHYDRATION.md",
+      "state": "DAEMON/STATE_SCHEMA.json",
+      "adapters": "DAEMON/FACET_ADAPTERS.json"
+    },
+    "intelligent_ui": {
+      "contract": "UI/INTELLIGENT_UI/UI_CONTRACT.md",
+      "menu": "UI/INTELLIGENT_UI/MENU_REGISTRY.json",
+      "view_handoff": "UI/INTELLIGENT_UI/UI_HANDOFF_SCHEMA.json"
+    },
+    "development_facet": "INTELLIGENCE/DEV/FACET_CONTRACT.md",
+    "dev_peer_adapter": "INTELLIGENCE/DEV/DEV_SOURCE_ADAPTER.md",
+    "peer_capability_map": "INTEGRATIONS/PEER_CAPABILITY_MAP.json",
+    "authority": "MAIN_BRAIN_ONLY",
+    "foreign_autoload": false,
+    "host_acceptance": "PENDING",
+    "migration_status": "IN_PROGRESS_UNCHANGED"
+  }
 }
