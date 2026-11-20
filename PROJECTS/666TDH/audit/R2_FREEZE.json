@@ -1,0 +1,29 @@
+{
+  "system_id": "666TRACKHUB-001",
+  "base_head": "c4684a8e6e86595e7bb4afca4b9b40b7c2cbd855",
+  "date": "2026-11-20",
+  "version": "v1.15.0",
+  "capability_revision": "R2",
+  "freeze_status": "LOCAL_TESTED_CANDIDATE",
+  "frozen_components": [
+    "root_lifecycle_adapter",
+    "five_scoped_child_profiles",
+    "registry_native_intelligent_menu",
+    "advisory_daemon",
+    "offline_html_renderer",
+    "session_scoped_continuity"
+  ],
+  "evidence": "audit/R2_AUDIT.json",
+  "post_publication_checks_required": [
+    "stage_file_sha256_readback",
+    "pointer_last_diff",
+    "production_head",
+    "pointer_manifest",
+    "scoped_file_hashes"
+  ],
+  "not_attested": [
+    "full_original_repository_regression",
+    "real_chat_host_interactive_acceptance",
+    "private_FSE_source_vault_backup"
+  ]
+}

@@ -1,0 +1,139 @@
+{
+  "system_id": "666TRACKHUB-001",
+  "authority": "REPOSITORY_PROJECT",
+  "native_release": "v1.15.0",
+  "repo_policy_revision": "R1",
+  "root_livecircle": "runtime/LIVECIRCLE.md",
+  "root_rehydration": "runtime/REHYDRATION.md",
+  "root_registry": "runtime/REGISTRY.json",
+  "root_daemon": "runtime/hub/daemon/DAEMON_STATE_SCHEMA.md",
+  "child_profiles": {
+    "TD": {
+      "system_id": "666TRACKDESIGN-001",
+      "version": "v2.9.0",
+      "current_path": "runtime/children/TD/CURRENT_POINTER.json",
+      "visual_adapter_path": "runtime/hub/visual_adapters/TD_VISUAL_ADAPTER.md",
+      "local_lifecycle": [
+        "INTENT",
+        "STRUCTURE",
+        "PROMPT_CONTRACT",
+        "RENDER_VALIDATION",
+        "REVIEW"
+      ],
+      "holds": [],
+      "branch_token": "TD",
+      "ui_sections": [
+        "Track Intent",
+        "Structure",
+        "Lyrics & Prompts",
+        "Renderer",
+        "Review"
+      ],
+      "child_update_authority": "NONE",
+      "source_identity": "VERIFIED_OR_NOT_APPLICABLE",
+      "local_continuity": "SESSION_SCOPED_ONLY"
+    },
+    "LCTS": {
+      "system_id": "666LCTS-001",
+      "version": "v1.1.0",
+      "current_path": "runtime/children/LCTS/CURRENT_POINTER.json",
+      "visual_adapter_path": "runtime/hub/visual_adapters/LCTS_VISUAL_ADAPTER.md",
+      "local_lifecycle": [
+        "LONGFORM_STATE",
+        "EXTEND",
+        "CONTINUITY",
+        "DRIFT_REVIEW",
+        "REVIEW"
+      ],
+      "holds": [],
+      "branch_token": "LCTS",
+      "ui_sections": [
+        "Longform",
+        "Extend",
+        "Continuity",
+        "DJ Mixability",
+        "Review"
+      ],
+      "child_update_authority": "NONE",
+      "source_identity": "VERIFIED_OR_NOT_APPLICABLE",
+      "local_continuity": "SESSION_SCOPED_ONLY"
+    },
+    "DTSTE": {
+      "system_id": "666DTSTE-001",
+      "version": "v1.0.0",
+      "current_path": "runtime/children/DTSTE/CURRENT_POINTER.json",
+      "visual_adapter_path": "runtime/hub/visual_adapters/DTSTE_VISUAL_ADAPTER.md",
+      "local_lifecycle": [
+        "SOURCE_PACKAGE",
+        "TITLE_STYLE_LYRICS_ADVANCED",
+        "OUTPUT_VALIDATION",
+        "REVIEW"
+      ],
+      "holds": [],
+      "branch_token": "DTSTE",
+      "ui_sections": [
+        "Source Package",
+        "Four Output Fields",
+        "Validation",
+        "Review"
+      ],
+      "child_update_authority": "NONE",
+      "source_identity": "VERIFIED_OR_NOT_APPLICABLE",
+      "local_continuity": "SESSION_SCOPED_ONLY"
+    },
+    "FSE": {
+      "system_id": "666FSE-001",
+      "version": "v1.0.0",
+      "current_path": "runtime/children/FSE/CURRENT_POINTER.json",
+      "visual_adapter_path": "runtime/hub/visual_adapters/FSE_VISUAL_ADAPTER.md",
+      "local_lifecycle": [
+        "SOURCE_PROVENANCE",
+        "IDENTITY_HOLD",
+        "EXPORT_REVIEW"
+      ],
+      "holds": [
+        "UNRESOLVED_SOURCE_IDENTITY",
+        "SOURCE_VAULT_ONLY"
+      ],
+      "branch_token": "FSE",
+      "ui_sections": [
+        "Source Provenance",
+        "Identity Hold",
+        "Export Review"
+      ],
+      "child_update_authority": "NONE",
+      "source_identity": "UNRESOLVED_HOLD",
+      "local_continuity": "SESSION_SCOPED_ONLY"
+    },
+    "SHACHIVITI": {
+      "system_id": "666SHACHIVITI-001",
+      "version": "v1.0.0",
+      "current_path": "runtime/children/SHACHIVITI/CURRENT_POINTER.json",
+      "visual_adapter_path": "runtime/hub/visual_adapters/SHACHIVITI_VISUAL_ADAPTER.md",
+      "local_lifecycle": [
+        "SOURCE_CHAIN",
+        "MANTRA_TRACK_STATE",
+        "IDENTITY_HOLD",
+        "REVIEW"
+      ],
+      "holds": [
+        "UNRESOLVED_SOURCE_IDENTITY"
+      ],
+      "branch_token": "SHACHIVITI",
+      "ui_sections": [
+        "Source Chain",
+        "Mantra Track",
+        "Identity Hold",
+        "Review"
+      ],
+      "child_update_authority": "NONE",
+      "source_identity": "UNRESOLVED_HOLD",
+      "local_continuity": "SESSION_SCOPED_ONLY"
+    }
+  },
+  "schema": "666tdh.subfacet-bindings.1",
+  "release": "v1.15.0",
+  "status": "REPO_CURRENT_BOUND",
+  "role": "ADDITIVE_CHILD_SUBFACETS",
+  "mutation_authority": "666TDH UPDATE"
+}

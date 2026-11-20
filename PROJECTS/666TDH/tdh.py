@@ -8,6 +8,11 @@ import json
 from pathlib import Path, PurePosixPath
 import sys
 
+from runtime.facets.lifecycle import (FacetError, validate_bindings, profile_state,
+                                      scoped_continuity, checkpoint_template)
+from runtime.ui.view_model import build_view_model
+from runtime.ui.render_html import render_html
+
 
 SYSTEM_ID = "666TRACKHUB-001"
 NAMESPACE = "666TDH"
@@ -29,6 +34,11 @@ class Current:
         self.registry = self.document("runtime/REGISTRY.json")
         self.routes = self.document("runtime/TRIGGERS.json")
         self.handoff = self.document("continuity/CURRENT_HANDOFF.json")
+        self.subfacet_bindings = self.document("runtime/facets/SUBFACET_BINDINGS.json")
+        try:
+            validate_bindings(self.subfacet_bindings, self.registry, SYSTEM_ID)
+        except FacetError as exc:
+            raise CurrentError(str(exc)) from exc
         if self.registry["system_id"] != SYSTEM_ID or self.handoff["system_id"] != SYSTEM_ID:
             raise CurrentError("Registry oder Handoff gehört zu einem anderen System.")
         if self.handoff["source_release"] != self.pointer["release"]:
@@ -68,16 +78,19 @@ class Current:
             return token, action
         raise CurrentError("Der Trigger oder Branch-Token ist in der aktuellen Registry nicht registriert.")
 
-    def execute(self, message: str, include_bootstrap: bool = False) -> dict:
+    def execute(self, message: str, include_bootstrap: bool = False,
+                checkpoint: dict | None = None) -> dict:
         token, action = self.parse(message)
         # Gehärteter Einstieg. Nur Repo-Current-Dateien sind Teil der Rehydration.
         verified = {path: self.verified(path) for path in self.hashes}
         child = self.registry["children"].get(token)
         current_state = self.pointer["state"]
         bootstrap = self.pointer["bootstrap_order"][:]
+        profile = self.subfacet_bindings["child_profiles"].get(token) if child else None
         if child:
             self.verify_child(token, child)
             bootstrap += child["bootstrap"]
+            bootstrap.append(profile["visual_adapter_path"])
         if action in {"DASHBOARD", "VISUAL"}:
             bootstrap += self.registry["visual_bootstrap"]
         result = {
@@ -94,13 +107,30 @@ class Current:
         }
         if child:
             result["child"] = {key: value for key, value in child.items() if key != "bootstrap"}
+            result["subfacet"] = profile_state(token, profile)
         if action in {"SYSTEMSTART", "HELP", "STATUS", "DASHBOARD", "VISUAL", "HOST RECOVERY"}:
             result["commands"] = self.commands(token)
         if action in {"SYSTEMSTART", "HELP", "STATUS"} and token is None:
             result["hub_commands"] = [f"{NAMESPACE} {route}" for route in self.routes["root"]]
-        if action in {"WEITER", "NEW CHAT", "HOST RECOVERY"}:
-            result["continuity"] = self.continuity(token)
+        if checkpoint is not None and action not in {"WEITER", "NEW CHAT", "SYSTEMSTART"}:
+            raise CurrentError("HOLD: Checkpoint nur für Rehydration/WEITER/NEW CHAT")
+        continuity = None
+        if action in {"WEITER", "NEW CHAT", "HOST RECOVERY"} or checkpoint is not None:
+            try:
+                continuity = scoped_continuity(
+                    checkpoint, pointer_sha256=hashlib.sha256(self.read("CURRENT_POINTER.json")).hexdigest(),
+                    release=self.pointer["release"], target_system_id=child["system_id"] if child else SYSTEM_ID,
+                    branch_token=token, provider_handoff=self.handoff)
+            except FacetError as exc:
+                raise CurrentError(str(exc)) from exc
+            if profile and continuity.get("development_position") is not None and \
+                    continuity["development_position"] not in profile["local_lifecycle"]:
+                raise CurrentError("HOLD: Entwicklungsposition gehört nicht zum Child-Sub-LiveCircle")
+            result["continuity"] = continuity
         if action == "NEW CHAT":
+            result["checkpoint_template"] = checkpoint_template(
+                pointer_raw=self.read("CURRENT_POINTER.json"), release=self.pointer["release"],
+                target_system_id=child["system_id"] if child else SYSTEM_ID, branch_token=token)
             selector = f"{NAMESPACE} {token}" if token else NAMESPACE
             result["next_chat_trigger"] = f"{selector} SYSTEMSTART"
         if action in {"DASHBOARD", "VISUAL"}:
@@ -112,6 +142,10 @@ class Current:
                 "procedure": "runtime/LIVECIRCLE.md",
                 "pointer_last": True,
             }
+        result["intelligent_ui"] = build_view_model(
+            registry=self.registry, routes=self.routes, token=token, release=self.pointer["release"],
+            profile=profile, continuity=continuity, pointer_state=current_state)
+        result["daemon"] = result["intelligent_ui"]["companion"]
         if include_bootstrap:
             result["bootstrap"] = {path: verified[path].decode("utf-8-sig") for path in dict.fromkeys(bootstrap)}
         return result
@@ -148,9 +182,19 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="666TDH Current rehydrieren und einen direkten Trigger auswerten.")
     parser.add_argument("trigger", nargs="+", help="Zum Beispiel 666TDH TD SYSTEMSTART")
     parser.add_argument("--bootstrap", action="store_true", help="Verifizierte Bootstrap-Texte im JSON ausgeben")
+    parser.add_argument("--checkpoint", type=Path, help="Revisionsgebundener lokaler Handoff für WEITER/NEW CHAT")
+    parser.add_argument("--html", type=Path, help="Offline-HTML-Ansicht außerhalb des Repo-Roots exportieren")
     args = parser.parse_args()
     try:
-        result = Current(Path(__file__).parent).execute(" ".join(args.trigger), args.bootstrap)
+        root = Path(__file__).parent
+        checkpoint = json.loads(args.checkpoint.read_text(encoding="utf-8")) if args.checkpoint else None
+        result = Current(root).execute(" ".join(args.trigger), args.bootstrap, checkpoint)
+        if args.html:
+            if args.html.resolve().is_relative_to(root.resolve()) or args.html.suffix.lower() != ".html":
+                raise CurrentError("HOLD: HTML-Ausgabe nur als .html außerhalb des System-Roots")
+            args.html.parent.mkdir(parents=True, exist_ok=True)
+            args.html.write_text(render_html(result["intelligent_ui"]), encoding="utf-8")
+            result["html_export"] = str(args.html)
     except (CurrentError, OSError, KeyError, TypeError, UnicodeError, ValueError) as exc:
         print(json.dumps({"status": "HOLD", "detail": str(exc)}, ensure_ascii=False), file=sys.stderr)
         return 2
