@@ -1,0 +1,50 @@
+{
+  "system_id": "666CLS-CORE-001",
+  "version": "1.24.0",
+  "bootstrap_order": [
+    "CURRENT_POINTER.json",
+    "control/AUTHORITY.json",
+    "control/SYSTEM_REGISTRY.json",
+    "control/BOOTSTRAP.json",
+    "control/FRAMEWORK.md",
+    "control/AUDIT.json",
+    "control/FREEZE.json",
+    "control/READBACK.json",
+    "continuity/LIVECIRCLE.json",
+    "runtime/cls_livecircle.py"
+  ],
+  "systemstart": {
+    "trigger": "666CLS SYSTEMSTART",
+    "mode": "READ_ONLY_REHYDRATION",
+    "requirements": [
+      "resolve repository branch head",
+      "read CURRENT_POINTER",
+      "verify pointer paths and hashes",
+      "verify domain manifests and menus",
+      "verify LiveCircle return anchor",
+      "render native status"
+    ]
+  },
+  "update": {
+    "trigger": "666CLS UPDATE",
+    "mandatory_order": [
+      "AUTHORITY_PREFLIGHT",
+      "PRE_CHANGE_BACKUP",
+      "ANALYZE",
+      "INTEGRATE_LEARNING_DELTA",
+      "AUDIT",
+      "SAFE_REPAIR",
+      "IMPROVE",
+      "RE_AUDIT",
+      "FREEZE",
+      "REPO_COMMIT",
+      "REPO_READBACK",
+      "REGISTRY_HISTORY",
+      "CURRENT_POINTER_LAST",
+      "FINAL_READBACK"
+    ],
+    "pointer_last": true
+  },
+  "drive_fallback_policy": "NEVER_PROMOTE_AUTOMATICALLY",
+  "uncertainty_policy": "PRESERVE_ORIGINAL_AND_HOLD"
+}

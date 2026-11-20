@@ -1,0 +1,24 @@
+{
+  "schema": "666CLS_REPO_LIVECIRCLE_V1",
+  "system_id": "666CLS-CORE-001",
+  "version": "1.24.0",
+  "authority": {
+    "repository": "xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM",
+    "branch": "666MAIN_BRAIN",
+    "root": "PROJECTS/666CLS"
+  },
+  "rehydration_trigger": "666CLS SYSTEMSTART",
+  "continue_trigger": "666CLS WEITER",
+  "update_trigger": "666CLS UPDATE",
+  "return_anchor": "LOCAL_CANDIDATE_AWAITING_GOVERNED_REPO_PUBLICATION",
+  "foreign_trigger_inertness": true,
+  "drive_live_authority": false,
+  "rehydration": {
+    "pointer": "CURRENT_POINTER.json",
+    "registry": "control/SYSTEM_REGISTRY.json",
+    "runtime": "runtime/cls_livecircle.py",
+    "verify_shards": true,
+    "verify_menus": true,
+    "verify_gui": true
+  }
+}

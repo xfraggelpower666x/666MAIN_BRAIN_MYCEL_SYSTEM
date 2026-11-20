@@ -1,0 +1,22 @@
+{
+  "system_id": "666CLS-CORE-001",
+  "version": "1.24.0",
+  "state": "LOCAL_CANDIDATE_PENDING_PUBLICATION",
+  "content_mutation": false,
+  "domains": {
+    "LYRICS": 1520,
+    "RAW_MATERIAL": 1042,
+    "STORIES": 4,
+    "TEXT": 30
+  },
+  "data_schema_versions": {
+    "LYRICS": "1.12.0",
+    "RAW_MATERIAL": "1.12.0",
+    "STORIES": "1.12.0",
+    "TEXT": "1.12.0"
+  },
+  "repository": "xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM",
+  "branch": "666MAIN_BRAIN",
+  "root": "PROJECTS/666CLS",
+  "current_pointer_last": "REQUIRED"
+}
