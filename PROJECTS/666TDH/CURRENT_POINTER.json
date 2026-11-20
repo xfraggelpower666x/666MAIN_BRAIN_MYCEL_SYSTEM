@@ -16,13 +16,14 @@
     "runtime/TRIGGERS.json",
     "runtime/REHYDRATION.md",
     "runtime/LIVECIRCLE.md",
+    "runtime/REPO_UPDATE_AUTHORITY.md",
     "runtime/hub/SYSTEM_WIDE_STATE_FORCE_CONTRACT.md",
     "runtime/provider-state/DAEMON/DAEMON_LIVE_STATE.md",
     "continuity/CURRENT_HANDOFF.json"
   ],
   "files": {
     "continuity/CURRENT_HANDOFF.json": "dcbb02520e9ef23ab4416a9db2463b454db40eb6f4f7d7ec25dcd0fb21b94558",
-    "runtime/LIVECIRCLE.md": "bf6682c5f7dd5ca0183f2d3d89444c2e8ef5b3efdd273a683210cbe52e6b724b",
+    "runtime/LIVECIRCLE.md": "f0cb2d850b5f2e390c8655f537d65778e8f716947aea0f70302d109d918cd2ad",
     "runtime/REGISTRY.json": "bcf3ee530c8a942ea4bcbc1adf6cb300d60a5a234335cbe0ff91ab289ceef723",
     "runtime/REHYDRATION.md": "6df9764c12081bab5b1a926d55590ad48e0d2689fd877c1185aea4b1dde826a4",
     "runtime/TRIGGERS.json": "6a9e74a35a7d2ea98c9fa756206b854117aec7a643e0e42815c73d8e6a7fd6ff",
@@ -285,12 +286,25 @@
     "runtime/visual/666TDH_VISUAL_RUNTIME_STATE_v1.15.0.md": "2c3796735c96c03a46619245cf37ecd44076f7e8eb8e48e97199a402530cf69f",
     "runtime/visual/666TDH_VISUAL_SUB_LIFECYCLE_v1.0.md": "f88017bf04ccc0856c91b4c06d4780b42c906f92a185bc87c1169bb7d2ca77ef",
     "runtime/visual/666TDH_VISUAL_SUB_REHYDRATION_v1.0.md": "441ea23cfaba92287fe86c2d8665992782a00846e6d874dea0be8cbb97c3be61",
-    "skills/666tdh/SKILL.md": "5a89294f60bf5044e8be8d87da32007ccc6b174aebd75774e943fd778435c7db",
-    "tdh.py": "749710b2f4dc3991c7e7147c3e0b2e1c374275fc864ecb55c9e45e7a1405fa10"
+    "skills/666tdh/SKILL.md": "96d62f783c93cf38b0f314c365526aac05ff7504dafce7f4db2f42782d9d2bbb",
+    "tdh.py": "749710b2f4dc3991c7e7147c3e0b2e1c374275fc864ecb55c9e45e7a1405fa10",
+    "runtime/REPO_UPDATE_AUTHORITY.md": "b4420cac2d77cb77a078cb651fa98f2cdaa02651702c7a9b4187047e737d8d83",
+    "README.md": "f8612f07734c2aea519d96541c7429674ba1583428dd8624bbb0b25fa6f66924",
+    "tests/test_tdh.py": "984a3bdc1563f057575f344cefaafa915f8ef2b8e0c227521802791deedf5a4b"
   },
   "source_snapshot": {
     "release": "v1.15.0",
     "path": "provenance/v1.15.0-provider/LIVE_STATE_POINTER.md",
     "sha256": "532bee451e33ff5446dfdb0d348cc37f28dd26744baf080855ec1b8d975edc7f"
+  },
+  "repo_policy_revision": {
+    "revision": "R1",
+    "date": "2026-11-20",
+    "native_release_preserved": "v1.15.0",
+    "recovery_ref": "backup/666TDH/pre-repo-policy-R1-20261120-801c21c5",
+    "base_commit": "801c21c56025fcbb05fcc707e8685733dd369eaf",
+    "scope": "REPOSITORY_PROJECT_ONLY",
+    "pfs_runtime_authority": "NONE",
+    "interactive_host_render": "OPEN_NOT_VERIFIED"
   }
 }
