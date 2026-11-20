@@ -4,9 +4,14 @@ on:
     branches: [feature/chatbackup-archive-intelligence-r5-20261120]
     paths:
       - .github/workflows/chatbackup-r51-validation.yml
+      - 'PROJECTS/ChatBackup PC Tool/app/archive_extensions.py'
+      - 'PROJECTS/ChatBackup PC Tool/tools/archive_intelligence_cli.py'
+      - 'PROJECTS/ChatBackup PC Tool/tools/archive_intelligence_gui.py'
+      - 'PROJECTS/ChatBackup PC Tool/tests/test_archive_extensions.py'
+      - 'PROJECTS/ChatBackup PC Tool/docs/ARCHIVE_INTELLIGENCE_R51.md'
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   regression:
     runs-on: ubuntu-latest
@@ -37,3 +42,34 @@ jobs:
         run: |
           python -m py_compile app/archive_intelligence.py app/archive_extensions.py app/archive_research.py tools/archive_intelligence_cli.py tools/archive_intelligence_gui.py
           python tools/archive_intelligence_cli.py --help
+      - name: Update new module hashes in ChatBackup manifest
+        run: |
+          python - <<'PY'
+          import hashlib,re
+          from pathlib import Path
+          manifest=Path('MANIFEST.sha256')
+          data=manifest.read_text(encoding='utf-8')
+          for name in ['app/archive_extensions.py','tests/test_archive_extensions.py',
+                       'tools/archive_intelligence_cli.py','tools/archive_intelligence_gui.py',
+                       'docs/ARCHIVE_INTELLIGENCE_R51.md']:
+              file=Path(name)
+              assert file.is_file(),name
+              entry=hashlib.sha256(file.read_bytes()).hexdigest()+' *./'+name
+              pattern=r'^[0-9a-f]{64} \*\./'+re.escape(name)+r'$'
+              if re.search(pattern,data,re.MULTILINE):
+                  data=re.sub(pattern,lambda _:entry,data,flags=re.MULTILINE)
+              else:
+                  data=data.rstrip('\n')+'\n'+entry+'\n'
+          manifest.write_text(data,encoding='utf-8')
+          print('R51_MANIFEST_FILES_OK',5)
+          PY
+      - name: Full release integrity after manifest updates
+        run: python tests/release_integrity_probe.py
+      - name: Publish manifest only after all tests PASS
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add MANIFEST.sha256
+          git diff --cached --check
+          git commit -m 'test(chatbackup R5.1): bind optional archive enhancements to SHA256 release manifest'
+          git push origin HEAD:feature/chatbackup-archive-intelligence-r5-20261120
