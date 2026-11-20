@@ -1,13 +1,13 @@
 {
   "schema": "chatbackup.repo-regression.v1",
-  "date_utc": "2026-11-20T21:11:47.767936+00:00",
+  "date_utc": "2026-11-20T21:14:55.570058+00:00",
   "source": "github-actions-linux",
   "physical_windows_host": "READBACK_PENDING",
   "physical_iphone_host": "READBACK_PENDING",
   "tests": {
     "pytest": {
       "exit_code": 0,
-      "tail": "..................................................                       [100%]\n50 passed in 0.42s\n"
+      "tail": "..................................................                       [100%]\n50 passed in 0.39s\n"
     },
     "baseline": {
       "exit_code": 0,
@@ -15,7 +15,14 @@
     },
     "integrity": {
       "exit_code": 2,
-      "tail": "_MYCEL_SYSTEM/PROJECTS/ChatBackup PC Tool/mobile_scriptable/history\"\n    },\n    {\n      \"name\": \"HISTORY_V1_0_6_PRESENT\",\n      \"status\": \"PASS\",\n      \"detail\": \"/home/runner/work/666MAIN_BRAIN_MYCEL_SYSTEM/666MAIN_BRAIN_MYCEL_SYSTEM/PROJECTS/ChatBackup PC Tool/mobile_scriptable/history\"\n    },\n    {\n      \"name\": \"HISTORY_V1_0_7_PRESENT\",\n      \"status\": \"PASS\",\n      \"detail\": \"/home/runner/work/666MAIN_BRAIN_MYCEL_SYSTEM/666MAIN_BRAIN_MYCEL_SYSTEM/PROJECTS/ChatBackup PC Tool/mobile_scriptable/history\"\n    },\n    {\n      \"name\": \"HISTORY_V1_0_8_PRESENT\",\n      \"status\": \"PASS\",\n      \"detail\": \"/home/runner/work/666MAIN_BRAIN_MYCEL_SYSTEM/666MAIN_BRAIN_MYCEL_SYSTEM/PROJECTS/ChatBackup PC Tool/mobile_scriptable/history\"\n    }\n  ]\n}\nREPORT=/home/runner/work/666MAIN_BRAIN_MYCEL_SYSTEM/666MAIN_BRAIN_MYCEL_SYSTEM/PROJECTS/ChatBackup PC Tool/runtime_readback/release_integrity_readback.json\n"
+      "tail": "_MYCEL_SYSTEM/PROJECTS/ChatBackup PC Tool/mobile_scriptable/history\"\n    },\n    {\n      \"name\": \"HISTORY_V1_0_6_PRESENT\",\n      \"status\": \"PASS\",\n      \"detail\": \"/home/runner/work/666MAIN_BRAIN_MYCEL_SYSTEM/666MAIN_BRAIN_MYCEL_SYSTEM/PROJECTS/ChatBackup PC Tool/mobile_scriptable/history\"\n    },\n    {\n      \"name\": \"HISTORY_V1_0_7_PRESENT\",\n      \"status\": \"PASS\",\n      \"detail\": \"/home/runner/work/666MAIN_BRAIN_MYCEL_SYSTEM/666MAIN_BRAIN_MYCEL_SYSTEM/PROJECTS/ChatBackup PC Tool/mobile_scriptable/history\"\n    },\n    {\n      \"name\": \"HISTORY_V1_0_8_PRESENT\",\n      \"status\": \"PASS\",\n      \"detail\": \"/home/runner/work/666MAIN_BRAIN_MYCEL_SYSTEM/666MAIN_BRAIN_MYCEL_SYSTEM/PROJECTS/ChatBackup PC Tool/mobile_scriptable/history\"\n    }\n  ]\n}\nREPORT=/home/runner/work/666MAIN_BRAIN_MYCEL_SYSTEM/666MAIN_BRAIN_MYCEL_SYSTEM/PROJECTS/ChatBackup PC Tool/runtime_readback/release_integrity_readback.json\n",
+      "failed_checks": [
+        {
+          "name": "PC_MANIFEST",
+          "status": "FAIL",
+          "detail": "{\"entries\": 92, \"invalid\": [], \"missing\": [], \"mismatch\": [\"source_reference/ORIGINAL_SCRIPTABLE_CHAT_EXPORT.js\"]}"
+        }
+      ]
     },
     "scriptable_node": {
       "exit_code": 0,
