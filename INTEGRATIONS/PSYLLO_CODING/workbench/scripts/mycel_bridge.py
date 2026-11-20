@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 
 VALID = {"VERIFIZIERT", "ABGELEITET", "VORGESCHLAGEN", "OFFEN",
@@ -37,6 +38,8 @@ def project(menu: dict, state: dict, *, handoff: dict | None = None) -> dict:
         raise ValueError("DAEMON: falscher Schema- oder System-Eigner")
     head = _text(state.get("source_head"), "source_head")
     scope = _text(state.get("active_scope"), "active_scope")
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:/@-]{0,179}", scope, re.ASCII):
+        raise ValueError("active_scope: nicht kompatibel mit dem Workbench-Projektschlüssel")
     if len(head) != 40 or any(c not in "0123456789abcdef" for c in head):
         raise ValueError("source_head: vollständige Git-SHA erforderlich")
     status = state.get("evidence_class")
