@@ -93,6 +93,7 @@ from chatbackup_core import (  # noqa: E402
 )
 
 from chatbackup_backend import BackendConfig, ChatBackend  # noqa: E402
+from safe_image_fetch import fetch_chat_image  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Cyber-neon visual system
@@ -1649,17 +1650,9 @@ class ChatBackupApp(tk.Tk):
         asset = entry.get("asset")
         if not isinstance(asset, ChatAsset) or not asset.url.startswith(("http://", "https://")):
             raise ChatBackupError("Für dieses Chat-Bild ist keine direkt erreichbare Bild-URL vorhanden.")
-        headers = {
-            "User-Agent": USER_AGENT,
-            "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
-            "Accept-Language": "de-DE,de;q=0.9,en;q=0.8",
-        }
-        if self.current_source_url:
-            headers["Referer"] = self.current_source_url
-        request = urllib.request.Request(asset.url, headers=headers)
-        with urllib.request.urlopen(request, timeout=45) as response:
-            content_type = str(response.headers.get("Content-Type") or asset.mime_type or "application/octet-stream")
-            data = response.read(max_bytes + 1)
+        # All remote image requests must pass the pinned public-IP boundary.
+        # Never forward private chat URLs as HTTP Referer.
+        data, content_type = fetch_chat_image(asset.url, max_bytes=max_bytes)
         if len(data) > max_bytes:
             raise ChatBackupError("Das Bild ist für die Vorschau größer als 30 MB.")
         if not data:

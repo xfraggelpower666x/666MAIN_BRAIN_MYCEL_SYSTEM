@@ -1,13 +1,13 @@
 {
   "schema": "chatbackup.repo-regression.v1",
-  "date_utc": "2026-11-20T21:43:35.834050+00:00",
+  "date_utc": "2026-11-20T21:52:04.466984+00:00",
   "source": "github-actions-linux",
   "physical_windows_host": "READBACK_PENDING",
   "physical_iphone_host": "READBACK_PENDING",
   "tests": {
     "pytest": {
       "exit_code": 0,
-      "tail": "..................................................                       [100%]\n50 passed in 0.32s\n"
+      "tail": "........................................................................ [100%]\n72 passed in 0.50s\n"
     },
     "baseline": {
       "exit_code": 0,
