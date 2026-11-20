@@ -44,3 +44,7 @@ READBACK_PENDING = write exists but verification incomplete
 CONFLICT_QUARANTINE = authority/provenance conflict
 
 No fake progress percentages or fabricated PASS states.
+
+## MYCEL R01 · intelligent UI extension
+
+[UI contract](INTELLIGENT_UI/UI_CONTRACT.md), [menu registry](INTELLIGENT_UI/MENU_REGISTRY.json), [UI handoff](INTELLIGENT_UI/UI_HANDOFF_SCHEMA.json), [DEV facet](../INTELLIGENCE/DEV/FACET_CONTRACT.md) and [Guidance Daemon](../DAEMON/GUIDANCE_CONTRACT.md) are additive views of the same verified native Current. Render evidence and open/unknown states before decorative visuals; preserve the existing cyber-corporate styling. A local view selection changes presentation only. No false actionable controls, synthetic quantitative charts, foreign auto-activation, unattended actions or unverified host claims.
