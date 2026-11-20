@@ -1,0 +1,72 @@
+name: ChatBackup R5 offline archive intelligence regression
+on:
+  push:
+    branches:
+      - feature/chatbackup-archive-intelligence-r5-20261120
+    paths:
+      - .github/workflows/chatbackup-r5-integration.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  regress:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: 'PROJECTS/ChatBackup PC Tool'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install existing test requirements
+        run: python -m pip install pytest 'Pillow>=11,<13'
+      - name: New archive intelligence test fixtures
+        run: python -m pytest -q tests/test_archive_intelligence.py
+      - name: New module Python compilation
+        run: python -m py_compile app/archive_intelligence.py app/archive_research.py tools/archive_intelligence_cli.py tools/archive_intelligence_gui.py
+      - name: Existing ChatBackup Python regression
+        run: python -m pytest -q tests
+      - name: Existing ChatBackup baseline
+        run: python tests/run_tests.py
+      - name: Existing Scriptable mock host test
+        run: node mobile_scriptable/source/tests/host_acceptance.test.cjs mobile_scriptable/source/666_CHATBACKUP_SCRIPTABLE_IPHONE_v1.0.9.js
+      - name: Existing Scriptable image security test
+        run: node mobile_scriptable/source/tests/image_download_security.test.cjs
+      - name: Extend root manifest only after all tests pass
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib,re
+          manifest=Path('MANIFEST.sha256')
+          text=manifest.read_text(encoding='utf-8')
+          paths=['app/archive_intelligence.py','app/archive_research.py',
+             'tools/archive_intelligence_cli.py','tools/archive_intelligence_gui.py',
+             'tests/test_archive_intelligence.py','docs/ARCHIVE_INTELLIGENCE_R5.md',
+             'START_ARCHIVE_INTELLIGENCE.bat']
+          for name in paths:
+              path=Path(name)
+              assert path.is_file(),name
+              digest=hashlib.sha256(path.read_bytes()).hexdigest()
+              line=digest+' *./'+name
+              rule=re.compile(r'^[0-9a-f]{64} \*\./'+re.escape(name)+r'$',re.MULTILINE)
+              if rule.search(text):text=rule.sub(line,text)
+              else:text=text.rstrip('\n')+'\n'+line+'\n'
+          manifest.write_text(text,encoding='utf-8')
+          print('R5_MANIFEST_ENTRIES',len(paths))
+          PY
+      - name: Verify full release integrity after manifest extension
+        run: python tests/release_integrity_probe.py
+      - name: Publish scoped manifest with no pointer change
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add 'PROJECTS/ChatBackup PC Tool/MANIFEST.sha256'
+          git diff --cached --check
+          git commit -m 'test(chatbackup R5): add verified additive archive-module files to SHA256 release manifest'
+          git push origin HEAD:feature/chatbackup-archive-intelligence-r5-20261120
