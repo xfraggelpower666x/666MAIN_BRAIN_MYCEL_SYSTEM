@@ -17,3 +17,7 @@ Lokale Regressionen mit `python -m unittest discover -s checkpoint/tests`, `pyth
 ## MYCEL R01 · PSYLLO.DEV reuse
 
 The [DEV Facet](../../INTELLIGENCE/DEV/FACET_CONTRACT.md) and its [Guidance Adapter](../../DAEMON/FACET_ADAPTERS.json) reuse this existing Workbench, checkpoint and run-evidence toolchain without introducing a second CodeForge executor. Intelligent UI offers project navigation only; current scope, source HEAD, native project checkpoint and test receipts remain authoritative. 666DEV peer runtime is not imported. Existing entrypoints and regression commands above remain unchanged.
+
+## MYCEL R02 · ausführbarer Workbench-Bridge-Einstieg
+
+[MYCEL R02 README](workbench/README_MYCEL_R02.md) und [Bridge-Quellcode](workbench/scripts/mycel_bridge.py) verbinden das sechsfach vorhandene MAIN-BRAIN-Intelligent-Menü mit dem bestehenden PSYLLO-Renderer, ohne dessen Code zu ersetzen. [Regressionen](workbench/tests/test_mycel_bridge.py) prüfen Source- und Lineage-Bindung. Python-CLI-Abnahme erfolgt lokal; interaktive Browser-/Plugin-Host-Abnahme separat. Der Native-UI-Handoff bleibt strikt darstellungsbezogen.
