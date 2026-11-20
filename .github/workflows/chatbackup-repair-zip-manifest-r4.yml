@@ -1,4 +1,4 @@
-name: ChatBackup R4 missing manifest entry repair and regression
+name: ChatBackup R4 source-to-ZIP repair and regression
 on:
   push:
     branches:
@@ -21,7 +21,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Repair missing ZIP entry; verify source manifest and update checksums
+      - name: Rebuild Scriptable ZIP from editable source with manifest parity
         working-directory: 'PROJECTS/ChatBackup PC Tool'
         shell: bash
         run: |
@@ -30,37 +30,60 @@ jobs:
           import zipfile,hashlib,re
           root=Path('.')
           pkg=root/'mobile_scriptable/666_CHATBACKUP_SCRIPTABLE_IPHONE_v1.0.9.zip'
-          source=root/'mobile_scriptable/source/AUDIT_REPAIR_REAUDIT_FREEZE_R1.md'
-          arc='666_CHATBACKUP_SCRIPTABLE_IPHONE_v1.0.9/AUDIT_REPAIR_REAUDIT_FREEZE_R1.md'
-          assert source.is_file() and pkg.is_file()
-          with zipfile.ZipFile(pkg,'a',compression=zipfile.ZIP_DEFLATED) as zf:
-              if arc not in zf.namelist():
-                  zf.write(source,arcname=arc,compress_type=zipfile.ZIP_DEFLATED)
-          with zipfile.ZipFile(pkg) as zf:
+          source=root/'mobile_scriptable/source'
+          script=source/'666_CHATBACKUP_SCRIPTABLE_IPHONE_v1.0.9.js'
+          source_manifest=source/'MANIFEST.sha256'
+          audit=source/'AUDIT_REPAIR_REAUDIT_FREEZE_R1.md'
+          prefix='666_CHATBACKUP_SCRIPTABLE_IPHONE_v1.0.9/'
+          assert pkg.is_file() and script.is_file() and source_manifest.is_file() and audit.is_file()
+          def sha(data): return hashlib.sha256(data).hexdigest()
+          old_manifest=source_manifest.read_text(encoding='utf-8')
+          key=r'^[0-9a-f]{64} \*\./666_CHATBACKUP_SCRIPTABLE_IPHONE_v1\.0\.9\.js$'
+          assert re.search(key,old_manifest,re.MULTILINE)
+          new_manifest=re.sub(key,sha(script.read_bytes())+' *./'+script.name,old_manifest,flags=re.MULTILINE)
+          source_manifest.write_text(new_manifest,encoding='utf-8')
+          temp=pkg.with_suffix('.repacked')
+          with zipfile.ZipFile(pkg,'r') as zin, zipfile.ZipFile(temp,'w') as zout:
+              copied=set()
+              for item in zin.infolist():
+                  if item.filename in copied: raise ValueError('duplicate zip member')
+                  copied.add(item.filename)
+                  if item.filename==prefix+script.name:
+                      data=script.read_bytes()
+                  elif item.filename==prefix+'MANIFEST.sha256':
+                      data=source_manifest.read_bytes()
+                  else:
+                      data=zin.read(item.filename)
+                  zout.writestr(item,data)
+              missing=prefix+audit.name
+              if missing not in copied: zout.write(audit,arcname=missing,compress_type=zipfile.ZIP_DEFLATED)
+          temp.replace(pkg)
+          with zipfile.ZipFile(pkg,'r') as zf:
               names=zf.namelist()
-              assert len(names)==len(set(names)), 'Duplicate ZIP entries'
-              manifest=zf.read('666_CHATBACKUP_SCRIPTABLE_IPHONE_v1.0.9/MANIFEST.sha256').decode('utf-8')
+              assert len(names)==len(set(names))
+              archive_manifest=zf.read(prefix+'MANIFEST.sha256').decode('utf-8')
+              assert archive_manifest==new_manifest
               checked=0
-              for line in manifest.splitlines():
+              for line in archive_manifest.splitlines():
                   if not line.strip(): continue
-                  m=re.match(r'^([0-9a-f]{64})\s+\*?\.?/(.+)$',line.strip())
-                  assert m,line
-                  digest,name=m.groups()
-                  assert hashlib.sha256(zf.read('666_CHATBACKUP_SCRIPTABLE_IPHONE_v1.0.9/'+name)).hexdigest()==digest,name
+                  match=re.match(r'^([0-9a-f]{64})\s+\*?\.?/(.+)$',line.strip())
+                  assert match,line
+                  digest,name=match.groups()
+                  assert sha(zf.read(prefix+name))==digest,name
                   checked+=1
               assert checked==13,checked
-          def sha(data): return hashlib.sha256(data).hexdigest()
+              assert zf.read(prefix+script.name)==script.read_bytes()
           h=sha(pkg.read_bytes())
           side=pkg.with_suffix(pkg.suffix+'.sha256')
           side.write_text(h+' *'+pkg.name+'\n',encoding='utf-8')
           master=root/'MANIFEST.sha256'
-          original=master.read_text(encoding='utf-8')
+          body=master.read_text(encoding='utf-8')
           for name,digest in [(pkg.as_posix(),h),(side.as_posix(),sha(side.read_bytes()))]:
-              pat=r'^[0-9a-f]{64} \*\./'+re.escape(name)+r'$'
-              assert re.search(pat,original,re.MULTILINE),name
-              original=re.sub(pat,digest+' *./'+name,original,flags=re.MULTILINE)
-          master.write_text(original,encoding='utf-8')
-          print('ZIP_REPAIR_AND_MANIFEST_PASS',checked,'sha256',h)
+              pattern=r'^[0-9a-f]{64} \*\./'+re.escape(name)+r'$'
+              assert re.search(pattern,body,re.MULTILINE),name
+              body=re.sub(pattern,digest+' *./'+name,body,flags=re.MULTILINE)
+          master.write_text(body,encoding='utf-8')
+          print('ARCHIVE_REPAIRED_SOURCE_PARITY',checked,'ZIP_SHA256',h)
           PY
       - name: Install isolated test dependencies
         run: python -m pip install pytest 'Pillow>=11,<13'
@@ -79,12 +102,12 @@ jobs:
       - name: Scriptable security simulation
         working-directory: 'PROJECTS/ChatBackup PC Tool'
         run: node mobile_scriptable/source/tests/image_download_security.test.cjs
-      - name: Commit only repaired ZIP and dependent manifests
+      - name: Commit only Scriptable ZIP, source manifest, ZIP hash and PC manifest
         shell: bash
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add 'PROJECTS/ChatBackup PC Tool/mobile_scriptable/666_CHATBACKUP_SCRIPTABLE_IPHONE_v1.0.9.zip' 'PROJECTS/ChatBackup PC Tool/mobile_scriptable/666_CHATBACKUP_SCRIPTABLE_IPHONE_v1.0.9.zip.sha256' 'PROJECTS/ChatBackup PC Tool/MANIFEST.sha256'
+          git add 'PROJECTS/ChatBackup PC Tool/mobile_scriptable/source/MANIFEST.sha256' 'PROJECTS/ChatBackup PC Tool/mobile_scriptable/666_CHATBACKUP_SCRIPTABLE_IPHONE_v1.0.9.zip' 'PROJECTS/ChatBackup PC Tool/mobile_scriptable/666_CHATBACKUP_SCRIPTABLE_IPHONE_v1.0.9.zip.sha256' 'PROJECTS/ChatBackup PC Tool/MANIFEST.sha256'
           git diff --cached --check
-          git commit -m 'fix(chatbackup): include manifest-listed audit doc in Scriptable package; regression PASS'
+          git commit -m 'fix(chatbackup): rebuild source-identical Scriptable ZIP and verify R4 regression'
           git push origin HEAD:repair/chatbackup-network-hardening-20261120
