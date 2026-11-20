@@ -10,7 +10,7 @@
     "666CLS WEITER": "continue",
     "666CLS UPDATE": "update"
   },
-  "next_step": "Framework-Quellen, Revisionen und native Aktionen abgleichen und im privaten Framework-Menü hinterlegen.",
+  "next_step": "666UMIP ist als read-only Framework-Referenz an 666PFS gebunden; native Start-/Fortsetzungsrouten und CTGLE-Installation bleiben offen.",
   "resume_mode": "REREAD_CURRENT",
   "checkpoint_scope": "SYSTEM_AND_RELEASE"
 }

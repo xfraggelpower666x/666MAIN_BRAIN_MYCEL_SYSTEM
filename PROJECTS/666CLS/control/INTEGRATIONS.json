@@ -74,9 +74,9 @@
       "name": "666CLS Framework- und Archivsteuerung",
       "role": "LOCAL_OPERATOR_CONSOLE",
       "sha256": {
-        "runtime/archive_console.py": "5cd42f9b4d9a3c2b106978db68c7f6114bea7f2075e9593b600e349e6587bda8",
+        "runtime/archive_console.py": "e38d4de467d31887417933851bc7ff9de218306bcf603d94eb83dfc07d16c119",
         "shared_archive/console.html": "a08dcb78fcbb229f56d644331a4f2253370c2b967efa81ddc3708c5a03ed577e",
-        "tests/test_archive_console.py": "4a4764fcb3c44b477e578f6c8c60c37998447e71a722ba6bc41e5715b9274d1c"
+        "tests/test_archive_console.py": "a2de2c9bc250cca3929c7a74de1d955bed3dbca4e51769eabc253ed91df8701d"
       }
     },
     {

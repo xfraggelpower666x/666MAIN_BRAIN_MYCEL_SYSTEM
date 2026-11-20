@@ -35,6 +35,21 @@ class ConsoleTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "nicht registriert"):
             self.action("framework", action="update")
 
+    def test_pfs_umip_is_read_only_native_reference(self):
+        model = self.console.model()
+        self.assertEqual(model["frameworks"][0]["id"], "framework-a")
+        umip = next(item for item in model["frameworks"] if item["id"] == "pfs-umip-4001")
+        self.assertIn("666PFS-CORE-001", umip["authority"])
+        self.assertIn("1.11.1", umip["revision"])
+        self.assertEqual(umip["actions"], [])
+        self.assertEqual(umip["read"], [])
+        self.assertEqual(umip["submit"], [])
+        self.assertNotIn("pfs-umip-4001", self.console.registry())
+        with self.assertRaisesRegex(ValueError, "nicht registriert"):
+            self.console.handle({"command":"framework", "framework":"pfs-umip-4001", "action":"start"})
+        with self.assertRaisesRegex(ValueError, "nicht registriert"):
+            self.console.handle({"command":"read", "framework":"pfs-umip-4001", "domain":"TEXT"})
+
     def test_invalid_action_is_absent_from_runnable_model(self):
         path = self.private / "frameworks.json"
         config = read(path)

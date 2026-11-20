@@ -20,6 +20,15 @@ from shared_archive import CLIENT_ID, authorize, inbox_counts, live_records, pen
 LIMIT = 1024 * 1024
 ACTIONS = {"start": "Starten", "resume": "Fortsetzen"}
 
+# Read-only references are not archive clients and never grant execution rights.
+# UMIP remains child of 666PFS; CTGLE remains its add-on.
+FRAMEWORK_REFERENCES = (
+    {"id": "pfs-umip-4001", "name": "666UMIP (666PFS-Child)",
+     "authority": "666PFS-CORE-001 / 666PFS_CSM / UMIP-4001",
+     "revision": "1.11.1 · READY_FOR_MANUAL_SELECTION · CTGLE: Add-on",
+     "actions": [], "read": [], "submit": []},
+)
+
 
 def validate_action(action):
     trigger = action["trigger"]
@@ -64,14 +73,16 @@ class Console:
     def model(self):
         state = rehydrate(self.root)
         frameworks = self.registry()
+        result = [{"id": key, "name": item["name"], "authority": item["authority"],
+                   "revision": item["revision"],
+                   "actions": [{"id": name, "label": ACTIONS[name], "mode": config["mode"]}
+                               for name, config in item["actions"].items()],
+                   "read": profile.get("read", []), "submit": profile.get("submit", [])}
+                  for key, (item, profile) in frameworks.items()]
+        existing = {item["id"] for item in result}
+        result.extend(dict(item) for item in FRAMEWORK_REFERENCES if item["id"] not in existing)
         return {"archive_version": state["version"], "counts": state["domains"],
-                "frameworks": [
-                    {"id": key, "name": item["name"], "authority": item["authority"],
-                     "revision": item["revision"],
-                     "actions": [{"id": name, "label": ACTIONS[name], "mode": config["mode"]}
-                                 for name, config in item["actions"].items()],
-                     "read": profile.get("read", []), "submit": profile.get("submit", [])}
-                    for key, (item, profile) in frameworks.items()]}
+                "frameworks": result}
 
     def overview(self, output):
         state = rehydrate(self.root)
