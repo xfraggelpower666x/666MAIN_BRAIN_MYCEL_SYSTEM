@@ -83,6 +83,8 @@ def import_directory(
     db_path = Path(database).resolve()
     if marker_path == db_path:
         raise ArchiveImportError("Checkpoint and database must be separate")
+    if marker_path.exists() and not db_path.exists():
+        raise ArchiveImportError("Checkpoint exists but index database is missing; manual reconciliation required")
     state = _read_checkpoint(marker_path)
     summary = {"schema": "666.chatbackup.batch-result.v1", "total": len(files),
                "imported": 0, "unchanged_files": 0, "failed": [], "stopped": False,
@@ -108,6 +110,9 @@ def import_directory(
                 summary["imported"] += 1
             except (OSError, ValueError, sqlite3.DatabaseError) as exc:
                 summary["failed"].append({"file": relative, "error": str(exc)[:300]})
+    # FTS is a rebuildable secondary cache; refresh it after all committed changes.
+    with ArchiveCatalog(db_path) as catalog:
+        summary["search_index"] = rebuild_fts(catalog)
     summary["status"] = "PARTIAL" if summary["failed"] or summary["stopped"] else "PASS"
     return summary
 
