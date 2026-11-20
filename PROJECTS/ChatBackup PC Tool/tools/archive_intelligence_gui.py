@@ -2,10 +2,11 @@
 from __future__ import annotations
 import json,sys,threading,tkinter as tk
 from pathlib import Path
-from tkinter import filedialog,messagebox,ttk
+from tkinter import filedialog,messagebox,ttk,simpledialog
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'app'))
 from archive_intelligence import ArchiveCatalog,load_export,completeness
 from archive_research import export_jsonl
+from archive_extensions import import_directory, search_fts, conversation_view
 
 BG='#090f1b';PANEL='#10192a';TXT='#edf4ff';CYAN='#00e8ff';PINK='#ff2acb'
 
@@ -29,6 +30,8 @@ class ArchiveWindow(tk.Tk):
         tk.Button(buttons,text='Import official export ZIP',command=self.import_file).pack(side='left',padx=(0,8))
         tk.Button(buttons,text='Export RAG JSONL',command=self.export_rag).pack(side='left',padx=(0,8))
         tk.Button(buttons,text='Catalog status',command=self.info).pack(side='left')
+        tk.Button(buttons,text='Batch import folder',command=self.batch_import).pack(side='left',padx=8)
+        tk.Button(buttons,text='View conversation',command=self.view_conversation).pack(side='left',padx=(0,8))
         index=tk.Frame(root,bg=BG);index.pack(fill='x',pady=12)
         tk.Label(index,text='SQLite catalog: ',bg=BG,fg=CYAN).pack(side='left')
         tk.Entry(index,textvariable=self.database).pack(side='left',fill='x',expand=True)
@@ -66,6 +69,40 @@ class ArchiveWindow(tk.Tk):
         self.state.set('ERROR · '+message[:140])
         messagebox.showerror('Archive Intelligence',message)
 
+    def batch_import(self):
+        folder=filedialog.askdirectory(title='Choose directory of official export ZIPs')
+        if not folder:return
+        db=self.database.get()
+        checkpoint=db+'.batch-checkpoint.json'
+        def work():
+            result=import_directory(folder,db,checkpoint)
+            def finish():
+                self.show(self.report,result)
+                self.state.set(f"BATCH {result['status']} · {result['imported']} files imported · {result['unchanged_files']} unchanged")
+            self.after(0,finish)
+        self.run_worker(work)
+
+    def view_conversation(self):
+        chat_id=simpledialog.askstring('Conversation viewer','Conversation ID from search results:',parent=self)
+        if not chat_id:return
+        try:
+            with ArchiveCatalog(self.database.get()) as catalog:
+                data=conversation_view(catalog,chat_id)
+            if data is None:
+                messagebox.showinfo('Conversation viewer','No indexed conversation with this ID')
+                return
+            win=tk.Toplevel(self)
+            win.title('666 ChatBackup · '+data['title'][:90])
+            win.geometry('940x660')
+            pane=tk.Text(win,bg=PANEL,fg=TXT,wrap='word')
+            pane.pack(fill='both',expand=True)
+            pane.insert('end',f"{data['title']}\nSource: {data['source_file']}\nRevision: {data['revision']}\nIntegrity: {data['integrity']}\n\n")
+            for message in data['messages']:
+                pane.insert('end',f"[{message['role']}] {message['id']}\n{message['text']}\n\n")
+            pane.configure(state='disabled')
+        except Exception as exc:
+            self.error(str(exc))
+
     def import_file(self):
         path=filedialog.askopenfilename(filetypes=[('ZIP export','*.zip')])
         if not path:return
@@ -89,7 +126,7 @@ class ArchiveWindow(tk.Tk):
         if not term:return
         db=self.database.get()
         def work():
-            with ArchiveCatalog(db) as catalog:rows=catalog.search(term,limit=200)
+            with ArchiveCatalog(db) as catalog:rows=search_fts(catalog,term,limit=200)
             self.after(0,lambda:self.show(self.matches,rows))
             self.after(0,lambda:self.state.set(f'{len(rows)} local results'))
         self.run_worker(work)
