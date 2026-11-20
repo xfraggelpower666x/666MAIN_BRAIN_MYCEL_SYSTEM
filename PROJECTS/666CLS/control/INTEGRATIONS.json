@@ -108,7 +108,7 @@
       "sha256": {
         "facets/MAIN_LIVECIRCLE.json": "4b2b30d80c5b43945a99b004150207873d4175468e123c3ded14f52e07aff7af",
         "facets/FACET_REGISTRY.json": "dd15753b56ca0544d7385aead516bad5d4d39db8a84ade2058731de55693c441",
-        "facets/README.md": "07d9599876613f88fb7092fcd624f385334ad84d94e7c2dcfdbc6ddac0ae82f5",
+        "facets/README.md": "0b84bba76d126fc162b0a8cee1525849f6107d03268506d1496525c950d7f3a0",
         "runtime/cls_facet_runtime.py": "0f94c04a94cb88f3fa681347b8812a1c374ead1b8d34910c7c5353f389e9a3e6",
         "tests/test_cls_facet_runtime.py": "8fb3c6dba4fe2ff6642c1ccff63558c080c8e2470eda72f96ffa9fe3fecb8012",
         "facets/cures/LIVECIRCLE.json": "866811fd2fed249bc57a681f732270ed682df471a48b43c73aba368b066e3e2b",

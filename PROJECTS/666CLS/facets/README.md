@@ -1,8 +1,9 @@
-# 666CLS Main LiveCircle + subfacets · productive reference contracts
+# 666CLS Main LiveCircle + Subfacetten · produktive Referenzverträge
 
-Verified publication: CLS v1.24.5 in `PROJECTS/666CLS`, branch `666MAIN_BRAIN`.
-The native current pointer and release hashes are verified before subfacet state is read. Every subfacet has its own `LIVECIRCLE.json` and `UI.json`. The on-request daemon advises; it neither executes foreign triggers nor writes to any native owner.
+**Produktiver CLS-Stand:** v1.24.7 (Dokumentations- und Continuity-Abgleich; erst nach GitHub-Pointer-Readback verbindlich). Der aktuelle Stand wird stets aus `CURRENT_POINTER.json` gelesen, nicht aus dieser README.
 
-All five external systems are reference-only. Independent systems remain independent. 666CURES remains under 666PFS (`666PFS-CURES-001`, `CURES-16001`). Its v0.2.0 package is a valid **local** freeze, but PFS `main` currently reports `HOLD_FUNCTIONAL_PAYLOAD_SOURCE_NOT_FOUND`. The package is not a PFS production release and may not be activated or promoted by CLS.
+Main LiveCircle validiert zuerst die native 666CLS-Authority und den Release mit Prüfsummen. Die fünf Subfacetten behalten ihre eigenen `LIVECIRCLE.json`- und `UI.json`-Dateien. Ihr Status ist `REFERENCE_ONLY`: keine neuen autonomen Trigger, kein Autoload, keine Schreibrechte, keine fremde native Ausführung. Der intelligente Begleit-Daemon gibt nur auf Anfrage Empfehlungen ab.
 
-CLS v1.24.5 archives, permissions, trigger routes and earlier releases are unchanged by this proposed documentation/status reconciliation. Publication of these edits requires a separate governed 666CLS UPDATE with a new version and pointer last.
+**666CURES:** CLS katalogisiert v0.2.0 als lokalen Freeze. Die produktive Native Authority liegt weiterhin bei 666PFS (`666PFS-CURES-001`, Entry `CURES-16001`). PFS meldet `HOLD_FUNCTIONAL_PAYLOAD_SOURCE_NOT_FOUND`; der funktionale Payload ist dort nicht als produktive Repo-Runtime verifiziert. Der CLS-Eintrag darf diesen HOLD-Zustand weder überschreiben noch die lokale Sicherung als PFS-Release behandeln.
+
+Die weitere Arbeit umfasst die nicht verifizierten Originalquellen/Authority-Versionen der unabhängigen Kandidaten sowie den funktionalen CURES-Payload, dessen Übernahme ausschließlich 666PFS autorisieren kann. CLS v1.24.7 ändert nur Dokumentation, Continuity-Anker und Release-Evidenz; die vier Archive, externe Eigentümerschaften, Facetten-Registry, UI, Berechtigungen und historisierte Releases bleiben erhalten.

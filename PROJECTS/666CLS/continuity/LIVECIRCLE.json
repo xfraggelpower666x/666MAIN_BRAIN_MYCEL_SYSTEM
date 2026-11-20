@@ -10,7 +10,7 @@
     "666CLS WEITER": "continue",
     "666CLS UPDATE": "update"
   },
-  "next_step": "Review native authorities for candidate versions; the nine read-only sources are classified and indexed; no owner promotion.",
+  "next_step": "Review missing original sources and authoritative current versions of the independent read-only source candidates; CURES v0.2.0 remains local-only and PFS CURES-16001 remains HOLD; no owner promotion.",
   "resume_mode": "REREAD_CURRENT",
   "checkpoint_scope": "SYSTEM_AND_RELEASE"
 }
