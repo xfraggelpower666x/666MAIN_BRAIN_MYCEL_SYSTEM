@@ -15,3 +15,7 @@ Related: UI/OPERATIONS_CENTER.md; UI/VISUAL_INTELLIGENCE.md; DAEMON/GUIDANCE_CON
 ## MYCEL R02 · Implementierter Menü-/Guidance-Datenadapter
 
 [mycel_bridge.py](../../INTEGRATIONS/PSYLLO_CODING/workbench/scripts/mycel_bridge.py) übersetzt das native Menü/den geprüften `psyllo.guidance-state.1` in Workbench-Ansichten und `companion`-Daten. Er führt keine Host-Aktion aus und ersetzt nicht den vorhandenen `render_ui.py`-Renderer. [Aufruf und Abnahme](../../INTEGRATIONS/PSYLLO_CODING/workbench/README_MYCEL_R02.md); native `psyllo.ui-handoff.1`-View-Restore nur mit passendem Scope, Commit und Lineage. Die Workbench-eigene `scevi.visual.handoff.1`-Struktur bleibt unabhängig. Source-integriert bedeutet nicht Browser-Host-verifiziert.
+
+## MYCEL R03 · Aktionsdaten und No-JS-Fallback
+
+Native MENU_REGISTRY-Aktionen werden per Allowlist in überprüfbare Workbench-`navigate`-Vorschläge übertragen; kein automatischer Triggeraufruf, keine Mutation, keine Berechtigung durch Klick auf eine Darstellungsansicht. `UPDATE` ist nicht in der Aktions-Übernahme freigegeben. Der `<noscript>`-Fallback in der bestehenden Workbench-Vorlage zeigt statischen, eindeutig als nicht-live gekennzeichneten Text samt registrierten Befehlen; echte Host-Interaktion bleibt eigenständig abzunehmen.
