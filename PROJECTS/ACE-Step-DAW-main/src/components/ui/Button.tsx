@@ -33,14 +33,14 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   default:
     'bg-daw-surface-2 hover:bg-daw-hover text-zinc-300 font-medium hover:shadow-[var(--daw-shadow-sm)]',
   primary:
-    'bg-daw-accent hover:bg-daw-accent-hover text-white font-medium bg-gradient-to-b from-white/[0.08] to-transparent',
+    'bg-daw-accent hover:bg-daw-accent-hover text-zinc-900 font-medium bg-gradient-to-b from-white/[0.08] to-transparent',
   ghost:
     'bg-transparent hover:bg-daw-hover-subtle text-zinc-400 hover:text-zinc-100 hover:border hover:border-white/10',
   danger:
     'bg-transparent hover:bg-red-900/30 text-red-400 hover:text-red-300 hover:shadow-[0_0_8px_rgba(239,68,68,0.25)]',
 };
 
-const ACTIVE_CLASSES = 'bg-daw-accent text-white';
+const ACTIVE_CLASSES = 'bg-daw-accent text-zinc-900';
 
 const BASE_CLASSES =
   'inline-flex items-center justify-center rounded-md daw-btn-interactive disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none select-none gap-1.5';

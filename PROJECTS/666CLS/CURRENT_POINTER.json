@@ -1,0 +1,25 @@
+{
+  "system_id": "666CLS-CORE-001",
+  "authority": {
+    "repository": "xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM",
+    "branch": "666MAIN_BRAIN",
+    "root": "PROJECTS/666CLS"
+  },
+  "current_version": "1.24.1",
+  "release_path": "releases/1.24.1",
+  "domains": {
+    "LYRICS": 0,
+    "RAW_MATERIAL": 0,
+    "STORIES": 0,
+    "TEXT": 0
+  },
+  "manifest_sha256": "9c4eb4c52d131f5a2cee7b34430f856a7c07110994f8c25a363571df59739e41",
+  "controls": {
+    "control/AUTHORITY.json": "a5d1b332800d8821e8b32a252b6f6193b6574cfed7f5548f786622eba0477bee",
+    "control/BOOTSTRAP.json": "c5edae5ff5171515b1e1ac14b6ce848a39370af1cb9da503adcb5e890dc9bff9",
+    "control/FRAMEWORK.md": "5926bada6e241bd70e1e334f40d40dd0749f356772b2bcc2bb64e3602144a062",
+    "control/SYSTEM_REGISTRY.json": "449d24ed2a5f0ee1802c1a217be2276f9e7681fae153e6f5df685b5139d80436",
+    "continuity/LIVECIRCLE.json": "ea9c7465d7446c4b8df2391158236512e47ed12a9e74230ae5d4103d2f14d178",
+    "control/INTEGRATIONS.json": "782456ad8cc9875f382bc8708e46b15f4d3edcbd5f538dfcba21583cf609ac7d"
+  }
+}

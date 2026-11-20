@@ -9,10 +9,16 @@ import tkinter as tk
 from tkinter import messagebox, ttk, filedialog
 import numpy as np
 from PIL import Image, ImageTk
-from legacy_app import App as ProcessingApp
-from reference_engine import Controls, EQBand, PRESETS, PRESET_DESCRIPTIONS
-from manual import open_manual
-from metal_ui import Renderer, BUTTONS, KNOBS, SLIDERS, WIDTH, HEIGHT, TEAL
+if __package__:
+    from .legacy_app import App as ProcessingApp
+    from .reference_engine import Controls, EQBand, PRESETS, PRESET_DESCRIPTIONS
+    from .manual import open_manual
+    from .metal_ui import Renderer, BUTTONS, KNOBS, SLIDERS, WIDTH, HEIGHT, TEAL
+else:
+    from legacy_app import App as ProcessingApp
+    from reference_engine import Controls, EQBand, PRESETS, PRESET_DESCRIPTIONS
+    from manual import open_manual
+    from metal_ui import Renderer, BUTTONS, KNOBS, SLIDERS, WIDTH, HEIGHT, TEAL
 
 VALUE_CONTROLS = {**KNOBS, **SLIDERS}
 
@@ -47,7 +53,7 @@ class App(ProcessingApp):
         initial_scale = max(.60, initial_scale)
         self.root.geometry(f'{int(WIDTH*initial_scale)}x{int(HEIGHT*initial_scale)}')
         self.root.minsize(1000, 708)
-        self.root.configure(background='#101415')
+        self.root.configure(background='#080913')
         self.renderer = Renderer()
         self.enabled = {key:True for key in BUTTONS}
         self.buttons_state = {}
@@ -75,7 +81,7 @@ class App(ProcessingApp):
         self.loop_range=None
         self.export_subtype='PCM_24'
         self.marker_drag=None
-        self.canvas = tk.Canvas(self.root, background='#101415', highlightthickness=0,
+        self.canvas = tk.Canvas(self.root, background='#080913', highlightthickness=0,
                                 borderwidth=0, takefocus=True)
         self.canvas.pack(fill='both', expand=True)
         self.canvas.bind('<Configure>', self.resized)
@@ -193,7 +199,7 @@ class App(ProcessingApp):
         window=tk.Toplevel(self.root)
         window.title('Restoration Lab — profile details')
         window.geometry('680x480')
-        output=tk.Text(window,background='#101617',foreground='#edf1ef',
+        output=tk.Text(window,background='#12132a',foreground='#f3efff',
                        insertbackground=TEAL,font=('Menlo',11),wrap='word',padx=18,pady=18)
         output.pack(fill='both',expand=True)
         output.insert('1.0',json.dumps(self.restoration.report,indent=2))
@@ -458,7 +464,10 @@ class App(ProcessingApp):
         self.drift.set(not self.drift.get())
         if self.restoration is None: return
         import threading
-        from realtime import RealtimeRestoration
+        if __package__:
+            from .realtime import RealtimeRestoration
+        else:
+            from realtime import RealtimeRestoration
         engine,path=self.restoration,self.path
         self.playing=False
         self.shutdown_stream()
@@ -544,7 +553,10 @@ class App(ProcessingApp):
     def mastering_settings(self):
         existing=getattr(self,'mastering_window',None)
         if existing is not None and existing.winfo_exists():existing.lift();return
-        from studio_ui import MasteringStudio
+        if __package__:
+            from .studio_ui import MasteringStudio
+        else:
+            from studio_ui import MasteringStudio
         self.studio=MasteringStudio(self)
 
     def save_studio_preset(self):
@@ -555,8 +567,12 @@ class App(ProcessingApp):
         filename=filedialog.askopenfilename(parent=self.mastering_window,filetypes=[('Restoration Lab preset','*.json')])
         if not filename:return
         try:
-            from studio_tools import eq_filters, StereoWidth
-            from mastering_tools import validate
+            if __package__:
+                from .studio_tools import eq_filters, StereoWidth
+                from .mastering_tools import validate
+            else:
+                from studio_tools import eq_filters, StereoWidth
+                from mastering_tools import validate
             data=json.loads(Path(filename).read_text())
             if data.get('version')!=3:raise ValueError('A Version 3 preset is required')
             values=data['controls'];values['eq_bands']=tuple(EQBand(**row) for row in values['eq_bands'])
@@ -722,6 +738,9 @@ class App(ProcessingApp):
                 elif kind=='exported':
                     self.set_busy(False)
                     self.show_export_report(payload)
+                    callback=getattr(self,'on_export',None)
+                    if callback is not None:
+                        callback(payload)
                 elif kind=='error':
                     self.set_busy(False)
                     self.drift_check.config(state='normal')

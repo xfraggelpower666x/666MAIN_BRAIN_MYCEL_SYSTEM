@@ -6,7 +6,7 @@
 
 | Módulo | Responsabilidad |
 |--------|-----------------|
-| `sunocleanser/audio/io.py` | Lectura/escritura WAV (24-bit PCM), picos |
+| `sunocleanser/audio/io.py` | Entrada WAV/MP3, escritura WAV (PCM de 24 bits), picos |
 | `sunocleanser/audio/stft.py` | STFT/iSTFT con longitud alineada al original |
 | `sunocleanser/suno/noise_profile.py` | Frames quietos (12%) y perfil de ruido enlazado |
 | `sunocleanser/suno/gain_mask.py` | Máscara adaptativa por bandas, techo 7 dB, suavizado |
@@ -18,7 +18,7 @@
 
 - Python 3.11+
 - NumPy, SciPy (`signal.stft` / `istft`)
-- soundfile + libsndfile (Conda: `environment.yml`)
+- soundfile + libsndfile 1.2.2+ para decodificar WAV/MP3 (Conda: `environment.yml`)
 
 ## Entorno
 

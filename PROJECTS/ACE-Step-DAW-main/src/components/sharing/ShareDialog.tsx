@@ -187,7 +187,7 @@ export function ShareDialog() {
                   type="button"
                   onClick={() => void handleCreateShare()}
                   disabled={cloudBusy}
-                  className="w-full rounded bg-daw-accent px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-daw-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full rounded bg-daw-accent px-4 py-2 text-xs font-medium text-zinc-900 transition-colors hover:bg-daw-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {cloudBusy ? 'Rendering Stems...' : 'Render Stems & Create Link'}
                 </button>
@@ -241,7 +241,7 @@ export function ShareDialog() {
               <button
                 type="button"
                 onClick={handleImportFromFile}
-                className="w-full rounded bg-daw-accent px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-daw-accent-hover"
+                className="w-full rounded bg-daw-accent px-4 py-2 text-xs font-medium text-zinc-900 transition-colors hover:bg-daw-accent-hover"
               >
                 Import from File
               </button>

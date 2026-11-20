@@ -1,0 +1,14 @@
+[
+  {
+    "provider_id": "1nAZ1dKGlXWifxRSUP8g5Ap_UHvvL8LzE",
+    "source_path": "666FSE/SOURCE_VAULT/FRAGGLE_SYSTEM_EXPORT_V4_1_SAFETY_REPAIR_FREEZE_SYSTEM_BACKUP_FULL.zip",
+    "sha256": "19b6e7d68bfce5d6a85d09bac13cdcb2dcad2970fc53c4ae5f34b72742486ba0",
+    "size": 69299620,
+    "role": "SOURCE_VAULT_ONLY",
+    "findings": [
+      "github-token",
+      "openai-token",
+      "unreadable-or-unsafe-archive"
+    ]
+  }
+]

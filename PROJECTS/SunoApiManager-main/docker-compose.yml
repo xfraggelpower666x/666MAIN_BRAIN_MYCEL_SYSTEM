@@ -18,3 +18,17 @@ services:
       - ./data:/app/data
     environment:
       - TZ=Europe/Istanbul
+
+  suno-mcp:
+    build: .
+    image: smgteknik/sunoapimanager:latest
+    profiles: ["mcp"]
+    command: ["python", "suno_mcp_server.py"]
+    stdin_open: true
+    tty: false
+    restart: "no"
+    environment:
+      SUNO_API_KEY: ${SUNO_API_KEY:-}
+      SUNO_API_BASE_URL: ${SUNO_API_BASE_URL:-https://api.sunoapi.org}
+    healthcheck:
+      disable: true

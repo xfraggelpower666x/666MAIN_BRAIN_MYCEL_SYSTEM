@@ -2,7 +2,7 @@
 
 ## Reparatur eines problematischen MP3-Exports
 
-1. `STARTEN.bat` starten und `03 AUDIO CONVERT` öffnen.
+1. `L.Y.V.R.A._MP3_MANAGER.bat` starten, »MP3 Manager starten« wählen und `03 AUDIO CONVERT` öffnen.
 2. `WAV → MP3 REPAIR (A/B)` klicken.
 3. **Original-Suno-WAV** auswählen.
 4. Die betroffene **alte MP3** als Referenz auswählen.

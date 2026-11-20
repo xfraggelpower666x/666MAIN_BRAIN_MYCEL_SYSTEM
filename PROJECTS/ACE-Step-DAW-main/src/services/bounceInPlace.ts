@@ -359,6 +359,7 @@ async function renderTrackSourceBuffer(
           track.synthPreset ?? 'piano',
           range.duration,
           DEFAULT_SAMPLE_RATE,
+          track.instrument?.kind === 'soundfont' ? track.instrument : undefined,
         );
         sourceClips.push({ startTime: 0, buffer: rendered, volume: 1 });
       }

@@ -34,7 +34,7 @@ with tempfile.TemporaryDirectory() as d:
  for k in ['TPE1','TPE2','TCON','TCOM','TRCK','TPOS','COMM','WOAS']:
   assert read[k]==tags[k],(k,read[k],tags[k])
  assert hashlib.sha256(src.read_bytes()).hexdigest()==before
- assert not list((d/'_666MP3_EXPORT').glob('*.partial.mp3'))
+ assert not list((d/'_666MP3_EXPORT').glob('.lyvra-export-*'))
  print('PASS: full conversion -> final name -> ID3 -> complete MP3 decode QC')
  print('PASS: per-track ID3 title = CHAOS 1; all standard metadata and source SHA preserved')
  print('PASS: no temp files left')

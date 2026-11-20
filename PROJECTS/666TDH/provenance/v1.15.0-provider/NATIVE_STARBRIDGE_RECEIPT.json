@@ -1,0 +1,14 @@
+{
+  "schema": "666TDH_CLIC_STARBRIDGE_NATIVE_RECEIPT_V1",
+  "receipt_id": "666TDH-CLIC-WHOLE-NET-20261018-R01-RECEIPT",
+  "handoff_id": "CLIC-STARBRIDGE-WHOLE-NET-666TDH-20261018-R01",
+  "source_current_head": "98622df610aada53258f33d95b979499f48cbfe8",
+  "source_file_blob": "924acd02df1b94768d0545ef1fd4e8f606cbf502",
+  "target_release": "v1.15.0",
+  "receive_decision": "ACCEPTED_TARGET_NATIVE_REVIEW",
+  "adoption_decision": "PARTIAL_NATIVE_ADOPTION",
+  "authority_transfer": false,
+  "host_proof": "OPEN_NOT_VERIFIED",
+  "clic_delivery_readback": "PENDING_EXTERNAL_CLIC",
+  "pointer_readback": "PENDING"
+}

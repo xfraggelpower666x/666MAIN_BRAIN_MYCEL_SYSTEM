@@ -4,12 +4,14 @@ import {
   SynthEngineAdapter,
   SamplerEngineAdapter,
   FmEngineAdapter,
+  SoundfontEngineAdapter,
 } from '../InstrumentFactory';
 import type { InstrumentEngine } from '../InstrumentEngine';
 import type {
   SubtractiveTrackInstrument,
   SamplerTrackInstrument,
   FmTrackInstrument,
+  SoundfontTrackInstrument,
 } from '../../types/project';
 
 // ── Fixtures ───────────────────────────────────────────────────────────────
@@ -61,6 +63,20 @@ const fmInstrument: FmTrackInstrument = {
   },
 };
 
+const soundfontInstrument: SoundfontTrackInstrument = {
+  kind: 'soundfont',
+  preset: 'soundfont',
+  name: 'Test SoundFont',
+  settings: {
+    soundBankId: 'test-bank',
+    soundBankName: 'Test Bank',
+    bankOffset: 0,
+    bank: 0,
+    bankLsb: 0,
+    program: 0,
+  },
+};
+
 // ── Tests ──────────────────────────────────────────────────────────────────
 
 describe('getEngineForInstrument', () => {
@@ -79,6 +95,10 @@ describe('getEngineForInstrument', () => {
     expect(engine).toBeInstanceOf(FmEngineAdapter);
   });
 
+  it('returns a SoundfontEngineAdapter for SoundFont instruments', () => {
+    expect(getEngineForInstrument(soundfontInstrument)).toBeInstanceOf(SoundfontEngineAdapter);
+  });
+
   it('returns the same instance for repeated calls with the same kind', () => {
     const a = getEngineForInstrument(subtractiveInstrument);
     const b = getEngineForInstrument(subtractiveInstrument);
@@ -89,9 +109,13 @@ describe('getEngineForInstrument', () => {
     const synth = getEngineForInstrument(subtractiveInstrument);
     const sampler = getEngineForInstrument(samplerInstrument);
     const fm = getEngineForInstrument(fmInstrument);
+    const soundfont = getEngineForInstrument(soundfontInstrument);
     expect(synth).not.toBe(sampler);
     expect(synth).not.toBe(fm);
     expect(sampler).not.toBe(fm);
+    expect(synth).not.toBe(soundfont);
+    expect(sampler).not.toBe(soundfont);
+    expect(fm).not.toBe(soundfont);
   });
 });
 
@@ -100,6 +124,7 @@ describe('InstrumentEngine interface conformance', () => {
     ['SynthEngineAdapter', getEngineForInstrument(subtractiveInstrument)],
     ['SamplerEngineAdapter', getEngineForInstrument(samplerInstrument)],
     ['FmEngineAdapter', getEngineForInstrument(fmInstrument)],
+    ['SoundfontEngineAdapter', getEngineForInstrument(soundfontInstrument)],
   ];
 
   it.each(engines)('%s implements all InstrumentEngine methods', (_name, engine) => {

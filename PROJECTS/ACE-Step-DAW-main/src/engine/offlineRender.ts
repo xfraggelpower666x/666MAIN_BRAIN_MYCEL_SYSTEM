@@ -7,7 +7,8 @@
 import { createDrumVoicesForKit } from './DrumEngine';
 import { createSynthForPreset } from './SynthEngine';
 import { midiToFrequency } from '../utils/pitch';
-import type { DrumKitName, MidiNote, SamplerConfig, SequencerPattern, SynthPreset } from '../types/project';
+import type { DrumKitName, MidiNote, SamplerConfig, SequencerPattern, SoundfontTrackInstrument, SynthPreset } from '../types/project';
+import { renderSoundfontTrackOffline } from './soundfontOfflineRender';
 
 const DRUM_PAD_INDEX_BY_SAMPLE_KEY: Record<string, number> = {
   kick: 0,
@@ -35,7 +36,18 @@ export async function renderMidiTrackOffline(
   synthPreset: SynthPreset,
   totalDuration: number,
   sampleRate: number = 48000,
+  soundfontInstrument?: SoundfontTrackInstrument,
 ): Promise<AudioBuffer> {
+  if (soundfontInstrument) {
+    return renderSoundfontTrackOffline(
+      notes,
+      clipStartTime,
+      bpm,
+      totalDuration,
+      sampleRate,
+      soundfontInstrument,
+    );
+  }
   // Phase 5L: drop Tone.Offline in favour of the native
   // OfflineAudioContext — NativeBasicPolySynth is created against
   // this offline context, and notes are scheduled directly at

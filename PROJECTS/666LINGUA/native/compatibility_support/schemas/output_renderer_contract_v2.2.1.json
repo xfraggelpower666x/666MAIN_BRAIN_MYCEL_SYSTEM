@@ -1,0 +1,23 @@
+{
+  "schema": "lyvra-output-renderer-contract-v1",
+  "system_id": "LYVRA-DOLMETSCHER-001",
+  "version": "2.2.1",
+  "default_mode": "VARIANT_BUNDLE_4",
+  "visible_count": 4,
+  "order": [
+    "PRIMARY",
+    "LOCAL_NATIVE",
+    "TECHNICAL_PRECISE",
+    "EMOTIONAL_PLUS"
+  ],
+  "single_output_default": false,
+  "variants_on_request_only": false,
+  "primary_only_commands": [
+    "nur Übersetzung",
+    "nur Hauptübersetzung",
+    "primary only",
+    "keine Alternativen"
+  ],
+  "host_native_surface_limit_policy": "KEEP_ALL_4_VISIBLE; DEGRADE_SHARE_UI_ONLY; NEVER_DROP_VARIANTS",
+  "share_truthfulness": true
+}

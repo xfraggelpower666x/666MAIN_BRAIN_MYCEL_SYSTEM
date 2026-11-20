@@ -268,7 +268,7 @@ export function VoiceLibraryPanel() {
                 onClick={() => setFilterTag(null)}
                 className={`rounded px-1.5 py-0.5 text-[9px] transition-colors ${
                   filterTag === null
-                    ? 'bg-daw-accent text-white'
+                    ? 'bg-daw-accent text-zinc-900'
                     : 'bg-daw-surface-2 text-zinc-500 hover:text-zinc-300'
                 }`}
                 data-testid="voice-tag-all"
@@ -282,7 +282,7 @@ export function VoiceLibraryPanel() {
                   onClick={() => setFilterTag(filterTag === tag ? null : tag)}
                   className={`rounded px-1.5 py-0.5 text-[9px] transition-colors ${
                     filterTag === tag
-                      ? 'bg-daw-accent text-white'
+                      ? 'bg-daw-accent text-zinc-900'
                       : 'bg-daw-surface-2 text-zinc-500 hover:text-zinc-300'
                   }`}
                   data-testid={`voice-tag-${tag}`}

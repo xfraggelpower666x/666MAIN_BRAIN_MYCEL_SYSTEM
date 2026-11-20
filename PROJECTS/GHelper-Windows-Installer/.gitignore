@@ -1,0 +1,5 @@
+/eingaben/*
+!/eingaben/README.md
+/output/
+__pycache__/
+*.pyc

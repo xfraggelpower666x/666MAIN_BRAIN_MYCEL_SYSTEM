@@ -164,6 +164,15 @@ Private Declare Function OemToCharBuff Lib "user32" Alias "OemToCharBuffA" ( _
   lpszSrc As Any, _
   ByVal lpszDst As String, _
   ByVal cchDstLength As Long) As Long
+
+Private Const CP_UTF8 = 65001&
+Private Declare Function MultiByteToWideChar Lib "kernel32" ( _
+  ByVal CodePage As Long, _
+  ByVal dwFlags As Long, _
+  ByVal lpMultiByteStr As Long, _
+  ByVal cchMultiByte As Long, _
+  ByVal lpWideCharStr As Long, _
+  ByVal cchWideChar As Long) As Long
   
 Private Declare Function WaitForSingleObject Lib "kernel32" (ByVal hHandle As Long, _
     ByVal dwMilliseconds As Long) As Long
@@ -191,14 +200,21 @@ Public Function BSTRtoUniBytes(strIn As String, bytOut() As Byte) As Long
 End Function
 '#End If
 
-Public Function BytesToBSTR(bytIn() As Byte, lngBytes As Long) As String
-    Dim bytOut() As Byte
-    
-    ReDim bytOut(0 To lngBytes - 1) As Byte
-    
-    CopyMemory bytOut(0), bytIn(0), lngBytes
-    
-    BytesToBSTR = StrConv(bytOut(), vbUnicode)
+Public Function Utf8BytesToBSTR(bytIn() As Byte, lngBytes As Long) As String
+    Dim lngChars As Long
+    Dim strOutput As String
+
+    If lngBytes <= 0 Then Exit Function
+
+    lngChars = MultiByteToWideChar(CP_UTF8, 0, VarPtr(bytIn(0)), lngBytes, 0, 0)
+    If lngChars = 0 Then Err.Raise 5, "Utf8BytesToBSTR", "Unable to decode UTF-8 command output."
+
+    strOutput = String$(lngChars, vbNullChar)
+    If MultiByteToWideChar(CP_UTF8, 0, VarPtr(bytIn(0)), lngBytes, StrPtr(strOutput), lngChars) = 0 Then
+        Err.Raise 5, "Utf8BytesToBSTR", "Unable to decode UTF-8 command output."
+    End If
+
+    Utf8BytesToBSTR = strOutput
 End Function
 
 
@@ -212,7 +228,7 @@ End Function
 ' sCommandLine:  [in] Command line to launch
 ' fStdOut        [in,opt] True (defualt) to capture output to STDOUT
 ' fStdErr        [in,opt] True to capture output to STDERR. False is default.
-' fOEMConvert:   [in,opt] True (default) to convert DOS characters to Windows, False to skip conversion
+' fOEMConvert:   [in,opt] True (default) to convert DOS characters to Windows, False to decode UTF-8 output
 '
 ' Returns:       String with STDOUT and/or STDERR output
 '
@@ -400,9 +416,8 @@ Public Function GetCommandOutput(sOutput As String, sCommandLine As String, Opti
                             sNewOutput = String$(lBytesRead, 0)
                             Call OemToCharBuff(baOutput(0), sNewOutput, lBytesRead)
                         Else
-                            ' perform no conversion (except to Unicode)
-                            'Doing this manually because Chinese computers screw it up
-                            sNewOutput = BytesToBSTR(baOutput, lBytesRead)
+                            ' The Electron bridge writes UTF-8, independent of the Windows locale.
+                            sNewOutput = Utf8BytesToBSTR(baOutput, lBytesRead)
                         End If
                         
 #If GLENDEBUG Then
@@ -454,8 +469,8 @@ Public Function GetCommandOutput(sOutput As String, sCommandLine As String, Opti
                                 sNewOutput = String$(lBytesRead, 0)
                                 Call OemToCharBuff(baOutput(0), sNewOutput, lBytesRead)
                             Else
-                                ' perform no conversion (except to Unicode)
-                                sNewOutput = BytesToBSTR(baOutput, lBytesRead)
+                                ' The Electron bridge writes UTF-8, independent of the Windows locale.
+                                sNewOutput = Utf8BytesToBSTR(baOutput, lBytesRead)
                             End If
                 
                             cErrWatch.Text = cErrWatch.Text & sNewOutput
@@ -501,8 +516,8 @@ Public Function GetCommandOutput(sOutput As String, sCommandLine As String, Opti
                         sNewOutput = String$(lBytesRead, 0)
                         Call OemToCharBuff(baOutput(0), sNewOutput, lBytesRead)
                     Else
-                        ' perform no conversion (except to Unicode)
-                        sNewOutput = BytesToBSTR(baOutput, lBytesRead)
+                        ' The Electron bridge writes UTF-8, independent of the Windows locale.
+                        sNewOutput = Utf8BytesToBSTR(baOutput, lBytesRead)
                     End If
                 
 #If GLENDEBUG Then
@@ -558,8 +573,8 @@ Public Function GetCommandOutput(sOutput As String, sCommandLine As String, Opti
                             sNewOutput = String$(lBytesRead, 0)
                             Call OemToCharBuff(baOutput(0), sNewOutput, lBytesRead)
                         Else
-                            ' perform no conversion (except to Unicode)
-                            sNewOutput = BytesToBSTR(baOutput, lBytesRead)
+                            ' The Electron bridge writes UTF-8, independent of the Windows locale.
+                            sNewOutput = Utf8BytesToBSTR(baOutput, lBytesRead)
                         End If
                     
                         cErrWatch.Text = cErrWatch.Text & sNewOutput

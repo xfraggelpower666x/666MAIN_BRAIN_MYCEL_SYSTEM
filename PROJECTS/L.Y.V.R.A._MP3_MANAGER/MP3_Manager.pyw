@@ -6,17 +6,20 @@ from PIL import ImageOps
 import time
 import json
 import subprocess
+from tempfile import TemporaryDirectory
 import threading
 import time
 import os
 import re
 import shutil
+import sys
 import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 from datetime import datetime
 from PIL import Image, ImageTk
 from mutagen.id3 import ID3, ID3NoHeaderError, TIT2, TPE1, TPE2, TALB, TCON, TCOM, TDRC, TRCK, TPOS, COMM, WOAS, APIC
+import restoration_overlay
 try:
     from tkinterdnd2 import TkinterDnD, DND_FILES
 except ImportError:
@@ -38,6 +41,15 @@ FRAME_CLASS = {'TIT2': TIT2, 'TPE1': TPE1, 'TPE2': TPE2, 'TALB': TALB, 'TCON': T
 DEFAULTS = {'TPE1':'FRAGGELPOWER666', 'TPE2':'FRAGGEL', 'TCON':'PSYCHOACOUSTIC PSYTRANCE',
             'TCOM':'FRAGGELPOWER666', 'TDRC':'2026', 'TRCK':'666', 'TPOS':'666',
             'COMM':DEFAULT_COMMENT, 'WOAS':DEFAULT_SOURCE}
+
+def publish_mp3_exclusive(temp_path, destination):
+    """Veröffentlicht die fertige MP3 ohne vorhandene Ziele zu überschreiben."""
+    if os.name == 'nt':
+        # Windows benennt auf demselben Volume um und verweigert belegte Ziele.
+        os.rename(temp_path, destination)
+    else:
+        os.link(temp_path, destination)
+
 
 def file_sha256(path):
     """Stream-based read-only digest, auch für große Suno-WAV-Dateien."""
@@ -203,6 +215,193 @@ def verify_encoded_mp3(ffmpeg, ffprobe, output_path, source_duration=0, runner=N
     return {'decode':'PASS','duration_seconds':round(duration,3),
             'scope':'TECHNICAL_DECODE_ONLY_NOT_PERCEPTUAL_ARTIFACT_PROOF'}
 
+
+def audio_lab_launch_spec(tool, project_roots, platform=None):
+    """Resolve an installed sibling tool without downloading or installing dependencies."""
+    host = platform or sys.platform
+    project_name = {
+        'suno': 'Suno-Song-Remaster-main',
+        'restoration': 'Restoration-Lab-main',
+        'sunocleanser': 'SunoCleanser-0.2.1',
+        'mp3gain': 'mp3gain-win-gui-1_3_4-src',
+        'sunscreen': 'sunscreen-main',
+        'wav2mp3': 'Wav2mp3-master',
+    }.get(tool)
+    if project_name is None:
+        raise ValueError(f'Unbekanntes Audio-Tool: {tool}')
+
+    candidates = [Path(root) / project_name for root in project_roots]
+    for project in candidates:
+        if not project.is_dir():
+            continue
+        if tool == 'suno':
+            packaged_app = project / 'AI Music Remastering.exe'
+            if host == 'win32' and packaged_app.is_file():
+                return [str(packaged_app)], project
+            if not (project / 'package.json').is_file():
+                continue
+            electron_paths = (
+                project / 'node_modules' / 'electron' / 'dist' / 'electron.exe',
+                project / 'node_modules' / '.bin' / 'electron',
+                project / 'node_modules' / 'electron' / 'dist' / 'Electron.app' / 'Contents' / 'MacOS' / 'Electron',
+            )
+            electron = next((path for path in electron_paths if path.is_file()), None)
+            if electron is None:
+                raise RuntimeError(
+                    'Suno Song Remaster ist vorhanden, aber Electron fehlt. '
+                    'Abhängigkeiten manuell im Projektordner installieren; der Manager installiert nichts.'
+                )
+            if not (project / 'dist' / 'index.html').is_file():
+                raise RuntimeError(
+                    'Der Suno-Renderer wurde noch nicht gebaut. '
+                    'Bitte im Projektordner "npm run build" ausführen; '
+                    'der Manager startet keinen Entwicklungsserver.'
+                )
+            return [str(electron), '.'], project
+
+        if tool == 'restoration':
+            packaged_app = project / 'Restoration Lab.exe'
+            if host == 'win32' and packaged_app.is_file():
+                return [str(packaged_app)], project
+            launcher = project / 'STARTEN.bat'
+            if host == 'win32' and launcher.is_file():
+                return ['cmd.exe', '/c', str(launcher)], project
+            raise RuntimeError(
+                'Restoration Lab kann hier nicht gestartet werden. '
+                'Unter Windows bitte STARTEN.bat im Projektordner verwenden.'
+            )
+
+        if tool == 'sunocleanser':
+            launcher = project / ('sunocleanser-gui.bat' if host == 'win32' else 'sunocleanser-gui.sh')
+            if launcher.is_file():
+                if host == 'win32':
+                    return ['cmd.exe', '/c', str(launcher)], project
+                return ['bash', str(launcher)], project
+            raise RuntimeError(
+                'SunoCleanser-Launcher fehlt. Bitte das Projekt mit der '
+                'Conda-Umgebung "sunocleanser" einrichten.'
+            )
+
+        if tool == 'mp3gain':
+            if host != 'win32':
+                raise RuntimeError('Die MP3Gain-VB6-GUI ist nur unter Windows verfügbar.')
+            gui = project / 'MP3GainGUI.exe'
+            bridge = project / 'mp3gain.exe'
+            app_archive = project / 'resources' / 'app.asar'
+            worker = project / 'resources' / 'engine' / 'mp3gain-worker.js'
+            if not gui.is_file():
+                raise RuntimeError(
+                    'MP3GainGUI.exe fehlt. MP3Gain.vbp mit VB6 kompilieren und '
+                    'die EXE in den Projektordner legen.'
+                )
+            if not all(path.is_file() for path in (bridge, app_archive, worker)):
+                raise RuntimeError(
+                    'Die mp3gain.js-Brücke fehlt. In electron-bridge npm ci und '
+                    'npm run build:win ausführen und win-unpacked neben MP3GainGUI.exe kopieren.'
+                )
+            return [str(gui)], project
+
+        if tool == 'sunscreen':
+            binary_name = 'sunscreen.exe' if host == 'win32' else 'sunscreen'
+            binaries = (
+                project / binary_name,
+                project / 'target' / 'release' / binary_name,
+            )
+            binary = next((path for path in binaries if path.is_file()), None)
+            if binary is None:
+                binary = shutil.which('sunscreen')
+            if binary:
+                return [str(binary)], project
+            raise RuntimeError(
+                'Sunscreen ist nicht gebaut oder installiert. Im Projekt '
+                'cargo build --release ausführen oder Sunscreen laut README installieren.'
+            )
+
+        if tool == 'wav2mp3':
+            binary_names = ('wav2mp3.exe', 'wav2mp3') if host == 'win32' else ('wav2mp3',)
+            build_directories = (
+                project,
+                project / 'build' / ('windows' if host == 'win32' else 'linux'),
+            )
+            binary = next(
+                (directory / name for directory in build_directories
+                 for name in binary_names if (directory / name).is_file()),
+                None,
+            )
+            if binary is None:
+                binary = shutil.which('wav2mp3')
+            if binary:
+                return [str(binary)], project
+            raise RuntimeError(
+                'wav2mp3 wurde nicht gebaut oder installiert. Das Projekt mit '
+                'LAME-Entwicklungsdateien gemäß Makefile bauen oder wav2mp3 in PATH bereitstellen.'
+            )
+
+    if tool == 'wav2mp3':
+        binary = shutil.which('wav2mp3')
+        if binary:
+            return [binary], Path(binary).resolve().parent
+        raise RuntimeError(
+            'wav2mp3 wurde nicht gebaut oder installiert. Das Projekt mit '
+            'LAME-Entwicklungsdateien gemäß Makefile bauen oder wav2mp3 in PATH bereitstellen.'
+        )
+
+    if tool == 'sunscreen':
+        binary = shutil.which('sunscreen')
+        if binary:
+            return [binary], Path(binary).resolve().parent
+        raise RuntimeError(
+            'Sunscreen ist nicht gebaut oder installiert. Im Projekt '
+            'cargo build --release ausführen oder Sunscreen laut README installieren.'
+        )
+
+    raise FileNotFoundError(
+        f'{project_name} wurde nicht neben dem Manager oder unter external-tools gefunden.'
+    )
+
+
+def sunscreen_run_command(executable, input_path):
+    source = Path(input_path)
+    if source.suffix.lower() not in {'.mp3', '.wav', '.flac', '.m4a'}:
+        raise ValueError('Sunscreen unterstützt MP3, WAV, FLAC und M4A.')
+    source = source.resolve()
+    return [
+        str(executable), str(source), str(source.parent / 'sunscreen'), source.stem,
+        '--smooth', '--widen', '--excite', '--match', '--master',
+    ]
+
+
+def wav2mp3_run_command(executable, input_directory):
+    folder = Path(input_directory).resolve()
+    if not folder.is_dir():
+        raise ValueError('Bitte einen vorhandenen WAV-Ordner auswählen.')
+    wav_files = [
+        path for path in folder.iterdir()
+        if path.is_file() and path.suffix.lower() == '.wav'
+    ]
+    if not wav_files:
+        raise ValueError('Der ausgewählte Ordner enthält keine WAV-Dateien.')
+    mp3_stems = {
+        path.stem.casefold() for path in folder.iterdir()
+        if path.is_file() and path.suffix.lower() == '.mp3'
+    }
+    collisions = []
+    for wav_file in wav_files:
+        stem = wav_file.stem.casefold()
+        for mp3_stem in mp3_stems:
+            if mp3_stem == stem or (
+                mp3_stem.startswith(stem) and mp3_stem[len(stem):].isdigit()
+            ):
+                collisions.append(wav_file.name)
+                break
+    if collisions:
+        raise ValueError(
+            'Gleichnamige MP3-Ausgaben existieren bereits; um Überschreiben zu '
+            'verhindern, verschiebe sie zuerst: ' + ', '.join(collisions[:5])
+        )
+    return [str(executable), str(folder)]
+
+
 class NeonUI:
     BG = '#080913'; PANEL = '#12132a'; FIELD = '#191d38'
     CYAN = '#31eaff'; PINK = '#ff37d1'; VIOLET = '#a476ff'; TEXT = '#f3efff'
@@ -322,7 +521,7 @@ class AutoScrollTab(ttk.Frame):
 class App:
     def __init__(self, root):
         self.root = root
-        root.title('L.Y.V.R.A. - MP3 MANAGER v2.36 · PORTABLE QC')
+        root.title('L.Y.V.R.A. - MP3 MANAGER v2.38 · PORTABLE QC')
         root.geometry('1360x900')
         root.minsize(760, 550)
         NeonUI.setup(root)
@@ -361,6 +560,9 @@ class App:
         self.build_busy=False
         self.monitor=None
         self.file_manager=None
+        self.restoration_window=None
+        self.restoration_app=None
+        root.protocol('WM_DELETE_WINDOW',self.close)
         self.fm_folder=tk.StringVar(value='')
         self.fm_status=tk.StringVar(value='Dateimanager bereit')
         self.current_file=tk.StringVar(value='Keine laufende Datei')
@@ -392,11 +594,12 @@ class App:
         self.lang.trace_add('write',lambda *_:self.root.after_idle(self.apply_language))
         self.tabs=ttk.Notebook(wrapper)
         self.tabs.pack(fill='both',expand=True,pady=(2,4))
-        self.tab_hosts=[AutoScrollTab(self.tabs) for _ in range(3)]
-        files_tab,tags_tab,audio_tab=[h.body for h in self.tab_hosts]
+        self.tab_hosts=[AutoScrollTab(self.tabs) for _ in range(4)]
+        files_tab,tags_tab,audio_tab,labs_tab=[h.body for h in self.tab_hosts]
         self.tabs.add(self.tab_hosts[0],text='01  DATEIEN & UMBENENNEN')
         self.tabs.add(self.tab_hosts[1],text='02  METADATEN')
         self.tabs.add(self.tab_hosts[2],text='03  AUDIO CONVERT')
+        self.tabs.add(self.tab_hosts[3],text='04  AUDIO LABS')
         self.drop_widgets=[root, files_tab, tags_tab, audio_tab, self.tabs]
         for tab in (files_tab,tags_tab,audio_tab):
             head=ttk.Frame(tab);head.pack(fill='x',pady=(0,2))
@@ -404,6 +607,7 @@ class App:
             ttk.Label(head,text='Dateien/Ordner hierher ziehen · Doppelklick im Dateimanager zum Öffnen',foreground=NeonUI.CYAN).pack(side='left')
             self.drop_widgets.append(head)
         self.register_drop_targets()
+        self.build_audio_labs(labs_tab)
 
         bar=ttk.Frame(files_tab);bar.pack(fill='x',pady=(0,6))
         ttk.Entry(bar,textvariable=self.folder).pack(side='left',fill='x',expand=True)
@@ -535,7 +739,7 @@ class App:
         ttk.Button(foot,text='VORSCHAU',command=self.preview,style='Secondary.TButton').pack(side='right',padx=4)
         self.save_button=ttk.Button(foot,text='MIT SICHERUNG SPEICHERN',command=self.save,style='Action.TButton')
         self.save_button.pack(side='right',padx=4)
-        root.title('L.Y.V.R.A. - MP3 MANAGER v2.36 · PORTABLE QC')
+        root.title('L.Y.V.R.A. - MP3 MANAGER v2.38 · PORTABLE QC')
         root.geometry('1360x900');root.minsize(820,600)
         # WICHTIG: Footer und Fortschritt von unten reservieren, bevor der
         # Notebook-Bereich den verbleibenden Platz bekommt. Dies gilt in ALLEN Reitern.
@@ -576,6 +780,16 @@ class App:
         except OSError: content='Manual not found / Anleitung fehlt: '+name
         text.insert('1.0',content);text.configure(state='disabled')
 
+    def close(self):
+        if self.restoration_window is not None and self.restoration_window.winfo_exists():
+            if self.restoration_app.busy:
+                messagebox.showinfo('Restoration Lab',
+                    'Wait for the current operation to finish.' if self.lang.get()=='EN' else
+                    'Bitte den laufenden Vorgang abwarten.',parent=self.restoration_window)
+                return
+            self.restoration_app.close()
+        self.root.destroy()
+
     def apply_language(self):
         """Schaltet beschriftete GUI-Elemente zwischen Deutsch und Englisch um.
         Benutzerinhalte (Titel, Dateinamen und Metadaten) werden nie übersetzt.
@@ -584,6 +798,17 @@ class App:
          '01  DATEIEN & UMBENENNEN':'01  FILES & RENAME',
          '02  METADATEN':'02  METADATA',
          '03  AUDIO CONVERT':'03  AUDIO CONVERT',
+         '04  AUDIO LABS':'04  AUDIO LABS',
+         'AUDIO LABS · REMASTER & RESTAURATION':'AUDIO LABS · REMASTER & RESTORE',
+         'Suno Song Remaster':'Suno Song Remaster',
+         'Restoration Lab':'Restoration Lab',
+         '▶ REMASTER STARTEN':'▶ START REMASTER',
+         '▶ RESTORATION STARTEN':'▶ START RESTORATION',
+         'MP3-Remastering, LUFS/True-Peak-Ziele und Stapelverarbeitung.':'MP3 remastering, LUFS/true-peak targets, and batch processing.',
+         'Rauschminderung, A/B-Wiedergabe und WAV-Export.':'Noise reduction, A/B playback, and WAV export.',
+         'Starten':'Launch',
+         'Apps laufen in einem eigenen Fenster. Der Manager installiert keine zusätzlichen Pakete automatisch.':'Apps run in a separate window. The manager does not install additional packages automatically.',
+         'Audio-Tools bereit.':'Audio tools ready.',
          'Ordner wählen':'Choose folder','Ordner prüfen':'Scan folder','CSV exportieren':'Export CSV',
          'Nur markierte Dateien':'Selected files only','Alle Dateien im Ordner':'All files in folder',
          'Alle markieren':'Select all','▶ NUR DATEINAMEN UMBENENNEN':'▶ RENAME FILES ONLY',
@@ -596,6 +821,8 @@ class App:
          '◫ MONITOR / 2. BILDSCHIRM':'◫ MONITOR / SCREEN 2',
          '▣ DATEIMANAGER / 2. BILDSCHIRM':'▣ FILE MANAGER / SCREEN 2',
          'BESTAND AKTUALISIEREN':'REFRESH COUNTS',
+         'RESTORATION LAB ÖFFNEN':'OPEN RESTORATION LAB',
+         'Eine WAV/MP3 auswählen · Ergebnis separat exportieren':'Select one WAV/MP3 · Export to a separate file',
          'Ein Cover für alle gewählten MP3':'One cover for selected MP3s',
          'Cover nur für markierte MP3':'Cover for marked MP3s only',
          'Cover-Zuweisungen löschen':'Clear cover assignments',
@@ -607,7 +834,7 @@ class App:
          'Titelübernahme pro MP3:':'Title transfer per MP3:',
          'Dateiname → ID3-Titel':'Filename → ID3 title','ID3-Titel → Dateiname':'ID3 title → filename',
          'Aus':'Off', 'System-Check und Portable-EXE':'System check & portable EXE',
-         'EXE-Build ausschließlich extern: BUILD_PORTABLE_EXE.bat':'EXE build external only: BUILD_PORTABLE_EXE.bat',
+         'EXE-Build ausschließlich extern: L.Y.V.R.A._MP3_MANAGER.bat build':'EXE build external only: L.Y.V.R.A._MP3_MANAGER.bat build',
          'LIVE · PROZESSE UND FORTSCHRITT':'LIVE · PROCESS PROGRESS',
          'GESAMT':'TOTAL','UMBENENNUNG':'RENAMING',
          'Dateiname':'Filename','Neuer Dateiname':'New filename','Kommentar':'Comment',
@@ -631,7 +858,7 @@ class App:
             for column in self.tree['columns']:
                 title=self.tree.heading(column)['text']
                 self.tree.heading(column,text=(translations.get(title,title) if to_en else inv.get(title,title)))
-        self.root.title('L.Y.V.R.A. - MP3 MANAGER v2.36 · '+('NEON WORKSPACE' if to_en else 'NEON ARBEITSBEREICH'))
+        self.root.title('L.Y.V.R.A. - MP3 MANAGER v2.38 · '+('NEON WORKSPACE' if to_en else 'NEON ARBEITSBEREICH'))
 
     def register_drop_targets(self):
         """Windows-Explorer-Drop für alle Reiter; optionales TkinterDnD2 erforderlich."""
@@ -929,6 +1156,10 @@ class App:
         entry=ttk.Entry(actions,textvariable=self.audio_filter,width=24)
         entry.pack(side='left',fill='x',expand=True)
         self.audio_filter.trace_add('write',lambda *_:self.refresh_audio_browser())
+        integration=ttk.Frame(outer);integration.pack(fill='x',pady=(0,4))
+        ttk.Button(integration,text='RESTORATION LAB ÖFFNEN',command=self.open_restoration_overlay,
+                   style='Secondary.TButton').pack(side='left',padx=(0,8))
+        ttk.Label(integration,text='Eine WAV/MP3 auswählen · Ergebnis separat exportieren').pack(side='left')
         self.audio_browser_tabs=ttk.Notebook(outer)
         self.audio_browser_tabs.pack(fill='both',expand=True)
         browsing=ttk.Frame(self.audio_browser_tabs)
@@ -966,6 +1197,79 @@ class App:
                 except (tk.TclError,AttributeError):pass
         self.refresh_audio_browser()
 
+    def open_restoration_overlay(self):
+        selected=[self.audio_paths[key] for key in self.audio_tree.selection() if key in self.audio_paths]
+        english=self.lang.get()=='EN'
+        if len(selected)!=1:
+            messagebox.showinfo('Restoration Lab',
+                'Select exactly one WAV or MP3 in the audio browser.' if english else
+                'Bitte genau eine WAV- oder MP3-Datei im Audio-Browser auswählen.',parent=self.root)
+            return
+        source=selected[0]
+        if not source.is_file() or source.suffix.lower() not in ('.wav','.mp3'):
+            messagebox.showerror('Restoration Lab',
+                'The selected audio file is no longer available.' if english else
+                'Die ausgewählte Audiodatei ist nicht mehr verfügbar.',parent=self.root)
+            return
+        window=self.restoration_window
+        if window is not None and window.winfo_exists():
+            window.deiconify();window.lift()
+            app=self.restoration_app
+            if app.busy:
+                messagebox.showinfo('Restoration Lab',
+                    'Wait for the current operation to finish.' if english else
+                    'Bitte den laufenden Vorgang abwarten.',parent=window)
+                return
+            if app.path and Path(app.path).resolve()==source.resolve():
+                return
+        else:
+            window=None
+            try:
+                app_class=restoration_overlay.load_app()
+                window=tk.Toplevel(self.root)
+                window.transient(self.root)
+                app=app_class(window)
+                app.on_export=self.import_restoration_export
+            except Exception as exc:
+                if window is not None:
+                    window.destroy()
+                messagebox.showerror('Restoration Lab',
+                    ('Could not open the overlay: ' if english else 'Overlay konnte nicht geöffnet werden: ')+str(exc),
+                    parent=self.root)
+                return
+            self.restoration_window=window
+            self.restoration_app=app
+        try:
+            app.load_file(str(source))
+        except (OSError,ValueError,RuntimeError) as exc:
+            messagebox.showerror('Restoration Lab',str(exc),parent=window)
+
+    def import_restoration_export(self, filename):
+        source=Path(filename)
+        english=self.lang.get()=='EN'
+        if not source.is_file() or source.suffix.lower()!='.wav':
+            messagebox.showerror('Restoration Lab',
+                'The exported WAV is not available.' if english else 'Die exportierte WAV ist nicht verfügbar.',
+                parent=self.root)
+            return
+        if not messagebox.askyesno('Restoration Lab',
+                'Select the exported WAV in the audio browser?' if english else
+                'Die exportierte WAV im Audio-Browser auswählen?',parent=self.root):
+            return
+        self.audio_filter.set('')
+        self.input_kind.set('wav')
+        self.wav_folder.set(str(source.parent))
+        self.refresh_audio_browser()
+        matches=[key for key,path in self.audio_paths.items() if path.resolve()==source.resolve()]
+        if not matches:
+            messagebox.showerror('Restoration Lab',
+                'The exported WAV could not be selected in the audio browser.' if english else
+                'Die exportierte WAV konnte im Audio-Browser nicht ausgewählt werden.',parent=self.root)
+            return
+        self.audio_tree.selection_set(matches)
+        self.on_audio_selection()
+        self.tabs.select(self.tab_hosts[2])
+
     def audio_folder_changed(self,*_):
         self.audio_selection_initialized=False
         self.root.after_idle(self.refresh_audio_browser)
@@ -977,15 +1281,28 @@ class App:
             dirs=[v for v in paths if v.is_dir()]
             folder=dirs[0] if dirs else (audio[0].parent if audio else None)
             if folder:
+                resolved_folder = folder.resolve()
+                local_audio = [path for path in audio if path.parent.resolve() == resolved_folder]
+                kinds = {path.suffix.lower()[1:] for path in local_audio}
+                current_kind = self.input_kind.get()
+                if kinds and current_kind != 'mixed' and kinds != {current_kind}:
+                    self.input_kind.set('mixed' if len(kinds) > 1 else next(iter(kinds)))
+                term = self.audio_filter.get().strip().casefold()
+                if term and any(term not in path.name.casefold() for path in local_audio):
+                    self.audio_filter.set('')
                 self.wav_folder.set(str(folder));self.folder.set(str(folder))
                 self.refresh_audio_browser()
-                wanted={str(x.resolve()).casefold() for x in audio}
+                wanted = {path.resolve() for path in local_audio}
                 if wanted:
                     def apply_drop_selection():
-                        picks=[id for id,path in self.audio_paths.items() if str(path.resolve()).casefold() in wanted]
+                        if Path(self.wav_folder.get()).resolve() != resolved_folder:
+                            return
+                        picks = [row for row,path in self.audio_paths.items() if path.resolve() in wanted]
                         self.audio_tree.selection_set(picks)
                         self.on_audio_selection()
                     self.root.after_idle(apply_drop_selection)
+                if len(local_audio) < len(audio):
+                    self.status.set('Audio-Drop: Nur Dateien aus dem geöffneten Ordner übernommen.')
             else:
                 self.status.set('Drop: WAV/MP3-Dateien oder Ordner erwartet.')
         except Exception as exc:self.status.set(f'Audio Drag & Drop: {exc}')
@@ -1126,13 +1443,145 @@ class App:
         if tools_dir.is_file():return str(tools_dir)
         return shutil.which(name) or str(local)
 
+    def build_audio_labs(self,parent):
+        ttk.Label(parent,text='AUDIO LABS · REMASTER, RESTORE & CLEAN',
+                  foreground=NeonUI.CYAN,font=('Segoe UI Semibold',15)).pack(anchor='w',pady=(8,2))
+        ttk.Label(parent,text='Spezialisierte Audio-Werkzeuge aus dem Manager starten. Jedes Werkzeug öffnet ein eigenes Fenster.',
+                  wraplength=1040,foreground=NeonUI.TEXT).pack(anchor='w',pady=(0,8))
+
+        remaster=ttk.LabelFrame(parent,text='Suno Song Remaster',padding=12)
+        remaster.pack(fill='x',pady=(0,8))
+        ttk.Label(remaster,text='MP3-Remastering, LUFS/True-Peak-Ziele und Stapelverarbeitung.',
+                  wraplength=760).pack(side='left',fill='x',expand=True)
+        ttk.Button(remaster,text='▶ REMASTER STARTEN',
+                   command=lambda:self.launch_audio_lab('suno'),
+                   style='Action.TButton').pack(side='right',padx=(10,0))
+
+        restoration=ttk.LabelFrame(parent,text='Restoration Lab',padding=12)
+        restoration.pack(fill='x',pady=(0,8))
+        ttk.Label(restoration,text='Rauschminderung, A/B-Wiedergabe und WAV-Export.',
+                  wraplength=760).pack(side='left',fill='x',expand=True)
+        ttk.Button(restoration,text='▶ RESTORATION STARTEN',
+                   command=lambda:self.launch_audio_lab('restoration'),
+                   style='Secondary.TButton').pack(side='right',padx=(10,0))
+
+        cleanser=ttk.LabelFrame(parent,text='SunoCleanser',padding=12)
+        cleanser.pack(fill='x',pady=(0,8))
+        ttk.Label(cleanser,text='WAV- und MP3-Eingabe, Rauschminderung und 24-Bit-WAV-Export.',
+                  wraplength=760).pack(side='left',fill='x',expand=True)
+        ttk.Button(cleanser,text='▶ CLEANUP STARTEN',
+                   command=lambda:self.launch_audio_lab('sunocleanser'),
+                   style='Secondary.TButton').pack(side='right',padx=(10,0))
+
+        mp3gain=ttk.LabelFrame(parent,text='MP3Gain · Legacy VB6',
+                               padding=12)
+        mp3gain.pack(fill='x',pady=(0,8))
+        ttk.Label(mp3gain,text='ReplayGain-Analyse und Gain-Bearbeitung mit der mp3gain.js-Brücke.',
+                  wraplength=760).pack(side='left',fill='x',expand=True)
+        ttk.Button(mp3gain,text='▶ MP3GAIN STARTEN',
+                   command=lambda:self.launch_audio_lab('mp3gain'),
+                   style='Secondary.TButton').pack(side='right',padx=(10,0))
+
+        sunscreen=ttk.LabelFrame(parent,text='Sunscreen',padding=12)
+        sunscreen.pack(fill='x',pady=(0,8))
+        ttk.Label(sunscreen,text='MP3, WAV, FLAC oder M4A bereinigen; erzeugt gestufte 24-Bit-WAVs ohne Quelldateien zu überschreiben.',
+                  wraplength=760).pack(side='left',fill='x',expand=True)
+        ttk.Button(sunscreen,text='▶ AUSWAHL BEREINIGEN',
+                   command=lambda:self.launch_audio_lab('sunscreen'),
+                   style='Secondary.TButton').pack(side='right',padx=(10,0))
+
+        wav2mp3=ttk.LabelFrame(parent,text='WAV → MP3 · Stapelkonverter',
+                               padding=12)
+        wav2mp3.pack(fill='x',pady=(0,8))
+        ttk.Label(wav2mp3,text='Alle WAV-Dateien eines gewählten Ordners konvertieren; vorhandene gleichnamige MP3s werden nicht überschrieben.',
+                  wraplength=760).pack(side='left',fill='x',expand=True)
+        ttk.Button(wav2mp3,text='▶ WAV-ORDNER KONVERTIEREN',
+                   command=lambda:self.launch_audio_lab('wav2mp3'),
+                   style='Secondary.TButton').pack(side='right',padx=(10,0))
+
+        ttk.Label(parent,
+                  text='Die Werkzeuge bleiben getrennte Anwendungen. Fehlende Pakete oder Programme werden nicht automatisch installiert.',
+                  wraplength=1040,foreground=NeonUI.PINK).pack(anchor='w',pady=(2,6))
+        self.audio_lab_status=tk.StringVar(value='Audio-Tools bereit.')
+        ttk.Label(parent,textvariable=self.audio_lab_status,wraplength=1040,
+                  foreground=NeonUI.VIOLET).pack(anchor='w')
+
+    def launch_audio_lab(self,tool):
+        executable_dir=Path(sys.executable).resolve().parent
+        source_dir=Path(__file__).resolve().parent
+        roots=(source_dir.parent,executable_dir,executable_dir/'external-tools')
+        try:
+            command,working_directory=audio_lab_launch_spec(tool,roots)
+            if tool=='sunscreen':
+                selected=[]
+                if hasattr(self,'audio_tree'):
+                    selected=[
+                        self.audio_paths[row]
+                        for row in self.audio_tree.selection()
+                        if row in self.audio_paths
+                    ]
+                input_path=selected[0] if len(selected)==1 else None
+                if input_path is None:
+                    chosen=filedialog.askopenfilename(
+                        parent=self.root,
+                        title='Audiodatei für Sunscreen auswählen',
+                        filetypes=[('Audio','*.mp3 *.wav *.flac *.m4a')],
+                    )
+                    if not chosen:return
+                    input_path=Path(chosen)
+                if not input_path.is_file():
+                    raise FileNotFoundError(f'Die Audiodatei wurde nicht gefunden: {input_path}')
+                command=sunscreen_run_command(command[0],input_path)
+                popen_options={'cwd':str(working_directory)}
+                if sys.platform=='win32':
+                    popen_options['creationflags']=subprocess.CREATE_NEW_CONSOLE
+                subprocess.Popen(command,**popen_options)
+                self.audio_lab_status.set(
+                    f'Sunscreen gestartet · {input_path.name} · Ausgabe: {input_path.parent / "sunscreen"}'
+                )
+                return
+            if tool=='wav2mp3':
+                chosen=filedialog.askdirectory(
+                    parent=self.root,
+                    title='WAV-Ordner für die Stapelkonvertierung auswählen',
+                    mustexist=True,
+                )
+                if not chosen:return
+                command=wav2mp3_run_command(command[0],chosen)
+                wav_count=sum(
+                    path.is_file() and path.suffix.lower()=='.wav'
+                    for path in Path(chosen).iterdir()
+                )
+                popen_options={'cwd':str(working_directory)}
+                if sys.platform=='win32':
+                    popen_options['creationflags']=subprocess.CREATE_NEW_CONSOLE
+                subprocess.Popen(command,**popen_options)
+                self.audio_lab_status.set(
+                    f'wav2mp3 gestartet · {wav_count} WAV-Dateien · Ausgabe im Quellordner'
+                )
+                return
+            subprocess.Popen(command,cwd=str(working_directory))
+        except (FileNotFoundError,RuntimeError,OSError,ValueError) as exc:
+            self.audio_lab_status.set(f'{tool}: {exc}')
+            messagebox.showerror('Audio Labs',str(exc),parent=self.root)
+            return
+        label={
+            'suno':'Suno Song Remaster',
+            'restoration':'Restoration Lab',
+            'sunocleanser':'SunoCleanser',
+            'mp3gain':'MP3Gain',
+            'sunscreen':'Sunscreen',
+            'wav2mp3':'WAV → MP3',
+        }.get(tool,tool)
+        self.audio_lab_status.set(f'{label} gestartet · eigenes Fenster')
+
     def build_system_panel(self,parent):
         panel=ttk.LabelFrame(parent,text='System-Check und Portable-EXE',padding=8)
         panel.pack(fill='x',pady=(8,0))
         self.sys_report=tk.StringVar(value='Noch nicht geprüft. Keine Installation ohne ausdrückliche Aktion.')
         row=ttk.Frame(panel);row.pack(fill='x')
         ttk.Button(row,text='System prüfen',command=self.check_system).pack(side='left',padx=3)
-        ttk.Label(row,text='EXE-Build ausschließlich extern: BUILD_PORTABLE_EXE.bat').pack(side='left',padx=10)
+        ttk.Label(row,text='EXE-Build ausschließlich extern: L.Y.V.R.A._MP3_MANAGER.bat build').pack(side='left',padx=10)
         ttk.Label(panel,textvariable=self.sys_report,wraplength=1060,justify='left').pack(anchor='w',pady=3)
 
     def check_system(self):
@@ -1156,8 +1605,8 @@ class App:
     def build_exe(self):
         """Build bleibt strikt außerhalb der gestarteten GUI / der fertigen EXE."""
         messagebox.showinfo('EXE-Build / Build',
-            'EXE-Build ausschließlich außerhalb der App über BUILD_PORTABLE_EXE.bat.\n'
-            'Build only outside the application using BUILD_PORTABLE_EXE.bat.')
+            'EXE-Build ausschließlich außerhalb der App über L.Y.V.R.A._MP3_MANAGER.bat build.\n'
+            'Build only outside the application using L.Y.V.R.A._MP3_MANAGER.bat build.')
 
     def repair_audio_tools(self):
         # Fehlende Tools nie stillschweigend herunterladen oder installieren.
@@ -1306,32 +1755,34 @@ class App:
             if dest.exists():
                 stem=dest.stem;counter=1
                 while dest.exists():dest=output/f'{stem} {counter}.mp3';counter+=1
-            temp=output/(dest.stem+'.partial.mp3')
-            if temp.exists():
-                errors.append(f'{path.name}: temporäre Datei existiert bereits; nicht überschrieben');skipped+=1;continue
+            staging = None
             try:
+                # Eigener Arbeitsordner im Ziel-Volume pro Auftrag, auch bei Namensgleichheit.
+                staging = TemporaryDirectory(prefix='.lyvra-export-', dir=output)
+                temp = Path(staging.name) / 'audio.mp3'
                 probe=call([ffprobe,'-v','error','-show_entries','stream=codec_type','-of','json',str(path)])
                 if probe.returncode or not any(s.get('codec_type')=='audio' for s in json.loads(probe.stdout).get('streams',[])):
                     raise RuntimeError('keine gültige Audiospur')
                 # 32-Bit-Float-Planar als bevorzugtes Filter-Zwischenformat; FFmpeg verhandelt danach das Encoderformat selbst.
                 filters=[f'aformat=sample_fmts={pcm}',f'aresample={sr}']
                 if normalize:
+                    # Beide Durchläufe messen und bearbeiten dasselbe Kanallayout.
+                    layout = 'stereo' if channels=='stereo' else 'mono'
+                    filters.append(f'aformat=channel_layouts={layout}')
                     self.root.after(0,lambda i=i,n=len(tracks),p=path:self.audio_progress(i,n,0,p.name,'Lautheitsanalyse (Pass 1)'))
                     first=f'loudnorm=I={target}:TP={tp}:LRA=11:print_format=json'
-                    cmd=[ffmpeg,'-hide_banner','-nostdin','-v','info','-i',str(path),'-vn','-af',','.join(filters+[first]),'-f','null','-']
+                    cmd=[ffmpeg,'-hide_banner','-nostdin','-v','info','-i',str(path),'-map','0:a:0','-vn','-af',','.join(filters+[first]),'-f','null','-']
                     result=call(cmd)
                     if result.returncode:raise RuntimeError('Lautheitsmessung fehlgeschlagen: '+result.stderr[-400:])
                     import re as _re
                     match=_re.findall(r'\{\s*"input_i".*?\}',result.stderr,_re.S)
                     if not match:raise RuntimeError('Keine Lautheitsmesswerte erhalten')
                     stat=json.loads(match[-1])
-                    # Strikt keine dynamische Veränderung ohne ausdrückliche Freigabe.
-                    validate_linear_loudnorm_measurement(stat, target, tp)
-                    norm=(f'loudnorm=I={target}:TP={tp}:LRA=11:'
-                          f'measured_I={stat["input_i"]}:measured_TP={stat["input_tp"]}:'
-                          f'measured_LRA={stat["input_lra"]}:measured_thresh={stat["input_thresh"]}:'
-                          f'offset={stat["target_offset"]}:linear=true:print_format=summary')
-                    filters.append(norm)
+                    # Expliziter Gain: auch LRA 0 bleibt linear, selbst wenn loudnorm
+                    # seine Standardwerte als fehlende Messwerte interpretieren würde.
+                    measurement = validate_linear_loudnorm_measurement(stat, target, tp)
+                    gain_db = float(target) - measurement['input_i']
+                    filters.append(f'volume={gain_db:.6f}dB:precision=double')
                 cmd=[ffmpeg,'-hide_banner','-nostdin','-n','-v','error','-i',str(path),'-map','0:a:0','-map_metadata','0','-vn','-af',','.join(filters),'-ar',str(sr),'-ac',('2' if channels=='stereo' else '1'),'-c:a','libmp3lame','-compression_level','0','-b:a',f'{br}k','-id3v2_version','3',str(temp)]
                 # FFmpeg emits actual processed audio time, not an estimated percentage.
                 duration_probe=call([ffprobe,'-v','error','-show_entries','format=duration','-of','default=noprint_wrappers=1:nokey=1',str(path)])
@@ -1363,28 +1814,18 @@ class App:
                 chk=call([ffprobe,'-v','error','-show_entries','stream=codec_name,sample_rate,channels','-of','json',str(temp)])
                 streams=json.loads(chk.stdout).get('streams',[])
                 if chk.returncode or not streams or streams[0].get('codec_name')!='mp3' or int(streams[0].get('sample_rate',0))!=sr or int(streams[0].get('channels',0))!=(2 if channels=='stereo' else 1):raise RuntimeError('Ausgabevalidierung fehlgeschlagen')
-                # Gemeinsamer Workflow: Dateiname bereinigen, MP3 ausgeben, ID3-TIT2=dest.stem ohne Dateiendung.
-                # Abfolge: Dateiname zuerst endgültig vergeben, DANACH ID3-Metadaten.
-                # Hardlink mit exklusiver Ziel-Neuanlage verhindert Überschreiben auch bei
-                # konkurrierenden Prozessen. Verfügbares Ziel ist im selben Ausgabeordner.
-                # Sollte das Dateisystem Hardlinks verweigern, bricht nur diese Datei ab.
-                if dest.exists():raise RuntimeError('Zieldatei zwischenzeitlich angelegt – nicht überschrieben')
-                os.link(temp, dest)
-                temp.unlink()
+                # Der vorgesehene Zielname bestimmt TIT2. Die MP3 bleibt bis zur Abnahme im Arbeitsordner.
+                if self.cancel_audio.is_set():raise InterruptedError('Vor Metadaten abgebrochen')
+                automatic_convert_tags(temp, path, dest.stem, tag_values)
+                qc_result = None
+                if audio_qc:
+                    self.root.after(0,lambda i=i,n=len(tracks),p=path:self.audio_progress(i,n,.99,p.name,'Audio-QC: vollständige MP3 dekodieren'))
+                    qc_result = verify_encoded_mp3(ffmpeg, ffprobe, temp, duration, runner=call)
+                if self.cancel_audio.is_set():raise InterruptedError('Beim Audio-QC abgebrochen')
                 try:
-                    if self.cancel_audio.is_set():raise InterruptedError('Vor Metadaten abgebrochen')
-                    # TIT2 wird IMMER aus dem bereinigten endgültigen Dateinamen abgeleitet,
-                    # niemals aus dem allgemeinen Songtitel-Feld oder mit ".mp3".
-                    automatic_convert_tags(dest, path, dest.stem, tag_values)
-                    qc_result = None
-                    if audio_qc:
-                        self.root.after(0,lambda i=i,n=len(tracks),p=path:self.audio_progress(i,n,.99,p.name,'Audio-QC: vollständige MP3 dekodieren'))
-                        qc_result = verify_encoded_mp3(ffmpeg, ffprobe, dest, duration, runner=call)
-                    if self.cancel_audio.is_set():raise InterruptedError('Beim Audio-QC abgebrochen')
-                except Exception:
-                    # Nur die von diesem Auftrag neu erzeugte Zieldatei entfernen.
-                    dest.unlink(missing_ok=True)
-                    raise
+                    publish_mp3_exclusive(temp, dest)
+                except FileExistsError as exc:
+                    raise RuntimeError('Zieldatei zwischenzeitlich angelegt – nicht überschrieben') from exc
                 # Beweisspur: Nicht auf subjektive Artefaktfreiheit schließen.
                 # QC-Report ist rein additiv; Ausgabedatei wird nicht angefasst.
                 try:
@@ -1395,12 +1836,16 @@ class App:
                 success+=1
                 self.root.after(0,lambda i=i,n=len(tracks),p=path:self.audio_progress(i,n,1,p.name,'Datei abgeschlossen'))
             except InterruptedError:
-                if temp.exists():temp.unlink()
                 self.cancel_audio.set()
                 break
             except Exception as exc:
                 errors.append(f'{path.name}: {exc}');skipped+=1
-                if temp.exists():temp.unlink()
+            finally:
+                if staging is not None:
+                    try:
+                        staging.cleanup()
+                    except OSError as exc:
+                        errors.append(f'{path.name}: Arbeitsordner konnte nicht aufgeräumt werden: {exc}')
         def done():
             processed=success+skipped
             total=len(tracks)

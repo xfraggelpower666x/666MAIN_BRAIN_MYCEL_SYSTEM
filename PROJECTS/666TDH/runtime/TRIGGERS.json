@@ -1,0 +1,19 @@
+{
+  "source": "runtime/hub/TRIGGER_NAMESPACE.md",
+  "root": ["SYSTEMSTART", "STATUS", "HELP", "WEITER", "NEW CHAT", "DASHBOARD", "VISUAL", "HOST RECOVERY", "UPDATE"],
+  "child": ["SYSTEMSTART", "STATUS", "HELP", "WEITER", "NEW CHAT", "DASHBOARD", "VISUAL"],
+  "descriptions": {
+    "SYSTEMSTART": "Current verifiziert. Der Hub-Einstieg zeigt das Menü. Eine Branch-Route liefert ausschließlich das gewählte Child.",
+    "STATUS": "Verifizierter Repo-Stand für das ausgewählte Ziel.",
+    "HELP": "Direkttrigger für die aktuelle Registry.",
+    "WEITER": "Fortsetzung aus verifiziertem Current und zielgebundenem Handoff.",
+    "NEW CHAT": "Rehydrationsbefehl für einen neuen Chat ausgeben.",
+    "DASHBOARD": "Verifizierte Daten für das native Dashboard ausgeben.",
+    "VISUAL": "Verifizierte Daten und Verträge für Semantic Visual Intelligence ausgeben.",
+    "HOST RECOVERY": "Current-Verifikation und Rückkehranker für den Host ausgeben.",
+    "UPDATE": "Repo-Current prüfen und die native Veröffentlichung vorbereiten."
+  },
+  "direct_user_trigger_only": true,
+  "handoff_runtime_authority": "NONE",
+  "durable_update_authority": "666TDH UPDATE"
+}

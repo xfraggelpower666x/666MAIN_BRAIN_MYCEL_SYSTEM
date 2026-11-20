@@ -1,0 +1,618 @@
+{
+  "source": {
+    "version": "3.4.6",
+    "liveRevision": "R18",
+    "mainArchiveSha256": "41b6ca45ad0027b346bd05aac0c7c9544f364e093734241516a5ec3c32f04478",
+    "inventoryCount": 226
+  },
+  "activeFacets": {
+    "startup": "native/docs/STARTUP_HELP_LANGUAGE_PROFILE_CONTRACT_v3.4.6.md",
+    "semantic": "native/docs/SEMANTIC_RELATIONAL_TRANSLATION_CONTRACT_v3.4.6.md",
+    "forceLock": "native/docs/TRANSLATION_ENGINE_FORCE_LOCK_v3.4.6.md",
+    "liveCircle": "native/runtime/LINGUA_LIVE_CIRCLE_RUNTIME_CONTRACT_v3.4.6.md",
+    "facetRegistry": "native/registry/LINGUA_FACET_LIVE_CIRCLE_REGISTRY_v3.4.6.json",
+    "time": "native/docs/TEMPORAL_CONTEXT_CORE_v3.4.6.md",
+    "continuity": "native/docs/TRANSLATION_CONTINUITY_NATIVE_v3.4.6.md",
+    "learningEmoji": "native/docs/USER_RELATIONSHIP_LEARNING_AND_EMOJI_CONTRACT_v3.4.6.md",
+    "nativeSystemPrompt": "native/system/666_LINGUA_SYSTEM_PROMPT_v3.4.6.md"
+  },
+  "historicalCompatibilityRole": "REFERENCE_ONLY",
+  "imported": [
+    {
+      "path": "native/bootstrap/666_LINGUA_GLOBAL_BOOTSTRAP_v3.4.6.md",
+      "sha256": "2e57f5c52b77bc32ecd902b50347f6ba69ed111053d01291e0a6a0157f292dff"
+    },
+    {
+      "path": "native/compatibility_support/docs/AGENT_AND_INTEGRATION_ARCHITECTURE_v1.7.0.md",
+      "sha256": "1ce63fda6754ca3700c7c779a787c7ecaf8bc3853523e9b3181815c6be756c06"
+    },
+    {
+      "path": "native/compatibility_support/docs/PFS_EXTERNAL_INTAKE_REFERENCE_POLICY_v1.7.0.md",
+      "sha256": "fd8e5fd98acc52f28b4172b3d57b4150c144c415b22413ac5a3251ea744ea780"
+    },
+    {
+      "path": "native/compatibility_support/docs/PRACTICAL_OUTPUT_CONTRACT_v2.2.4.md",
+      "sha256": "0a53550b2fc4bc61bdeeec9b1b085c932fcd69e9ace884f67970bff12f79d5e3"
+    },
+    {
+      "path": "native/compatibility_support/docs/REGISTRY_DEFINITIONS.md",
+      "sha256": "70b389234db838ce4f20c5c59b6f06cbfe0fec0e763c2d789d875494e8c1506f"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage01/CYCLE02_STAGE01_ANALYSIS_REPORT_v1.6.0.md",
+      "sha256": "928c0e26becfc33a89e137f6e58910c78873f33dba8420a1d9de0ef00ce5fd2a"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage01/DATA_RETENTION_AND_DELETION_MODEL_v1.6.0.md",
+      "sha256": "619180b484c5b4325ba0c52a5439438a1c992b43e55bdb101c65676f450b01ca"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage01/DEVICE_ACCEPTANCE_PLAN_v1.6.0.md",
+      "sha256": "8aec736c3d8104e2d5d52ffb68548cadce1c4b8a759719d679464bbdc2a193c3"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage01/HUMAN_REVIEW_AUTHORITY_MODEL_v1.6.0.md",
+      "sha256": "8b8c9249adc2a901a31681dc7461640b8451ea86d2d5bb9c4bd20da966c78c49"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage01/MODULE_DECISION_REGISTER_v1.6.0.json",
+      "sha256": "2bb8c7dce5aee6def55f4040ddebafbd27f4c8c80902322b5981b28b11d425a4"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage01/OVERLAP_AND_CONSOLIDATION_MATRIX_v1.6.0.md",
+      "sha256": "843485110241e836e7830a126bb4c43f9a7352be5e0746444bb487c1f67914f6"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage01/REQUIREMENT_INVENTORY_v1.6.0.json",
+      "sha256": "235c83ffb67a29f69880dde83a6487177d6b1b44c3eec894ae443a64f8720ce6"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage01/STAGE02_ENTRY_CONTRACT_v1.6.0.md",
+      "sha256": "629fa32893ec8824f5776c05fa8c3857bf3c621cbabc25e3b9139dc55eb696ed"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage02/CONTEXT_LEDGER_OWNERSHIP_RETENTION_v1.7.0.md",
+      "sha256": "699d4f028ec21a7fa5bb7d07100c2946d90f64c0646d8c09c4608e32ff6f41cc"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage02/DELETE_AND_FORGET_GRAPH_v1.7.0.md",
+      "sha256": "810b486604266d4f934d99ddcdabd9b12267d1285d82cb6507b0d108058ceb1d"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage02/DEVICE_SHARE_ENVELOPE_AND_COPY_SAFETY_v1.7.0.md",
+      "sha256": "fc35c278b87c64630f643d0f4d7f363509f085e2a77514b079b01f431e7358eb"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage02/HUMAN_REVIEW_EVIDENCE_WEIGHTING_v1.7.0.md",
+      "sha256": "2b2444df339b9748285017c723470c6ea2fbed6e33391f3b4823e3ea5e704ea7"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage02/LEARNING_PIPELINE_STATE_MACHINE_v1.7.0.md",
+      "sha256": "87c3dc2bd374cdce9c5f31c4b098fa800d31a7e163b00c22fdf44d7f86f1ae63"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage02/MIGRATION_v1.6.0_TO_v1.7.0.md",
+      "sha256": "fdb939e935d3b93b8b9477641869da2445855690a70f903595ed221610549aca"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage02/TECHNICAL_CONSOLIDATION_SPEC_v1.7.0.md",
+      "sha256": "5ab80e33e5a76429ba42fb512370198fe8abd754f259a77984766511fc8ca855"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage03/DELETE_AND_FORGET_TEST_REPORT_v1.8.0.md",
+      "sha256": "3a7f1369f3072cd5943fe1e6657d74f622f943f608e62afc54487c7a40ff7a8f"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage03/DEVICE_VALIDATION_REPORT_v1.8.0.md",
+      "sha256": "b0ef3033973337741da4ef22e9bc443f6f75edd502666dbddb3cf079ef7c1b12"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage03/HUMAN_REVIEW_CONFLICT_REPORT_v1.8.0.md",
+      "sha256": "6e79df758498c411be4dd308259651396cd5ac0c00c0af4ac3cbc79e8890a6a5"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage03/IMPLEMENTATION_SPEC_v1.8.0.md",
+      "sha256": "df4ce30394287e691e2e6e914b14f8ffee11e11f142804b55f1bf619ec4c2791"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage03/STAGE03_COMPLETION_REPORT_v1.8.0.md",
+      "sha256": "400f3d2e4c5d2fd900148ddfe651dd781ee73a6f1f4d5b151aeb5eac86503c3b"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage04/DEVICE_ACCEPTANCE_PROTOCOL_v1.9.0.md",
+      "sha256": "02abf7b9a10534742baddc6ecbdf32beb0e75a8dccf13ec3a3f10f703b240bed"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage04/HUMAN_ACCEPTANCE_PROTOCOL_v1.9.0.md",
+      "sha256": "ca6b48c62f8b0a3e631a5384f5deab0860d7d6d6d554c5ba221e8c07046cf790"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage04/RELEASE_GATE_MATRIX_v1.9.0.json",
+      "sha256": "7386349aa0d85f8324022722b7438b6a1623eba3fc89c436b08cc7d923bd51d8"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage04/RELEASE_HARDENING_SPEC_v1.9.0.md",
+      "sha256": "4b5a37f3dba126d80ef12a3db29d3befc742d2f503f72add0aec13e90131f9d5"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage04/STAGE04_COMPLETION_REPORT_v1.9.0.md",
+      "sha256": "25378b5ca121a12e8aef507135399082e9035ca7f3bb0793f8b6daf9010a6f86"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage05/666PFS_INTAKE_CONTRACT_v2.0.0.md",
+      "sha256": "d11d1c4d3ef80a642734db49b75a632ba4a1c6f239f7507fcb5aa39f214b7ae4"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage05/EXTERNAL_ACCEPTANCE_EXECUTION_GUIDE_v2.0.0.md",
+      "sha256": "9bd58721e90f13ab7978c040bd2e5f3a8639a7f5acf9d5e33502ea59ee162a3d"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage05/EXTERNAL_EVIDENCE_MATRIX_v2.0.0.json",
+      "sha256": "8d42f6442a2aa853356d656f657e6a551e4cedc0f64f6a849b44d8f893b4b3c0"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle02_stage05/STAGE05_COMPLETION_REPORT_v2.0.0.md",
+      "sha256": "f09e69c78067acf399833b0bd93d62c3e2e704c31c5cc5e622136c0644faafdc"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle03_stage01/CAUSAL_DEPENDENCY_GRAPH_v2.1.0.json",
+      "sha256": "9836db0796f8f65bea8cba96984e22609a06f3a0ac4b3822e9c27082bc1b9471"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle03_stage01/CYCLE03_STAGE01_POST_INTAKE_ANALYSIS_v2.1.0.md",
+      "sha256": "35948c1c359f12f7cc6809cd2944e6c37a688bb08cdf89e1e7a37d070906f8da"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle03_stage01/EVOLUTION_DECISION_REGISTER_v2.1.0.json",
+      "sha256": "f9f014cd90fa17384d6df252acc4b6f5504db04db04ab173566a25cddb4485a4"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle03_stage01/PERFORMANCE_AND_COMPLEXITY_BUDGET_v2.1.0.md",
+      "sha256": "ffe8b498064c748496f67882f965003b200ad37182648e6d49f1ab73cdaf6e3f"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle03_stage01/STAGE02_ENTRY_CONTRACT_v2.1.0.md",
+      "sha256": "05b10e95779a40f4080e3acc917ac63010a2e388149dcc4b84aff61cbcced3fb"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle03_stage02/CAUSAL_ORCHESTRATION_CONSOLIDATION_v2.2.0.md",
+      "sha256": "9025ab5f2a96bddbeda54f6b7ca866c4b1fb02225f2b65cb5f905c5710b3a746"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle03_stage02/EMOJI_REINFORCEMENT_REFINEMENT_v2.2.0.md",
+      "sha256": "da2e298a603d38081d2c0d93d7fc0049eca7e573fb4725da0de94af53546dbe2"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle03_stage02/OUTPUT_RENDERER_CONTRACT_v2.2.1.md",
+      "sha256": "d19ca5be2c08bc02d91be4f8ceb29782e39a1f2d4dac51451b24580b754e1f17"
+    },
+    {
+      "path": "native/compatibility_support/docs/cycle03_stage02/SHAREABLE_VARIANT_UI_CONTRACT_v2.2.0.md",
+      "sha256": "08180a3d8311a22dcc15512e12b2c4889e5cde197760200b76ecfb63af2bb102"
+    },
+    {
+      "path": "native/compatibility_support/docs/stage02/ENGINE_SPECIFICATIONS_v1.2.3.md",
+      "sha256": "14067e4775b14969525b00149e4a23ab0468424b98054d8085a36563570e3bba"
+    },
+    {
+      "path": "native/compatibility_support/docs/stage02/MASTER_AUDIT_v1.2.3.md",
+      "sha256": "2dce039ecdce5b9298bc2b1468605a8095d38249c5cfbbc39af4629b65a78cd2"
+    },
+    {
+      "path": "native/compatibility_support/docs/stage02/REQUIREMENT_TRACEABILITY_v1.2.3.json",
+      "sha256": "2f2ccaaf1ee9e8441aa27273a5da9e66f0dd49c22c4159551aa6aba712c7bff8"
+    },
+    {
+      "path": "native/compatibility_support/docs/stage02/SAS_v1.2.3.md",
+      "sha256": "e0085360277208c8630feae349c4de023aecc902a4ecb49ded8a9e586cb55dcd"
+    },
+    {
+      "path": "native/compatibility_support/docs/stage02/SRS_v1.2.3.md",
+      "sha256": "13fbfa32ec8c1f7a145b38c6f9dae5ea964b1c3205ee6274934cbc13f395a291"
+    },
+    {
+      "path": "native/compatibility_support/docs/stage03/KNOWN_LIMITATIONS_v1.3.0.md",
+      "sha256": "dad4f173a706af4ff59a681d9cff43cfbd8ac08c7d1d33c88343c0b090b6e648"
+    },
+    {
+      "path": "native/compatibility_support/docs/stage03/RUNTIME_REQUIREMENT_TRACEABILITY_v1.3.0.json",
+      "sha256": "1fd2e05e411fe91255900d902e0078c8c1ba0c9f66144a9ca70704edb7b1042f"
+    },
+    {
+      "path": "native/compatibility_support/docs/stage03/RUNTIME_VALIDATION_REPORT_v1.3.0.md",
+      "sha256": "f20434d83f2d82eab75887bd75627052df685024ab938802060c3736a8c5ece2"
+    },
+    {
+      "path": "native/compatibility_support/docs/stage03/RUNTIME_VALIDATION_SPEC_v1.3.0.md",
+      "sha256": "7ee03dd8d9c72d4a32a99085376005593629354ebe57b066fea070e4b7ce514f"
+    },
+    {
+      "path": "native/compatibility_support/docs/stage04/KNOWN_LIMITATIONS_v1.4.0.md",
+      "sha256": "7cb81532bee8027a2999a0a62cc48f85506af17c66ba3453a62fd72beb9fa717"
+    },
+    {
+      "path": "native/compatibility_support/docs/stage04/LINGUISTIC_ACCEPTANCE_MATRIX_REPORT_v1.4.0.md",
+      "sha256": "cfccc1d27fa583b8786275a467095b2dfbd5fbd1fcc80f9665e6ff04c59d8593"
+    },
+    {
+      "path": "native/compatibility_support/docs/stage04/LINGUISTIC_REQUIREMENT_TRACEABILITY_v1.4.0.json",
+      "sha256": "38206dd8e9bec2099b8bb934b2d439d82166d517bf68eec29337aa53d966b05c"
+    },
+    {
+      "path": "native/compatibility_support/docs/stage04/RELEASE_SPECIFICATION_v1.4.0.md",
+      "sha256": "a800f4a5f5ad6750d4ee337561633636615eccc9daddae0c204f9e0f6c0f069c"
+    },
+    {
+      "path": "native/compatibility_support/docs/stage05/CONTEXT_CONTINUITY_LEDGER_SPEC_v1.5.0.md",
+      "sha256": "dbdb67cf81ef65bdceb6bd6a42c14e7c56b79f661304b20506e86d10a743a7de"
+    },
+    {
+      "path": "native/compatibility_support/docs/stage05/CONTROLLED_LEARNING_POLICY_v1.5.0.md",
+      "sha256": "a572e8595aaef2f4b6134967c079ea284c12bf42b2d22fe9175b01ab0e438d3c"
+    },
+    {
+      "path": "native/compatibility_support/docs/stage05/DEVICE_SHARE_ADAPTER_CONTRACT_v1.5.0.md",
+      "sha256": "0a26681b0c40575087ec9a9cd5e5b4113047949a77648ef1c498b3f478297f33"
+    },
+    {
+      "path": "native/compatibility_support/docs/stage05/EVOLUTION_SPECIFICATION_v1.5.0.md",
+      "sha256": "ea2b463e337513805edcaf19a70045275323c1deb5f0125e7615b65d2d5ebd4f"
+    },
+    {
+      "path": "native/compatibility_support/docs/stage05/NEXT_CYCLE_STAGE01_SEED_v1.5.0.json",
+      "sha256": "883b50bb8fa73f339a83dd939d5b2de776bbc7ef98198ef1602e6fd5008e2dcd"
+    },
+    {
+      "path": "native/compatibility_support/docs/stage05/PRIVACY_DATA_MINIMIZATION_POLICY_v1.5.0.md",
+      "sha256": "758395ee3f9d634b92d8197f3cda8d38e802dcf0fdffd602163ec6c757635a61"
+    },
+    {
+      "path": "native/compatibility_support/docs/stage05/STAGE05_EVOLUTION_REPORT_v1.5.0.md",
+      "sha256": "b583a51354559db443cbaed7a98aaacd9a48e1d147266979f29696e18a72bb81"
+    },
+    {
+      "path": "native/compatibility_support/legacy_contracts/DECISIONS.md",
+      "sha256": "3dd10b2c93a72ab566ed394b1f9a8ee6ff473111190a3e0a94d3b9f3e73910d6"
+    },
+    {
+      "path": "native/compatibility_support/legacy_contracts/FOUR_FRAME_NATIVE_PERCEPTION_INVARIANT_v2.2.3.json",
+      "sha256": "3a1f0ad43059b77251d6786033ef9ca4de7560a3d8ddb3e72826e8cb2c71341a"
+    },
+    {
+      "path": "native/compatibility_support/legacy_contracts/OPEN_ITEMS.md",
+      "sha256": "59a99e8a05e8244d6b5daf89e9d1c779b94b4dc963276b8af5928b94d6f653b4"
+    },
+    {
+      "path": "native/compatibility_support/legacy_contracts/PORTABLE_FRONT_CONTINUITY_INVARIANT_v2.2.5.json",
+      "sha256": "d13555bda3ce418a851fb608f0fe971230456b601d404ea3cd86fb543115231b"
+    },
+    {
+      "path": "native/compatibility_support/legacy_contracts/PORTABLE_PRIVACY_AUDIT.json",
+      "sha256": "a83a5ef65d71bb87e9899e350c40db2af8453fcb7267c13657ab4690f59a342e"
+    },
+    {
+      "path": "native/compatibility_support/legacy_contracts/PORTABLE_START_LANGUAGE_CONTRACT.json",
+      "sha256": "74e5367b308edea0fa9d88ef1f356dd6743f4256b2360c1a5c6324e34960d687"
+    },
+    {
+      "path": "native/compatibility_support/legacy_contracts/PORTABLE_UPLOAD_VISIBILITY_CONTRACT.json",
+      "sha256": "79acd42970c0e9b69a32fdce4f01c983ac66f8e6a9adc95a98080fd651ee8706"
+    },
+    {
+      "path": "native/compatibility_support/legacy_contracts/PRACTICAL_OUTPUT_FREEZE_v2.2.4.json",
+      "sha256": "b8fa952310c4efce41057398f7ad07a6433766afd5710cd9c4dba049c440cab9"
+    },
+    {
+      "path": "native/compatibility_support/legacy_contracts/QUALITY_FREEZE_v2.2.3.json",
+      "sha256": "563b85cf9bd0d52a3a582192603f6e9141e7d95967a784cb54ea48bf17c179e7"
+    },
+    {
+      "path": "native/compatibility_support/legacy_contracts/README.md",
+      "sha256": "c2426856e8e8ea8d55f0dd1be7d91f25c51c70ed14f18f7e5809f96964ab3334"
+    },
+    {
+      "path": "native/compatibility_support/legacy_contracts/RISKS.md",
+      "sha256": "c330c266118af44fd8107587402b2d79fd4d01316467d72379002f10be89fbc3"
+    },
+    {
+      "path": "native/compatibility_support/legacy_contracts/TODO.md",
+      "sha256": "ce5127dc43db95cb104624115550f95056661d914c9aaeccb3a2a7542ca67447"
+    },
+    {
+      "path": "native/compatibility_support/recovery/RECOVERY_BOOTSTRAP_v1.7.0.md",
+      "sha256": "8c3350326f74938f650ed7c8da0feb43304c2845b9d624f3ac879b5cd7e333aa"
+    },
+    {
+      "path": "native/compatibility_support/registry/PORTABLE_SYSTEM_PASSPORT.json",
+      "sha256": "8fc5dff143685ea11ed50e3bb128032b4e5345341a61d994841e074bda308ce2"
+    },
+    {
+      "path": "native/compatibility_support/registry/SYSTEM_PASSPORT_v2.2.0.json",
+      "sha256": "36551c3f756820957f076b254fed2a0bb91ab2d4c9dabb64b427a0d458eb8005"
+    },
+    {
+      "path": "native/compatibility_support/schemas/checkpoint.schema.json",
+      "sha256": "07ab80364bded612490adbb59340224b8e80304251d1d2c0dd584915443dc425"
+    },
+    {
+      "path": "native/compatibility_support/schemas/context_ledger_entry.schema.json",
+      "sha256": "ef961d0a83de76cbc4142baaf9e3111d166c6a10a14a8add83717f3cab5f3410"
+    },
+    {
+      "path": "native/compatibility_support/schemas/correction_learning_candidate.schema.json",
+      "sha256": "86bc2eb6a196a1c3efe53f0db5379927af70d10a32bfbc91375505622d883ac2"
+    },
+    {
+      "path": "native/compatibility_support/schemas/device_share_adapter.schema.json",
+      "sha256": "ebbac7317cfc9be305d320d40508e3e6451b663499475bc177d0f02e1ec34b8d"
+    },
+    {
+      "path": "native/compatibility_support/schemas/device_share_envelope_v1.7.0.schema.json",
+      "sha256": "d31f0f34efb434da74af805e65a44b6f18a2ecc3363c71efcc9a333501b6c390"
+    },
+    {
+      "path": "native/compatibility_support/schemas/evidence_governed_candidate.schema.json",
+      "sha256": "0887683aa3696294e879bd276c2de15bc0973cbdf3a7d50b57f4b9214f7328f2"
+    },
+    {
+      "path": "native/compatibility_support/schemas/evolution_proposal.schema.json",
+      "sha256": "1b6e6fc38f2182d30ac26971e7f96c59e60ec417b782601d2a2969042386dcc9"
+    },
+    {
+      "path": "native/compatibility_support/schemas/external_acceptance_evidence.schema.json",
+      "sha256": "0a986691b4a70f09e2e828fced6ca958d28c4e03988fb68c5832cdfc06406a17"
+    },
+    {
+      "path": "native/compatibility_support/schemas/five_variant_output_v2.2.4.schema.json",
+      "sha256": "ff1365debe4913fccc524d287d356784c09bcd8976037039013e2c2bc5f8b0ef"
+    },
+    {
+      "path": "native/compatibility_support/schemas/human_review_feedback.schema.json",
+      "sha256": "dc6150036e26cb8e07e93f1a4ac79b9b36db20638da46490114216fe0549d311"
+    },
+    {
+      "path": "native/compatibility_support/schemas/output_renderer_contract_v2.2.1.json",
+      "sha256": "c03465aa0e401fb638f05827ac8404a986aa979dcdcf4670bd50fc0e28505633"
+    },
+    {
+      "path": "native/compatibility_support/schemas/regression_test_candidate.schema.json",
+      "sha256": "34d145bed6eca4a2b4a645ae2b92dfa8c1be915364a39a5788f714740495c5e3"
+    },
+    {
+      "path": "native/compatibility_support/schemas/session_context_ledger_entry_v1.7.0.schema.json",
+      "sha256": "6b6b997e7e2bea22e7626e0c515ef56b60371a92321a9734fedc27636f730ab9"
+    },
+    {
+      "path": "native/compatibility_support/schemas/state.schema.json",
+      "sha256": "545b5e9de26a0c02a02a0a95dd476806e3bfc0b5ee5a24f3861a50cc2c9e4c60"
+    },
+    {
+      "path": "native/compatibility_support/schemas/translation_variant_bundle_v2.2.0.schema.json",
+      "sha256": "f613a8f526e7d72f157820dce33529a9bd77d53d5d0bc28a9ada6e134d4784d0"
+    },
+    {
+      "path": "native/config/666LINGUA_TRIGGER_REGISTRY_v3.4.6.json",
+      "sha256": "f6e61d5474fe48d29772bba5962d786c4944296533af832e0856c6146c919411"
+    },
+    {
+      "path": "native/docs/666_LINGUA_RENAME_GOVERNANCE_v3.4.6.md",
+      "sha256": "7d47f64e417853e7a3f23582a89701ce5757cdd3d648683d86783fd982c8b44e"
+    },
+    {
+      "path": "native/docs/ARCHEON_TARGET_NATIVE_ADOPTION_v3.4.6.md",
+      "sha256": "ffe5f3de7343953b863b76939b3b12e4bc4891d8ccc700404fab610addeec35e"
+    },
+    {
+      "path": "native/docs/BOOTSTRAP_INTERFACE_LANGUAGE_v3.4.6.md",
+      "sha256": "290a5772c81d2a8c3bca10e9ac8d645620fae4684a5546682214397cc430c4a0"
+    },
+    {
+      "path": "native/docs/CAPABILITY_PARITY_RECOVERY_TRACK_v3.4.6.md",
+      "sha256": "12927487de6fb18beab89945026d84ff4d1557c9c2ae9863719c9afce887b063"
+    },
+    {
+      "path": "native/docs/CHAOS_WITH_SYSTEM_GOVERNANCE_v3.4.6.md",
+      "sha256": "8bb02104b4e255e6ca323dc435d558d95155e743cecbd0caac917dec5c0bd9f2"
+    },
+    {
+      "path": "native/docs/CONTEXT_INTEGRITY_NO_THINNING_v3.4.6.md",
+      "sha256": "c4fca4aa77c16870d68393c5ab24f54e84b52eb369ba8da793cd76c3f4109897"
+    },
+    {
+      "path": "native/docs/CONTINUATION_TODO_CONTRACT_v3.4.6.md",
+      "sha256": "7af44f0b5e0cf41d469ce4f1261a2c768a09036085bae5442c396fefd8f8f5b1"
+    },
+    {
+      "path": "native/docs/CROSS_SYSTEM_CAUSAL_BLAST_RADIUS_GATE_v3.4.6.md",
+      "sha256": "a81fffb6c53d8558dee2fbb9e171ce2c6b70ef124cb3d44373f631f94f72b7e8"
+    },
+    {
+      "path": "native/docs/EXPERIENCE_PATH_VALUE_v3.4.6.md",
+      "sha256": "03937c94d2449e5eff720e645d1baa80d780b4b3f9708db3e647a221eda8261e"
+    },
+    {
+      "path": "native/docs/FACET_SUBINTELLIGENCE_PRESERVATION_v3.4.6.md",
+      "sha256": "c74c990a19f936e10c7ef1cbd22e8c0b1998f0efd0fc1a4582c699ae823b0f16"
+    },
+    {
+      "path": "native/docs/FORCE_INTELLIGENCE_v3.4.6.md",
+      "sha256": "1712ca5161cc94653d04e51f944dbf5ef051336d78a3c26cd9f2ba8bf29d65aa"
+    },
+    {
+      "path": "native/docs/IMMUTABLE_IDENTITY_AND_GUIDANCE_v3.4.6.md",
+      "sha256": "d3ebfdcc771495b39d00f73cc5978ccf93c270cdc0b5c301311179e618a6a1a0"
+    },
+    {
+      "path": "native/docs/INTERRUPTION_PARALLEL_CONTINUATION_CONTRACT_v3.4.6.md",
+      "sha256": "e8c40ff21a08f0aecc30838738aa659d202e955883719e1a8444419f40baadfd"
+    },
+    {
+      "path": "native/docs/LIVE_RUNTIME_AND_SNAPSHOT_SEPARATION_v3.4.6.md",
+      "sha256": "20b1dc4f9022fce2aeafbfd528e67db9027d77ec81801f5eb85ab430f685960e"
+    },
+    {
+      "path": "native/docs/LIVE_TO_PORTABLE_DERIVATION_CONTRACT_v3.4.6.md",
+      "sha256": "ec5238021aebfb96650adc88d4104b86813eb1c5576885fd2552543d96ec078c"
+    },
+    {
+      "path": "native/docs/MEMORY_RELATIONSHIP_EVOLUTION_v3.4.6.md",
+      "sha256": "7f2b73585e08eb996c1b129f3d9bf08291a6e784ebd39de7308fc08ff9248106"
+    },
+    {
+      "path": "native/docs/MUM_PORTABLE_REPAIR_ACCEPTANCE_v3.4.6.md",
+      "sha256": "78ce8117d96ec0763d5e949c937e34e71db5b0d8d3c2652b3c326fe13fbe66a1"
+    },
+    {
+      "path": "native/docs/MYCEL_INTELLIGENCE_ARCHITECTURE_v3.4.6.md",
+      "sha256": "d5b92f0522f6169bcec1be95f1061615e10b096168e1ba951ce682d9bd11dd06"
+    },
+    {
+      "path": "native/docs/NATIVE_MYCEL_LIVE_CIRCLE_v3.4.6.md",
+      "sha256": "a91ca570e028f4db8dae00842083db377e01dd564db3b5e110794066fd9023ee"
+    },
+    {
+      "path": "native/docs/NATIVE_SUBSYSTEM_INHERITANCE_v3.4.6.md",
+      "sha256": "522eaa99d6248a3dfeba32ce33bdb7337c65c3f899c9eae9f45ce98d1a9c96f5"
+    },
+    {
+      "path": "native/docs/NATIVE_VISUAL_STATUS_CONTRACT_v3.4.6.md",
+      "sha256": "634d3ad9a53a72a91e7ede7c11c0f263c53a2c329d993080b7135794d13f4adb"
+    },
+    {
+      "path": "native/docs/NONLINEAR_ROUTING_LEARNING_PATHS_v3.4.6.md",
+      "sha256": "d5ce1a9f3997ea292513e8d8f9e70c22872b683c331d724453b82e3b5aa838fd"
+    },
+    {
+      "path": "native/docs/R4_ACTIVE_EQUIVALENCE_REVIEW_v3.4.6.md",
+      "sha256": "7054a87ad306abb6af706357cc44fe12317b238509454ee1d397bfb3a6b69f55"
+    },
+    {
+      "path": "native/docs/REHYDRATION_COMPLETENESS_AUTO_WEITER_v3.4.6.md",
+      "sha256": "a7616d65c38d5f62db860e06e60a95698a1d439c2beb72af13d94ce2310f3748"
+    },
+    {
+      "path": "native/docs/RELEASE_GOVERNANCE_v3.4.6.md",
+      "sha256": "f5f7a04965cc30a7b88c697d6c9c8a232873153c22b099fd1be33681e2b5aaa1"
+    },
+    {
+      "path": "native/docs/SEMANTIC_RELATIONAL_TRANSLATION_CONTRACT_v3.4.6.md",
+      "sha256": "2da06b51507d69ec1cb31f1a002c5372dfe20aa0ae0d692efb7cf640f43c1d0e"
+    },
+    {
+      "path": "native/docs/STARTUP_DISCLOSURE_CONTRACT_v3.4.6.md",
+      "sha256": "87d4129eb2137d08a79b70d699ebf635b7cd622ce04f611bbb87df1f42577fce"
+    },
+    {
+      "path": "native/docs/STARTUP_EXAMPLE_v3.4.6.txt",
+      "sha256": "7e5111528ff4f5624952a26d048859217a51d38b0a9abd1f4b6754c28c8cee22"
+    },
+    {
+      "path": "native/docs/STARTUP_HELP_LANGUAGE_PROFILE_CONTRACT_v3.4.6.md",
+      "sha256": "520ae66766d952444f416e530cf742947652e945ca0208397ef783a2cbd9ce6f"
+    },
+    {
+      "path": "native/docs/STARTUP_LANGUAGE_CONTRACT_v3.4.6.md",
+      "sha256": "23afebf1cbcef9e44eb487548f539cfde074a395a49f13c7cf4617587ced17fd"
+    },
+    {
+      "path": "native/docs/STATE_MERGE_AND_REHYDRATION_CONTRACT_v3.4.6.md",
+      "sha256": "9108560bafb047db1858af7450d029db4a14b6d4aa54c21bd33101eb918fa556"
+    },
+    {
+      "path": "native/docs/STATUS_VISUAL_EXAMPLE_v3.4.6.txt",
+      "sha256": "2e764e34b44ebd7327757b596558ba34451958dbf7dbdae88999c87ff0729773"
+    },
+    {
+      "path": "native/docs/TEMPORAL_CONTEXT_CORE_v3.4.6.md",
+      "sha256": "f4589be8c7f005631b8a464b9d9e0e5875282046a247982ba0ed0eb3c27687b8"
+    },
+    {
+      "path": "native/docs/THREE_STATE_STORAGE_AUTHORITY_v3.4.6.md",
+      "sha256": "a08ae1aa80aad6ed600958a208402c8bd6496ba378befbe542cb9ab546621918"
+    },
+    {
+      "path": "native/docs/TRANSLATION_CONTINUITY_NATIVE_v3.4.6.md",
+      "sha256": "864a5abdade20aa49411c3bfee7ec4bfbedd7d4335ab7686e186772207f58d0a"
+    },
+    {
+      "path": "native/docs/TRANSLATION_ENGINE_FORCE_LOCK_v3.4.6.md",
+      "sha256": "6a0cf7c37c4b3e47805bf9f17a7a8e0fbf03d0a21ff52fb9f869413329ce9d67"
+    },
+    {
+      "path": "native/docs/USER_RELATIONSHIP_LEARNING_AND_EMOJI_CONTRACT_v3.4.6.md",
+      "sha256": "5e0e30cb8cece34762eb79c4ecde8806bd0b9bf139d6b72e5fa997b86c6273d9"
+    },
+    {
+      "path": "native/docs/VISIBLE_STARTUP_SEQUENCE_v3.4.6.md",
+      "sha256": "4615878953db4dc8f2dcccbe1081135f14e1dda4d62ecf72b4aba87948d9e439"
+    },
+    {
+      "path": "native/handoff/AI_HOST_HANDOFF_v3.4.6.md",
+      "sha256": "a1c9d6f95d1f9c5d3d3d9c0dc72ae40504c7a728944cf0e9ffe6d8719186ed4c"
+    },
+    {
+      "path": "native/provenance/ARCHEON_v3.3.0_TARGET_NATIVE_INTEGRATION_v3.4.6.md",
+      "sha256": "0c9962608a65529a9e3e5e3525590e1a1531a572648009c3597526d84631b862"
+    },
+    {
+      "path": "native/provenance/CLIC_U18_TARGET_NATIVE_ADOPTION_v3.4.6.md",
+      "sha256": "6760906f29963db4d89e07300042ddefdf1fe080732b68f1f9046dedcf75a3f6"
+    },
+    {
+      "path": "native/provenance/GTCF_v1.2.0_TARGET_NATIVE_ADOPTION.md",
+      "sha256": "75450ce4e8c14dd52cf02e9009145a4f6dbc1ac2a5e26555f35e2ec24391909b"
+    },
+    {
+      "path": "native/provenance/PROVENANCE.md",
+      "sha256": "e53b72d89b81af94ae751c861b148306da39e67bcc34b1953b1ffed7af77c09e"
+    },
+    {
+      "path": "native/recovery/HISTORICAL_CAPABILITY_PARITY_R4_TO_CURRENT_v3.4.6.md",
+      "sha256": "128c65e5994136643250cf3323dc4b6fb438c86b608b91a3615cfa465c811a27"
+    },
+    {
+      "path": "native/registry/ANTI_CLEANUP_PRESERVATION_REGISTRY_v3.4.6.json",
+      "sha256": "e0449eceb90a58c97bdd81d29a9e50513ecc6270322c00c83092d60f48a17cee"
+    },
+    {
+      "path": "native/registry/LINGUA_FACET_LIVE_CIRCLE_REGISTRY_v3.4.6.json",
+      "sha256": "22ba3eeff67ed28dbbff52651d08d74acd9acfd27480cd2e85d155a459fb6b36"
+    },
+    {
+      "path": "native/registry/MYCEL_FACET_REGISTRY_v3.4.6.json",
+      "sha256": "ff4e34bdff434280796a2ffd306cb5a5c4f082ce7ec0ecfa4a5255fd78042aec"
+    },
+    {
+      "path": "native/registry/R4_COMPATIBILITY_BRIDGE_v3.4.6.json",
+      "sha256": "f6af56bc8afdae4cc5d80b41840fb7e337cdde1a4df6189d84776c744b57c10f"
+    },
+    {
+      "path": "native/registry/R4_EQUIVALENCE_ROLE_REGISTRY_v3.4.6.json",
+      "sha256": "7bca723e9487f31bd0d2bb5dc701e0814329fd1afaa858e224795b149937bffb"
+    },
+    {
+      "path": "native/runtime/LINGUA_LIVE_CIRCLE_RUNTIME_CONTRACT_v3.4.6.md",
+      "sha256": "a91ca570e028f4db8dae00842083db377e01dd564db3b5e110794066fd9023ee"
+    },
+    {
+      "path": "native/runtime/MYCEL_ROUTING_RUNTIME_CONTRACT_v3.4.6.md",
+      "sha256": "d5ce1a9f3997ea292513e8d8f9e70c22872b683c331d724453b82e3b5aa838fd"
+    },
+    {
+      "path": "native/schemas/FACET_RELATIONSHIP_SCHEMA_v1.json",
+      "sha256": "9eeb53b87accf0665d186d994fa63d535cc25ba5cd1589d6721c13399e7ffc00"
+    },
+    {
+      "path": "native/system/666_LINGUA_SYSTEM_PROMPT_v3.4.6.md",
+      "sha256": "9c721dea043baca36b2a42e429cd0626d33483d818f042e4bb96a88f7a16ad4b"
+    },
+    {
+      "path": "native/tests/STATIC_VALIDATION_CONTRACT.md",
+      "sha256": "80d2ab54bfcfc91672d160f1db96c2f5d5598ae2792ca2378964cc056833563e"
+    },
+    {
+      "path": "native/tests/TRANSLATION_CONTINUITY_ACCEPTANCE_v3.4.6.json",
+      "sha256": "2b2504245d1039e34a25fa7c1ec68f40b5d5f32a1a3c393fdefac6b62a5a1673"
+    }
+  ]
+}

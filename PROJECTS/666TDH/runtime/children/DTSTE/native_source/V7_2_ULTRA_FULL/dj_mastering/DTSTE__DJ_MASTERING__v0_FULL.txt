@@ -1,0 +1,287 @@
+DTSTE__DJ_MASTERING__v0_FULL.txt
+
+SYSTEM ROLE
+This file protects real-world usability.
+It combines DJ stability, club function, mastering intent, Suno version routing, prompt limits, and practical output constraints.
+Without this file, the system may produce interesting art that is annoying or broken in club use or truncated in the app.
+This file therefore protects both sound pressure and user sanity.
+
+SECTION 1
+DJ STABILITY PHILOSOPHY
+
+A track that cannot be mixed cleanly in real use is a problem even if the concept is strong.
+The system must therefore protect:
+grid
+BPM stability
+intro/exit usability
+predictable downbeat behavior
+usable extended-track mentality
+
+The system is allowed to create illusions of tempo motion.
+It is not allowed to actually drift the tempo.
+
+SECTION 2
+ABSOLUTE DJ RULES
+
+No BPM drift.
+No speed wobble.
+No intro free-tempo float.
+No outro slow-down.
+No hidden ramp.
+No accidental halftime tempo shift that changes actual grid.
+No cinematic timing freedom that breaks synchronization.
+No unstable kick placement in the opening and ending utility zones.
+
+SECTION 3
+BPM LOCK
+
+Each track receives one BPM lock for the full track.
+
+Permitted BPM range for this system:
+140
+141
+142
+143
+144
+145
+
+Default practical center:
+142 if no better reason exists.
+140 if darker, heavier, more hypnotic and space-rich.
+145 only if pressure and aggression demand it and the track still stays mixable.
+
+One track = one BPM.
+No internal BPM migration.
+
+SECTION 4
+MIX ZONES
+
+Opening utility zone:
+must contain enough stable grid behavior to allow cueing and matching
+can contain system voice, technical overlays, atmosphere, ritual or transmission behavior
+must not destroy beat orientation
+
+Exit utility zone:
+must allow smooth departure
+must not go gridless
+must not collapse into cinematic non-rhythm
+can reduce layers but must preserve beat logic until hard cut or usable final reduction
+
+SECTION 5
+ALLOWED ILLUSIONS
+
+Allowed:
+hat density changes
+percussion expansion
+tribal overlays
+sub pulse shifts
+psy layer motion
+fake halftime feel without BPM change
+silence drops
+fake drops
+density collapse followed by return
+
+Not allowed:
+true tempo movement
+swing drift that breaks matchability
+bar-length confusion at the opening and ending utility functions if it destroys usability
+
+SECTION 6
+CLUB MASTERING PHILOSOPHY
+
+Loud is not enough.
+The goal is:
+club-ready loudness
+perceived power
+stable kick
+clean sub
+clarity under high volume
+no mud
+no harsh collapse
+no clipping destruction
+no broken high-end fatigue after one minute
+
+The system should aim for large-system effectiveness:
+clear transient punch
+low-end control
+stereo space that survives mono-ish club reality where relevant
+controlled saturation
+limited but not demolished dynamics
+
+SECTION 7
+MASTERING TARGET LANGUAGE
+
+The style layer should include or imply:
+club-optimized mastering
+maximum loudness without distortion collapse
+tight kick
+clean sub-bass
+high perceived loudness
+strong transient clarity
+no muddy low mids
+no clipping artifacts
+optimized for large sound systems
+controlled limiting
+pressure without collapse
+
+SECTION 8
+ANTI-BAD-LOUDNESS RULES
+
+Do not equate distortion with pressure automatically.
+Do not crush all transient life.
+Do not flood sub with uncontrolled rumble.
+Do not bury the kick.
+Do not over-hype the upper mids until fatigue destroys replayability.
+Do not use “loud” language without “controlled” language.
+
+SECTION 9
+SUB/KICK RULES
+
+Kick:
+must remain identifiable
+must remain forward enough to drive
+must not vanish under bass cloud
+must not become flat click-only weakness
+
+Sub:
+must be mono-safe in intent
+must not smear all low information
+must create body pressure without turning into undefined mud
+must remain compatible with club playback
+
+Kick and sub relationship:
+not constant fight
+not full overlap
+not sloppy sustained low-end mass
+must read as pressure system, not soup
+
+SECTION 10
+SUNO DEFAULT ENGINE
+
+Default engine for this system:
+Suno 5.5 Pro Custom
+Fraggle 666 Techno preferred baseline
+
+If user explicitly says another Suno version:
+switch routing internally
+
+Possible engine profiles:
+Suno 4.5
+Suno 5.0 Pro
+Suno 5.5 Pro
+Suno 5.5 Pro Custom
+
+SECTION 11
+SUNO PROFILE DIFFERENCE LOGIC
+
+4.5
+Needs simpler, safer, more compact style language.
+Avoid overload.
+Keep structure clear and fewer competing instructions.
+
+5.0 Pro
+More detail possible but still not infinite.
+Can carry more arrangement guidance.
+
+5.5 Pro
+Best balance between detail and stability.
+Can carry richer style and advanced logic.
+
+5.5 Pro Custom
+Primary home profile.
+Can carry the strongest control and advanced options.
+Still must respect hard length limits.
+
+SECTION 12
+PROMPT LIMIT SAFETY
+
+Because app and platform behavior may differ, use safe operational ceilings.
+
+Title:
+not critical in normal use
+keep readable and strong
+
+Style prompt:
+hard assumed max around 1000
+safe operational ceiling around 950
+
+Lyrics prompt:
+PC known around 5000
+safe operational ceiling around 4800
+
+Advanced settings prompt:
+hard platform certainty not fully confirmed here
+practical safe operational ceiling around 1200
+When uncertain, compress aggressively by priority rather than risk truncation
+
+SECTION 13
+PROMPT COMPRESSION PRIORITY
+
+When any prompt risks overflow:
+first remove redundancy
+then remove decorative adjectives
+then compress repeated sound words
+then preserve only the strongest route-bearing constraints
+
+Keep first:
+track length rules
+BPM lock rules
+DJ safety
+club/mastering rules
+anti-generic rules
+core voice setup
+essential structural route
+
+Lose first:
+soft extras
+duplicate synonyms
+nice-but-nonessential atmospheric flourishes
+secondary decoration
+
+SECTION 14
+ADVANCED SETTINGS PRIORITY CONTENT
+
+Advanced settings should prioritize:
+exact length and hard stop
+no tempo drift
+no fade beyond target
+state-based structure
+voice logic if crucial
+anti-AI rule if crucial
+club/mastering if not already strongly covered
+special words if needed
+instrument function if needed
+
+Advanced settings should not waste space on:
+over-explaining obvious style already covered in style prompt
+duplicate emotional wording
+romantic filler text
+redundant genre names repeated five times
+
+SECTION 15
+PRACTICAL DEFAULT STYLE BLOCK CONTENT
+
+A strong default style block for this system should tend to include:
+BPM
+genre hybrid identity
+peak-time pressure
+system already active
+no empty intro
+rolling sub bass
+tight kick
+anti-commercial structure
+dynamic vocal phrasing with silence control
+club-ready mastering
+clean sub-bass
+high perceived loudness without distortion collapse
+no melodic breakdown
+state-based progression
+
+SECTION 16
+PRACTICAL WARNING
+
+A brilliant identity system with bad DJ behavior will cause real-world frustration.
+A huge prompt that exceeds field limits is not a better system if it gets chopped.
+Therefore this file exists to force practicality into the city map.
+
+END OF FILE

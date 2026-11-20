@@ -1,0 +1,38 @@
+{
+  "system_id": "666FSE-001",
+  "parent_system_id": "666TRACKHUB-001",
+  "branch_token": "FSE",
+  "version": "v1.0.0",
+  "provider_snapshot": "runtime/provider-state/FSE/LIVE_STATE.md",
+  "bootstrap": [
+    "runtime/provider-state/FSE/LIVE_STATE.md",
+    "runtime/children/FSE/SYSTEM_IDENTITY.md",
+    "runtime/children/FSE/TRIGGER_CONTRACT.md",
+    "runtime/children/FSE/SOURCE_AUTHORITY.md",
+    "runtime/children/FSE/ISOLATION_CONTRACT.md",
+    "runtime/children/FSE/RUNTIME_MAP.md"
+  ],
+  "files": [
+    "runtime/children/FSE/AUDIT_REPORT.md",
+    "runtime/children/FSE/CURRENT_POINTER.md",
+    "runtime/children/FSE/DAEMON_ADAPTER.md",
+    "runtime/children/FSE/ISOLATION_CONTRACT.md",
+    "runtime/children/FSE/MANIFEST.json",
+    "runtime/children/FSE/RUNTIME_MAP.md",
+    "runtime/children/FSE/SOURCE_AUTHORITY.md",
+    "runtime/children/FSE/SOURCE_SNAPSHOTS/AUDIT/POST_REPAIR_AUDIT.md",
+    "runtime/children/FSE/SOURCE_SNAPSHOTS/AUTOMATION/AUTOMATION_ENGINE_V3_ULTRA.md",
+    "runtime/children/FSE/SOURCE_SNAPSHOTS/CONTROL/FRAGGLE_UNIVERSAL_PROMPT_v4_PRO.txt",
+    "runtime/children/FSE/SOURCE_SNAPSHOTS/CORE/execution_logic.md",
+    "runtime/children/FSE/SOURCE_SNAPSHOTS/CORE/kernel.md",
+    "runtime/children/FSE/SOURCE_SNAPSHOTS/CORE/system_map.md",
+    "runtime/children/FSE/SOURCE_SNAPSHOTS/FREEZE/FREEZE_LOCK.json",
+    "runtime/children/FSE/SOURCE_SNAPSHOTS/PROJECT_ID.json",
+    "runtime/children/FSE/SOURCE_SNAPSHOTS/V4_RUNTIME/BOOT_SEQUENCE_V4.md",
+    "runtime/children/FSE/SOURCE_SNAPSHOTS/V4_RUNTIME/START_HERE_V4.md",
+    "runtime/children/FSE/SOURCE_SNAPSHOTS/V4_RUNTIME/SYSTEM_ACTIVE_V4.json",
+    "runtime/children/FSE/SYSTEM_IDENTITY.md",
+    "runtime/children/FSE/TRIGGER_CONTRACT.md",
+    "runtime/children/FSE/VISUAL_OUTPUT_ADAPTER.md"
+  ]
+}

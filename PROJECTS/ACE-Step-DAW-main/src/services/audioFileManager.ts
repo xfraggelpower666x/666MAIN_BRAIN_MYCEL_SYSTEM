@@ -33,6 +33,10 @@ export async function loadAudioBlobByKey(key: string): Promise<Blob | undefined>
   return get<Blob>(key);
 }
 
+export async function deleteAudioBlobByKey(key: string): Promise<void> {
+  await del(key);
+}
+
 export async function deleteAudioBlob(
   projectId: string,
   clipId: string,

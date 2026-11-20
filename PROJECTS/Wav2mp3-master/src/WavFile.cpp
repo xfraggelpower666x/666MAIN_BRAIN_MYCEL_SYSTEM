@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <limits>
 #include "WavFile.h"
 #include "Log.h"
 
@@ -16,7 +17,10 @@ WavFile::WavFile( const std::string& uri ):
         mFileData(),
         mRiffHPtr(NULL),
         mFmtHPtr(NULL),
-        mDataHPtr(NULL)
+        mDataHPtr(NULL),
+        mRiffEndOffset(0),
+        mNextChunkOffset(0),
+        mParseError(false)
 {
 }
 
@@ -33,7 +37,7 @@ WavFile::~WavFile()
 
 int WavFile::readEntireFile()
 {
-    if( !mFileData.empty() ) return mFileData.size();  // Already read
+    if( !mFileData.empty() ) return static_cast<int>(mFileData.size());  // Already read
 
     if( !mFile.is_open() )
     {
@@ -44,13 +48,27 @@ int WavFile::readEntireFile()
     if( mFile.is_open() )
     {
         mFile.seekg(0, std::ios::end);
-        mFileData.resize(mFile.tellg());  // TODO try-catch?
+        std::streamoff fileSize = mFile.tellg();
+        if( fileSize <= 0 ||
+            static_cast<unsigned long long>(fileSize) >
+                static_cast<unsigned long long>(std::numeric_limits<int>::max()) )
+        {
+            mFile.close();
+            return 0;
+        }
+        mFileData.resize(static_cast<size_t>(fileSize));
         mFile.seekg(0, std::ios::beg);
-        mFile.read(&mFileData[0], mFileData.size());
+        mFile.read(&mFileData[0], static_cast<std::streamsize>(mFileData.size()));
+        if( !mFile )
+        {
+            mFileData.clear();
+            mFile.close();
+            return 0;
+        }
         mFile.close();
     }
 
-    return mFileData.size();
+    return static_cast<int>(mFileData.size());
 }
 
 
@@ -62,114 +80,117 @@ bool WavFile::findNextWavChunk()
         if( mFileData.empty() )
         {
             LOG("Can't read file " << mFileUri << std::endl);
+            mParseError = true;
             return false;  // If still empty - give up
         }
     }
 
-    // Start looking after the last data chunk
-    std::vector<char>::iterator beg;
-    if( NULL == mDataHPtr )
-    {
-        beg = mFileData.begin();
-    }
-    else
-    {
-        char* pos = reinterpret_cast<char*>(mDataHPtr) + 8 + mDataHPtr->datasz;
-        beg = mFileData.begin() + (pos - &mFileData[0]);
-    }
-
-    // Check if we have reached the end of the file
-    if( beg >= mFileData.end() ) return false;
-
-    // Parse RIFF header (once)
     if( NULL == mRiffHPtr )
     {
-        std::vector<char>::iterator it;
-        const char* riffid = "RIFF";
+        size_t riffOffset = 0;
+        while( riffOffset + sizeof(RIFFHeader) <= mFileData.size() &&
+               std::memcmp(&mFileData[riffOffset], "RIFF", 4) != 0 )
+            ++riffOffset;
 
-        if( ((mFileData.end() - beg) < (int)sizeof(RIFFHeader)) ||
-            ((it = std::search(beg, mFileData.end(), riffid, riffid + 4)) == mFileData.end()) )
+        if( riffOffset + sizeof(RIFFHeader) > mFileData.size() )
         {
             LOG("Can't find RIFF header in file " << mFileUri << std::endl);
             mFmtHPtr  = NULL;
             mDataHPtr = NULL;
+            mParseError = true;
             return false;
         }
-        else
-        {
-            RIFFHeader* riffhp = reinterpret_cast<RIFFHeader*>(&mFileData[0] + (it - mFileData.begin()));
 
-            // Check if format is WAVE
-            if( strncmp(riffhp->format, "WAVE", 4) )
+        RIFFHeader* riffhp = reinterpret_cast<RIFFHeader*>(&mFileData[riffOffset]);
+        const uint64_t riffEnd = static_cast<uint64_t>(riffOffset) + 8 + riffhp->chunksz;
+        if( std::memcmp(riffhp->format, "WAVE", 4) != 0 ||
+            riffhp->chunksz < 4 || riffEnd > mFileData.size() )
+        {
+            LOG("Invalid or truncated RIFF/WAVE extent in file " << mFileUri << std::endl);
+            mFmtHPtr = NULL;
+            mDataHPtr = NULL;
+            mParseError = true;
+            return false;
+        }
+        mRiffHPtr = riffhp;
+        mRiffEndOffset = static_cast<size_t>(riffEnd);
+        mNextChunkOffset = riffOffset + sizeof(RIFFHeader);
+    }
+
+    mDataHPtr = NULL;
+    while( mNextChunkOffset <= mRiffEndOffset &&
+           mRiffEndOffset - mNextChunkOffset >= sizeof(DataHeader) )
+    {
+        const size_t chunkOffset = mNextChunkOffset;
+        uint32_t chunkSize;
+        std::memcpy(&chunkSize, &mFileData[chunkOffset + 4], sizeof(chunkSize));
+        const uint64_t payloadEnd = static_cast<uint64_t>(chunkOffset) + 8 + chunkSize;
+        const uint64_t paddedEnd = payloadEnd + (chunkSize & 1);
+        if( payloadEnd > mRiffEndOffset || paddedEnd > mRiffEndOffset )
+        {
+            LOG("Invalid chunk extent in file " << mFileUri << std::endl);
+            mFmtHPtr = NULL;
+            mParseError = true;
+            return false;
+        }
+
+        const char* chunkId = &mFileData[chunkOffset];
+        if( std::memcmp(chunkId, "fmt ", 4) == 0 )
+        {
+            if( chunkSize < 16 )
             {
-                LOG("Format is not WAVE in file " << mFileUri << std::endl);
-                mFmtHPtr  = NULL;
-                mDataHPtr = NULL;
+                LOG("Truncated fmt chunk in file " << mFileUri << std::endl);
+                mFmtHPtr = NULL;
+                mParseError = true;
                 return false;
             }
-            else
+            FMTHeader* fmthp = reinterpret_cast<FMTHeader*>(&mFileData[chunkOffset]);
+            const uint16_t bps = fmthp->bitspersamp;
+            if( fmthp->fmttag != 1 ||
+                (fmthp->numchan != 1 && fmthp->numchan != 2) ||
+                (bps != 8 && bps != 16 && bps != 24 && bps != 32) ||
+                fmthp->blkalign != fmthp->numchan * (bps / 8) )
             {
-                mRiffHPtr = riffhp;
-                beg = it + sizeof(RIFFHeader);  // Continue after RIFF heder
+                LOG("Unsupported PCM fmt chunk in file " << mFileUri << std::endl);
+                mFmtHPtr = NULL;
+                mParseError = true;
+                return false;
             }
-        }
-    }
-
-    // Parse FMT header (must have one before next data header - new or previous)
-    std::vector<char>::iterator fmtit = beg;
-    while( (mFileData.end() - fmtit) > (int)sizeof(FMTHeader) )
-    {
-        std::vector<char>::iterator it;
-
-        // Find FMT header
-        const char* fmtid = "fmt ";
-        it = std::search(fmtit, mFileData.end(), fmtid, fmtid + 4);
-        if( it == mFileData.end() ) break;
-
-        FMTHeader* fmthp = reinterpret_cast<FMTHeader*>(&mFileData[0] + (it - mFileData.begin()));
-
-        // Check if format is PCM with 1 or 2 channels, 8, 16, 24, 32 bps
-        uint16_t bps = fmthp->bitspersamp;
-        if( (fmthp->fmthsz == 16) && (fmthp->fmttag == 1) &&
-            ((fmthp->numchan == 1) || (fmthp->numchan == 2)) &&
-            ((8 == bps) || (16 == bps) || (24 == bps) || (32 == bps)) )
-        {
             mFmtHPtr = fmthp;
-            beg = it + sizeof(FMTHeader);  // Continue after FMT heder
-            break;
         }
-        else
+
+        if( std::memcmp(chunkId, "data", 4) == 0 )
         {
-            fmtit = it + 4;  // skip fmtid and try again
-            continue;
+            if( NULL == mFmtHPtr )
+            {
+                LOG("Data chunk precedes a supported fmt chunk in file " << mFileUri << std::endl);
+                mParseError = true;
+                return false;
+            }
+            if( chunkSize % mFmtHPtr->blkalign != 0 )
+            {
+                LOG("Misaligned data chunk in file " << mFileUri << std::endl);
+                mParseError = true;
+                return false;
+            }
+            mDataHPtr = reinterpret_cast<DataHeader*>(&mFileData[chunkOffset]);
+            mNextChunkOffset = static_cast<size_t>(paddedEnd);
+            return true;
         }
+
+        mNextChunkOffset = static_cast<size_t>(paddedEnd);
     }
-    if( NULL == mFmtHPtr )
+
+    if( mNextChunkOffset != mRiffEndOffset )
     {
-        LOG("Can't find PCM FMT header with 1 or 2 channels, 8, 16, 24 or 32 bps in file " <<
-                mFileUri << std::endl);
-        mDataHPtr = NULL;
+        LOG("Truncated chunk header in file " << mFileUri << std::endl);
+        mParseError = true;
         return false;
     }
 
-    // Find next data header
-    std::vector<char>::iterator it;
-    const char* dataid = "data";
-    if( ((mFileData.end() - beg) < (int)sizeof(DataHeader)) ||
-        ((it = std::search(beg, mFileData.end(), dataid, dataid + 4)) == mFileData.end()) )
-    {
-        if( NULL == mDataHPtr )  // No previous data header
-        {
-            LOG("Can't find Data header in file " << mFileUri << std::endl);
-        }
-        mDataHPtr = NULL;
-        return false;
-    }
-    else
-    {
-        mDataHPtr = reinterpret_cast<DataHeader*>(&mFileData[0] + (it - mFileData.begin()));
-        return true;
-    }
+    if( NULL == mFmtHPtr )
+        LOG("Can't find a supported PCM fmt chunk in file " << mFileUri << std::endl);
+    return false;
 }
 
 
@@ -258,10 +279,7 @@ uint32_t WavFile::getRawAudioDataSize() const
 {
     if( NULL != mDataHPtr )
     {
-        uint32_t datasz = mDataHPtr->datasz;
-        uint32_t space  = mFileData.size() - (reinterpret_cast<char*>(mDataHPtr)
-                                          + sizeof(DataHeader) - &mFileData[0]);
-        return std::min(datasz, space);
+        return mDataHPtr->datasz;
     }
     else
     {

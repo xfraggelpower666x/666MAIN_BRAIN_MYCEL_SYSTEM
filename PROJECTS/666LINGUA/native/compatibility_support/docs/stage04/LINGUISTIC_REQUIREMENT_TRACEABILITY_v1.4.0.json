@@ -1,0 +1,79 @@
+{
+  "system_id": "LYVRA-DOLMETSCHER-001",
+  "version": "1.4.0",
+  "stage": "STAGE_04_LINGUISTIC_ACCEPTANCE_AND_RELEASE",
+  "generated_at_utc": "2026-08-06T15:07:11.760579+00:00",
+  "requirements_count": 14,
+  "requirements": [
+    {
+      "id": "REQ-LING-001",
+      "requirement": "Alle sechs Sprachprofile müssen in einer vollständigen gerichteten 30-Routen-Matrix vertreten sein.",
+      "evidence": "30 direct routes"
+    },
+    {
+      "id": "REQ-LING-002",
+      "requirement": "Jede akzeptierte Übersetzung muss Bedeutung, Beziehungston und erkennbare Emotionen erhalten.",
+      "evidence": "all direct-route reviews"
+    },
+    {
+      "id": "REQ-LING-003",
+      "requirement": "International, American und British English müssen als unterschiedliche Zielprofile behandelt werden.",
+      "evidence": "profile spot checks"
+    },
+    {
+      "id": "REQ-LING-004",
+      "requirement": "Korrekturen ersetzen die vorherige aktive Aussage; neue Nachrichten bleiben getrennt.",
+      "evidence": "LING-ADV-001, LING-ADV-002"
+    },
+    {
+      "id": "REQ-LING-005",
+      "requirement": "Diktierrekonstruktion darf den Sinn nicht verändern und muss den Rohtext erhalten.",
+      "evidence": "LING-ADV-003"
+    },
+    {
+      "id": "REQ-LING-006",
+      "requirement": "Gemischte Emotionen dürfen nicht auf eine Gewinneremotion reduziert werden.",
+      "evidence": "LING-ADV-004"
+    },
+    {
+      "id": "REQ-LING-007",
+      "requirement": "Framework-Erwähnung und echter Entwicklungsauftrag müssen getrennt werden.",
+      "evidence": "LING-ADV-005, LING-ADV-006"
+    },
+    {
+      "id": "REQ-LING-008",
+      "requirement": "Technische und sensitive Texte müssen sachlich präzise und ohne unpassende Dekoration bleiben.",
+      "evidence": "LING-ADV-007, LING-ADV-011"
+    },
+    {
+      "id": "REQ-LING-009",
+      "requirement": "Geschützte Tokens dürfen weder verändert noch typografisch beschädigt werden.",
+      "evidence": "LING-ADV-008"
+    },
+    {
+      "id": "REQ-LING-010",
+      "requirement": "Mehrdeutigkeit muss als HOLD oder Kontextbedarf erscheinen, nicht als falsche Sicherheit.",
+      "evidence": "LING-ADV-009"
+    },
+    {
+      "id": "REQ-LING-011",
+      "requirement": "Der 🧐🦆-Companion muss Übersetzung und beide Sprachfassungen getrennt halten.",
+      "evidence": "LING-ADV-010"
+    },
+    {
+      "id": "REQ-LING-012",
+      "requirement": "Teilbare Nachrichten dürfen keinen Assistenten-Erklärtext enthalten.",
+      "evidence": "LING-ADV-012"
+    },
+    {
+      "id": "REQ-LING-013",
+      "requirement": "Ein Release-Candidate-Freeze darf keine unabhängige Humanabnahme oder Zertifizierung erfinden.",
+      "evidence": "release metadata"
+    },
+    {
+      "id": "REQ-LING-014",
+      "requirement": "Release und Systemsicherung benötigen Manifest, CRC und Readback.",
+      "evidence": "package lifecycle"
+    }
+  ]
+}

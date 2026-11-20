@@ -1,0 +1,63 @@
+{
+  "version": "2.0.0",
+  "evidence": [
+    {
+      "id": "EA-IOS",
+      "status": "PENDING_EXTERNAL",
+      "required": [
+        "device_model",
+        "os_version",
+        "app_version",
+        "visible_text_hash",
+        "screenshot_or_record",
+        "verdict"
+      ]
+    },
+    {
+      "id": "EA-ANDROID",
+      "status": "PENDING_EXTERNAL",
+      "required": [
+        "device_model",
+        "os_version",
+        "app_version",
+        "visible_text_hash",
+        "screenshot_or_record",
+        "verdict"
+      ]
+    },
+    {
+      "id": "EA-WHATSAPP",
+      "status": "PENDING_EXTERNAL",
+      "required": [
+        "device",
+        "whatsapp_version",
+        "sent_text_hash",
+        "received_text_hash",
+        "verdict"
+      ]
+    },
+    {
+      "id": "EA-BILINGUAL",
+      "status": "PENDING_EXTERNAL",
+      "required": [
+        "reviewer_role",
+        "source_language",
+        "target_profile",
+        "case_ids",
+        "verdict",
+        "notes"
+      ]
+    },
+    {
+      "id": "EA-DELETE",
+      "status": "PENDING_EXTERNAL",
+      "required": [
+        "provider",
+        "request_id_redacted",
+        "readback_timestamp",
+        "result",
+        "verdict"
+      ]
+    }
+  ]
+}

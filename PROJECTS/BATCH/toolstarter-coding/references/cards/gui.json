@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "id": "gui",
+  "name": "Grafische Oberfläche und Bedienbarkeit",
+  "evidence": [
+    "Fenster",
+    "GUI-Toolkit",
+    "Renderer",
+    "HTML/CSS",
+    "Tastaturbedienung"
+  ],
+  "roles": [
+    "development",
+    "build",
+    "target"
+  ],
+  "check": "Vorhandenes Toolkit und Rendering-Einstieg ermitteln. Prüfe Fensterstart, Beschriftung, Fokus, Tastatur und Fehlerausgabe beim normalen Einstieg.",
+  "repair": "Toolkit-spezifische fehlende Bestandteile wie Tcl/Tk oder Qt-Plattformplugins aus dem Projektbuild wiederherstellen. Lange Operationen außerhalb des UI-Threads halten.",
+  "delivery": "Nur tatsächlich benötigte GUI-Runtimes, Ressourcen und zulässige Fonts liefern. Der Toolkit-Start muss zum gepackten Projektpfad passen.",
+  "acceptance": "Fenster startet im Zielbuild. Probeaktionen bleiben bedienbar und melden Erfolg oder Fehler."
+}

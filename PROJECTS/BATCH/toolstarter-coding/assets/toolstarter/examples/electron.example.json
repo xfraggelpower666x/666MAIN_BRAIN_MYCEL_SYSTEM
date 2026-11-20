@@ -1,0 +1,10 @@
+{
+  "project_root": "..",
+  "required_files": ["package.json", "package-lock.json"],
+  "tools": [
+    {"id": "Node.js", "kind": "exe", "names": ["node"], "winget": "OpenJS.NodeJS.LTS"},
+    {"id": "npm", "kind": "npm", "after": ["Node.js"], "locked_packages": ["electron"]},
+    {"id": "Electron", "kind": "electron", "after": ["npm"]}
+  ],
+  "actions": {}
+}

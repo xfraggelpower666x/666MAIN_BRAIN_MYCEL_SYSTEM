@@ -1,0 +1,42 @@
+# Continuity State
+
+TRACK_ID=  
+LATEST_VERIFIED_WHOLE_SONG=  
+CURRENT_STAGE=  
+BPM=  
+
+## Motor
+KICK=  
+BASS=  
+GROOVE=  
+PHRASE=  
+
+## Identity
+STYLE=  
+ATMOSPHERE=  
+VOICES=  
+
+## Story
+CURRENT_TRUTH=  
+UNRESOLVED=  
+PREVIOUS_REVELATIONS=  
+
+## Motifs
+INTRODUCED=  
+TRANSFORMED=  
+FORBIDDEN_LITERAL_REPEAT=  
+
+## Current state
+ENERGY=  
+PRESSURE=  
+SPACE=  
+
+## Anchor
+SOURCE=  
+WINDOW=  
+QUALITY=  
+
+## Next intended evolution
+NEXT=  
+
+FINAL_STAGE_PLANNED=NO

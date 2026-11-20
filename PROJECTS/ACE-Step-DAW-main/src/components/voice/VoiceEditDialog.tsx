@@ -87,7 +87,7 @@ export function VoiceEditDialog({ voiceId, onClose }: VoiceEditDialogProps) {
                   onClick={() => setSkillLevel(level)}
                   className={`rounded px-2 py-1 text-[10px] font-medium transition-colors ${
                     skillLevel === level
-                      ? 'bg-daw-accent text-white'
+                      ? 'bg-daw-accent text-zinc-900'
                       : 'bg-daw-surface-2 text-zinc-400 hover:bg-daw-hover-subtle hover:text-zinc-200'
                   }`}
                   data-testid={`voice-edit-skill-${level}`}

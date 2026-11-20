@@ -4,6 +4,9 @@
   const rt=window.SoundwaveRuntime, audio=rt.audio;
   const outputMode=new URLSearchParams(location.search).get('output')==='1';
   let mode='local', soundCloudErrorSkips=0, radioCfg=null, np={}, poll=0, messengerPoll=0, lastPlayerMessageId='', lastDiscordTrack='', discordAutoEnabled=false, radioUsingFallback=false, radioFailoverBusy=false, radioFallbackFailed=false, radioFailoverAttempts=0, radioRecoveryTimer=0, radioRecoveryBusy=false, analyzer=null, barEngine=null, geometry=null, geometryCanvas=null, shaderHost=null, shaderKey='', milkdrop=null, milkdropCanvas=null, importedMilkdrop=null, milkdropLiveSyncId='', senderId=localStorage.getItem('s666-sender-id');
+  let radioPreference='auto', radioGeneration=0, radioPlaybackState='INACTIVE', radioLoaded=false;
+  let discordAutoCheckVersion=0, remoteHealthGeneration=0;
+  const soundCloudPlayback=window.createSoundCloudPlayback(audio,window.Hls,message=>{if(mode==='soundcloud'){q('#soundcloud-state').textContent=message;rt.reportPlaybackError(message);}});
   if(!senderId){senderId='sw666-'+crypto.randomUUID();localStorage.setItem('s666-sender-id',senderId);}
   const state=(t)=>{const e=q('#radio-action-state');if(e)e.textContent=t;};
   const artBg=q('#source-artwork-bg'), visualHeader=q('#radio-visual-header'), ticker=q('#source-nowplaying-ticker'), tickerTrack=q('#source-nowplaying-track');
@@ -110,8 +113,11 @@
   }
 
   async function setMode(next){
+    if(mode==='soundcloud'&&next!=='soundcloud')soundCloudPlayback.stop();
     if(next!=='local')window.RWLocalQueue?.cancelTransition();
+    radioGeneration++;radioLoaded=false;radioPlaybackState=next==='radio'?'CONNECTING':'INACTIVE';
     mode=next;
+    updatePlayerRadioStatus();
     document.body.classList.remove('source-local','source-radio','source-soundcloud');
     document.body.classList.add('source-'+next);
     qa('.source-btn').forEach(b=>b.classList.toggle('active',b.dataset.source===next));
@@ -132,16 +138,50 @@
     }
   }
   const radioUrl=(fallback=false)=>new URL(fallback?radioCfg.fallback:radioCfg.stream,radioCfg.radioBase).href;
+  function updatePlayerRadioStatus(){
+    const active=mode==='radio', selector=q('#player-radio-route'), route=q('#player-radio-route-state'), now=q('#player-radio-now'), details=q('#player-radio-details');
+    if(selector){selector.disabled=!active||!radioLoaded||outputMode;selector.value=radioPreference;}
+    if(route){
+      route.textContent=active?(radioLoaded?(radioUsingFallback?'FALLBACK':'MAIN')+' · '+radioPlaybackState:'RADIO · '+radioPlaybackState):'RADIO INACTIVE';
+      route.dataset.state=radioPlaybackState==='ERROR'?'error':radioPlaybackState.toLowerCase();
+    }
+    if(now){now.textContent=active?[cleanText(np.artist||np.dj,''),cleanText(np.title||np.song||np.track||np.songtitle,'')].filter(Boolean).join(' — ')||'Now playing unavailable':'—';now.title=now.textContent;}
+    if(details){
+      const listeners=np.listeners??np.listener_count??np.listenerCount;
+      const stream=[np.bitrate||np.kbps,np.codec||np.format,np.sampleRate||np.sample_rate||np.samplerate].filter(Boolean).join(' · ');
+      details.textContent=active?`DJ: ${cleanText(np.dj)} · LISTENERS: ${cleanText(listeners)} · STREAM: ${cleanText(stream)}`:'DJ: — · LISTENERS: — · STREAM: —';
+    }
+  }
+  function publishRadioRoute(src){
+    const routeState=radioRoute();
+    window.api.syncSource({mode:'radio',...(src?{src}:{}),routeState,...overlayPrefs()});
+    composeStage('radio',{...np,routeState,...overlayPrefs()});
+    updatePlayerRadioStatus();
+  }
   const stopRadioRecovery=()=>{clearTimeout(radioRecoveryTimer);radioRecoveryTimer=0;};
-  const scheduleRadioRecovery=(delay=45000+Math.floor(Math.random()*30001))=>{stopRadioRecovery();if(mode!=='radio'||!radioUsingFallback||outputMode)return;radioRecoveryTimer=setTimeout(()=>recoverRadioMain(),delay);};
+  const scheduleRadioRecovery=(delay=45000+Math.floor(Math.random()*30001))=>{stopRadioRecovery();if(mode!=='radio'||!radioUsingFallback||radioPreference!=='auto'||outputMode)return;radioRecoveryTimer=setTimeout(()=>recoverRadioMain(),delay);};
   async function probeRadioMain(){const probe=new Audio();probe.muted=true;probe.preload='none';probe.src=radioUrl(false);return await new Promise(resolve=>{let done=false;const finish=(ok)=>{if(done)return;done=true;clearTimeout(timer);probe.pause();probe.removeAttribute('src');try{probe.load();}catch{}resolve(ok);};const timer=setTimeout(()=>finish(false),10000);probe.addEventListener('canplay',()=>finish(true),{once:true});probe.addEventListener('error',()=>finish(false),{once:true});probe.load();probe.play().catch(()=>{});});}
-  async function recoverRadioMain(){if(mode!=='radio'||!radioUsingFallback||radioRecoveryBusy||outputMode)return;radioRecoveryBusy=true;state('RADIO RECOVERY · CHECKING MAIN');try{if(await probeRadioMain()){const src=radioUrl(false);audio.src=src;audio.load();window.api.syncSource({mode:'radio',src,routeState:'MAIN'});rt.enablePlayback();await audio.play();radioUsingFallback=false;radioFallbackFailed=false;radioFailoverAttempts=0;stopRadioRecovery();rt.setStatus('666 Radio ready · MAIN');state('RADIO RECOVERY · MAIN RESTORED');return;}state('RADIO RECOVERY · FALLBACK STABLE');}catch(e){state('RADIO RECOVERY · '+e.message);}finally{radioRecoveryBusy=false;if(mode==='radio'&&radioUsingFallback)scheduleRadioRecovery();}}
+  async function recoverRadioMain(){
+    if(mode!=='radio'||!radioUsingFallback||radioPreference!=='auto'||radioRecoveryBusy||outputMode)return;
+    const generation=radioGeneration;radioRecoveryBusy=true;state('RADIO RECOVERY · CHECKING MAIN');
+    try{
+      if(await probeRadioMain()){
+        if(generation!==radioGeneration||mode!=='radio'||radioPreference!=='auto'||!radioUsingFallback)return;
+        const resume=!audio.paused,src=radioUrl(false);radioUsingFallback=false;radioFallbackFailed=false;radioFailoverAttempts=0;audio.src=src;audio.load();publishRadioRoute(src);rt.enablePlayback();if(resume)await audio.play();
+        if(generation!==radioGeneration||mode!=='radio')return;
+        stopRadioRecovery();rt.setStatus('666 Radio ready · MAIN');state('RADIO RECOVERY · MAIN RESTORED');return;
+      }
+      if(generation===radioGeneration&&mode==='radio')state('RADIO RECOVERY · FALLBACK STABLE');
+    }catch(e){if(generation===radioGeneration&&mode==='radio')state('RADIO RECOVERY · '+e.message);}
+    finally{if(generation===radioGeneration){radioRecoveryBusy=false;if(mode==='radio'&&radioUsingFallback)scheduleRadioRecovery();}}
+  }
   const scheduleNowPlaying=()=>{clearTimeout(poll);if(mode!=='radio'){poll=0;return;}poll=setTimeout(async()=>{await refreshNP();scheduleNowPlaying();},document.hidden?30000:10000);};
   async function startRadio(){
-    try{radioCfg=radioCfg||await window.api.radioConfig();stopRadioRecovery();radioUsingFallback=false;radioFallbackFailed=false;radioFailoverAttempts=0;radioFailoverBusy=false;radioRecoveryBusy=false;const src=radioUrl(false);audio.pause();audio.src=src;audio.load();window.api.syncSource({mode:'radio',src,routeState:'MAIN',...overlayPrefs()});rt.enablePlayback();rt.setStatus('666 Radio ready · MAIN');q('#seek-slider').disabled=true;await refreshNP();scheduleNowPlaying();}catch(e){state('RADIO ERROR · '+e.message);}
+    const generation=radioGeneration;
+    try{const cfg=radioCfg||await window.api.radioConfig();if(generation!==radioGeneration||mode!=='radio')return;radioCfg=cfg;stopRadioRecovery();radioPreference='auto';radioUsingFallback=false;radioFallbackFailed=false;radioFailoverAttempts=0;radioFailoverBusy=false;radioRecoveryBusy=false;radioLoaded=true;np={};const src=radioUrl(false);audio.pause();audio.src=src;audio.load();radioPlaybackState='CONNECTING';publishRadioRoute(src);rt.enablePlayback();rt.setStatus('666 Radio ready · MAIN');q('#seek-slider').disabled=true;await refreshNP();if(generation===radioGeneration&&mode==='radio')scheduleNowPlaying();}catch(e){if(generation===radioGeneration&&mode==='radio'){radioPlaybackState='ERROR';updatePlayerRadioStatus();state('RADIO ERROR · '+e.message);}}
   }
   async function refreshNP(){try{
-    const x=await window.api.radioNowPlaying();const n=x.nowplaying||x.now_playing||x;np=(n&&typeof n==='object')?{...x,...n}:{};
+    const generation=radioGeneration;const x=await window.api.radioNowPlaying();if(mode!=='radio'||generation!==radioGeneration)return;const n=x.nowplaying||x.now_playing||x;np=(n&&typeof n==='object')?{...x,...n}:{};
     const title=n.title||n.song||n.track||n.songtitle||'666SOUNDsDESIGn';
     const artist=n.artist||n.dj||'ONLINE RADIO';
     const dj=n.dj||x.dj||'';
@@ -156,37 +196,65 @@
       ...overlayPrefs()
     };
     q('#radio-now-title').textContent=title;q('#radio-now-artist').textContent=artist;q('#input-title').value=title;q('#input-artist').value=artist;
-    composeStage('radio',{...np,...streamMeta});window.api.syncSource(streamMeta);
-    const key=[artist,title].join(' – ');if(discordAutoEnabled&&key&&key!==lastDiscordTrack){lastDiscordTrack=key;window.api.discordNowPlaying(metadata()).catch(()=>{});}
+    composeStage('radio',{...np,...streamMeta});updatePlayerRadioStatus();window.api.syncSource(streamMeta);
+    const key=[artist,title].join(' – ');if(discordAutoEnabled&&(n.title||n.song||n.track||n.songtitle)&&key&&key!==lastDiscordTrack){lastDiscordTrack=key;window.api.discordNowPlaying(metadata()).then(r=>state('AUTO NOW PLAYING · '+actionOutcome(r))).catch(e=>{disableDiscordAuto();state('AUTO NOW PLAYING · ERROR · '+e.message);});}
   }catch(e){state('NOWPLAYING · '+e.message);}}
   document.addEventListener('visibilitychange',()=>{if(mode==='radio')scheduleNowPlaying();clearTimeout(messengerPoll);messengerPoll=setTimeout(refreshPlayerMessenger,250);});
   window.addEventListener('online',()=>{if(mode==='radio'&&radioUsingFallback)scheduleRadioRecovery(1500);});
-  audio.addEventListener('error',async()=>{if(mode!=='radio'||outputMode||radioFailoverBusy||!radioCfg)return;if(radioUsingFallback){radioFallbackFailed=true;state('RADIO DEGRADED · MAIN + FALLBACK UNAVAILABLE');window.api.syncSource({mode:'radio',routeState:'DEGRADED',...overlayPrefs()});composeStage('radio',{...np,routeState:'DEGRADED',...overlayPrefs()});scheduleRadioRecovery(5000);return;}if(radioFailoverAttempts>=1){state('RADIO DEGRADED · FAILOVER BUDGET EXHAUSTED');window.api.syncSource({mode:'radio',routeState:'DEGRADED',...overlayPrefs()});composeStage('radio',{...np,routeState:'DEGRADED',...overlayPrefs()});scheduleRadioRecovery(5000);return;}radioFailoverBusy=true;radioFailoverAttempts++;try{const src=radioUrl(true);radioUsingFallback=true;audio.src=src;audio.load();window.api.syncSource({mode:'radio',src,routeState:'FALLBACK',...overlayPrefs()});rt.enablePlayback();await audio.play();radioFallbackFailed=false;rt.setStatus('666 Radio ready · FALLBACK');state('RADIO FAILOVER · FALLBACK ACTIVE');scheduleRadioRecovery();}catch(e){radioFallbackFailed=true;state('RADIO FAILOVER ERROR · '+e.message);scheduleRadioRecovery(5000);}finally{radioFailoverBusy=false;}});
+  for(const [event,status] of [['loadstart','CONNECTING'],['play','CONNECTING'],['playing','PLAYING'],['waiting','BUFFERING'],['stalled','BUFFERING'],['pause','PAUSED'],['canplay','PAUSED']]){
+    audio.addEventListener(event,()=>{if(mode!=='radio'||!radioLoaded||outputMode)return;if((event==='waiting'||event==='stalled')&&audio.paused)return;if(event==='canplay'&&!audio.paused)return;if(event==='pause'&&radioPlaybackState==='ERROR')return;radioPlaybackState=status;updatePlayerRadioStatus();});
+  }
+  q('#player-radio-route')?.addEventListener('change',async e=>{
+    if(mode!=='radio'||!radioLoaded||outputMode)return;
+    const preference=e.target.value;if(!['auto','main','fallback'].includes(preference))return;
+    const generation=++radioGeneration,resume=!audio.paused;radioPreference=preference;stopRadioRecovery();radioRecoveryBusy=false;radioFailoverBusy=false;radioFailoverAttempts=0;radioFallbackFailed=false;radioUsingFallback=preference==='fallback';
+    const src=radioUrl(radioUsingFallback);audio.src=src;audio.load();radioPlaybackState='CONNECTING';publishRadioRoute(src);rt.enablePlayback();scheduleNowPlaying();
+    if(resume)try{await audio.play();}catch(err){if(generation===radioGeneration&&mode==='radio'){if(err.name==='NotAllowedError'){radioPlaybackState='BLOCKED';updatePlayerRadioStatus();}state('RADIO ROUTE · '+err.message);}}
+  });
+  audio.addEventListener('error',async()=>{
+    if(mode!=='radio'||outputMode||!radioCfg||!radioLoaded)return;
+    radioPlaybackState='ERROR';
+    if(radioPreference!=='auto'){radioFallbackFailed=true;state('RADIO ROUTE · '+(radioUsingFallback?'FALLBACK':'MAIN')+' UNAVAILABLE');publishRadioRoute();return;}
+    if(radioUsingFallback){radioFallbackFailed=true;state('RADIO DEGRADED · MAIN + FALLBACK UNAVAILABLE');publishRadioRoute();scheduleRadioRecovery(5000);return;}
+    if(radioFailoverBusy)return;
+    if(radioFailoverAttempts>=1){radioFallbackFailed=true;state('RADIO DEGRADED · FAILOVER BUDGET EXHAUSTED');publishRadioRoute();return;}
+    const generation=radioGeneration;radioFailoverBusy=true;radioFailoverAttempts++;
+    try{const src=radioUrl(true);radioUsingFallback=true;radioFallbackFailed=false;audio.src=src;audio.load();radioPlaybackState='CONNECTING';publishRadioRoute(src);rt.enablePlayback();await audio.play();if(generation!==radioGeneration||mode!=='radio')return;if(!radioFallbackFailed){rt.setStatus('666 Radio ready · FALLBACK');state('RADIO FAILOVER · FALLBACK ACTIVE');scheduleRadioRecovery();}}
+    catch(e){if(generation===radioGeneration&&mode==='radio'){if(e.name==='NotAllowedError'){radioPlaybackState='BLOCKED';updatePlayerRadioStatus();}else{radioFallbackFailed=true;radioPlaybackState='ERROR';publishRadioRoute();}state('RADIO FAILOVER ERROR · '+e.message);scheduleRadioRecovery(5000);}}
+    finally{if(generation===radioGeneration)radioFailoverBusy=false;}
+  });
+  updatePlayerRadioStatus();
   function metadata(){const title=q('#radio-now-title').textContent,artist=q('#radio-now-artist').textContent;return {artist,title,track:title,nowPlaying:[artist,title].filter(Boolean).join(' – '),listeners:np.listeners||np.listener_count||'',bitrate:np.bitrate||np.kbps||'',dj:np.dj||'',source:'SoundwaveStudio 666 Radio',artwork:np.artwork||np.cover||np.image||''};}
   async function refreshRemoteHealth(){
     const remote=q('#radio-runtime-health'),sc=q('#soundcloud-runtime-health');
+    const generation=++remoteHealthGeneration;
     try{
       const h=await window.api.remoteHealth();
+      if(generation!==remoteHealthGeneration)return h;
       if(remote){
-        const admin=h?.admin?.ok?'ADMIN PASS':'ADMIN '+String(h?.admin?.error||'LOGIN REQUIRED').toUpperCase();
-        const skip=h?.skip?.ok?(h.skip.configured===false?'SKIP BRIDGE NOT CONFIGURED':'SKIP PASS'):'SKIP '+String(h?.skip?.error||h?.skip?.status||'ERROR').toUpperCase();
-        const msg=h?.messenger?.ok?'MESSENGER PASS':'MESSENGER '+String(h?.messenger?.error||h?.messenger?.status||'ERROR').toUpperCase();
+        const admin=h?.admin?.ok?'ADMIN AUTHENTICATED':'ADMIN '+String(h?.admin?.error||'LOGIN REQUIRED').toUpperCase();
+        const skip=h?.skip?.ok?(h.skip.configured===false?'SKIP BRIDGE NOT CONFIGURED':'SKIP STATUS REACHABLE'):'SKIP '+String(h?.skip?.error||h?.skip?.status||'ERROR').toUpperCase();
+        const msg=h?.messenger?.ok?'MESSENGER STATUS REACHABLE':'MESSENGER '+String(h?.messenger?.error||h?.messenger?.status||'ERROR').toUpperCase();
         remote.textContent='REMOTE HEALTH · '+admin+' · '+skip+' · '+msg;
       }
+      const session=q('#radio-auth-state');if(session)session.textContent=h?.admin?.ok?'SESSION · AUTHENTICATED':'SESSION · '+String(h?.admin?.error||'NOT AUTHENTICATED').toUpperCase();
       if(sc)sc.textContent='SOUNDCLOUD HEALTH · '+String(h?.soundcloud||'UNKNOWN').replaceAll('_',' ');
       return h;
     }catch(e){
+      if(generation!==remoteHealthGeneration)return null;
       if(remote)remote.textContent='REMOTE HEALTH · ERROR · '+String(e.message||e);
       if(sc)sc.textContent='SOUNDCLOUD HEALTH · ERROR · '+String(e.message||e);
       return null;
     }
   }
+  function disableDiscordAuto(){discordAutoCheckVersion++;discordAutoEnabled=false;lastDiscordTrack='';const auto=q('#discord-auto');if(auto)auto.checked=false;}
+  const actionOutcome=r=>r?.skipped?'SKIPPED · '+String(r.reason||'server declined'):r?.partial?'PARTIAL · CHECK DELIVERY':'ACCEPTED';
   async function act(label,fn){
     state(label+' · SENDING…');
     try{
       const r=await fn();
       if(r&&r.ok===false)throw new Error(r.error||r.reason||'action_rejected');
-      state(label+' · PASS');
+      state(label+' · '+actionOutcome(r));
       refreshRemoteHealth();
       return r;
     }catch(e){
@@ -196,14 +264,67 @@
     }
   }
   qa('.source-btn').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.source).catch(e=>state('SOURCE SWITCH · '+String(e.message||e)))));
-  q('#radio-login').onclick=()=>act('LOGIN',async()=>{const r=await window.api.adminLogin(q('#radio-password').value);discordAutoEnabled=true;lastDiscordTrack='';await refreshNP();return r;}).catch(()=>{});
+  q('#radio-login').onclick=()=>act('LOGIN',async()=>{disableDiscordAuto();try{return await window.api.adminLogin(q('#radio-password').value);}finally{q('#radio-password').value='';}}).catch(()=>{});
+  q('#radio-auth-check')?.addEventListener('click',()=>act('SESSION CHECK',async()=>{try{const r=await window.api.adminCheck();if(!r?.ok)disableDiscordAuto();return r;}catch(e){disableDiscordAuto();throw e;}}).catch(()=>{}));
+  q('#radio-logout')?.addEventListener('click',()=>act('LOGOUT',async()=>{disableDiscordAuto();return window.api.adminLogout();}).catch(()=>{}));
+  let probeGeneration=0;
+  for(const name of ['password-health','auth-health','auth-debug','admin-debug','radio-debug','discord-status']){
+    q('#radio-probe-'+name)?.addEventListener('click',async()=>{const generation=++probeGeneration,target=q('#radio-probe-result');target.textContent=name+' · CHECKING…';try{const r=await window.api.adminProbe(name);if(generation===probeGeneration)target.textContent=name+' · '+JSON.stringify(r,null,2);}catch(e){if(generation===probeGeneration)target.textContent=name+' · ERROR · '+String(e.message||e);}});
+  }
+  async function sendRadioTest(kind){
+    state(kind.toUpperCase()+' TEST · WAITING FOR CONFIRMATION…');
+    try{const r=await window.api.adminTestMessage(kind);if(r?.cancelled){state(kind.toUpperCase()+' TEST · CANCELLED');return;}if(!r?.ok)throw new Error(r?.reason||'test_rejected');state(kind.toUpperCase()+' TEST · '+(r.skipped?'SKIPPED':r.partial?'PARTIAL · CHECK DELIVERY':'ACCEPTED · DELIVERY NOT VERIFIED')+(kind==='broadcast'?' · SOURCE '+String(r.source||'unknown'):''));
+    }catch(e){state(kind.toUpperCase()+' TEST · ERROR · '+String(e.message||e));}
+  }
+  q('#radio-discord-test')?.addEventListener('click',()=>sendRadioTest('discord'));
+  q('#radio-broadcast-test')?.addEventListener('click',()=>sendRadioTest('broadcast'));
+  const configFields=[
+    ['primaryStream','primary',false],['backupStream','backup',false],['emergencyStream','emergency',false],
+    ['primaryStreams','primary-list',true],['backupStreams','backup-list',true],['emergencyStreams','emergency-list',true],['metadataUpstreams','metadata-list',true]
+  ];
+  const configState=text=>{const el=q('#radio-config-state');if(el)el.textContent=text;};
+  const configSummary=r=>Object.entries(r.fields||{}).map(([name,value])=>`${name}: ${value.configured?`${value.count} · ${(value.origins||[]).join(', ')}`:'not configured'}`).join('\n');
+  q('#radio-config-load')?.addEventListener('click',async()=>{configState('LOADING CONFIGURATION…');try{const r=await window.api.adminConfigCurrent();q('#radio-config-current').textContent='Stored config version: '+String(r.version??'unknown')+'\n'+configSummary(r);configState('CONFIGURATION LOADED · URL PATHS HIDDEN');}catch(e){configState('CONFIGURATION ERROR · '+String(e.message||e));}});
+  q('#radio-config-list')?.addEventListener('click',async()=>{configState('LOADING BACKUPS…');try{const r=await window.api.adminConfigBackups();q('#radio-config-backups').textContent=r.items.length?r.items.map(item=>item.name+' · '+String(item.size??'?')+' bytes').join('\n'):'No backups reported';configState('BACKUPS LOADED');}catch(e){configState('BACKUPS ERROR · '+String(e.message||e));}});
+  q('#radio-config-active')?.addEventListener('click',async()=>{configState('CHECKING ACTIVE CONFIGURATION…');try{const r=await window.api.adminConfigActive();q('#radio-config-active-state').textContent='Active version: '+String(r.version??'unknown')+' · source: '+r.source+'\n'+configSummary(r)+'\nmetadata upstreams: '+String(r.metadataUpstreamCount??'unknown');configState('ACTIVE CONFIGURATION READ');}catch(e){configState('ACTIVE CONFIGURATION ERROR · '+String(e.message||e));}});
+  function configPayload(){
+    const payload={};
+    for(const [key,id,isList] of configFields){
+      const mode=q('#radio-config-'+id+'-mode').value;if(mode==='keep')continue;
+      if(mode==='clear'){payload[key]=isList?[]:'';continue;}
+      if(mode!=='set')throw new Error('invalid_field_mode');
+      const raw=q('#radio-config-'+id).value.trim(),values=isList?raw.split(/\r?\n/).map(v=>v.trim()).filter(Boolean):[raw];
+      if(!values.length||values.length>12||values.some(v=>!v))throw new Error('invalid_'+key);
+      for(const value of values){let parsed;try{parsed=new URL(value);}catch{throw new Error('invalid_'+key);}if(value.length>2048||!['http:','https:'].includes(parsed.protocol))throw new Error('invalid_'+key);}
+      payload[key]=isList?values:values[0];
+    }
+    if(!Object.keys(payload).length)throw new Error('no_config_changes');
+    const note=q('#radio-config-note').value.trim();if(note)payload.note=note;
+    return payload;
+  }
+  async function configMutation(label,operation){
+    configState(label+' · WAITING FOR CONFIRMATION…');
+    try{
+      const r=await operation();
+      if(r?.cancelled){configState(label+' · CANCELLED');return;}
+      if(!r?.ok)throw new Error(r?.reason||'request_rejected');
+      const activation=r.effectiveImmediately?'IMMEDIATE ACTIVATION REPORTED':r.deploymentPending?'DEPLOYMENT PENDING':'ACTIVATION UNKNOWN';
+      configState(label+' · ACCEPTED · '+activation+' · CHECK ACTIVE');
+      return true;
+    }catch(e){configState(label+' · ERROR · '+String(e.message||e)+' · BACKUPS MAY HAVE CHANGED; CHECK CURRENT');}
+  }
+  q('#radio-config-preview')?.addEventListener('click',()=>{try{const payload=configPayload();q('#radio-config-preview-state').textContent=Object.entries(payload).map(([key,value])=>{if(key==='note')return 'note: provided';const values=Array.isArray(value)?value:(value?[value]:[]);return key+': '+(values.length?values.length+' · '+[...new Set(values.map(v=>new URL(v).origin))].join(', '):'CLEAR');}).join('\n');configState('PREVIEW READY · URL PATHS HIDDEN');}catch(e){configState('PREVIEW · ERROR · '+String(e.message||e));}});
+  q('#radio-config-update')?.addEventListener('click',async()=>{let payload;try{payload=configPayload();}catch(e){configState('UPDATE · ERROR · '+String(e.message||e));return;}if(await configMutation('UPDATE',()=>window.api.adminConfigUpdate(payload))){for(const [,id] of configFields){q('#radio-config-'+id+'-mode').value='keep';q('#radio-config-'+id).value='';}q('#radio-config-note').value='';}});
+  q('#radio-config-rollback')?.addEventListener('click',()=>configMutation('ROLLBACK',()=>window.api.adminConfigRollback()));
   q('#radio-skip').onclick=()=>act('SKIP',()=>window.api.radioSkip()).catch(()=>{});
   q('#player-message-send').onclick=()=>act('PLAYER',()=>window.api.playerAlertSend({message:q('#player-message').value,senderId})).catch(()=>{});
-  const playerMessagePayload=x=>x?.message||x?.current||x?.alert||x?.data||null;
-  async function refreshPlayerMessenger(){try{const x=await window.api.playerAlertCurrent();const m=playerMessagePayload(x);if(m&&typeof m==='object'){const mid=String(m.id||m.messageId||m.createdAt||m.timestamp||JSON.stringify(m));const from=String(m.senderId||m.clientId||'');if(mid!==lastPlayerMessageId){lastPlayerMessageId=mid;if(from!==senderId){const text=String(m.message||m.text||'').slice(0,240);if(text)q('#player-message-receive').textContent='PLAYER · '+text;}}}}catch{}finally{clearTimeout(messengerPoll);messengerPoll=setTimeout(refreshPlayerMessenger,document.hidden?30000:10000);}}
+  const playerMessagePayload=x=>typeof x?.message==='string'?x:(x?.current||x?.alert||x?.data||null);
+  async function refreshPlayerMessenger(){try{const x=await window.api.playerAlertCurrent();const m=playerMessagePayload(x);if(m&&typeof m==='object'&&m.active!==false){const mid=String(m.id||m.messageId||m.createdAt||m.timestamp||JSON.stringify(m));const from=String(m.senderId||m.clientId||'');if(mid!==lastPlayerMessageId){lastPlayerMessageId=mid;if(from!==senderId){const text=String(m.message||m.text||'').slice(0,240);if(text)q('#player-message-receive').textContent='PLAYER · '+text;}}}}catch(e){q('#player-message-receive').textContent='PLAYER · UNAVAILABLE · '+String(e.message||e);}finally{clearTimeout(messengerPoll);messengerPoll=setTimeout(refreshPlayerMessenger,document.hidden?30000:10000);}}
   refreshPlayerMessenger();
+  q('#player-message-history')?.addEventListener('click',async()=>{const target=q('#player-message-history-state');try{const r=await window.api.playerAlertHistory();const items=Array.isArray(r?.items)?r.items:[];target.textContent=items.length?'HISTORY · '+items.slice(0,10).map(m=>String(m.message||m.text||'').slice(0,240)).filter(Boolean).join(' | '):'HISTORY · NO MESSAGES';}catch(e){target.textContent='HISTORY · ERROR · '+String(e.message||e);}});
   q('#discord-send').onclick=()=>act('DISCORD',()=>window.api.discordMessage(q('#discord-message').value)).catch(()=>{});
-  q('#discord-now').onclick=()=>act('NOW PLAYING',()=>window.api.discordNowPlaying(metadata())).catch(()=>{});
+  q('#discord-now').onclick=()=>act('NOW PLAYING',()=>{if(mode!=='radio'||!(np.title||np.song||np.track||np.songtitle))throw new Error('radio_metadata_unavailable');return window.api.discordNowPlaying(metadata());}).catch(()=>{});
+  q('#discord-auto')?.addEventListener('change',async e=>{if(!e.target.checked){disableDiscordAuto();return;}const generation=++discordAutoCheckVersion;try{const r=await window.api.adminCheck();if(generation!==discordAutoCheckVersion||!e.target.checked)return;if(!r?.ok)throw new Error(r?.error||'auth_required');discordAutoEnabled=true;lastDiscordTrack='';state('AUTO NOW PLAYING · ENABLED FOR TRACK CHANGES');}catch(err){if(generation!==discordAutoCheckVersion)return;disableDiscordAuto();state('AUTO NOW PLAYING · ERROR · '+String(err.message||err));}});
   q('#btn-fullscreen')?.addEventListener('click',async()=>{document.body.classList.toggle('fullframe');await window.api.setFullscreen(document.body.classList.contains('fullframe'));});
   q('#export-diagnostics')?.addEventListener('click',async()=>{try{const r=await window.api.exportRuntimeDiagnostics();state(r?.ok?'DIAGNOSTICS EXPORTED':'DIAGNOSTICS CANCELLED');}catch(e){state('DIAGNOSTICS ERROR · '+e.message);}});
   async function displays(){try{const ds=await window.api.displays();
@@ -433,6 +554,8 @@ const a=q('#display-one'),b=q('#display-two');const prevA=a.value||localStorage.
     }
   });
 
+  const visualState=()=>({engine:q('#visual-engine').value||'soundwave',milkdropPreset:q('#milkdrop-preset').value,shaderPreset:q('#shader-preset').value,geometryPreset:q('#geometry-preset').value,importedMilkdrop});
+  const syncVisual=()=>{if(!outputMode)window.api.syncSource({visual:visualState()});};
   const mdUi=[
     ['#milkdrop-auto-seconds','#milkdrop-auto-seconds-value',v=>Math.round(v)+'s'],
     ['#milkdrop-auto-bars','#milkdrop-auto-bars-value',v=>Math.round(v)],
@@ -464,8 +587,6 @@ const a=q('#display-one'),b=q('#display-two');const prevA=a.value||localStorage.
   }catch{
     if(milkdropGpuStatus)milkdropGpuStatus.textContent='WEBGL2 · GPU CHECK FAILED';
   }
-  const visualState=()=>({engine:q('#visual-engine').value||'soundwave',milkdropPreset:q('#milkdrop-preset').value,shaderPreset:q('#shader-preset').value,geometryPreset:q('#geometry-preset').value,importedMilkdrop});
-  const syncVisual=()=>{if(!outputMode)window.api.syncSource({visual:visualState()});};
   ['#visual-engine','#milkdrop-preset','#shader-preset','#geometry-preset'].forEach(sel=>q(sel)?.addEventListener('change',syncVisual));
   // Apply supplied RADIO WAVE artwork from embedded package assets.
   const brandingMap=[
@@ -483,18 +604,44 @@ const a=q('#display-one'),b=q('#display-two');const prevA=a.value||localStorage.
 
   // Current SoundCloud API: credentials and OAuth stay in main process; renderer only receives metadata + internal media URL.
   refreshRemoteHealth();
-  (async()=>{try{const x=await window.api.soundCloudStatus();q('#soundcloud-state').textContent=x.configured?'SoundCloud API configured · secure resolver ready':'SoundCloud API credentials required · configure client ID + secret before SoundCloud playback';}catch(e){q('#soundcloud-state').textContent='SoundCloud status error · '+String(e.message||e);}})();
+  async function refreshSoundCloudStatus(){try{const x=await window.api.soundCloudStatus();q('#soundcloud-state').textContent=x.configured?`SoundCloud API configured · ${x.source==='stored'?'encrypted credentials':'environment credentials'}`:(x.encryptionAvailable?'SoundCloud API credentials required · enter and save Client ID + Secret':'Secure credential storage unavailable · environment credentials required');}catch(e){q('#soundcloud-state').textContent='SoundCloud status error · '+String(e.message||e);}}
+  refreshSoundCloudStatus();
+  q('#soundcloud-save-credentials').onclick=async()=>{
+    const id=q('#soundcloud-client-id'),secret=q('#soundcloud-client-secret');
+    try{await window.api.soundCloudSaveCredentials({clientId:id.value,clientSecret:secret.value});id.value='';secret.value='';await refreshSoundCloudStatus();}
+    catch(e){q('#soundcloud-state').textContent='SoundCloud credential save failed · '+String(e.message||e);}
+  };
+  q('#soundcloud-clear-credentials').onclick=async()=>{
+    try{await window.api.soundCloudClearCredentials();q('#soundcloud-client-id').value='';q('#soundcloud-client-secret').value='';await refreshSoundCloudStatus();}
+    catch(e){q('#soundcloud-state').textContent='SoundCloud credential removal failed · '+String(e.message||e);}
+  };
+  q('#soundcloud-test-credentials').onclick=async()=>{
+    q('#soundcloud-state').textContent='Testing SoundCloud credentials…';
+    try{await window.api.soundCloudTestCredentials();q('#soundcloud-state').textContent='SoundCloud authentication successful';}
+    catch(e){q('#soundcloud-state').textContent='SoundCloud authentication failed · '+String(e.message||e);}
+  };
   q('#soundcloud-open').onclick=()=>window.api.soundCloudOpenCurrent().catch(e=>{q('#soundcloud-state').textContent='SoundCloud link · '+e.message;});
-  const playSoundCloud=async x=>{audio.pause();audio.src=x.mediaUrl;audio.load();rt.enablePlayback();q('#input-title').value=x.title||'SoundCloud';q('#input-artist').value=x.artist||'SoundCloud';composeStage('soundcloud',x);q('#soundcloud-state').textContent=`${x.artist} · ${x.title}`;q('#soundcloud-queue').textContent=`Queue · ${x.queueIndex+1} / ${x.queueLength}`;window.api.syncSource({mode:'soundcloud',src:x.mediaUrl,name:x.title,artist:x.artist,paused:false,time:0,queueIndex:x.queueIndex,queueLength:x.queueLength});rt.ensureAudioContext();await audio.play();};
-  async function refreshSoundCloudLibrary(){const box=q('#soundcloud-library');box.innerHTML='<div class="file-meta-tag">Loading 666SOUNDsDESIGN library…</div>';try{const lib=await window.api.soundCloudLibrary();const esc=v=>String(v||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));const section=(name,items)=>`<div class="sc-library-section"><div class="sc-library-title">${name} · ${items.length}</div>${items.map((x,i)=>`<button class="sc-library-item" data-sc-url="${esc(x.permalink)}"><img src="${esc(x.artwork)}" alt=""><span>${esc(x.title)}</span><small>${x.kind==='playlist'?(x.trackCount+' tracks'):'TRACK'}</small></button>`).join('')}</div>`;box.innerHTML=section('PLAYLISTS / ALBUMS',lib.playlists||[])+section('TRACKS',lib.tracks||[]);box.querySelectorAll('[data-sc-url]').forEach(b=>b.onclick=async()=>{q('#soundcloud-url').value=b.dataset.scUrl;try{await playSoundCloud(await window.api.soundCloudResolve(b.dataset.scUrl));}catch(err){q('#soundcloud-state').textContent='SoundCloud error · '+err.message;}});}catch(err){box.replaceChildren();const msg=document.createElement('div');msg.className='file-meta-tag';msg.textContent='Library unavailable · '+String(err.message||err);box.appendChild(msg);}}
+  const playSoundCloud=async x=>{if(mode!=='soundcloud')return;audio.pause();soundCloudPlayback.load(x);rt.enablePlayback();q('#input-title').value=x.title||'SoundCloud';q('#input-artist').value=x.artist||'SoundCloud';composeStage('soundcloud',x);q('#soundcloud-state').textContent=`${x.artist} · ${x.title}${x.preview?' · PREVIEW ONLY':''}`;q('#soundcloud-queue').textContent=`Queue · ${x.queueIndex+1} / ${x.queueLength}`;window.api.syncSource({mode:'soundcloud',src:x.mediaUrl,name:x.title,artist:x.artist,paused:false,time:0,queueIndex:x.queueIndex,queueLength:x.queueLength});rt.ensureAudioContext();await audio.play();};
+  async function refreshSoundCloudLibrary(){const box=q('#soundcloud-library');box.innerHTML='<div class="file-meta-tag">Loading 666SOUNDsDESIGN library…</div>';try{const lib=await window.api.soundCloudLibrary();const esc=v=>String(v||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));const section=(name,items,kind)=>`<div class="sc-library-section"><div class="sc-library-title">${name} · ${items.length}</div>${items.map((x,i)=>`<button id="soundcloud-item-${kind}-${i}" class="sc-library-item" data-sc-url="${esc(x.permalink)}"><img src="${esc(x.artwork)}" alt=""><span>${esc(x.title)}</span><small>${x.kind==='playlist'?(x.trackCount+' tracks'):'TRACK'}</small></button>`).join('')}</div>`;box.innerHTML=section('PLAYLISTS / ALBUMS',lib.playlists||[],'playlist')+section('TRACKS',lib.tracks||[],'track');box.querySelectorAll('[data-sc-url]').forEach(b=>b.onclick=async()=>{q('#soundcloud-url').value=b.dataset.scUrl;try{await playSoundCloud(await window.api.soundCloudResolve(b.dataset.scUrl));}catch(err){q('#soundcloud-state').textContent='SoundCloud error · '+err.message;}});}catch(err){box.replaceChildren();const msg=document.createElement('div');msg.className='file-meta-tag';msg.textContent='Library unavailable · '+String(err.message||err);box.appendChild(msg);}}
   q('#soundcloud-library-refresh').onclick=refreshSoundCloudLibrary;
   refreshSoundCloudLibrary();
   q('#soundcloud-load').onclick=async()=>{const e=q('#soundcloud-state');e.textContent='Resolving SoundCloud…';try{await playSoundCloud(await window.api.soundCloudResolve(q('#soundcloud-url').value));}catch(err){e.textContent='SoundCloud error · '+err.message;}};
   q('#soundcloud-prev').onclick=async()=>{try{await playSoundCloud(await window.api.soundCloudPrevious());}catch(err){q('#soundcloud-state').textContent='SoundCloud error · '+err.message;}};
   q('#soundcloud-next').onclick=async()=>{try{await playSoundCloud(await window.api.soundCloudNext());}catch(err){q('#soundcloud-state').textContent='SoundCloud error · '+err.message;}};
   audio.addEventListener('playing',()=>{if(mode==='soundcloud')soundCloudErrorSkips=0;});
-  audio.addEventListener('ended',async()=>{if(mode==='soundcloud'&&!outputMode){try{await playSoundCloud(await window.api.soundCloudNext());}catch(err){q('#soundcloud-state').textContent='SoundCloud queue · '+err.message;}}});
-  audio.addEventListener('error',async()=>{if(mode!=='soundcloud'||outputMode||soundCloudErrorSkips>=3)return;soundCloudErrorSkips++;q('#soundcloud-state').textContent=`SoundCloud stream error · skipping ${soundCloudErrorSkips}/3`;try{const x=await window.api.soundCloudNext();await new Promise(r=>setTimeout(r,500*soundCloudErrorSkips));await playSoundCloud(x);}catch(err){q('#soundcloud-state').textContent='SoundCloud recovery · '+err.message;}});
+  audio.addEventListener('ended',async()=>{if(mode==='soundcloud'&&!outputMode&&!rt.isExporting()){try{await playSoundCloud(await window.api.soundCloudNext());}catch(err){q('#soundcloud-state').textContent='SoundCloud queue · '+err.message;}}});
+  audio.addEventListener('error',async()=>{
+    if(mode!=='soundcloud'||outputMode||soundCloudErrorSkips>=3)return;
+    if(rt.isExporting()){q('#soundcloud-state').textContent='SoundCloud stream error · automatic skip paused during export';return;}
+    soundCloudErrorSkips++;
+    q('#soundcloud-state').textContent=`SoundCloud stream error · skipping ${soundCloudErrorSkips}/3`;
+    try{
+      const x=await window.api.soundCloudNext();
+      await new Promise(r=>setTimeout(r,500*soundCloudErrorSkips));
+      if(rt.isExporting()){q('#soundcloud-state').textContent='SoundCloud recovery paused during export';return;}
+      await playSoundCloud(x);
+    }catch(err){q('#soundcloud-state').textContent='SoundCloud recovery · '+err.message;}
+  });
   window.addEventListener('offline',()=>{if(mode==='radio')state('NETWORK OFFLINE · STREAM MAY CONTINUE FROM BUFFER');if(mode==='soundcloud')q('#soundcloud-state').textContent='Network offline · waiting for connection';});
   window.api.onRuntimeLifecycle?.(async ev=>{
     if(ev?.type==='lyvra:system-start'){
@@ -507,6 +654,6 @@ const a=q('#display-one'),b=q('#display-two');const prevA=a.value||localStorage.
     try{if(mode==='radio'){await refreshNP();if(radioUsingFallback)scheduleRadioRecovery(1500);else if(audio.paused){rt.enablePlayback();await audio.play().catch(()=>{});}scheduleNowPlaying();}else if(mode==='soundcloud'&&audio.src&&audio.paused){rt.enablePlayback();await audio.play().catch(()=>{});}syncVisual();state('SYSTEM RESUME · READY');}catch(e){state('SYSTEM RESUME · '+e.message);}
   });
   // Best-effort media clock correction for secondary output windows. Radio is live and does not seek.
-  if(!outputMode){let lastSync=0;const syncClock=()=>{const now=Date.now();if(now-lastSync<900)return;lastSync=now;window.api.syncSource({mode,src:audio.currentSrc||audio.src,paused:audio.paused,time:(mode==='radio'?null:audio.currentTime)});};audio.addEventListener('play',syncClock);audio.addEventListener('pause',syncClock);audio.addEventListener('seeked',syncClock);audio.addEventListener('timeupdate',syncClock);}
+  if(!outputMode){let lastSync=0;const syncClock=()=>{const now=Date.now();if(now-lastSync<900)return;lastSync=now;window.api.syncSource({mode,...(mode==='soundcloud'?{}:{src:audio.currentSrc||audio.src}),paused:audio.paused,time:(mode==='radio'?null:audio.currentTime)});};audio.addEventListener('play',syncClock);audio.addEventListener('pause',syncClock);audio.addEventListener('seeked',syncClock);audio.addEventListener('timeupdate',syncClock);}
 
 })();

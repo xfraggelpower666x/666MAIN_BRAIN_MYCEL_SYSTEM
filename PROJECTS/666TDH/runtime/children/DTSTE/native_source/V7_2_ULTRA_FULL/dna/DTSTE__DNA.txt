@@ -1,0 +1,116 @@
+DTSTE__DNA.txt
+
+SECTION: DNA SYSTEM (CORE IDENTITY LAYER)
+
+========================================
+10.1 SPECIAL WORD SYSTEM
+========================================
+
+WORDS EXIST IN MULTIPLE STATES:
+
+STATE CLEAN:
+word used normally
+
+STATE SPLIT:
+frag.el
+dee.sign
+tek.no
+
+STATE FRAGMENT:
+fr…ag…el
+de…sign
+
+RULE:
+context decides transformation
+
+PEAK → split
+BREAK → fragment
+GROOVE → clean
+
+========================================
+10.2 PHONETIC ENGINE
+========================================
+
+WORDS MAY BE MODIFIED:
+
+- syllable cuts
+- vowel stretch
+- dot insertion
+- timing gaps
+
+EXAMPLES:
+frequency → fre.quen.cies
+design → dee.sign
+
+GOAL:
+rhythm control + identity
+
+========================================
+10.3 666 SYSTEM
+========================================
+
+CORE PATTERN:
+
+Six.
+Six.
+Six.
+
+RULES:
+
+- used as trigger
+- used before drops
+- used as identity stamp
+- not spammed
+
+MODES:
+
+PURE:
+Six. Six. Six.
+
+EXTENDED:
+Six. Sounds dee.sign.
+
+FRAGMENT:
+Six… Six… Six…
+
+========================================
+10.4 SIGNATURE SYSTEM
+========================================
+
+IDENTITY INSERTS:
+
+frag.el
+dee.sign
+custom fragments
+
+RULE:
+low density
+high impact
+
+========================================
+10.5 RHYTHMIC TRIGGER SYSTEM
+========================================
+
+PHRASES MUST FOLLOW RHYTHM:
+
+- pulse based
+- gap controlled
+- no constant flow
+
+========================================
+10.6 CHAOS CONTROL
+========================================
+
+RATIO:
+
+70% STRUCTURE
+30% CHAOS
+
+IF TOO CLEAN:
+inject break / glitch
+
+IF TOO CHAOTIC:
+stabilize flow
+
+========================================
+END DNA MODULE

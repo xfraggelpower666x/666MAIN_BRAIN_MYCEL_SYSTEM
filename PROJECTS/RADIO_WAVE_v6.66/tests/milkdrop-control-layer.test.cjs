@@ -9,6 +9,8 @@ const sandbox={window:{},console,performance:{now:()=>0},setTimeout,clearTimeout
 vm.createContext(sandbox);
 vm.runInContext(fs.readFileSync(path.join(root,'src/vendor/cayatur/preset-registry.js'),'utf8'),sandbox,{filename:'preset-registry.js'});
 vm.runInContext(fs.readFileSync(path.join(root,'src/vendor/cayatur/milkdrop-cycle.js'),'utf8'),sandbox,{filename:'milkdrop-cycle.js'});
+vm.runInContext(fs.readFileSync(path.join(root,'src/vendor/cayatur/milkdrop-core.js'),'utf8'),sandbox,{filename:'milkdrop-core.js'});
+vm.runInContext(fs.readFileSync(path.join(root,'src/vendor/cayatur/milkdrop-renderer.js'),'utf8'),sandbox,{filename:'milkdrop-renderer.js'});
 
 const P=sandbox.window.SVPresets;
 assert(P&&typeof P.registerBuiltin==='function');
@@ -56,4 +58,48 @@ tp.setLock(145);
 tp.update({bass:0},.5,.5);
 assert.strictEqual(tp.bpm,145);
 
+const preset=new sandbox.window.SVMilkdrop.Preset([
+  'per_frame_init_1=q1=10;q32=4;',
+  'per_frame_1=q1=q1+1;q32=q32+1;',
+  'per_pixel_1=q1=q1+1;q32=q32+1;zoom=q1;',
+  'wavecode_0_enabled=1',
+  'wave_0_init1=t1=2;',
+  'wave_0_per_frame1=t1=t1+q1;',
+  'wave_0_per_point1=t1=t1+1;x=t1;',
+  'shapecode_0_enabled=1',
+  'shape_0_init1=t1=5;',
+  'shape_0_per_frame1=t1=t1+q1;rad=t1;'
+].join('\n'),{accurate:true});
+assert.deepStrictEqual(Array.from(preset.errors),[]);
+preset.frame({});
+preset.captureBase();
+assert.strictEqual(preset.pixel(0,0,0,0).zoom,12);
+assert.strictEqual(preset.pixel(0,0,0,0).zoom,13);
+const wave=preset.waves[0], shape=preset.shapes[0];
+assert.strictEqual(preset.waveFrame(wave),true);
+assert.strictEqual(preset.wavePoint(wave,0,0,0).x,14);
+assert.strictEqual(preset.wavePoint(wave,1,0,0).x,15);
+assert.strictEqual(preset.shapeFrame(shape,0).rad,16);
+assert.strictEqual(preset.shapeFrame(shape,1).rad,16);
+
+const uniforms={};
+const noise=Object.fromEntries(['lq','mq','hq','lqLite','volLq','volHq'].map(k=>[k,{size:1}]));
+const renderer={gl:{uniform4f:(loc,...values)=>{uniforms[loc]=values;}},noise,_wantAcc:true};
+const setUniforms=sandbox.window.SVModes.milkdrop.prototype._setPresetUniforms;
+const context={P:preset,w:1,h:1,aspX:1,aspY:1,presetTime:0,time:0};
+setUniforms.call(renderer,{_plan:[],_qa:'qa',_qh:'qh'},context);
+assert.deepStrictEqual(uniforms.qa,[11,0,0,0]);
+assert.deepStrictEqual(uniforms.qh,[0,0,0,5]);
+renderer._wantAcc=false;
+setUniforms.call(renderer,{_plan:[],_qa:'qa'},context);
+assert.strictEqual(uniforms.qa[0],13);
+
+preset.frame({});
+preset.captureBase();
+assert.strictEqual(preset.pixel(0,0,0,0).zoom,12);
+assert.strictEqual(preset.waveFrame(wave),true);
+assert.strictEqual(preset.wavePoint(wave,0,0,0).x,14);
+assert.strictEqual(preset.shapeFrame(shape,0).rad,16);
+
 console.log('PASS milkdrop-control-layer 7/7');
+console.log('PASS milkdrop q/t frame, vertex, shader and custom-block flow');

@@ -1,0 +1,634 @@
+{
+  "archives": {
+    "DTSTE_V7_1_FULL_SYSTEM.zip": {
+      "archive_size": 51448,
+      "archive_sha256": "84a3c89221474e2ab62aec17ec96523538bea1da8e2dd7eb193c7c7f8192d0dd",
+      "entry_count": 30,
+      "entries": [
+        {
+          "original_path": "04_HOOK_ENGINE.md",
+          "size": 30,
+          "sha256": "d9ba88dc44d7855d69e0b60d3b0f7872741c32b7906d378e9d7ce8a4424ec87a"
+        },
+        {
+          "original_path": "02_PRESSURE_DJ_REALITY_ENGINE.md",
+          "size": 4202,
+          "sha256": "ca7f4d83d6ec12b8516f4d83555a7a07fd97bb342c09787cab2816684b101cef"
+        },
+        {
+          "original_path": "01_FRAGGLE_CORE.md",
+          "size": 3924,
+          "sha256": "c73e9c776a29c6412e8fe3a39d8f0c7370a9cddadecd87c63d6c120c65ea18b9"
+        },
+        {
+          "original_path": "DTSTE_ULTRA_CORE_SYSTEM_v1.txt",
+          "size": 2393,
+          "sha256": "1081e3e512795c84bce9cb8f6092af7513ae43e86d64770d4d4c72583668a4f1"
+        },
+        {
+          "original_path": "FRAGGLE_UNIVERSAL_PROMPT_v3_FULL.txt",
+          "size": 662,
+          "sha256": "164df51588f6b13b3cfcbb2e9cf806b7ca014ca36b1f9638e98fdccff251035b"
+        },
+        {
+          "original_path": "07_TEMPLATES_AND_PLAYBOOKS.md",
+          "size": 2322,
+          "sha256": "b5cf82c0330c9b4fb101e4e888c83101ffd2a729f9d5ffc8b33078d00a8c8f36"
+        },
+        {
+          "original_path": "06_INSTRUMENTAL_ENGINE.md",
+          "size": 2632,
+          "sha256": "4841bb408a46a6412c8a97f9de30d4dbd36ac86eeefcee7e3de5a94866401158"
+        },
+        {
+          "original_path": "04_SIGNATURE_SYSTEM.md",
+          "size": 3158,
+          "sha256": "89e1c79ef69c9010f4c182b6ae4e4040a1f657306ea645dd4cbe95ac9f3ee239"
+        },
+        {
+          "original_path": "08_ENERGY_LOGIC.md",
+          "size": 178,
+          "sha256": "1367f91087e1484d337e9cf9a72f6c07eab4c70f9fcd54ab0ed6a7a3f8817db2"
+        },
+        {
+          "original_path": "DTSTE__VARIATION_MEMORY_ANTI_AI__v0_FULL.txt",
+          "size": 5557,
+          "sha256": "e5c2b650321050b1887326832aef50b2a957d1cbafff657066f35df826933374"
+        },
+        {
+          "original_path": "05_TRACK_BUILD_ENGINE.md",
+          "size": 4339,
+          "sha256": "069c17b7c8b643593db01a29a257aa64609feb3233dc411c54081c14197d817c"
+        },
+        {
+          "original_path": "DTSTE_STACK_PART1.txt",
+          "size": 2010,
+          "sha256": "f3991b9f8a91f54e7945e95d16605f357e56f9d5aedc6e963f8b8aa64014e6bc"
+        },
+        {
+          "original_path": "08_VALIDATION_FAILSAFE.md",
+          "size": 2114,
+          "sha256": "1a285df41cb8a30f9603c22eb9244e25a437c15beee6c843c071b897af8a3912"
+        },
+        {
+          "original_path": "03_VOICE_INSTRUMENT_LYRIC_ENGINE.md",
+          "size": 5193,
+          "sha256": "4e8c421ea93bfe4783357d0c3bacbb8c9c111078adc5f61953d5e32e46ed788e"
+        },
+        {
+          "original_path": "DTSTE__HANDOFF__v0_FULL.txt",
+          "size": 2149,
+          "sha256": "5b20dfeee23fda61cb317eade31b0af0f5d05fffeaa9ff128e4413e28f983c47"
+        },
+        {
+          "original_path": "DTSTE__DNA.txt",
+          "size": 1637,
+          "sha256": "64446fb45c947a385752b1df5492dcbe31ba8cae559f97fc2fc9fd07717e186e"
+        },
+        {
+          "original_path": "DTSTE_CORE_RAW_EXPORT.md",
+          "size": 1872,
+          "sha256": "bfdb723c0e771d2a93d9d1c72833eb0140bb2e24cd934962e1ee441054ae1384"
+        },
+        {
+          "original_path": "DTSTE__DNA__v0_FULL.txt",
+          "size": 9672,
+          "sha256": "edea9ab1fe55749b6011ee6e04382b135303128c4c6af87820575245cdade9a8"
+        },
+        {
+          "original_path": "DTSTE__CORE__v0_FULL.txt",
+          "size": 11118,
+          "sha256": "e2ca4aeb0812c415a70687e6c9f189e83c97c3621d8cb1633356b492fb6df91f"
+        },
+        {
+          "original_path": "DTSTE__DJ_MASTERING__v0_FULL.txt",
+          "size": 6898,
+          "sha256": "75d8399175b973294d9a0350e19486df075882da38d62fb34e37bfce042836c6"
+        },
+        {
+          "original_path": "DTSTE_ULTRA_CORE_SYSTEM_v1.md",
+          "size": 2393,
+          "sha256": "1081e3e512795c84bce9cb8f6092af7513ae43e86d64770d4d4c72583668a4f1"
+        },
+        {
+          "original_path": "666SOUNDsDESIGn_FULL_HANDOFF 2.md",
+          "size": 5320,
+          "sha256": "b95c29eb031d7b4859d45655762d28ff0893831fae3f3c54bddad2d1afb4d240"
+        },
+        {
+          "original_path": "666SOUNDsDESIGn_FRAGGLE_CORE_UNIVERSAL_PROMPT_v1.md",
+          "size": 6249,
+          "sha256": "7442db19abd3449c6288940c7735ec695fb810e32869e96d35d5d9334ddaaa1b"
+        },
+        {
+          "original_path": "666SOUNDsDESIGn_FULL_HANDOFF_MAX 2.md",
+          "size": 110467,
+          "sha256": "65c104ea8ef662f93adb36fddbdcd48efa6b1d7b9be954318e89c545800215e8"
+        },
+        {
+          "original_path": "99_BOOT.md",
+          "size": 35,
+          "sha256": "1bb6d6205afb04dbbcf7890f2d3c953c9cedcbe53ed693c723b41ef1a7d04906"
+        },
+        {
+          "original_path": "99_BOOT_ANWEISUNG.txt",
+          "size": 1684,
+          "sha256": "47fb91e589a020de36073cf61bf6e9249ede565b7223d16325dcd824691b1fe4"
+        },
+        {
+          "original_path": "666SOUNDsDESIGn_LYRICS_ENGINE_MODULE_v1.md",
+          "size": 3573,
+          "sha256": "6f23161cb68ce08e391967fcea6b7fe1a51140538cf265c9739f52b2d65c6423"
+        },
+        {
+          "original_path": "666SOUNDsDESIGn_MASTER_INDEX.md",
+          "size": 3151,
+          "sha256": "199226fc36c182f9709dbb8e1835b01673d941d37e0a9b9b4fa7d85be105eb0c"
+        },
+        {
+          "original_path": "666SOUNDsDESIGn_FLOW_ENGINE_MODULE_v1.md",
+          "size": 3561,
+          "sha256": "9ef362ebba11a05bff4aead58d46ee49cab1a8d961976bc476f24eb515107174"
+        },
+        {
+          "original_path": "666SOUNDsDESIGn_INTRO_ENGINE_MODULE_v1.md",
+          "size": 2406,
+          "sha256": "196bbe09ee0dd57473d21524b4bb0e38711fff02474546b0211d61e8dbd64329"
+        }
+      ]
+    },
+    "DTSTE_V7_2_ULTRA_FULL.zip": {
+      "archive_size": 845686,
+      "archive_sha256": "f9ce768eef71245806319448fed9638fda726383f2ecbaa2af75a39659fd8b96",
+      "entry_count": 35,
+      "entries": [
+        {
+          "original_path": "README_PACKAGE.md",
+          "size": 2349,
+          "sha256": "799b57405ad6535ea6e9ff50ca0e3daa61ea7fc5193b289604051d505ac9c6d5"
+        },
+        {
+          "original_path": "core/DTSTE__CORE__v0_FULL.txt",
+          "size": 11118,
+          "sha256": "e2ca4aeb0812c415a70687e6c9f189e83c97c3621d8cb1633356b492fb6df91f"
+        },
+        {
+          "original_path": "core/DTSTE_ULTRA_CORE_SYSTEM_v1.txt",
+          "size": 2393,
+          "sha256": "1081e3e512795c84bce9cb8f6092af7513ae43e86d64770d4d4c72583668a4f1"
+        },
+        {
+          "original_path": "core/DTSTE_ULTRA_CORE_SYSTEM_v1.md",
+          "size": 2393,
+          "sha256": "1081e3e512795c84bce9cb8f6092af7513ae43e86d64770d4d4c72583668a4f1"
+        },
+        {
+          "original_path": "core/DTSTE_STACK_PART1.txt",
+          "size": 2010,
+          "sha256": "f3991b9f8a91f54e7945e95d16605f357e56f9d5aedc6e963f8b8aa64014e6bc"
+        },
+        {
+          "original_path": "core/DTSTE_CORE_RAW_EXPORT.md",
+          "size": 1872,
+          "sha256": "bfdb723c0e771d2a93d9d1c72833eb0140bb2e24cd934962e1ee441054ae1384"
+        },
+        {
+          "original_path": "dna/DTSTE__DNA.txt",
+          "size": 1637,
+          "sha256": "64446fb45c947a385752b1df5492dcbe31ba8cae559f97fc2fc9fd07717e186e"
+        },
+        {
+          "original_path": "dna/DTSTE__DNA__v0_FULL.txt",
+          "size": 9672,
+          "sha256": "edea9ab1fe55749b6011ee6e04382b135303128c4c6af87820575245cdade9a8"
+        },
+        {
+          "original_path": "dna/04_SIGNATURE_SYSTEM.md",
+          "size": 3158,
+          "sha256": "89e1c79ef69c9010f4c182b6ae4e4040a1f657306ea645dd4cbe95ac9f3ee239"
+        },
+        {
+          "original_path": "dj_mastering/DTSTE__DJ_MASTERING__v0_FULL.txt",
+          "size": 6898,
+          "sha256": "75d8399175b973294d9a0350e19486df075882da38d62fb34e37bfce042836c6"
+        },
+        {
+          "original_path": "dj_mastering/02_PRESSURE_DJ_REALITY_ENGINE.md",
+          "size": 4202,
+          "sha256": "ca7f4d83d6ec12b8516f4d83555a7a07fd97bb342c09787cab2816684b101cef"
+        },
+        {
+          "original_path": "dj_mastering/06_INSTRUMENTAL_ENGINE.md",
+          "size": 2632,
+          "sha256": "4841bb408a46a6412c8a97f9de30d4dbd36ac86eeefcee7e3de5a94866401158"
+        },
+        {
+          "original_path": "dj_mastering/08_ENERGY_LOGIC.md",
+          "size": 178,
+          "sha256": "1367f91087e1484d337e9cf9a72f6c07eab4c70f9fcd54ab0ed6a7a3f8817db2"
+        },
+        {
+          "original_path": "variation/DTSTE__VARIATION_MEMORY_ANTI_AI__v0_FULL.txt",
+          "size": 5557,
+          "sha256": "e5c2b650321050b1887326832aef50b2a957d1cbafff657066f35df826933374"
+        },
+        {
+          "original_path": "variation/08_VALIDATION_FAILSAFE.md",
+          "size": 2114,
+          "sha256": "1a285df41cb8a30f9603c22eb9244e25a437c15beee6c843c071b897af8a3912"
+        },
+        {
+          "original_path": "fraggle_mode/01_FRAGGLE_CORE.md",
+          "size": 3924,
+          "sha256": "c73e9c776a29c6412e8fe3a39d8f0c7370a9cddadecd87c63d6c120c65ea18b9"
+        },
+        {
+          "original_path": "fraggle_mode/03_VOICE_INSTRUMENT_LYRIC_ENGINE.md",
+          "size": 5193,
+          "sha256": "4e8c421ea93bfe4783357d0c3bacbb8c9c111078adc5f61953d5e32e46ed788e"
+        },
+        {
+          "original_path": "fraggle_mode/04_HOOK_ENGINE.md",
+          "size": 30,
+          "sha256": "d9ba88dc44d7855d69e0b60d3b0f7872741c32b7906d378e9d7ce8a4424ec87a"
+        },
+        {
+          "original_path": "fraggle_mode/05_TRACK_BUILD_ENGINE.md",
+          "size": 4339,
+          "sha256": "069c17b7c8b643593db01a29a257aa64609feb3233dc411c54081c14197d817c"
+        },
+        {
+          "original_path": "fraggle_mode/07_TEMPLATES_AND_PLAYBOOKS.md",
+          "size": 2322,
+          "sha256": "b5cf82c0330c9b4fb101e4e888c83101ffd2a729f9d5ffc8b33078d00a8c8f36"
+        },
+        {
+          "original_path": "fraggle_mode/FRAGGLE_UNIVERSAL_PROMPT_v3_FULL.txt",
+          "size": 662,
+          "sha256": "164df51588f6b13b3cfcbb2e9cf806b7ca014ca36b1f9638e98fdccff251035b"
+        },
+        {
+          "original_path": "fraggle_mode/666SOUNDsDESIGn_FRAGGLE_CORE_UNIVERSAL_PROMPT_v1.md",
+          "size": 6249,
+          "sha256": "7442db19abd3449c6288940c7735ec695fb810e32869e96d35d5d9334ddaaa1b"
+        },
+        {
+          "original_path": "handoff_boot/DTSTE__HANDOFF__v0_FULL.txt",
+          "size": 2149,
+          "sha256": "5b20dfeee23fda61cb317eade31b0af0f5d05fffeaa9ff128e4413e28f983c47"
+        },
+        {
+          "original_path": "handoff_boot/99_BOOT.md",
+          "size": 35,
+          "sha256": "1bb6d6205afb04dbbcf7890f2d3c953c9cedcbe53ed693c723b41ef1a7d04906"
+        },
+        {
+          "original_path": "handoff_boot/99_BOOT_ANWEISUNG.txt",
+          "size": 1684,
+          "sha256": "47fb91e589a020de36073cf61bf6e9249ede565b7223d16325dcd824691b1fe4"
+        },
+        {
+          "original_path": "handoff_boot/666SOUNDsDESIGn_MASTER_INDEX.md",
+          "size": 3151,
+          "sha256": "199226fc36c182f9709dbb8e1835b01673d941d37e0a9b9b4fa7d85be105eb0c"
+        },
+        {
+          "original_path": "handoff_boot/666SOUNDsDESIGn_FULL_HANDOFF 2.md",
+          "size": 5320,
+          "sha256": "b95c29eb031d7b4859d45655762d28ff0893831fae3f3c54bddad2d1afb4d240"
+        },
+        {
+          "original_path": "handoff_boot/666SOUNDsDESIGn_FULL_HANDOFF_MAX 2.md",
+          "size": 110467,
+          "sha256": "65c104ea8ef662f93adb36fddbdcd48efa6b1d7b9be954318e89c545800215e8"
+        },
+        {
+          "original_path": "666soundsdesign_modules/666SOUNDsDESIGn_INTRO_ENGINE_MODULE_v1.md",
+          "size": 2406,
+          "sha256": "196bbe09ee0dd57473d21524b4bb0e38711fff02474546b0211d61e8dbd64329"
+        },
+        {
+          "original_path": "666soundsdesign_modules/666SOUNDsDESIGn_LYRICS_ENGINE_MODULE_v1.md",
+          "size": 3573,
+          "sha256": "6f23161cb68ce08e391967fcea6b7fe1a51140538cf265c9739f52b2d65c6423"
+        },
+        {
+          "original_path": "666soundsdesign_modules/666SOUNDsDESIGn_FLOW_ENGINE_MODULE_v1.md",
+          "size": 3561,
+          "sha256": "9ef362ebba11a05bff4aead58d46ee49cab1a8d961976bc476f24eb515107174"
+        },
+        {
+          "original_path": "sources/Dark Techno Psytrance Hybrid.pdf",
+          "size": 490150,
+          "sha256": "b86116f1b1ceeed42b0eb8ba0bb5ac2802cc02f4b64247704b5bca9f73a0a366"
+        },
+        {
+          "original_path": "sources/Dark Techno Psytrance Hybrid 2.pdf",
+          "size": 267139,
+          "sha256": "e2be31d8339637fd7960af884f1d9f31632c64c59e2423fab0c038c4d87b1880"
+        },
+        {
+          "original_path": "sources/SYSTEM_BUILD_CONTROL_KERNEL_BUILD_V6_1_MERGE_SAFE_MODE.zip",
+          "size": 269798,
+          "sha256": "2fdb95dff0b198d4e62f8929d1b6c47669b938ad39c79a18fb9d6fdead89741a"
+        },
+        {
+          "original_path": "merged/DTSTE_V7_2_ULTRA_MASTER_MERGED.md",
+          "size": 207502,
+          "sha256": "111344acfd781e1a48aa88d9eefd66b9523ed3defa25bde1dbad1fc0d885064f"
+        }
+      ]
+    },
+    "DTSTE__CORE__v0_FULL.zip": {
+      "archive_size": 23080,
+      "archive_sha256": "9fa71c8e0b51d015c81ca917a35927fc9233cfc3dbb3ed5dedbb13026eabdc81",
+      "entry_count": 13,
+      "entries": [
+        {
+          "original_path": "DTSTE__CORE__v0_FULL.txt",
+          "size": 11118,
+          "sha256": "e2ca4aeb0812c415a70687e6c9f189e83c97c3621d8cb1633356b492fb6df91f"
+        },
+        {
+          "original_path": "DTSTE__DJ_MASTERING__v0_FULL.txt",
+          "size": 6898,
+          "sha256": "75d8399175b973294d9a0350e19486df075882da38d62fb34e37bfce042836c6"
+        },
+        {
+          "original_path": "DTSTE__DNA.txt",
+          "size": 1637,
+          "sha256": "64446fb45c947a385752b1df5492dcbe31ba8cae559f97fc2fc9fd07717e186e"
+        },
+        {
+          "original_path": "DTSTE__DNA__v0_FULL.txt",
+          "size": 9672,
+          "sha256": "edea9ab1fe55749b6011ee6e04382b135303128c4c6af87820575245cdade9a8"
+        },
+        {
+          "original_path": "DTSTE__HANDOFF__v0_FULL.txt",
+          "size": 2149,
+          "sha256": "5b20dfeee23fda61cb317eade31b0af0f5d05fffeaa9ff128e4413e28f983c47"
+        },
+        {
+          "original_path": "DTSTE__VARIATION_MEMORY_ANTI_AI__v0_FULL.txt",
+          "size": 5557,
+          "sha256": "e5c2b650321050b1887326832aef50b2a957d1cbafff657066f35df826933374"
+        },
+        {
+          "original_path": "DTSTE_CORE_RAW_EXPORT.md",
+          "size": 1872,
+          "sha256": "bfdb723c0e771d2a93d9d1c72833eb0140bb2e24cd934962e1ee441054ae1384"
+        },
+        {
+          "original_path": "DTSTE_STACK_PART1.txt",
+          "size": 2010,
+          "sha256": "f3991b9f8a91f54e7945e95d16605f357e56f9d5aedc6e963f8b8aa64014e6bc"
+        },
+        {
+          "original_path": "DTSTE_ULTRA_CORE_SYSTEM_v1.md",
+          "size": 2393,
+          "sha256": "1081e3e512795c84bce9cb8f6092af7513ae43e86d64770d4d4c72583668a4f1"
+        },
+        {
+          "original_path": "DTSTE_ULTRA_CORE_SYSTEM_v1.txt",
+          "size": 2393,
+          "sha256": "1081e3e512795c84bce9cb8f6092af7513ae43e86d64770d4d4c72583668a4f1"
+        },
+        {
+          "original_path": "DTSE_CORE_v0_FULL.txt",
+          "size": 19,
+          "sha256": "f94251cf4352cf0f32fca21e814f33cd53227713452d6fefe90277fa46adf938"
+        },
+        {
+          "original_path": "DTSE_DNA_v0_FULL.txt",
+          "size": 11,
+          "sha256": "f9613f8feecbf0387365f56d6a8a6a80a7c76d2fae581af553ccee19e8c3ef4d"
+        },
+        {
+          "original_path": "DTSE_DNA_v1.txt",
+          "size": 122,
+          "sha256": "6f162fdfe6cf728f5fa6fab8a614c5b680bc4bd56def0747352e51d868e65ab5"
+        }
+      ]
+    }
+  },
+  "duplicate_groups": [
+    {
+      "sha256": "069c17b7c8b643593db01a29a257aa64609feb3233dc411c54081c14197d817c",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/05_TRACK_BUILD_ENGINE.md",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/fraggle_mode/05_TRACK_BUILD_ENGINE.md"
+      ]
+    },
+    {
+      "sha256": "1081e3e512795c84bce9cb8f6092af7513ae43e86d64770d4d4c72583668a4f1",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/DTSTE_ULTRA_CORE_SYSTEM_v1.txt",
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/DTSTE_ULTRA_CORE_SYSTEM_v1.md",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/core/DTSTE_ULTRA_CORE_SYSTEM_v1.txt",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/core/DTSTE_ULTRA_CORE_SYSTEM_v1.md",
+        "DTSTE__CORE__v0_FULL.zip!/DTSTE_ULTRA_CORE_SYSTEM_v1.md",
+        "DTSTE__CORE__v0_FULL.zip!/DTSTE_ULTRA_CORE_SYSTEM_v1.txt"
+      ]
+    },
+    {
+      "sha256": "1367f91087e1484d337e9cf9a72f6c07eab4c70f9fcd54ab0ed6a7a3f8817db2",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/08_ENERGY_LOGIC.md",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/dj_mastering/08_ENERGY_LOGIC.md"
+      ]
+    },
+    {
+      "sha256": "164df51588f6b13b3cfcbb2e9cf806b7ca014ca36b1f9638e98fdccff251035b",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/FRAGGLE_UNIVERSAL_PROMPT_v3_FULL.txt",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/fraggle_mode/FRAGGLE_UNIVERSAL_PROMPT_v3_FULL.txt"
+      ]
+    },
+    {
+      "sha256": "196bbe09ee0dd57473d21524b4bb0e38711fff02474546b0211d61e8dbd64329",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/666SOUNDsDESIGn_INTRO_ENGINE_MODULE_v1.md",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/666soundsdesign_modules/666SOUNDsDESIGn_INTRO_ENGINE_MODULE_v1.md"
+      ]
+    },
+    {
+      "sha256": "199226fc36c182f9709dbb8e1835b01673d941d37e0a9b9b4fa7d85be105eb0c",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/666SOUNDsDESIGn_MASTER_INDEX.md",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/handoff_boot/666SOUNDsDESIGn_MASTER_INDEX.md"
+      ]
+    },
+    {
+      "sha256": "1a285df41cb8a30f9603c22eb9244e25a437c15beee6c843c071b897af8a3912",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/08_VALIDATION_FAILSAFE.md",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/variation/08_VALIDATION_FAILSAFE.md"
+      ]
+    },
+    {
+      "sha256": "1bb6d6205afb04dbbcf7890f2d3c953c9cedcbe53ed693c723b41ef1a7d04906",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/99_BOOT.md",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/handoff_boot/99_BOOT.md"
+      ]
+    },
+    {
+      "sha256": "47fb91e589a020de36073cf61bf6e9249ede565b7223d16325dcd824691b1fe4",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/99_BOOT_ANWEISUNG.txt",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/handoff_boot/99_BOOT_ANWEISUNG.txt"
+      ]
+    },
+    {
+      "sha256": "4841bb408a46a6412c8a97f9de30d4dbd36ac86eeefcee7e3de5a94866401158",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/06_INSTRUMENTAL_ENGINE.md",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/dj_mastering/06_INSTRUMENTAL_ENGINE.md"
+      ]
+    },
+    {
+      "sha256": "4e8c421ea93bfe4783357d0c3bacbb8c9c111078adc5f61953d5e32e46ed788e",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/03_VOICE_INSTRUMENT_LYRIC_ENGINE.md",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/fraggle_mode/03_VOICE_INSTRUMENT_LYRIC_ENGINE.md"
+      ]
+    },
+    {
+      "sha256": "5b20dfeee23fda61cb317eade31b0af0f5d05fffeaa9ff128e4413e28f983c47",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/DTSTE__HANDOFF__v0_FULL.txt",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/handoff_boot/DTSTE__HANDOFF__v0_FULL.txt",
+        "DTSTE__CORE__v0_FULL.zip!/DTSTE__HANDOFF__v0_FULL.txt"
+      ]
+    },
+    {
+      "sha256": "64446fb45c947a385752b1df5492dcbe31ba8cae559f97fc2fc9fd07717e186e",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/DTSTE__DNA.txt",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/dna/DTSTE__DNA.txt",
+        "DTSTE__CORE__v0_FULL.zip!/DTSTE__DNA.txt"
+      ]
+    },
+    {
+      "sha256": "65c104ea8ef662f93adb36fddbdcd48efa6b1d7b9be954318e89c545800215e8",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/666SOUNDsDESIGn_FULL_HANDOFF_MAX 2.md",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/handoff_boot/666SOUNDsDESIGn_FULL_HANDOFF_MAX 2.md"
+      ]
+    },
+    {
+      "sha256": "6f23161cb68ce08e391967fcea6b7fe1a51140538cf265c9739f52b2d65c6423",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/666SOUNDsDESIGn_LYRICS_ENGINE_MODULE_v1.md",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/666soundsdesign_modules/666SOUNDsDESIGn_LYRICS_ENGINE_MODULE_v1.md"
+      ]
+    },
+    {
+      "sha256": "7442db19abd3449c6288940c7735ec695fb810e32869e96d35d5d9334ddaaa1b",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/666SOUNDsDESIGn_FRAGGLE_CORE_UNIVERSAL_PROMPT_v1.md",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/fraggle_mode/666SOUNDsDESIGn_FRAGGLE_CORE_UNIVERSAL_PROMPT_v1.md"
+      ]
+    },
+    {
+      "sha256": "75d8399175b973294d9a0350e19486df075882da38d62fb34e37bfce042836c6",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/DTSTE__DJ_MASTERING__v0_FULL.txt",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/dj_mastering/DTSTE__DJ_MASTERING__v0_FULL.txt",
+        "DTSTE__CORE__v0_FULL.zip!/DTSTE__DJ_MASTERING__v0_FULL.txt"
+      ]
+    },
+    {
+      "sha256": "89e1c79ef69c9010f4c182b6ae4e4040a1f657306ea645dd4cbe95ac9f3ee239",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/04_SIGNATURE_SYSTEM.md",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/dna/04_SIGNATURE_SYSTEM.md"
+      ]
+    },
+    {
+      "sha256": "9ef362ebba11a05bff4aead58d46ee49cab1a8d961976bc476f24eb515107174",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/666SOUNDsDESIGn_FLOW_ENGINE_MODULE_v1.md",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/666soundsdesign_modules/666SOUNDsDESIGn_FLOW_ENGINE_MODULE_v1.md"
+      ]
+    },
+    {
+      "sha256": "b5cf82c0330c9b4fb101e4e888c83101ffd2a729f9d5ffc8b33078d00a8c8f36",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/07_TEMPLATES_AND_PLAYBOOKS.md",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/fraggle_mode/07_TEMPLATES_AND_PLAYBOOKS.md"
+      ]
+    },
+    {
+      "sha256": "b95c29eb031d7b4859d45655762d28ff0893831fae3f3c54bddad2d1afb4d240",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/666SOUNDsDESIGn_FULL_HANDOFF 2.md",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/handoff_boot/666SOUNDsDESIGn_FULL_HANDOFF 2.md"
+      ]
+    },
+    {
+      "sha256": "bfdb723c0e771d2a93d9d1c72833eb0140bb2e24cd934962e1ee441054ae1384",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/DTSTE_CORE_RAW_EXPORT.md",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/core/DTSTE_CORE_RAW_EXPORT.md",
+        "DTSTE__CORE__v0_FULL.zip!/DTSTE_CORE_RAW_EXPORT.md"
+      ]
+    },
+    {
+      "sha256": "c73e9c776a29c6412e8fe3a39d8f0c7370a9cddadecd87c63d6c120c65ea18b9",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/01_FRAGGLE_CORE.md",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/fraggle_mode/01_FRAGGLE_CORE.md"
+      ]
+    },
+    {
+      "sha256": "ca7f4d83d6ec12b8516f4d83555a7a07fd97bb342c09787cab2816684b101cef",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/02_PRESSURE_DJ_REALITY_ENGINE.md",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/dj_mastering/02_PRESSURE_DJ_REALITY_ENGINE.md"
+      ]
+    },
+    {
+      "sha256": "d9ba88dc44d7855d69e0b60d3b0f7872741c32b7906d378e9d7ce8a4424ec87a",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/04_HOOK_ENGINE.md",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/fraggle_mode/04_HOOK_ENGINE.md"
+      ]
+    },
+    {
+      "sha256": "e2ca4aeb0812c415a70687e6c9f189e83c97c3621d8cb1633356b492fb6df91f",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/DTSTE__CORE__v0_FULL.txt",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/core/DTSTE__CORE__v0_FULL.txt",
+        "DTSTE__CORE__v0_FULL.zip!/DTSTE__CORE__v0_FULL.txt"
+      ]
+    },
+    {
+      "sha256": "e5c2b650321050b1887326832aef50b2a957d1cbafff657066f35df826933374",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/DTSTE__VARIATION_MEMORY_ANTI_AI__v0_FULL.txt",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/variation/DTSTE__VARIATION_MEMORY_ANTI_AI__v0_FULL.txt",
+        "DTSTE__CORE__v0_FULL.zip!/DTSTE__VARIATION_MEMORY_ANTI_AI__v0_FULL.txt"
+      ]
+    },
+    {
+      "sha256": "edea9ab1fe55749b6011ee6e04382b135303128c4c6af87820575245cdade9a8",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/DTSTE__DNA__v0_FULL.txt",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/dna/DTSTE__DNA__v0_FULL.txt",
+        "DTSTE__CORE__v0_FULL.zip!/DTSTE__DNA__v0_FULL.txt"
+      ]
+    },
+    {
+      "sha256": "f3991b9f8a91f54e7945e95d16605f357e56f9d5aedc6e963f8b8aa64014e6bc",
+      "paths": [
+        "DTSTE_V7_1_FULL_SYSTEM.zip!/DTSTE_STACK_PART1.txt",
+        "DTSTE_V7_2_ULTRA_FULL.zip!/core/DTSTE_STACK_PART1.txt",
+        "DTSTE__CORE__v0_FULL.zip!/DTSTE_STACK_PART1.txt"
+      ]
+    }
+  ],
+  "possible_secret_refs": [],
+  "secret_policy": "If detected, secret material is source-vault-only and never activated or surfaced."
+}

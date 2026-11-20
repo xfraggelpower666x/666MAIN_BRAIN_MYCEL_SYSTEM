@@ -1,0 +1,557 @@
+{
+  "system_id": "LYVRA-DOLMETSCHER-001",
+  "entry_id": "LYVRA-DOLMETSCHER-13001",
+  "version": "1.2.3",
+  "generated_at": "2026-08-06T16:18:42.803239+02:00",
+  "source_handoff_version": "1.2.2",
+  "requirements_count": 40,
+  "requirements": [
+    {
+      "id": "REQ-ID-001",
+      "domain": "Identität",
+      "requirement": "SYSTEM_ID und Namespace müssen eindeutig und unverändert sein.",
+      "test_ids": [
+        "ISOLATION-100"
+      ],
+      "evidence": [
+        "config/lyvra_dolmetscher_config_v1.2.3.json"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-BOOT-001",
+      "domain": "Bootstrap",
+      "requirement": "Es darf genau einen kanonischen Bootstrap-Root geben.",
+      "test_ids": [
+        "ISOLATION-096"
+      ],
+      "evidence": [
+        "bootstrap/LYVRA_DOLMETSCHER_BOOTSTRAP_v1.2.3.md"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-BOOT-002",
+      "domain": "Bootstrap",
+      "requirement": "Drei exakte Textaliase müssen auf denselben Root routen.",
+      "test_ids": [
+        "START-073",
+        "START-074",
+        "START-075"
+      ],
+      "evidence": [
+        "config/lyvra_dolmetscher_config_v1.2.3.json"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-BOOT-003",
+      "domain": "Bootstrap",
+      "requirement": "Trigger in Dokumenten, Zitaten, Logs und Pfaden müssen inert bleiben.",
+      "test_ids": [
+        "START-076"
+      ],
+      "evidence": [
+        "LYVRA_DOLMETSCHER_SYSTEM_PROMPT_v1.2.3.md"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-PKG-001",
+      "domain": "Paketimport",
+      "requirement": "Ein real angehängtes, verifiziertes Paket startet unmittelbar den Dolmetscher.",
+      "test_ids": [
+        "ISOLATION-090"
+      ],
+      "evidence": [
+        "00_LYVRA_DOLMETSCHER_AUTOBOOTSTRAP.md"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-PKG-002",
+      "domain": "Paketimport",
+      "requirement": "Vor Start müssen Identität, Manifest, Freeze und ZIP-CRC geprüft werden.",
+      "test_ids": [
+        "ISOLATION-091"
+      ],
+      "evidence": [
+        "tools/audit_repair_freeze.py"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-PKG-003",
+      "domain": "Paketimport",
+      "requirement": "Begleittext muss unverändert gehalten und automatisch fortgesetzt werden.",
+      "test_ids": [
+        "ISOLATION-092"
+      ],
+      "evidence": [
+        "config/lyvra_dolmetscher_config_v1.2.3.json"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-PKG-004",
+      "domain": "Paketimport",
+      "requirement": "Beschädigte oder fremde Pakete müssen fail-closed blockieren.",
+      "test_ids": [
+        "ISOLATION-099"
+      ],
+      "evidence": [
+        "recovery/RECOVERY_BOOTSTRAP_v1.2.3.md"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-LANG-001",
+      "domain": "Sprache",
+      "requirement": "Sechs feste Sprachprofile müssen verfügbar sein.",
+      "test_ids": [
+        "SYSTEM-LANGUAGE-031",
+        "SYSTEM-LANGUAGE-032"
+      ],
+      "evidence": [
+        "config/lyvra_dolmetscher_config_v1.2.3.json"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-LANG-002",
+      "domain": "Sprache",
+      "requirement": "Alle 30 gerichteten Profilpaare müssen direkt ohne Pivot geroutet werden.",
+      "test_ids": [
+        "MATRIX-001",
+        "MATRIX-002",
+        "MATRIX-003",
+        "MATRIX-004",
+        "MATRIX-005",
+        "MATRIX-006",
+        "MATRIX-007",
+        "MATRIX-008",
+        "MATRIX-009",
+        "MATRIX-010",
+        "MATRIX-011",
+        "MATRIX-012",
+        "MATRIX-013",
+        "MATRIX-014",
+        "MATRIX-015",
+        "MATRIX-016",
+        "MATRIX-017",
+        "MATRIX-018",
+        "MATRIX-019",
+        "MATRIX-020",
+        "MATRIX-021",
+        "MATRIX-022",
+        "MATRIX-023",
+        "MATRIX-024",
+        "MATRIX-025",
+        "MATRIX-026",
+        "MATRIX-027",
+        "MATRIX-028",
+        "MATRIX-029",
+        "MATRIX-030"
+      ],
+      "evidence": [
+        "tests/cases.json"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-LANG-003",
+      "domain": "Sprache",
+      "requirement": "Die Quellsprache muss getrennt von Ziel- und Systemprofil erkannt werden.",
+      "test_ids": [
+        "SYSTEM-LANGUAGE-033"
+      ],
+      "evidence": [
+        "config/lyvra_dolmetscher_config_v1.2.3.json"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-LANG-004",
+      "domain": "Sprache",
+      "requirement": "Die Systemsprache muss aus Host-/GPT-/Chat-Kontext aufgelöst werden.",
+      "test_ids": [
+        "SYSTEM-LANGUAGE-034",
+        "SYSTEM-LANGUAGE-035",
+        "SYSTEM-LANGUAGE-036"
+      ],
+      "evidence": [
+        "bootstrap/LYVRA_DOLMETSCHER_BOOTSTRAP_v1.2.3.md"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-HOLD-001",
+      "domain": "HOLD",
+      "requirement": "Der rohe Eingangstext muss unveränderlich bleiben.",
+      "test_ids": [
+        "ADVANCED-065",
+        "HOLD-081",
+        "HOLD-082"
+      ],
+      "evidence": [
+        "config/lyvra_dolmetscher_config_v1.2.3.json"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-HOLD-002",
+      "domain": "HOLD",
+      "requirement": "Die HOLD-Queue muss FIFO und überschreibgeschützt arbeiten.",
+      "test_ids": [
+        "ADVANCED-066"
+      ],
+      "evidence": [
+        "LYVRA_DOLMETSCHER_SYSTEM_PROMPT_v1.2.3.md"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-HOLD-003",
+      "domain": "HOLD",
+      "requirement": "MICRO_HOLD muss Einzeltexte ohne unnötiges Fertig-Gate verarbeiten.",
+      "test_ids": [
+        "HOLD-081"
+      ],
+      "evidence": [
+        "tests/cases.json"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-HOLD-004",
+      "domain": "HOLD",
+      "requirement": "BATCH_HOLD muss Reihenfolge wahren und nur durch exaktes fertig schließen.",
+      "test_ids": [
+        "HOLD-082",
+        "HOLD-083",
+        "HOLD-084"
+      ],
+      "evidence": [
+        "tests/cases.json"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-INT-001",
+      "domain": "Fortsetzung",
+      "requirement": "Unterbrechungen müssen erfasst, verarbeitet, re-auditiert und fortgesetzt werden.",
+      "test_ids": [
+        "INTERRUPTION-037",
+        "INTERRUPTION-038",
+        "INTERRUPTION-039",
+        "INTERRUPTION-040",
+        "INTERRUPTION-041",
+        "INTERRUPTION-042",
+        "INTERRUPTION-043",
+        "INTERRUPTION-044"
+      ],
+      "evidence": [
+        "config/lyvra_dolmetscher_config_v1.2.3.json"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-REG-001",
+      "domain": "Register",
+      "requirement": "Terminologie-, Beziehungs-, Sprecher-, Pronomen- und DNT-Register müssen getrennt sein.",
+      "test_ids": [
+        "ADVANCED-067"
+      ],
+      "evidence": [
+        "docs/REGISTRY_DEFINITIONS.md"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-REG-002",
+      "domain": "Register",
+      "requirement": "Registeränderungen dürfen nicht still erfolgen.",
+      "test_ids": [
+        "ADVANCED-068"
+      ],
+      "evidence": [
+        "docs/REGISTRY_DEFINITIONS.md"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-FMT-001",
+      "domain": "Format",
+      "requirement": "Markdown, HTML, Code, Platzhalter, URLs, E-Mails, Pfade und Zahlen müssen geschützt sein.",
+      "test_ids": [
+        "FORMAT-059",
+        "FORMAT-060",
+        "FORMAT-061",
+        "FORMAT-062",
+        "FORMAT-063",
+        "FORMAT-064"
+      ],
+      "evidence": [
+        "config/lyvra_dolmetscher_config_v1.2.3.json"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-EMOJI-001",
+      "domain": "Emoji",
+      "requirement": "Emojis müssen kausal verstärken und ihre Dichte adaptiv wählen.",
+      "test_ids": [
+        "EMOJI-053",
+        "EMOJI-054",
+        "EMOJI-055",
+        "EMOJI-056",
+        "EMOJI-057",
+        "EMOJI-058"
+      ],
+      "evidence": [
+        "config/lyvra_dolmetscher_config_v1.2.3.json"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-EMOJI-002",
+      "domain": "Emoji",
+      "requirement": "Emojis dürfen keine Wörter ersetzen oder neue Bedeutung erfinden.",
+      "test_ids": [
+        "SELF-089"
+      ],
+      "evidence": [
+        "tests/invariants.json"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-ROLE-001",
+      "domain": "Agent",
+      "requirement": "LYVRA muss der primäre Interpreter-Agent bleiben.",
+      "test_ids": [
+        "AGENT-077"
+      ],
+      "evidence": [
+        "config/lyvra_dolmetscher_config_v1.2.3.json"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-ROLE-002",
+      "domain": "Agent",
+      "requirement": "Nachricht und Absicht bleiben Eigentum des Quellsprechers.",
+      "test_ids": [
+        "AGENT-078",
+        "SELF-088"
+      ],
+      "evidence": [
+        "docs/AGENT_AND_INTEGRATION_ARCHITECTURE_v1.2.3.md"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-ROLE-003",
+      "domain": "Agent",
+      "requirement": "Es darf keine zweite Identität, keinen zweiten Router oder Lernroot geben.",
+      "test_ids": [
+        "AGENT-079",
+        "AGENT-080",
+        "LEARN-085",
+        "LEARN-086"
+      ],
+      "evidence": [
+        "config/lyvra_dolmetscher_config_v1.2.3.json"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-PERS-001",
+      "domain": "Persönlichkeit",
+      "requirement": "Der Persönlichkeitslayer darf den Übersetzungsinhalt nicht mutieren.",
+      "test_ids": [
+        "ADVANCED-069"
+      ],
+      "evidence": [
+        "config/lyvra_dolmetscher_config_v1.2.3.json"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-QA-001",
+      "domain": "Qualität",
+      "requirement": "Jede Ausgabe muss semantisch auditiert werden; kritische Fälle rückübersetzt.",
+      "test_ids": [
+        "SELF-087"
+      ],
+      "evidence": [
+        "LYVRA_DOLMETSCHER_SYSTEM_PROMPT_v1.2.3.md"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-QA-002",
+      "domain": "Qualität",
+      "requirement": "Automatische Reparatur muss minimalinvasiv, begrenzt und re-auditiert sein.",
+      "test_ids": [
+        "LIFECYCLE-047",
+        "LIFECYCLE-048"
+      ],
+      "evidence": [
+        "tools/audit_repair_freeze.py"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-LIFE-001",
+      "domain": "Lifecycle",
+      "requirement": "Freeze darf nur nach bestandenem Audit erfolgen.",
+      "test_ids": [
+        "LIFECYCLE-045",
+        "LIFECYCLE-046"
+      ],
+      "evidence": [
+        "tools/audit_repair_freeze.py"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-LIFE-002",
+      "domain": "Lifecycle",
+      "requirement": "Jede freigegebene Datei muss über SHA-256 im Manifest gebunden sein.",
+      "test_ids": [
+        "LIFECYCLE-049",
+        "ISOLATION-091"
+      ],
+      "evidence": [
+        "SHA256SUMS.txt"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-LIFE-003",
+      "domain": "Lifecycle",
+      "requirement": "Das finale ZIP muss per CRC und Readback geprüft werden.",
+      "test_ids": [
+        "LIFECYCLE-050",
+        "ISOLATION-091"
+      ],
+      "evidence": [
+        "tools/audit_repair_freeze.py"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-REC-001",
+      "domain": "Recovery",
+      "requirement": "Restore muss Identität, Version, Manifest, CRC und Konflikte prüfen.",
+      "test_ids": [
+        "LIFECYCLE-051",
+        "LIFECYCLE-052"
+      ],
+      "evidence": [
+        "recovery/RECOVERY_BOOTSTRAP_v1.2.3.md"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-ISO-001",
+      "domain": "Isolation",
+      "requirement": "Zentraler LYVRA-Integrationshandoff und -router müssen abwesend sein.",
+      "test_ids": [
+        "ISOLATION-093"
+      ],
+      "evidence": [
+        "audit/AUDIT_REPORT_v1.2.3.md"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-ISO-002",
+      "domain": "Isolation",
+      "requirement": "LYVRA-Core und 666PFS dürfen nicht mutiert oder automatisch geladen werden.",
+      "test_ids": [
+        "ISOLATION-097",
+        "ISOLATION-098",
+        "ISOLATION-100"
+      ],
+      "evidence": [
+        "config/lyvra_dolmetscher_config_v1.2.3.json"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-ISO-003",
+      "domain": "Isolation",
+      "requirement": "Drive-Schreibzugriffe müssen null bleiben, solange kein geschützter Write-Lifecycle aktiv ist.",
+      "test_ids": [
+        "ISOLATION-098"
+      ],
+      "evidence": [
+        "freeze/FREEZE_RECORD.json"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-SEC-001",
+      "domain": "Sicherheit",
+      "requirement": "Secrets, Tokens und Zugangsdaten dürfen nicht ausgegeben werden.",
+      "test_ids": [
+        "ADVANCED-070"
+      ],
+      "evidence": [
+        "tests/invariants.json"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-DOC-001",
+      "domain": "Dokumente",
+      "requirement": "Checkpoint-Export und Restore müssen Schema-validierbar sein.",
+      "test_ids": [
+        "ADVANCED-071"
+      ],
+      "evidence": [
+        "schemas/checkpoint.schema.json",
+        "schemas/state.schema.json"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-LONG-001",
+      "domain": "Langtext",
+      "requirement": "Dokument-, Untertitel- und Langtextverarbeitung muss Segmentreihenfolge erhalten.",
+      "test_ids": [
+        "ADVANCED-072"
+      ],
+      "evidence": [
+        "LYVRA_DOLMETSCHER_SYSTEM_PROMPT_v1.2.3.md"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-STAGE-001",
+      "domain": "Stage-Integration",
+      "requirement": "Stage-01-Quellen müssen unverändert als inerte Evidenz erhalten bleiben.",
+      "test_ids": [],
+      "evidence": [
+        "handoffs/STAGE01_SOURCE_HANDOFF"
+      ],
+      "verification": "STATIC_EVIDENCE"
+    },
+    {
+      "id": "REQ-STAGE-002",
+      "domain": "Stage-Integration",
+      "requirement": "Stage-02-Dokumentation darf keine Engine-, LYVRA-Core-, 666PFS- oder Drive-Mutation erzeugen.",
+      "test_ids": [
+        "ISOLATION-098",
+        "ISOLATION-100"
+      ],
+      "evidence": [
+        "registry/CHILD_PASSPORT.json",
+        "docs/stage02/MASTER_AUDIT_v1.2.3.md"
+      ],
+      "verification": "TEST_AND_STATIC_EVIDENCE"
+    }
+  ]
+}
