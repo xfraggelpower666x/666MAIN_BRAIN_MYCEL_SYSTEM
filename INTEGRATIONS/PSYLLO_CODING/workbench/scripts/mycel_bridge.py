@@ -21,7 +21,9 @@ def _text(value: object, field: str) -> str:
 
 
 def _same_context(state: dict, handoff: dict) -> bool:
-    return (handoff.get("schema") == HANDOFF_SCHEMA
+    return (isinstance(state.get("lineage_id"), str)
+            and bool(state["lineage_id"].strip())
+            and handoff.get("schema") == HANDOFF_SCHEMA
             and handoff.get("project_id") == state.get("active_scope")
             and handoff.get("source_commit") == state.get("source_head")
             and handoff.get("lineage_id") == state.get("lineage_id"))
