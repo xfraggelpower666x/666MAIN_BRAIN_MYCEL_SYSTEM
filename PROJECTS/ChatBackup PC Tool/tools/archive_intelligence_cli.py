@@ -7,6 +7,7 @@ ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'app'))
 from archive_intelligence import ArchiveCatalog,ArchiveImportError,inspect_export,load_export,completeness
 from archive_research import export_jsonl
+from archive_extensions import import_directory, rebuild_fts, search_fts, conversation_view
 
 def main(argv=None):
     p=argparse.ArgumentParser(description='ChatBackup Archive Intelligence - offline, no ChatGPT login/API')
@@ -18,6 +19,11 @@ def main(argv=None):
     commands.add_parser('status')
     a=commands.add_parser('rag');a.add_argument('archive',type=Path);a.add_argument('output',type=Path)
     a.add_argument('--chunk-size',type=int,default=1800)
+    a=commands.add_parser('batch');a.add_argument('folder',type=Path)
+    a.add_argument('--checkpoint',type=Path,default=None)
+    a.add_argument('--recursive',action='store_true')
+    a=commands.add_parser('search-fast');a.add_argument('term')
+    a=commands.add_parser('view');a.add_argument('conversation_id')
     x=p.parse_args(argv)
     try:
         if x.command=='inspect':
@@ -31,6 +37,13 @@ def main(argv=None):
             with ArchiveCatalog(x.db) as catalog:result=catalog.search(x.term)
         elif x.command=='status':
             with ArchiveCatalog(x.db) as catalog:result=catalog.status()
+        elif x.command=='batch':
+            checkpoint=x.checkpoint or x.db.with_name(x.db.name+'.batch-checkpoint.json')
+            result=import_directory(x.folder,x.db,checkpoint,recursive=x.recursive)
+        elif x.command=='search-fast':
+            with ArchiveCatalog(x.db) as catalog:result=search_fts(catalog,x.term)
+        elif x.command=='view':
+            with ArchiveCatalog(x.db) as catalog:result=conversation_view(catalog,x.conversation_id)
         elif x.command=='rag':
             chats,report=load_export(x.archive)
             if report['status']!='PASS':raise ArchiveImportError('Partial source cannot be claimed as complete RAG export')
