@@ -276,11 +276,33 @@ def normalize_and_validate_share_url(raw_url: str) -> str:
     return urlunsplit(("https", host, parsed.path, parsed.query, ""))
 
 
+# Shared-page transport policy: only public ChatGPT shares, never arbitrary redirects.
+MAX_SHARE_HTML_BYTES = 30 * 1024 * 1024
+
+
+class _SafeShareRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Allow only same-origin public ChatGPT share redirects."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        original = urlsplit(req.full_url)
+        target = urlsplit(newurl)
+        try:
+            normalized = normalize_and_validate_share_url(newurl)
+        except (ChatBackupError, ValueError) as exc:
+            raise ChatBackupError("Unsichere Share-Weiterleitung blockiert.") from exc
+        if (target.hostname or "").lower() != (original.hostname or "").lower():
+            raise ChatBackupError("Domainwechsel bei Share-Weiterleitung blockiert.")
+        return super().redirect_request(req, fp, code, msg, headers, normalized)
+
+
 def fetch_share_page(
     url: str,
     timeout_seconds: int = 60,
     retries: int = 3,
 ) -> str:
+    """Fetch a validated public share without unbounded reads or cross-domain redirects."""
+    url = normalize_and_validate_share_url(url)
+    opener = urllib.request.build_opener(_SafeShareRedirectHandler())
     last_error: Exception | None = None
     headers = {
         "User-Agent": USER_AGENT,
@@ -293,9 +315,19 @@ def fetch_share_page(
     for attempt in range(1, max(1, retries) + 1):
         request = urllib.request.Request(url, headers=headers, method="GET")
         try:
-            with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
+            with opener.open(request, timeout=timeout_seconds) as response:
                 status = getattr(response, "status", 200) or 200
-                body = response.read()
+                declared = response.headers.get("Content-Length")
+                if declared:
+                    try:
+                        declared_size = int(declared)
+                    except (TypeError, ValueError) as exc:
+                        raise ChatBackupError("Ungültige Größenangabe der Share-Seite.") from exc
+                    if declared_size < 0 or declared_size > MAX_SHARE_HTML_BYTES:
+                        raise ChatBackupError("Die Share-Seite überschreitet das Downloadlimit.")
+                body = response.read(MAX_SHARE_HTML_BYTES + 1)
+                if len(body) > MAX_SHARE_HTML_BYTES:
+                    raise ChatBackupError("Die Share-Seite überschreitet das Downloadlimit.")
                 encoding = response.headers.get_content_charset() or "utf-8"
                 text = body.decode(encoding, errors="replace")
 
@@ -312,11 +344,13 @@ def fetch_share_page(
             last_error = ChatBackupError(
                 f"ChatGPT-Share-Seite konnte nicht geladen werden. HTTP {exc.code}."
             )
-        except urllib.error.URLError as exc:
-            reason = getattr(exc, "reason", exc)
-            last_error = ChatBackupError(f"Netzwerkfehler: {reason}")
-        except TimeoutError:
-            last_error = ChatBackupError("Zeitüberschreitung beim Laden des Share-Links.")
+        except (urllib.error.URLError, TimeoutError) as exc:
+            last_error = ChatBackupError(f"Share-Netzwerkfehler: {exc}")
+        except ChatBackupError as exc:
+            # A deterministic safety rejection must never be hidden by retries.
+            if "blockiert" in str(exc) or "Downloadlimit" in str(exc):
+                raise
+            last_error = exc
         except Exception as exc:  # pragma: no cover - defensive boundary
             last_error = exc
 
