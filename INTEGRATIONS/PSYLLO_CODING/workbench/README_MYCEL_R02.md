@@ -43,3 +43,11 @@ python -m unittest discover -s INTEGRATIONS/PSYLLO_CODING/workbench/tests -p 'te
 - [Native UI](../../../UI/INTELLIGENT_UI/UI_CONTRACT.md)
 - [Guidance Core](../../../DAEMON/GUIDANCE_CONTRACT.md)
 - [DEV Facet](../../../INTELLIGENCE/DEV/FACET_CONTRACT.md)
+
+## MYCEL R03 · native Aktionen und statischer Textmodus
+
+`mycel_bridge.py` übernimmt höchstens vier per Allowlist geprüfte, direkt nutzergesteuerte MAIN-BRAIN-Texttrigger (`STATUS`, `WEITER`, `DASHBOARD`, `HELP`) als Workbench-`actions` mit `kind=navigate` und Status `VORGESCHLAGEN`. Die Workbench zeigt Quelle, Zweck und Gegenprobe und kann Daten kopieren; sie ruft keinen Chat-/GitHub-Trigger autonom auf. Ohne echte Blocker wird kein künstlicher Blocker-Text mehr gesetzt.
+
+Die bestehende Workbench-HTML-Vorlage enthält einen statischen `<noscript>`-Abschnitt mit den sechs Menübereichen und den vier Texttriggern. Er beansprucht weder dynamischen Projektstand noch Host-Aktivierung und ersetzt keine JavaScript-Navigation.
+
+[Tests](tests/test_mycel_bridge.py): 14 im Repository enthaltene Unit-Fälle. Ein unabhängiger echter Lauf der vollständigen Repo-Tests und ein realer Browser-End-to-End-Lauf benötigen separate Ausführungsbelege; GitHub-Source-Readback allein ist kein Test-PASS.
