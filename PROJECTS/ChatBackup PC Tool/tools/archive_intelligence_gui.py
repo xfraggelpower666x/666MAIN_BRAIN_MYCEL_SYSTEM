@@ -20,6 +20,8 @@ class ArchiveWindow(tk.Tk):
         self.term=tk.StringVar()
         self.state=tk.StringVar(value='READY · Local-only; original exports remain unchanged')
         self.chats=[]
+        self.cancel_requested=threading.Event()
+        self.worker_active=False
         self.create_ui()
 
     def create_ui(self):
@@ -31,6 +33,7 @@ class ArchiveWindow(tk.Tk):
         tk.Button(buttons,text='Export RAG JSONL',command=self.export_rag).pack(side='left',padx=(0,8))
         tk.Button(buttons,text='Catalog status',command=self.info).pack(side='left')
         tk.Button(buttons,text='Batch import folder',command=self.batch_import).pack(side='left',padx=8)
+        tk.Button(buttons,text='Cancel batch',command=self.cancel_batch).pack(side='left',padx=(0,8))
         tk.Button(buttons,text='View conversation',command=self.view_conversation).pack(side='left',padx=(0,8))
         index=tk.Frame(root,bg=BG);index.pack(fill='x',pady=12)
         tk.Label(index,text='SQLite catalog: ',bg=BG,fg=CYAN).pack(side='left')
@@ -45,6 +48,8 @@ class ArchiveWindow(tk.Tk):
         self.matches=tk.Text(tabs,bg=PANEL,fg=TXT,wrap='word',insertbackground=TXT)
         self.report=tk.Text(tabs,bg=PANEL,fg=TXT,wrap='word',insertbackground=TXT)
         tabs.add(self.matches,text='Matches');tabs.add(self.report,text='Import and completeness')
+        self.progress=ttk.Progressbar(root,orient='horizontal',mode='determinate',maximum=100)
+        self.progress.pack(fill='x',pady=(8,0))
         tk.Label(root,textvariable=self.state,fg=CYAN,bg=BG,anchor='w').pack(fill='x',pady=(10,0))
 
     @staticmethod
@@ -57,13 +62,32 @@ class ArchiveWindow(tk.Tk):
         if chosen:self.database.set(chosen)
 
     def run_worker(self,fn):
+        if self.worker_active:
+            self.state.set('BUSY · finish or cancel the current import first')
+            return
+        self.worker_active=True
+        self.cancel_requested.clear()
         self.state.set('PROCESSING OFFLINE...')
         def run():
-            try:fn()
+            try:
+                fn()
             except Exception as exc:
                 message=str(exc)
                 self.after(0,lambda:self.error(message))
+            finally:
+                self.after(0,lambda:setattr(self,'worker_active',False))
         threading.Thread(target=run,daemon=True).start()
+
+    def cancel_batch(self):
+        if self.worker_active:
+            self.cancel_requested.set()
+            self.state.set('CANCELLATION REQUESTED · safe boundary; current JSON parse may finish')
+
+    def update_progress(self,ev):
+        self.progress['value']=ev.get('percent',0)
+        stage=ev.get('stage','')
+        name=ev.get('filename','')
+        self.state.set(f"{stage} · {ev.get('completed_files',0)}/{ev.get('total_files',0)} · {name[:100]}")
 
     def error(self,message):
         self.state.set('ERROR · '+message[:140])
@@ -75,7 +99,8 @@ class ArchiveWindow(tk.Tk):
         db=self.database.get()
         checkpoint=db+'.batch-checkpoint.json'
         def work():
-            result=import_directory(folder,db,checkpoint)
+            result=import_directory(folder,db,checkpoint,stop=self.cancel_requested.is_set,
+                     progress=lambda event:self.after(0,lambda value=event:self.update_progress(value)))
             def finish():
                 self.show(self.report,result)
                 self.state.set(f"BATCH {result['status']} · {result['imported']} files imported · {result['unchanged_files']} unchanged")
