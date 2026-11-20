@@ -159,5 +159,24 @@
     "fresh_chat_acceptance": "PENDING",
     "foreign_autoload": false,
     "authority": "MAIN_BRAIN_ONLY"
+  },
+  "mycel_r03": {
+    "version": "R03",
+    "status": "SOURCE_INTEGRATED_TEST_EXECUTION_PENDING",
+    "owner": "666MAIN BRAIN MYCEL SYSTEM",
+    "action_projection": "INTEGRATIONS/PSYLLO_CODING/workbench/scripts/mycel_bridge.py",
+    "static_noscript": "INTEGRATIONS/PSYLLO_CODING/workbench/assets/ui-template.html",
+    "menu": "UI/INTELLIGENT_UI/MENU_REGISTRY.json",
+    "regression_tests": "INTEGRATIONS/PSYLLO_CODING/workbench/tests/test_mycel_bridge.py",
+    "registered_test_count": 14,
+    "source_contract_checks": "13_OF_13_PASS",
+    "actual_unit_suite": "NOT_RUN_IN_REPO_CHECKOUT",
+    "browser_e2e": "PENDING",
+    "plugin_host_acceptance": "PENDING",
+    "renderer_unchanged": true,
+    "native_commands_are": "COPYABLE_TEXT_ONLY",
+    "native_autoexecution": false,
+    "foreign_autoactivation": false,
+    "migration_status": "IN_PROGRESS_UNCHANGED"
   }
 }
