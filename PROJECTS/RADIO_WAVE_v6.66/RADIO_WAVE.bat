@@ -171,10 +171,57 @@ if exist "node_modules\.bin\electron-packager.cmd" (echo [OK] Portable-Buildwerk
 exit /b 0
 
 :checkRuntime
+<<<<<<< HEAD
+call :ensureDependencies || exit /b
+if not exist "node_modules\electron\dist\electron.exe" goto missingElectron
+if /i "%MODE%"=="installer" if not exist "node_modules\.bin\electron-builder.cmd" goto missingDependencies
+if /i "%MODE%"=="portable" if not exist "node_modules\.bin\electron-packager.cmd" goto missingDependencies
+if /i "%MODE%"=="portable" (
+    where powershell.exe >nul 2>nul || (echo FEHLER: Windows PowerShell wird fuer das portable ZIP benoetigt. & exit /b 1)
+)
+goto run
+
+:ensureDependencies
+set "DEPS_MISSING="
+if not exist "node_modules\electron\dist\electron.exe" set "DEPS_MISSING=1"
+if /i "%MODE%"=="installer" if not exist "node_modules\.bin\electron-builder.cmd" set "DEPS_MISSING=1"
+if /i "%MODE%"=="portable" if not exist "node_modules\.bin\electron-packager.cmd" set "DEPS_MISSING=1"
+if not defined DEPS_MISSING exit /b 0
+echo [INSTALL] Fehlende Projektwerkzeuge werden installiert: npm ci --include=dev
+call npm.cmd ci --include=dev --foreground-scripts
+if errorlevel 1 (echo [INSTALL] npm ci fehlgeschlagen. & exit /b 0)
+if exist "node_modules\electron\dist\electron.exe" exit /b 0
+if exist "node_modules\electron\package.json" if exist "scripts\repair-electron-runtime.cjs" (
+    echo [INSTALL] Electron-Runtime wird repariert.
+    node.exe scripts\repair-electron-runtime.cjs
+)
+exit /b 0
+
+:missingElectron
+if not exist "node_modules\electron\package.json" (
+    echo FEHLER: Das npm-Paket Electron fehlt in diesem Projektordner.
+    goto missingDependencies
+)
+echo FEHLER: Electron ist als npm-Paket vorhanden, aber electron.exe fehlt im Standardordner.
+echo Erwartet: node_modules\electron\dist\electron.exe
+echo npm ignore-scripts:
+call npm.cmd config get ignore-scripts
+if defined ELECTRON_SKIP_BINARY_DOWNLOAD echo [HINWEIS] ELECTRON_SKIP_BINARY_DOWNLOAD ist gesetzt.
+if defined ELECTRON_OVERRIDE_DIST_PATH echo [HINWEIS] ELECTRON_OVERRIDE_DIST_PATH ist gesetzt.
+if defined ELECTRON_INSTALL_PLATFORM echo [HINWEIS] ELECTRON_INSTALL_PLATFORM ist gesetzt.
+echo Gezielte manuelle Reparatur: node scripts\repair-electron-runtime.cjs
+exit /b 1
+:missingDependencies
+echo Projektordner: "%CD%"
+echo Manueller Befehl in diesem Ordner: npm ci --include=dev --foreground-scripts
+exit /b 1
+
+=======
 call :ensureDependencies || exit /b 1
 call :ensureElectron || exit /b 1
 goto run
 
+>>>>>>> origin/666MAIN_BRAIN
 :run
 if /i "%MODE%"=="installer" goto installer
 if /i "%MODE%"=="portable" goto portable
