@@ -12,16 +12,23 @@ import sqlite3
 from pathlib import Path
 from typing import Callable
 
+
+class ArchiveCancelled(ArchiveImportError):
+    """Controlled cancellation without claiming the current file completed."""
+
+
 from archive_intelligence import ArchiveCatalog, ArchiveImportError, load_export, completeness
 
 CHECKPOINT_SCHEMA = "666.chatbackup.batch-checkpoint.v1"
 MAX_BATCH_FILES = 10000
 
 
-def _file_digest(path: Path) -> str:
+def _file_digest(path: Path, stop: Callable[[], bool] | None = None) -> str:
     h = hashlib.sha256()
     with path.open("rb") as stream:
         while True:
+            if stop is not None and stop():
+                raise ArchiveCancelled('Cancelled during archive hashing')
             chunk = stream.read(1024 * 1024)
             if not chunk:
                 break
@@ -66,6 +73,7 @@ def import_directory(
     *,
     recursive: bool = False,
     stop: Callable[[], bool] | None = None,
+    progress: Callable[[dict], None] | None = None,
 ) -> dict:
     """Resume only whole committed ZIPs, ordered by stable relative path.
 
@@ -89,31 +97,52 @@ def import_directory(
     summary = {"schema": "666.chatbackup.batch-result.v1", "total": len(files),
                "imported": 0, "unchanged_files": 0, "failed": [], "stopped": False,
                "checkpoint": str(marker_path), "database": str(db_path)}
+    def emit(stage: str, index: int, filename: str = "") -> None:
+        if progress is not None:
+            progress({"stage": stage, "completed_files": index, "total_files": len(files),
+                      "filename": filename, "percent": round(100 * index / max(1, len(files)), 2)})
+    emit("STARTED", 0)
     with ArchiveCatalog(db_path) as catalog:
-        for item in files:
+        for index, item in enumerate(files):
             if stop is not None and stop():
                 summary["stopped"] = True
                 break
             relative = item.relative_to(directory).as_posix()
+            emit("HASHING", index, relative)
             try:
-                digest = _file_digest(item)
+                digest = _file_digest(item, stop)
                 if state["completed"].get(relative) == digest:
                     summary["unchanged_files"] += 1
+                    emit("UNCHANGED", index + 1, relative)
                     continue
+                if stop is not None and stop():
+                    raise ArchiveCancelled("Cancelled before JSON parse")
+                emit("PARSING", index, relative)
                 chats, report = load_export(item)
                 if report["status"] != "PASS":
                     raise ArchiveImportError("Source incomplete: " + report["status"])
+                if stop is not None and stop():
+                    raise ArchiveCancelled("Cancelled before index commit")
+                emit("INDEXING", index, relative)
                 catalog.add(chats, digest, relative)
                 # Mark complete only after all database transactions committed.
                 state["completed"][relative] = digest
                 _write_checkpoint(marker_path, state)
                 summary["imported"] += 1
+                emit("IMPORTED", index + 1, relative)
+            except ArchiveCancelled:
+                summary["stopped"] = True
+                emit("CANCELLED", index, relative)
+                break
             except (OSError, ValueError, sqlite3.DatabaseError) as exc:
                 summary["failed"].append({"file": relative, "error": str(exc)[:300]})
+                emit("FAILED", index + 1, relative)
     # FTS is a rebuildable secondary cache; refresh it after all committed changes.
     with ArchiveCatalog(db_path) as catalog:
         summary["search_index"] = rebuild_fts(catalog)
     summary["status"] = "PARTIAL" if summary["failed"] or summary["stopped"] else "PASS"
+    emit("FINISHED" if not summary["stopped"] else "STOPPED", len(files) if not summary["stopped"] else
+         summary["imported"] + summary["unchanged_files"] + len(summary["failed"]))
     return summary
 
 
