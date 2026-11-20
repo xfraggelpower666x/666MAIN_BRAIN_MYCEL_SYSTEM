@@ -17,7 +17,8 @@ class ArchiveCancelled(ArchiveImportError):
     """Controlled cancellation without claiming the current file completed."""
 
 
-from archive_intelligence import ArchiveCatalog, ArchiveImportError, load_export, completeness
+from archive_intelligence import ArchiveCatalog, ArchiveImportError, completeness
+from archive_streaming import iter_export_conversations, StreamingCancelled
 
 CHECKPOINT_SCHEMA = "666.chatbackup.batch-checkpoint.v1"
 MAX_BATCH_FILES = 10000
@@ -118,19 +119,37 @@ def import_directory(
                 if stop is not None and stop():
                     raise ArchiveCancelled("Cancelled before JSON parse")
                 emit("PARSING", index, relative)
-                chats, report = load_export(item)
-                if report["status"] != "PASS":
-                    raise ArchiveImportError("Source incomplete: " + report["status"])
-                if stop is not None and stop():
-                    raise ArchiveCancelled("Cancelled before index commit")
                 emit("INDEXING", index, relative)
-                catalog.add(chats, digest, relative)
-                # Mark complete only after all database transactions committed.
+                # One SQLite transaction per ZIP. Cancellation/error rolls back
+                # all derived rows for the current archive.
+                catalog.db.execute("BEGIN")
+                try:
+                    seen = 0
+                    for chat in iter_export_conversations(
+                        item, stop=stop,
+                        progress=lambda detail: progress({
+                            "stage": detail["stage"], "completed_files": index,
+                            "total_files": len(files), "filename": relative,
+                            "percent": round(100 * (index + detail["json_percent"] / 100)
+                                             / max(1,len(files)),2),
+                            **detail}) if progress else None,
+                    ):
+                        if stop is not None and stop():
+                            raise StreamingCancelled("Cancelled before catalog insert")
+                        catalog.add([chat],digest,relative,transactional=False)
+                        seen += 1
+                    if stop is not None and stop():
+                        raise StreamingCancelled("Cancelled before ZIP transaction commit")
+                    catalog.db.commit()
+                except Exception:
+                    catalog.db.rollback()
+                    raise
+                # Mark complete only after entire ZIP committed.
                 state["completed"][relative] = digest
                 _write_checkpoint(marker_path, state)
                 summary["imported"] += 1
                 emit("IMPORTED", index + 1, relative)
-            except ArchiveCancelled:
+            except (ArchiveCancelled, StreamingCancelled):
                 summary["stopped"] = True
                 emit("CANCELLED", index, relative)
                 break
