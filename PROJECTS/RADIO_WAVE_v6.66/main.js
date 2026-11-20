@@ -94,12 +94,8 @@ app.commandLine.appendSwitch('enable-oop-rasterization');
 app.commandLine.appendSwitch('accelerated-2d-canvas');
 let fileWriteStream = null;
 let approvedSavePath = '';
-<<<<<<< HEAD
-let fileWrittenBytes = 0;
 const MAX_EXPORT_BYTES = 8 * 1024 * 1024 * 1024;
-=======
 let videoWriteState = null;
->>>>>>> origin/666MAIN_BRAIN
 const runtimeEvents = [];
 let outputWatchdog = null;
 function runtimeEvent(type, detail={}) { runtimeEvents.push({at:new Date().toISOString(),type:String(type).slice(0,80),detail}); if(runtimeEvents.length>200)runtimeEvents.splice(0,runtimeEvents.length-200); }
@@ -1165,36 +1161,17 @@ function extractPersonalMilkdropZip(zipPath){
   validateZipEntries(zipPath);
   const root=personalMilkdropRoot();
   const temp=root+'-incoming';
-<<<<<<< HEAD
-  try{fs.rmSync(temp,{recursive:true,force:true});}catch{}
-  fs.mkdirSync(temp,{recursive:true});
-  const script="$ErrorActionPreference='Stop'; Expand-Archive -LiteralPath $env:RW_ZIP -DestinationPath $env:RW_DEST -Force";
-  const r=cp.spawnSync('powershell.exe',['-NoProfile','-NonInteractive','-Command',script],{encoding:'utf8',windowsHide:true,timeout:120000,maxBuffer:4*1024*1024,env:{...process.env,RW_ZIP:String(zipPath),RW_DEST:String(temp)}});
-  if(r.status!==0)throw new Error('personal_library_extract_failed:'+String(r.stderr||r.stdout||'').slice(0,600));
-  try{assertInside(temp,temp);}catch(err){try{fs.rmSync(temp,{recursive:true,force:true});}catch{}throw err;}
-  const files=safeWalkMilkdropLibrary(temp);
-  const milk=files.filter(x=>x.ext==='.milk').length;
-  const milk2=files.filter(x=>x.ext==='.milk2').length;
-  if(milk<1)throw new Error('personal_library_no_milk_presets');
-  try{fs.rmSync(root,{recursive:true,force:true});}catch{}
-  fs.renameSync(temp,root);
-  const state=personalMilkdropLibraryState(false);
-  fs.writeFileSync(personalMilkdropManifestPath(),JSON.stringify({installedAt:new Date().toISOString(),sourceZip:path.basename(zipPath),milk:state.milk,milk2:state.milk2,count:state.count,personalUse:true,redistribution:false},null,2),'utf8');
-  runtimeEvent('personal-milkdrop-library-imported',{milk:state.milk,milk2:state.milk2,count:state.count});
-  return state;
-=======
   fs.rmSync(temp,{recursive:true,force:true});
   const MAX_ARCHIVE_ENTRIES=10000;
   const MAX_ARCHIVE_UNCOMPRESSED_BYTES=512*1024*1024;
-  const escapedZip=String(zipPath).replace(/'/g,"''");
-  const escapedDest=String(temp).replace(/'/g,"''");
-  const script=`$ErrorActionPreference='Stop'; Add-Type -AssemblyName System.IO.Compression.FileSystem; $archive=[IO.Compression.ZipFile]::OpenRead('${escapedZip}'); try { $entryCount=0; [long]$totalBytes=0; foreach($entry in $archive.Entries) { $entryCount++; if($entryCount -gt ${MAX_ARCHIVE_ENTRIES}) { throw 'personal_library_archive_too_many_entries' }; $entryLength=[long]$entry.Length; if($entryLength -gt (${MAX_ARCHIVE_UNCOMPRESSED_BYTES} - $totalBytes)) { throw 'personal_library_archive_too_large' }; $totalBytes += $entryLength } } finally { $archive.Dispose() }; [IO.Compression.ZipFile]::ExtractToDirectory('${escapedZip}', '${escapedDest}')`;
+  const script=`$ErrorActionPreference='Stop'; Add-Type -AssemblyName System.IO.Compression.FileSystem; $archive=[IO.Compression.ZipFile]::OpenRead($env:RW_ZIP); try { $entryCount=0; [long]$totalBytes=0; foreach($entry in $archive.Entries) { $entryCount++; if($entryCount -gt ${MAX_ARCHIVE_ENTRIES}) { throw 'personal_library_archive_too_many_entries' }; $entryLength=[long]$entry.Length; if($entryLength -gt (${MAX_ARCHIVE_UNCOMPRESSED_BYTES} - $totalBytes)) { throw 'personal_library_archive_too_large' }; $totalBytes += $entryLength } } finally { $archive.Dispose() }; [IO.Compression.ZipFile]::ExtractToDirectory($env:RW_ZIP, $env:RW_DEST)`;
   let installed=false;
   let importError=null;
   try{
     fs.mkdirSync(temp,{recursive:true});
-    const r=runPowerShell(['-NoProfile','-NonInteractive','-Command',script],{encoding:'utf8',windowsHide:true,timeout:120000,maxBuffer:4*1024*1024});
+    const r=runPowerShell(['-NoProfile','-NonInteractive','-Command',script],{encoding:'utf8',windowsHide:true,timeout:120000,maxBuffer:4*1024*1024,env:{...process.env,RW_ZIP:String(zipPath),RW_DEST:String(temp)}});
     if(r.status!==0)throw new Error('personal_library_extract_failed:'+String(r.stderr||r.stdout||'').slice(0,600));
+    assertInside(temp,temp);
     const files=safeWalkMilkdropLibrary(temp);
     const milk=files.filter(x=>x.ext==='.milk').length;
     const milk2=files.filter(x=>x.ext==='.milk2').length;
@@ -1220,7 +1197,6 @@ function extractPersonalMilkdropZip(zipPath){
       }
     }
   }
->>>>>>> origin/666MAIN_BRAIN
 }
 
 registerIpc('dialog:openMilkdropPack','main', async()=>{
@@ -1326,16 +1302,9 @@ registerIpc('file:startWrite','main', async (event, savePath) => {
     if (!approvedSavePath || resolved !== approvedSavePath) throw new Error('save_path_not_approved');
     if (videoWriteState) throw new Error('video_write_in_progress');
     approvedSavePath = '';
-<<<<<<< HEAD
-    if (fileWriteStream) {
-      fileWriteStream.end();
-    }
-    fileWriteStream = fs.createWriteStream(resolved);
-    fileWrittenBytes = 0;
-=======
     const temporaryPath = path.join(path.dirname(resolved), `.${path.basename(resolved)}.${require('crypto').randomBytes(12).toString('hex')}.partial`);
     const stream = fs.createWriteStream(temporaryPath, { flags: 'wx' });
-    state = { stream, destination: resolved, temporaryPath, error: null, aborted: false, opened: false, closing: null };
+    state = { stream, destination: resolved, temporaryPath, error: null, aborted: false, opened: false, closing: null, bytesWritten: 0 };
     videoWriteState = state;
     fileWriteStream = stream;
     stream.on('error', error => { state.error ||= error; });
@@ -1344,7 +1313,6 @@ registerIpc('file:startWrite','main', async (event, savePath) => {
       stream.once('error', reject);
     });
     if (state.aborted || stream.destroyed) throw new Error('video_write_aborted');
->>>>>>> origin/666MAIN_BRAIN
     return { success: true };
   } catch (error) {
     if (state && videoWriteState === state && !state.opened) {
@@ -1364,27 +1332,15 @@ registerIpc('file:writeChunk','main', async (event, chunkBuffer) => {
   if (!state || state.closing) return { success: false, error: 'Write stream not initialized' };
   try {
     const buffer = Buffer.from(chunkBuffer);
-<<<<<<< HEAD
-    if (buffer.length > 8 * 1024 * 1024) { resolve({success:false,error:'write_chunk_too_large'}); return; }
-    fileWrittenBytes += buffer.length;
-    if (fileWrittenBytes > MAX_EXPORT_BYTES) { resolve({success:false,error:'write_total_too_large'}); return; }
-    const result = fileWriteStream.write(buffer);
-
-    if (result) {
-      resolve({ success: true });
-    } else {
-      fileWriteStream.once('drain', () => {
-        resolve({ success: true });
-      });
-=======
     if (!buffer.length) {
       state.aborted = true;
       return { success: true };
->>>>>>> origin/666MAIN_BRAIN
     }
     if (buffer.length > 8 * 1024 * 1024) throw new Error('write_chunk_too_large');
     if (state.error) throw state.error;
     if (state.aborted) throw new Error('video_write_aborted');
+    if (buffer.length > MAX_EXPORT_BYTES - state.bytesWritten) throw new Error('write_total_too_large');
+    state.bytesWritten += buffer.length;
     await new Promise((resolve, reject) => state.stream.write(buffer, error => error ? reject(error) : resolve()));
     if (state.error) throw state.error;
     return { success: true };

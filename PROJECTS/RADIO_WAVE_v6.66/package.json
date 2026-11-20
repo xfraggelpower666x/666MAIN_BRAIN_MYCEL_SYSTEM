@@ -38,11 +38,7 @@
     "electron-winstaller@5.4.0": true
   },
   "devDependencies": {
-<<<<<<< HEAD
-    "electron": "^45.3.2",
-=======
     "electron": "45.3.2",
->>>>>>> origin/666MAIN_BRAIN
     "electron-builder": "^26.18.0",
     "electron-packager": "^17.1.2"
   },

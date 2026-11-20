@@ -60,7 +60,9 @@
     },true);
   };
   const sanitizeHtml=html=>{
-    const doc=new DOMParser().parseFromString(String(html||''),'text/html');
+    const source=String(html||'');
+    if(!source)return '';
+    const doc=new DOMParser().parseFromString(source,'text/html');
     doc.querySelectorAll('script,style,iframe,frame,object,embed,link,meta,base,form,svg,math,template').forEach(n=>n.remove());
     doc.body.querySelectorAll('*').forEach(el=>{
       for(const a of Array.from(el.attributes)){
@@ -88,7 +90,7 @@
     if(payload?.html!==undefined){
       const secrets=Array.from(root.querySelectorAll('input[type="password"][id]'),el=>({id:el.id,value:el.value}));
       const scrollTop=root.scrollTop,scrollLeft=root.scrollLeft;
-      root.innerHTML=String(payload.html||'');
+      root.innerHTML=sanitizeHtml(payload.html);
       for(const secret of secrets){
         const el=document.getElementById(secret.id);
         if(el&&root.contains(el)&&el.type==='password')el.value=secret.value;
@@ -111,13 +113,8 @@
     applyControls(payload?.controls||[],new Set([editing?.id,held?.id].filter(Boolean)));
   };
   window.rwOverlay.onSync(payload=>{
-<<<<<<< HEAD
-    if(payload?.html!==undefined)root.innerHTML=sanitizeHtml(payload.html);
-    applyControls(payload?.controls||[]);
-=======
     if(rangeGesture){pendingSync=payload;return;}
     syncOverlay(payload);
->>>>>>> origin/666MAIN_BRAIN
   });
   window.rwOverlay.ready().catch(()=>{});
 })();

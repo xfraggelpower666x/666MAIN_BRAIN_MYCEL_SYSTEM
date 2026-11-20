@@ -69,7 +69,7 @@ function mainHandlers(fsImpl = fs) {
   const ipcMain = { handle: (name, fn) => { handlers[name] = fn; } };
   const context = {
     fs: fsImpl, path, require, Buffer, console: { error() {} },
-    fileWriteStream: null, approvedSavePath: '', videoWriteState: null,
+    fileWriteStream: null, approvedSavePath: '', videoWriteState: null, MAX_EXPORT_BYTES: 8 * 1024 * 1024 * 1024,
     mainWindow: { isDestroyed: () => false, webContents: { id: 1 } }, introWindow: null,
     outputWindows: new Map(), detachedVisualizerWindow: null, detachedOverlayWindows: new Map(),
     app: { getPath: () => __dirname },
