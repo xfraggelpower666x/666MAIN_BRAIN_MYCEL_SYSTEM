@@ -1,0 +1,80 @@
+name: 666CLS reference update native audit and full pre-change backup
+on:
+  push:
+    branches:
+      - candidate/666cls-ref-12410-20261121
+    paths:
+      - '.github/workflows/666cls-reference-backup.yml'
+      - 'PROJECTS/666CLS/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-and-recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Candidate checkout
+        uses: actions/checkout@v4
+        with:
+          path: candidate
+          persist-credentials: false
+      - name: Exact pre-change authority checkout
+        uses: actions/checkout@v4
+        with:
+          ref: 360120fcf420736ed0abb5b2462d623fda62c85e
+          path: prechange
+          persist-credentials: false
+      - name: Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Full pre-change ZIP + ZIP CRC + restore integrity
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, pathlib, zipfile, tempfile, json
+          source=pathlib.Path("prechange/PROJECTS/666CLS")
+          target=pathlib.Path("666CLS_PRECHANGE_v1.24.9_FULL_20261121.zip")
+          files=sorted(p for p in source.rglob("*") if p.is_file())
+          assert len(files)>=150, "Incomplete source inventory"
+          with zipfile.ZipFile(target,"w",compression=zipfile.ZIP_DEFLATED,compresslevel=6) as z:
+              for p in files: z.write(p,p.relative_to(source).as_posix())
+          with zipfile.ZipFile(target) as z:
+              assert z.testzip() is None
+              assert len(z.namelist())==len(files)
+              for p in files:
+                  data=z.read(p.relative_to(source).as_posix())
+                  assert hashlib.sha256(data).digest()==hashlib.sha256(p.read_bytes()).digest()
+          print("FULL_BACKUP_VERIFIED",len(files),target.stat().st_size,hashlib.sha256(target.read_bytes()).hexdigest())
+          PY
+      - name: Publish immutable recovery ZIP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 666CLS_PRECHANGE_1_24_9_FULL_RECOVERY
+          path: 666CLS_PRECHANGE_v1.24.9_FULL_20261121.zip
+          retention-days: 90
+          if-no-files-found: error
+      - name: Native complete CLS regression
+        run: python -m unittest discover -s candidate/PROJECTS/666CLS/tests -p 'test_*.py' -v
+      - name: Cross-release archive parity and pointer state
+        run: |
+          python - <<'PY'
+          import pathlib, hashlib, json
+          base=pathlib.Path("prechange/PROJECTS/666CLS")
+          new=pathlib.Path("candidate/PROJECTS/666CLS")
+          old=json.loads((base/"CURRENT_POINTER.json").read_text())
+          current=json.loads((new/"CURRENT_POINTER.json").read_text())
+          assert old["current_version"]=="1.24.9"
+          assert current["current_version"]=="1.24.10"
+          paths=["DATABASE/"+x+"_ARCHIVE.json" for x in ("LYRICS","RAW_MATERIAL","STORIES","TEXT")]
+          paths+=["MENU/"+x+"_MENU.json" for x in ("LYRICS","RAW_MATERIAL","STORIES","TEXT")]
+          for p in paths:
+              assert (base/"releases/1.24.9"/p).read_bytes()==(new/"releases/1.24.10"/p).read_bytes(),p
+          reg=json.loads((new/"facets/FACET_REGISTRY.json").read_text())
+          cures=next(x for x in reg["sources"] if x["id"]=="cures")
+          assert cures["native_authority_readback"]["head"]=="08989d5dc71259cbebf108c71d2e315aa9ac28a1"
+          assert cures["native_authority_readback"]["pfs_state"]=="HOLD_FUNCTIONAL_PAYLOAD_SOURCE_NOT_FOUND"
+          assert not reg["autoload"]
+          print("ARCHIVE_PARITY_8_OF_8_PASS PFS_HOLD_PRESERVED")
+          PY
