@@ -5,7 +5,7 @@
   "namespace": "666TDI",
   "version": "2.5",
   "development_layer": "R0.8",
-  "status": "READBACK_PENDING",
+  "status": "VERIFIZIERT_REPO_SOURCE",
   "system_gender": "masculine",
   "pronoun_de": "er",
   "authority": "666TDI_ONLY",
@@ -20,7 +20,12 @@
   "livecircle": "PROJECTS/666TDI/livecircle/CURRENT_STATE.json",
   "rehydration": "PROJECTS/666TDI/rehydration/rehydrate.py",
   "triggers": "PROJECTS/666TDI/triggers/TRIGGER_REGISTRY.json",
-  "source_commit_sha": null,
-  "audio_validation": "REAL_RENDER_PENDING",
-  "next_action": "Import 71 vetted source files; direct GitHub readback; pointer last"
+  "source_commit_sha": "77bb376df115e1462d51f699f00a8806c33cbea1",
+  "audio_validation": "OPTIONAL_ON_DEMAND",
+  "next_action": "666TDI SYSTEMSTART: read pointer, verify complete source and LiveCircle; audio analysis optional",
+  "source_readback_commit_sha": "8dbe6dea40b96b59bc076818ee83e997f58a0d89",
+  "source_readback_result": "71_OF_71_GIT_BLOBS_MATCH_MANIFEST",
+  "audio_analysis_required": false,
+  "optional_audio_policy": "PROJECTS/666TDI/governance/AUDIO_MUSIC_ANALYSIS_OPTIONAL.json",
+  "additive_4c_facet": "PROJECTS/666TDI/facets/4c/CONTRACT.json"
 }
