@@ -135,13 +135,22 @@ def open_branch_tree_window(owner, conversation, selected_index, on_jump):
             tree.delete(placeholder)
             add_page(item,pos,0)
 
-    def search_tree():
+    search_offset = 0
+    search_total = 0
+    search_page_size = 200
+
+    def search_tree(reset=True):
+        nonlocal search_offset, search_total
         query = search_term.get().strip()
+        if reset:
+            search_offset = 0
         try:
-            result = search_branch_tree(conversation, projection, query, limit=200)
+            result = search_branch_tree(conversation, projection, query,
+                                        limit=search_page_size, offset=search_offset)
         except ValueError as exc:
             search_status.set(str(exc))
             return
+        search_total = result['total']
         for item in hits.get_children():
             hits.delete(item)
         for row in result['matches']:
@@ -149,10 +158,23 @@ def open_branch_tree_window(owner, conversation, selected_index, on_jump):
                         values=(row['id'], row['role'], row['preview'],
                                 ' / '.join(str(n+1) for n in row['path']),
                                 ', '.join(row['warnings'])))
-        search_status.set(f'{result["total"]} match(es), {len(result["matches"])} displayed'
-                          + (' · more matches available' if result['has_more'] else ''))
+        search_status.set(
+            f'{search_total} match(es) · showing '
+            f'{search_offset + (1 if result["matches"] else 0)}–'
+            f'{search_offset + len(result["matches"])}'
+        )
+        prev_button.configure(state='normal' if search_offset else 'disabled')
+        next_button.configure(state='normal' if result['has_more'] else 'disabled')
         if result['matches']:
             hits.selection_set(f'hit:{result["matches"][0]["position"]}')
+
+    def turn_search_page(direction):
+        nonlocal search_offset
+        next_offset = max(0, search_offset + direction * search_page_size)
+        if direction > 0 and next_offset >= search_total:
+            return
+        search_offset = next_offset
+        search_tree(reset=False)
 
     def open_search_hit(event=None):
         selected = hits.selection()
@@ -171,6 +193,12 @@ def open_branch_tree_window(owner, conversation, selected_index, on_jump):
     tk.Button(bar,text='Close tree',command=window.destroy).pack(side='right')
     tk.Button(searchbar, text='Search tree', command=search_tree).pack(side='left')
     search_entry.bind('<Return>', lambda event: search_tree())
+    prev_button = tk.Button(searchbar, text='◀', state='disabled',
+                            command=lambda:turn_search_page(-1))
+    prev_button.pack(side='left', padx=(8,2))
+    next_button = tk.Button(searchbar, text='▶', state='disabled',
+                            command=lambda:turn_search_page(1))
+    next_button.pack(side='left', padx=(2,0))
     result_frame = tk.Frame(window, bg='#10192a')
     result_frame.pack(fill='x', padx=12, pady=(3,8))
     hits = ttk.Treeview(result_frame, columns=('id','role','preview','path','warnings'),
