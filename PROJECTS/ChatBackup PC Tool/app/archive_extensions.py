@@ -15,6 +15,7 @@ from typing import Callable
 
 from archive_intelligence import ArchiveCatalog, ArchiveImportError, completeness
 from archive_streaming import iter_export_conversations, StreamingCancelled
+from archive_navigation import sync_fts
 
 class ArchiveCancelled(ArchiveImportError):
     """Controlled cancellation without claiming the current file completed."""
@@ -155,20 +156,9 @@ def import_directory(
             except (OSError, ValueError, sqlite3.DatabaseError) as exc:
                 summary["failed"].append({"file": relative, "error": str(exc)[:300]})
                 emit("FAILED", index + 1, relative)
-    # FTS is a rebuildable secondary cache; refresh it after all committed changes.
+    # The revision ledger updates only changed/removed conversations.
     with ArchiveCatalog(db_path) as catalog:
-        # Large repeated archive collections: avoid reindexing every unchanged
-        # message on a no-op rescan. Rebuild if missing or any ZIP was updated.
-        fts_exists = catalog.db.execute(
-            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='message_fts'"
-        ).fetchone() is not None
-        if summary["imported"] == 0 and fts_exists:
-            summary["search_index"] = {
-                "status": "UNCHANGED_CACHE_REUSED",
-                "count": catalog.db.execute("SELECT count(*) FROM message_fts").fetchone()[0],
-            }
-        else:
-            summary["search_index"] = rebuild_fts(catalog)
+        summary["search_index"] = sync_fts(catalog)
     summary["status"] = "PARTIAL" if summary["failed"] or summary["stopped"] else "PASS"
     emit("FINISHED" if not summary["stopped"] else "STOPPED", len(files) if not summary["stopped"] else
          summary["imported"] + summary["unchanged_files"] + len(summary["failed"]))
@@ -202,12 +192,9 @@ def search_fts(db: ArchiveCatalog, term: str, limit: int = 100) -> list[dict]:
         return []
     if len(term) > 500:
         raise ArchiveImportError("Search term too long")
-    available = db.db.execute(
-        "SELECT 1 FROM sqlite_master WHERE name='message_fts'").fetchone()
-    if not available:
-        rebuild = rebuild_fts(db)
-        if rebuild["status"] == "FTS5_UNAVAILABLE":
-            return db.search(term, limit)
+    current = sync_fts(db)
+    if current["status"] == "FTS5_UNAVAILABLE":
+        return db.search(term, limit)
     # Treat quotes and operators as literal characters.
     phrase = '"' + term.replace('"', '""') + '"'
     rows = db.db.execute("""SELECT conversation_id,title,message_id,role,
