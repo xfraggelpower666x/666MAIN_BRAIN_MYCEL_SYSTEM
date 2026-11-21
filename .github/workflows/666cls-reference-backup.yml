@@ -14,17 +14,24 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Candidate checkout
-        uses: actions/checkout@v4
-        with:
-          path: candidate
-          persist-credentials: false
-      - name: Exact pre-change authority checkout
-        uses: actions/checkout@v4
-        with:
-          ref: 360120fcf420736ed0abb5b2462d623fda62c85e
-          path: prechange
-          persist-credentials: false
+      - name: Exact candidate and pre-change Git checkout without submodule metadata
+        shell: bash
+        env:
+          REPO: ${{ github.repository }}
+          CANDIDATE_SHA: ${{ github.sha }}
+          BASE_SHA: 360120fcf420736ed0abb5b2462d623fda62c85e
+        run: |
+          set -euo pipefail
+          for dir in candidate prechange; do
+            git init -q "$dir"
+          done
+          git -C candidate -c protocol.version=2 fetch --no-tags --depth=1 "https://github.com/${REPO}.git" "${CANDIDATE_SHA}"
+          git -C candidate checkout --detach --force FETCH_HEAD
+          test "$(git -C candidate rev-parse HEAD)" = "${CANDIDATE_SHA}"
+          git -C prechange -c protocol.version=2 fetch --no-tags --depth=1 "https://github.com/${REPO}.git" "${BASE_SHA}"
+          git -C prechange checkout --detach --force FETCH_HEAD
+          test "$(git -C prechange rev-parse HEAD)" = "${BASE_SHA}"
+          echo "CHECKOUT_EXACT_PASS candidate=${CANDIDATE_SHA} prechange=${BASE_SHA}"
       - name: Python 3.12
         uses: actions/setup-python@v5
         with:
