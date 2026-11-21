@@ -81,3 +81,40 @@ def describe_tree_node(conversation: dict[str, Any], projection: dict[str, Any],
             'preview': preview,
             'children': len(projection['children'][position]),
             'warnings': list(warnings)}
+
+
+def search_branch_tree(conversation: dict[str, Any], projection: dict[str, Any],
+                       query: str, *, limit: int = 200,
+                       offset: int = 0) -> dict[str, Any]:
+    """Search the real indexed messages by exact ID or case-insensitive text.
+
+    Bounded deterministic results; return true tree paths, not inferred
+    semantic links. No original files or catalog rows are changed.
+    """
+    if not isinstance(query, str) or not query.strip() or len(query) > 500:
+        raise ValueError('Search requires a term of at most 500 characters')
+    if not isinstance(limit, int) or not 1 <= limit <= 500:
+        raise ValueError('Search limit must be between 1 and 500')
+    if not isinstance(offset, int) or offset < 0:
+        raise ValueError('Search offset must be non-negative')
+    messages = conversation.get('messages', [])
+    if not isinstance(messages, list) or projection.get('count') != len(messages):
+        raise ValueError('Projection does not match conversation')
+    needle = query.casefold().strip()
+    matches = []
+    total = 0
+    for index, message in enumerate(messages):
+        mid = message.get('id', '')
+        body = message.get('text', '')
+        if needle not in str(mid).casefold() and needle not in str(body).casefold():
+            continue
+        if offset <= total < offset + limit:
+            node = describe_tree_node(conversation, projection, index)
+            node['path'] = tree_ancestry(projection, index)
+            node['matched_in'] = 'ID' if needle in str(mid).casefold() else 'TEXT'
+            matches.append(node)
+        total += 1
+    return {'schema': '666.chatbackup.branch-tree-search.v1',
+            'query': query, 'total': total, 'offset': offset, 'limit': limit,
+            'matches': matches, 'has_more': offset + len(matches) < total,
+            'status': projection['status'], 'originals_modified': False}
