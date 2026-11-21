@@ -1,0 +1,17 @@
+{
+  "system_id": "666TDI-001",
+  "target": "PROJECTS/666TDI/source",
+  "development_layer": "R0.8",
+  "source_archive_sha256": "4f0741ef3fdf438772fda6d406baaca02eddd4262ef9681bdc2517955c1703d1",
+  "expected_source_files": 71,
+  "imported_in_this_update": [
+    "runtime/character.json",
+    "engine/relational_cli.py",
+    "engine/__init__.py"
+  ],
+  "verified_local_tests": "84/84",
+  "repo_status": "READBACK_PENDING",
+  "source_import_complete": false,
+  "permission_scope": "PROJECTS/666TDI",
+  "next_action": "Import remaining files and verify all 71 SHA256 values before CURRENT_POINTER promotion"
+}
