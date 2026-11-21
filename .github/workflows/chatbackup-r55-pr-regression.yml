@@ -1,5 +1,11 @@
 name: ChatBackup R5.5 PR regression (read-only)
 on:
+  push:
+    branches:
+      - feature/chatbackup-r55-source-relocation-20261121
+    paths:
+      - '.github/workflows/chatbackup-r55-pr-regression.yml'
+      - 'PROJECTS/ChatBackup PC Tool/**'
   pull_request:
     branches:
       - 666MAIN_BRAIN
