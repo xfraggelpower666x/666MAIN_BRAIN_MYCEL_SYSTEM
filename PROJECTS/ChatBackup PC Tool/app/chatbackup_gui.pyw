@@ -3132,7 +3132,28 @@ class ChatBackupApp(tk.Tk):
             messagebox.showerror(self._t("Systemstatus"), self._t("Statusdatei konnte nicht gelesen werden:\n\n") + self._localize_runtime(exc))
 
     def open_archive_intelligence(self) -> None:
-        """Launch optional offline archive application with packaged EXE precedence."""
+        """Archivfacette innerhalb des ursprünglichen PC-Tools öffnen.
+
+        Bestehende Export-, Parser- und Bildfunktionen bleiben unverändert.
+        Ein optionaler fehlender Baustein darf den Hauptstart nicht blockieren.
+        """
+        existing = getattr(self, "_archive_intelligence_window", None)
+        if existing is not None and existing.winfo_exists():
+            existing.lift()
+            existing.focus_set()
+            return
+        try:
+            from archive_intelligence_gui import ArchiveWindow
+            self._archive_intelligence_window = ArchiveWindow(master=self)
+            self._archive_intelligence_window.lift()
+            self._log("ARCHIVE_INTELLIGENCE_IN_PROCESS_WINDOW")
+            return
+        except (ImportError, OSError, tk.TclError) as exc:
+            self._log(f"ARCHIVE_INTELLIGENCE_IN_PROCESS_UNAVAILABLE {type(exc).__name__}: {exc}")
+            # Bewährten Legacy-Fallback erhalten, falls ein altes Paket ohne
+            # eingebettete Archivmodule gestartet wird.
+            pass
+
         project_root = (Path(sys.executable).resolve().parent if getattr(sys, "frozen", False)
                         else Path(__file__).resolve().parent.parent)
         companion = project_root / "666_CHATBACKUP_ARCHIVE_INTELLIGENCE.exe"
