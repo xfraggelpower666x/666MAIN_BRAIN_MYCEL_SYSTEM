@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - 666MAIN_BRAIN
+      - feature/chatbackup-r53-automated-dual-exe-20261121
     paths:
       - .github/workflows/chatbackup-windows-host-exe-validation.yml
       - 'PROJECTS/ChatBackup PC Tool/**'
@@ -23,6 +24,16 @@ jobs:
         working-directory: 'PROJECTS/ChatBackup PC Tool'
     steps:
       - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            PROJECTS/ChatBackup PC Tool
+          sparse-checkout-cone-mode: false
+          persist-credentials: true
+      - name: Preserve SHA256-managed Git bytes on Windows
+        shell: pwsh
+        run: |
+          git config core.autocrlf false
+          git restore --source=HEAD --worktree -- 'PROJECTS/ChatBackup PC Tool'
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -64,6 +75,13 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if (!(Test-Path 'dist/666_CHATBACKUP_PC_TOOL.exe')) { throw 'EXE missing' }
           Get-FileHash 'dist/666_CHATBACKUP_PC_TOOL.exe' -Algorithm SHA256 | Format-List
+      - name: Build optional Archive Intelligence companion EXE
+        shell: pwsh
+        run: |
+          python -m PyInstaller --noconfirm --clean 666_CHATBACKUP_ARCHIVE_INTELLIGENCE.spec
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (!(Test-Path 'dist/666_CHATBACKUP_ARCHIVE_INTELLIGENCE.exe')) { throw 'Archive companion EXE missing' }
+          Get-FileHash 'dist/666_CHATBACKUP_ARCHIVE_INTELLIGENCE.exe' -Algorithm SHA256 | Format-List
       - name: EXE existence, PE header and startup smoke
         shell: pwsh
         run: |
@@ -79,7 +97,19 @@ jobs:
           $proc.Refresh()
           if ($proc.HasExited) { throw "EXE exited unexpectedly, code $($proc.ExitCode)" }
           Stop-Process -Id $proc.Id -Force
-          Write-Host 'WINDOWS_EXE_STARTUP_SMOKE_PASS (no real user interaction)'
+          $archive = (Resolve-Path 'dist/666_CHATBACKUP_ARCHIVE_INTELLIGENCE.exe').Path
+          $stream = [IO.File]::OpenRead($archive)
+          try {
+            $head = New-Object byte[] 2
+            [void]$stream.Read($head,0,2)
+            if ($head[0] -ne 77 -or $head[1] -ne 90) { throw 'Invalid companion PE header' }
+          } finally { $stream.Dispose() }
+          $companionProc = Start-Process -FilePath $archive -PassThru -WorkingDirectory (Get-Location).Path
+          Start-Sleep -Seconds 8
+          $companionProc.Refresh()
+          if ($companionProc.HasExited) { throw "Archive EXE exited unexpectedly, code $($companionProc.ExitCode)" }
+          Stop-Process -Id $companionProc.Id -Force
+          Write-Host 'WINDOWS_DUAL_EXE_STARTUP_SMOKE_PASS (no real user interaction)'
       - name: Collect Windows CI evidence (no chat content)
         if: always()
         shell: pwsh
@@ -95,6 +125,8 @@ jobs:
             commit = '$env:GITHUB_SHA'
             exePresent = Test-Path $exe
             exeSha256 = if (Test-Path $exe) { (Get-FileHash $exe -Algorithm SHA256).Hash } else { $null }
+            companionExePresent = Test-Path 'dist/666_CHATBACKUP_ARCHIVE_INTELLIGENCE.exe'
+            companionSha256 = if (Test-Path 'dist/666_CHATBACKUP_ARCHIVE_INTELLIGENCE.exe') { (Get-FileHash 'dist/666_CHATBACKUP_ARCHIVE_INTELLIGENCE.exe' -Algorithm SHA256).Hash } else { $null }
             runtimeReceiptPresent = Test-Path runtime_readback/windows_runtime_readback.json
           }
           $state | ConvertTo-Json -Depth 5 | Set-Content -Encoding utf8 $out
@@ -105,6 +137,7 @@ jobs:
           name: chatbackup-windows-exe-and-ci-receipts
           path: |
             PROJECTS/ChatBackup PC Tool/dist/666_CHATBACKUP_PC_TOOL.exe
+            PROJECTS/ChatBackup PC Tool/dist/666_CHATBACKUP_ARCHIVE_INTELLIGENCE.exe
             PROJECTS/ChatBackup PC Tool/runtime_readback/windows_ci_evidence.json
             PROJECTS/ChatBackup PC Tool/runtime_readback/windows_runtime_readback.json
           if-no-files-found: warn
