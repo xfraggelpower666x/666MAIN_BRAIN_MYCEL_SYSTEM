@@ -33,7 +33,7 @@ jobs:
         shell: pwsh
         run: |
           git config core.autocrlf false
-          git restore --source=HEAD --worktree -- 'PROJECTS/ChatBackup PC Tool'
+          git restore --source=HEAD --worktree -- .
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
