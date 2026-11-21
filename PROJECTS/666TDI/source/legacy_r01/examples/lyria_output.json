@@ -1,0 +1,61 @@
+{
+  "renderer": "lyria2_asg",
+  "source_status": "historical_2026_09",
+  "fields": {
+    "title": "Orbit of the Void",
+    "description": "Genre: Dark Psytrance / Dark Goa; Tempo: 145; Motor: dry relentless straight 16th mono psybass and precise kick; Energy: progressive escalating pressure with intentional releases; Mid: acid dialogue and evolving percussive patterns; High: spectral orbital motion and controlled psychedelic disorientation; Psychoacoustics: rotating spectral proximity reflections; Atmosphere: cold cyber-forest",
+    "negative": "pop chorus, bouncy bass, happy EDM drop"
+  },
+  "warnings": [
+    "DURATION_EXCEEDS_HISTORICAL_RENDERER_LIMIT",
+    "SEMANTIC_INFORMATION_NOT_RENDERED"
+  ],
+  "omissions": [
+    {
+      "field": "voice",
+      "reason": "budget_overflow",
+      "required_chars": 41
+    },
+    {
+      "field": "structure",
+      "reason": "budget_overflow",
+      "required_chars": 55
+    },
+    {
+      "field": "ending",
+      "reason": "budget_overflow",
+      "required_chars": 42
+    },
+    {
+      "field": "lyrics",
+      "reason": "not_supported_in_local_lyria_mapping"
+    }
+  ],
+  "status": "PARTIAL",
+  "audit": {
+    "source_fields": [
+      "title",
+      "genre",
+      "bpm",
+      "motor",
+      "mid",
+      "high",
+      "atmosphere",
+      "energy",
+      "voice",
+      "lyrics",
+      "structure",
+      "psychoacoustics",
+      "ending",
+      "avoid",
+      "target_seconds",
+      "emphasis"
+    ],
+    "rendered_field_lengths": {
+      "title": 17,
+      "description": 393,
+      "negative": 39
+    },
+    "real_audio_tested": false
+  }
+}
