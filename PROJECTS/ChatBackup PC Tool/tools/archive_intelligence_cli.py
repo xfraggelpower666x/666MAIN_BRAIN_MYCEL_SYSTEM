@@ -9,6 +9,7 @@ from archive_intelligence import ArchiveCatalog,ArchiveImportError,inspect_expor
 from archive_research import export_jsonl
 from archive_extensions import import_directory, rebuild_fts, search_fts, conversation_view
 from archive_navigation import browse_conversations, search_filtered, audit_sources, sync_fts
+from archive_source_relocation import propose_relocations
 
 def main(argv=None):
     p=argparse.ArgumentParser(description='ChatBackup Archive Intelligence - offline, no ChatGPT login/API')
@@ -33,6 +34,8 @@ def main(argv=None):
     a.add_argument('--start',type=float,default=None);a.add_argument('--end',type=float,default=None)
     a.add_argument('--limit',type=int,default=100);a.add_argument('--offset',type=int,default=0)
     a=commands.add_parser('audit-sources');a.add_argument('folder',type=Path);a.add_argument('checkpoint',type=Path)
+    a=commands.add_parser('relocate-sources');a.add_argument('folder',type=Path);a.add_argument('checkpoint',type=Path)
+    a.add_argument('--flat',action='store_true',help='Search top-level ZIPs only')
     x=p.parse_args(argv)
     try:
         if x.command=='inspect':
@@ -63,6 +66,8 @@ def main(argv=None):
                 end_time=x.end,limit=x.limit,offset=x.offset)
         elif x.command=='audit-sources':
             result=audit_sources(x.folder,x.checkpoint)
+        elif x.command=='relocate-sources':
+            result=propose_relocations(x.folder,x.checkpoint,recursive=not x.flat)
         elif x.command=='rag':
             chats,report=load_export(x.archive)
             if report['status']!='PASS':raise ArchiveImportError('Partial source cannot be claimed as complete RAG export')
