@@ -24,6 +24,7 @@ class ArchiveWindow(tk.Tk):
         self.source_filter=tk.StringVar()
         self.role_filter=tk.StringVar(value='Any role')
         self.search_rows=[]
+        self.last_search_term=''
         self.archive_rows=[]
         self.relocation_rows=[]
         self.archive_offset=0
@@ -64,6 +65,7 @@ class ArchiveWindow(tk.Tk):
         tk.Button(options,text='Browse conversations',command=self.browse).pack(side='left',padx=(10,0))
         tk.Button(options,text='Next page',command=self.next_page).pack(side='left',padx=(8,0))
         tabs=ttk.Notebook(root);tabs.pack(fill='both',expand=True)
+        self.tabs=tabs
         self.matches=tk.Text(tabs,bg=PANEL,fg=TXT,wrap='word',insertbackground=TXT)
         self.report=tk.Text(tabs,bg=PANEL,fg=TXT,wrap='word',insertbackground=TXT)
         tabs.add(self.matches,text='Matches');tabs.add(self.report,text='Import and completeness')
@@ -82,6 +84,7 @@ class ArchiveWindow(tk.Tk):
         tk.Button(hits_tab,text='Open selected message',
                   command=self.open_selected_hit).pack(anchor='e',padx=8,pady=6)
         tabs.add(hits_tab,text='Search navigation')
+        self.hits_tab=hits_tab
         browse_tab=tk.Frame(tabs,bg=PANEL)
         self.archive_list=ttk.Treeview(browse_tab,columns=('title','source','count','integrity'),
                                       show='headings',selectmode='browse')
@@ -241,7 +244,7 @@ class ArchiveWindow(tk.Tk):
         idx=int(selected[0])
         if idx<0 or idx>=len(self.search_rows):return
         hit=self.search_rows[idx]
-        self.view_conversation(hit['conversation_id'],hit['message_id'],self.term.get().strip())
+        self.view_conversation(hit['conversation_id'],hit['message_id'],self.last_search_term)
 
     def view_conversation(self,chat_id=None,message_id=None,highlight=''):
         if chat_id is None:
@@ -334,12 +337,14 @@ class ArchiveWindow(tk.Tk):
                       role='' if role=='Any role' else role,limit=200)
             def finish():
                 self.search_rows=rows
+                self.last_search_term=term
                 self.show(self.matches,rows)
                 for child in self.search_list.get_children():
                     self.search_list.delete(child)
                 for idx,row in enumerate(rows):
                     self.search_list.insert('','end',iid=str(idx),
                         values=(row['title'],row['role'],row['source'],row['snippet']))
+                self.tabs.select(self.hits_tab)
             self.after(0,finish)
             self.after(0,lambda:self.state.set(f'{len(rows)} local results'))
         self.run_worker(work)
