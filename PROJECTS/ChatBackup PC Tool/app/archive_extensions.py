@@ -157,7 +157,18 @@ def import_directory(
                 emit("FAILED", index + 1, relative)
     # FTS is a rebuildable secondary cache; refresh it after all committed changes.
     with ArchiveCatalog(db_path) as catalog:
-        summary["search_index"] = rebuild_fts(catalog)
+        # Large repeated archive collections: avoid reindexing every unchanged
+        # message on a no-op rescan. Rebuild if missing or any ZIP was updated.
+        fts_exists = catalog.db.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='message_fts'"
+        ).fetchone() is not None
+        if summary["imported"] == 0 and fts_exists:
+            summary["search_index"] = {
+                "status": "UNCHANGED_CACHE_REUSED",
+                "count": catalog.db.execute("SELECT count(*) FROM message_fts").fetchone()[0],
+            }
+        else:
+            summary["search_index"] = rebuild_fts(catalog)
     summary["status"] = "PARTIAL" if summary["failed"] or summary["stopped"] else "PASS"
     emit("FINISHED" if not summary["stopped"] else "STOPPED", len(files) if not summary["stopped"] else
          summary["imported"] + summary["unchanged_files"] + len(summary["failed"]))
