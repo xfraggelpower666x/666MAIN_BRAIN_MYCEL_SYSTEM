@@ -73,7 +73,7 @@ Mit `--flat` nur das oberste Verzeichnis durchsuchen. Standard ist rekursives Su
 - Doppelklick in der Suchliste oder **Open selected tree-search result** klappt den zugehörigen Pfad im Baum auf und springt im bestehenden Textviewer zur gefundenen Nachricht.
 - Die Suche hat eine harte Ausgabegrenze (standardmäßig maximal 200 Treffer; Core unterstützt Offset/Limit). Sie erfindet keine Beziehungen und schreibt weder Exportdateien noch Datenbankinhalte.
 - Tests: `tests/test_archive_branch_tree.py` prüft Suche nach Text/ID, reale Pfadauflösung, Pagination, Eingabegrenzen, Read-only-Verhalten und UI-Verkabelung.
-- Bei mehr als 200 Ergebnissen ist **weitere Pagination im UI** noch zu ergänzen; der Core stellt `offset` bereits bereit. Dies ist kein Beleg für vollständig implementierte UI-Pagination.
+- Suchtreffer über 200 werden über die **Vorherige/Nächste-Seite-Steuerung** der echten Tkinter-Baumoberfläche erreicht. Die UI nutzt dabei die Core-Parameter `limit` und `offset` ohne erneuten ZIP-Import.
 - Nur Code-/CI-Tests gelten als verifiziert; realer Tkinter-/Windows-EXE-Bedientest bleibt getrennt offen.
 
 ## Abnahme
