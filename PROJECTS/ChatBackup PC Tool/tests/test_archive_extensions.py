@@ -37,6 +37,7 @@ def test_batch_import_resume_source_untouched(tmp_path):
     assert second["status"]=="PASS"
     third=import_directory(folder,db,cp)
     assert third["imported"]==0 and third["unchanged_files"]==2
+    assert third["search_index"]["status"]=="UNCHANGED_CACHE_REUSED"
     assert (one.read_bytes(),two.read_bytes())==before
     with ArchiveCatalog(db) as cat: assert cat.status()["conversations"]==2
 
