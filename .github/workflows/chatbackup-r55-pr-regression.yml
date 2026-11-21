@@ -23,12 +23,22 @@ jobs:
       run:
         working-directory: 'PROJECTS/ChatBackup PC Tool'
     steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-          sparse-checkout: |
-            PROJECTS/ChatBackup PC Tool
-          sparse-checkout-cone-mode: false
+      - name: Scoped Git checkout without unrelated submodule enumeration
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git init -q .
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git -c protocol.version=2 fetch --depth=1 --no-tags --no-recurse-submodules origin "${GITHUB_SHA}"
+          git sparse-checkout init --no-cone
+          git sparse-checkout set 'PROJECTS/ChatBackup PC Tool/**'
+          git -c core.autocrlf=false checkout --force FETCH_HEAD
+          git remote set-url origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          test -f 'PROJECTS/ChatBackup PC Tool/app/archive_source_relocation.py'
+          echo "R55_SCOPED_SOURCE_CHECKOUT_PASS"
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -56,12 +66,22 @@ jobs:
       run:
         working-directory: 'PROJECTS/ChatBackup PC Tool'
     steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-          sparse-checkout: |
-            PROJECTS/ChatBackup PC Tool
-          sparse-checkout-cone-mode: false
+      - name: Scoped Git checkout without unrelated submodule enumeration
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git init -q .
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git -c protocol.version=2 fetch --depth=1 --no-tags --no-recurse-submodules origin "${GITHUB_SHA}"
+          git sparse-checkout init --no-cone
+          git sparse-checkout set 'PROJECTS/ChatBackup PC Tool/**'
+          git -c core.autocrlf=false checkout --force FETCH_HEAD
+          git remote set-url origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          test -f 'PROJECTS/ChatBackup PC Tool/app/archive_source_relocation.py'
+          echo "R55_SCOPED_SOURCE_CHECKOUT_PASS"
+
       - name: Prevent Windows line ending transformation
         shell: pwsh
         run: |
