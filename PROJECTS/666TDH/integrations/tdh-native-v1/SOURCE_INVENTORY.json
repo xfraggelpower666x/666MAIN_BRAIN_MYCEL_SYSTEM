@@ -1,0 +1,45 @@
+{
+  "sources": [
+    {
+      "name": "!666SOUNDsDESIGn_JSON_Karten_DEU_ENG(1).zip",
+      "sha256": "ad4f05a07f878dd5f0e78d7087acfc4c0c52cfb52c4e7254ef788d8b38731f31",
+      "entries": 51,
+      "size": 157638,
+      "size_semantics": "uncompressed_total_bytes",
+      "archive_size_bytes": 57900,
+      "uncompressed_total_bytes": 157638
+    },
+    {
+      "name": "!SYSTEM_BUILD_CONTROL_KERNEL_v6_7_INTEGRATION_AUDIT_REPAIR_FREEZE_SYSTEM_BACKUP(1).zip",
+      "sha256": "76a9c90be940f6bd1f9b05cf38cc51bfbb6a3879c95b35b3e5a4024feb986379",
+      "entries": 6,
+      "size": 241382,
+      "size_semantics": "uncompressed_total_bytes",
+      "archive_size_bytes": 70761,
+      "uncompressed_total_bytes": 241382
+    },
+    {
+      "name": "!lyvra-intelligent-ui-coding-template-0.85.1(1).zip",
+      "sha256": "1f95cecb033e0e9f2f24e1365fc2bf21ec59afa0afa40da6ff2fcb000b719fc7",
+      "entries": 9,
+      "size": 150255,
+      "size_semantics": "uncompressed_total_bytes",
+      "archive_size_bytes": 46887,
+      "uncompressed_total_bytes": 150255
+    }
+  ],
+  "classification": {
+    "ui": "reference template + opt-in renderer; do not claim running native ChatGPT host UI",
+    "kernel": "advisory procedural governance, native TDH lifecycle overrides",
+    "cards": "bilingual reference index; no automatic personal/contact/legal publication"
+  },
+  "repository_baseline": {
+    "repo": "xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM",
+    "branch": "666MAIN_BRAIN",
+    "root": "PROJECTS/666TDH",
+    "release": "v1.15.0",
+    "pointer_blob_sha": "22664a1ff18cf13f26173017220bbf3cae756426",
+    "status": "HISTORICAL_SOURCE_AT_OVERLAY_AUTHORING_NOT_CURRENT"
+  },
+  "r3_compatibility_review_head": "6883f76b8318b3ee58d8d8afe11368af9c343f71"
+}
