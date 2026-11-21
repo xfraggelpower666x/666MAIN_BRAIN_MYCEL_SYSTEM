@@ -32,7 +32,7 @@ def propose_relocations(folder: str | Path, checkpoint: str | Path, *, recursive
     if not isinstance(entries, dict) or len(entries) > MAX_FILES:
         raise RelocationError('Invalid or oversized checkpoint')
     for name, digest in entries.items():
-        if (not isinstance(name, str) or not name or '\\' in name or
+        if (not isinstance(name, str) or not name or name.startswith('/') or ':' in name or '\\' in name or
             Path(name).is_absolute() or '..' in Path(name).parts or
             not name.lower().endswith('.zip') or not isinstance(digest, str) or
             len(digest) != 64 or any(ch not in '0123456789abcdefABCDEF' for ch in digest)):
