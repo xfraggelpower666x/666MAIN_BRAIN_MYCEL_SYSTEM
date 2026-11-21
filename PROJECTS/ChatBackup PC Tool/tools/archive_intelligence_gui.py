@@ -7,6 +7,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'app'))
 from archive_intelligence import ArchiveCatalog,load_export,completeness
 from archive_research import export_jsonl
 from archive_extensions import import_directory, search_fts, conversation_view
+from archive_navigation import browse_conversations, search_filtered, audit_sources
 
 BG='#090f1b';PANEL='#10192a';TXT='#edf4ff';CYAN='#00e8ff';PINK='#ff2acb'
 
@@ -18,6 +19,10 @@ class ArchiveWindow(tk.Tk):
         self.configure(bg=BG)
         self.database=tk.StringVar(value=str(Path.home()/'.666chatbackup'/'catalog.sqlite3'))
         self.term=tk.StringVar()
+        self.source_filter=tk.StringVar()
+        self.role_filter=tk.StringVar(value='Any role')
+        self.archive_rows=[]
+        self.archive_offset=0
         self.state=tk.StringVar(value='READY · Local-only; original exports remain unchanged')
         self.chats=[]
         self.cancel_requested=threading.Event()
@@ -35,6 +40,7 @@ class ArchiveWindow(tk.Tk):
         tk.Button(buttons,text='Batch import folder',command=self.batch_import).pack(side='left',padx=8)
         tk.Button(buttons,text='Cancel batch',command=self.cancel_batch).pack(side='left',padx=(0,8))
         tk.Button(buttons,text='View conversation',command=self.view_conversation).pack(side='left',padx=(0,8))
+        tk.Button(buttons,text='Check source ZIPs',command=self.audit_source_folder).pack(side='left',padx=(0,8))
         index=tk.Frame(root,bg=BG);index.pack(fill='x',pady=12)
         tk.Label(index,text='SQLite catalog: ',bg=BG,fg=CYAN).pack(side='left')
         tk.Entry(index,textvariable=self.database).pack(side='left',fill='x',expand=True)
@@ -44,10 +50,30 @@ class ArchiveWindow(tk.Tk):
         entry=tk.Entry(search,textvariable=self.term);entry.pack(side='left',fill='x',expand=True)
         entry.bind('<Return>',lambda event:self.search())
         tk.Button(search,text='Search',command=self.search).pack(side='left',padx=(8,0))
+        options=tk.Frame(root,bg=BG);options.pack(fill='x',pady=(0,8))
+        tk.Label(options,text='Source: ',bg=BG,fg=CYAN).pack(side='left')
+        tk.Entry(options,textvariable=self.source_filter,width=28).pack(side='left',padx=(0,12))
+        tk.Label(options,text='Role: ',bg=BG,fg=CYAN).pack(side='left')
+        ttk.Combobox(options,textvariable=self.role_filter,width=16,state='readonly',
+                     values=('Any role','user','assistant','system','tool','developer')).pack(side='left')
+        tk.Button(options,text='Browse conversations',command=self.browse).pack(side='left',padx=(10,0))
+        tk.Button(options,text='Next page',command=self.next_page).pack(side='left',padx=(8,0))
         tabs=ttk.Notebook(root);tabs.pack(fill='both',expand=True)
         self.matches=tk.Text(tabs,bg=PANEL,fg=TXT,wrap='word',insertbackground=TXT)
         self.report=tk.Text(tabs,bg=PANEL,fg=TXT,wrap='word',insertbackground=TXT)
         tabs.add(self.matches,text='Matches');tabs.add(self.report,text='Import and completeness')
+        browse_tab=tk.Frame(tabs,bg=PANEL)
+        self.archive_list=ttk.Treeview(browse_tab,columns=('title','source','count','integrity'),
+                                      show='headings',selectmode='browse')
+        for key,label,width in (('title','Conversation',360),('source','Source',190),
+                                ('count','Messages',80),('integrity','Integrity',210)):
+            self.archive_list.heading(key,text=label)
+            self.archive_list.column(key,width=width,minwidth=60)
+        self.archive_list.pack(fill='both',expand=True)
+        self.archive_list.bind('<Double-1>',lambda event:self.open_selected_archive())
+        tk.Button(browse_tab,text='Open selected conversation',
+                  command=self.open_selected_archive).pack(anchor='e',pady=6)
+        tabs.add(browse_tab,text='Archive navigation')
         self.progress=ttk.Progressbar(root,orient='horizontal',mode='determinate',maximum=100)
         self.progress.pack(fill='x',pady=(8,0))
         tk.Label(root,textvariable=self.state,fg=CYAN,bg=BG,anchor='w').pack(fill='x',pady=(10,0))
@@ -107,8 +133,53 @@ class ArchiveWindow(tk.Tk):
             self.after(0,finish)
         self.run_worker(work)
 
-    def view_conversation(self):
-        chat_id=simpledialog.askstring('Conversation viewer','Conversation ID from search results:',parent=self)
+    def browse(self,reset=True):
+        if reset:self.archive_offset=0
+        db=self.database.get()
+        source=self.source_filter.get().strip()
+        term=self.term.get().strip()
+        offset=self.archive_offset
+        def work():
+            with ArchiveCatalog(db) as catalog:
+                rows=browse_conversations(catalog,title=term,source=source,
+                                          limit=100,offset=offset)
+            def finish():
+                self.archive_rows=rows
+                for child in self.archive_list.get_children():self.archive_list.delete(child)
+                for idx,row in enumerate(rows):
+                    self.archive_list.insert('', 'end', iid=str(idx),
+                        values=(row['title'],row['source'],row['messages'],row['integrity']))
+                self.state.set(f'ARCHIVE PAGE {offset//100+1} · {len(rows)} conversations')
+            self.after(0,finish)
+        self.run_worker(work)
+
+    def next_page(self):
+        self.archive_offset+=100
+        self.browse(reset=False)
+
+    def open_selected_archive(self):
+        selected=self.archive_list.selection()
+        if not selected:return
+        idx=int(selected[0])
+        if idx>=len(self.archive_rows):return
+        self.view_conversation(self.archive_rows[idx]['conversation_id'])
+
+    def audit_source_folder(self):
+        folder=filedialog.askdirectory(title='Folder containing previously imported ZIPs')
+        if not folder:return
+        db=self.database.get()
+        checkpoint=db+'.batch-checkpoint.json'
+        def work():
+            result=audit_sources(folder,checkpoint)
+            def finish():
+                self.show(self.report,result)
+                self.state.set(f"SOURCE AUDIT {result['status']} · {result['checked']} ZIPs")
+            self.after(0,finish)
+        self.run_worker(work)
+
+    def view_conversation(self,chat_id=None):
+        if chat_id is None:
+            chat_id=simpledialog.askstring('Conversation viewer','Conversation ID from search results:',parent=self)
         if not chat_id:return
         try:
             with ArchiveCatalog(self.database.get()) as catalog:
@@ -151,7 +222,11 @@ class ArchiveWindow(tk.Tk):
         if not term:return
         db=self.database.get()
         def work():
-            with ArchiveCatalog(db) as catalog:rows=search_fts(catalog,term,limit=200)
+            source=self.source_filter.get().strip()
+            role=self.role_filter.get()
+            with ArchiveCatalog(db) as catalog:
+                rows=search_filtered(catalog,term,source=source,
+                      role='' if role=='Any role' else role,limit=200)
             self.after(0,lambda:self.show(self.matches,rows))
             self.after(0,lambda:self.state.set(f'{len(rows)} local results'))
         self.run_worker(work)
