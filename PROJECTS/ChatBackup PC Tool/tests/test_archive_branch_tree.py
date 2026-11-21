@@ -134,3 +134,16 @@ def test_tree_search_ui_wired_to_existing_viewer():
     import archive_branch_tree_ui as ui
     assert ui.search_branch_tree is search_branch_tree
     assert 'on_jump' in ui.open_branch_tree_window.__code__.co_varnames
+
+
+def test_tree_search_can_reach_results_after_first_200():
+    chat={'messages':[{'id':f'm-{i}', 'parent':f'm-{i-1}' if i else None,
+                       'role':'user', 'text':'REACHABLE'} for i in range(430)]}
+    projection=project_branch_tree(chat)
+    p1=search_branch_tree(chat,projection,'reachable',limit=200,offset=0)
+    p2=search_branch_tree(chat,projection,'reachable',limit=200,offset=200)
+    p3=search_branch_tree(chat,projection,'reachable',limit=200,offset=400)
+    assert (len(p1['matches']),len(p2['matches']),len(p3['matches']))==(200,200,30)
+    assert p1['has_more'] and p2['has_more'] and not p3['has_more']
+    assert p3['matches'][-1]['id']=='m-429'
+    assert p3['matches'][-1]['path'][-1]==429
