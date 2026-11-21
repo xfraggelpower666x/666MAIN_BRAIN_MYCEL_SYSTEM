@@ -90,6 +90,7 @@ def open_branch_tree_window(owner, conversation, selected_index, on_jump):
         pos = selected_position()
         if pos is not None:
             on_jump(pos)
+            owner.lift()
             summary.set(f"Selected {pos+1}/{projection['count']} · {messages[pos]['id']} · {projection['status']}")
 
     def ensure_loaded(parent_pos, target_pos):
