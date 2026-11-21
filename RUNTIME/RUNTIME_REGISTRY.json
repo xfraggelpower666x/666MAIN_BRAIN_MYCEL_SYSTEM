@@ -196,5 +196,29 @@
     "foreign_autoactivation": false,
     "host_plugin_fresh_chat": "PENDING",
     "migration_status": "IN_PROGRESS_UNCHANGED"
+  },
+  "mycel_r06": {
+    "version": "R06",
+    "owner": "666MAIN BRAIN MYCEL SYSTEM",
+    "status": "SOURCE_INTEGRATED_CI_PENDING",
+    "coding_profi_method": {
+      "native_facet": "PSYLLO.DEV",
+      "provider": "L.Y.V.R.A. CODING PROFI",
+      "adapter": "INTEGRATIONS/PSYLLO_CODING/CODING_PROFI_FACET_ADAPTER_R06.md",
+      "facet_contract": "INTELLIGENCE/DEV/FACET_CONTRACT.md",
+      "sub_rehydration": "RUNTIME/FACET_SUB_REHYDRATION.md",
+      "binding_guard": "INTEGRATIONS/PSYLLO_CODING/workbench/scripts/coding_profi_binding.py",
+      "binding_tests": "INTEGRATIONS/PSYLLO_CODING/workbench/tests/test_mycel_coding_profi_binding.py",
+      "daemon_adapters": "DAEMON/FACET_ADAPTERS.json",
+      "facet_registry": "RUNTIME/FACET_RUNTIME_REGISTRY.json",
+      "whole_first": true,
+      "project_lifecircle_scope": "PROJECT_ONLY",
+      "foreign_autoactivation": false,
+      "native_facet_count_unchanged": 15
+    },
+    "host_skill_adoption": "READ_ONLY_CURRENT_CHAT_SOURCE_VERIFIED",
+    "provider_plugin_release": "NOT_CHANGED",
+    "fresh_chat_end_to_end": "PENDING",
+    "migration_status": "IN_PROGRESS_UNCHANGED"
   }
 }
