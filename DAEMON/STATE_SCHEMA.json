@@ -23,6 +23,7 @@
     "OFFEN",
     "BLOCKIERT",
     "PARTIAL",
+    "WRITE_BLOCKED",
     "READBACK_PENDING",
     "CONFLICT_QUARANTINE"
   ],
