@@ -1,0 +1,76 @@
+name: ChatBackup R5.5 PR regression (read-only)
+on:
+  pull_request:
+    branches:
+      - 666MAIN_BRAIN
+    paths:
+      - '.github/workflows/chatbackup-r55-pr-regression.yml'
+      - 'PROJECTS/ChatBackup PC Tool/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  python-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: 'PROJECTS/ChatBackup PC Tool'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install test dependencies
+        run: python -m pip install --disable-pip-version-check pytest 'Pillow>=11,<13'
+      - name: R5.5 source relocation regression
+        run: python -m pytest -q tests/test_archive_source_relocation.py
+      - name: Full ChatBackup Python regression
+        run: python -m pytest -q tests
+      - name: Existing baseline regression
+        run: python tests/run_tests.py
+      - name: Existing release integrity
+        run: python tests/release_integrity_probe.py
+      - name: Scriptable existing simulation
+        run: |
+          node mobile_scriptable/source/tests/host_acceptance.test.cjs mobile_scriptable/source/666_CHATBACKUP_SCRIPTABLE_IPHONE_v1.0.9.js
+          node mobile_scriptable/source/tests/image_download_security.test.cjs
+  windows-regression:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: 'PROJECTS/ChatBackup PC Tool'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Prevent Windows line ending transformation
+        shell: pwsh
+        run: |
+          git config core.autocrlf false
+          git restore --source=HEAD --worktree -- 'PROJECTS/ChatBackup PC Tool'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install test dependencies
+        shell: pwsh
+        run: python -m pip install --disable-pip-version-check pytest 'Pillow>=11,<13'
+      - name: R5.5 relocation regression on Windows
+        shell: pwsh
+        run: python -m pytest -q tests/test_archive_source_relocation.py
+      - name: All existing Python regression tests
+        shell: pwsh
+        run: python -m pytest -q tests
+      - name: Baseline and integrity
+        shell: pwsh
+        run: |
+          python tests/run_tests.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tests/release_integrity_probe.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
