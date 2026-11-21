@@ -272,9 +272,9 @@ class ArchiveWindow(tk.Tk):
                 result=message_context(data,index,radius=2,highlight=highlight)
                 pane.configure(state='normal')
                 pane.delete('1.0','end')
-                pane.insert('end',f"{data['title']}\\nSource: {data['source_file']}\\nRevision: {data['revision']}\\nIntegrity: {data['integrity']}\\n\\n")
+                pane.insert('end',f"{data['title']}\nSource: {data['source_file']}\nRevision: {data['revision']}\nIntegrity: {data['integrity']}\n\n")
                 for row in result['context']:
-                    pane.insert('end',f"[{row['position']+1}/{result['count']}] [{row['role']}] {row['id']}\\nParent: {row['parent']}\\n")
+                    pane.insert('end',f"[{row['position']+1}/{result['count']}] [{row['role']}] {row['id']}\nParent: {row['parent']}\n")
                     begin=pane.index('end-1c')
                     pane.insert('end',row['text'])
                     end=pane.index('end-1c')
@@ -283,7 +283,7 @@ class ArchiveWindow(tk.Tk):
                         for first,last in row['highlight_spans']:
                             pane.tag_add('highlight',f'{begin}+{first}c',f'{begin}+{last}c')
                         pane.see(begin)
-                    pane.insert('end','\\n\\n')
+                    pane.insert('end','\n\n')
                 pane.configure(state='disabled')
                 location.set(f"Message {result['index']+1}/{result['count']} · exact message ID · contextual ±2")
                 previous.configure(state='normal' if result['has_previous'] else 'disabled')
