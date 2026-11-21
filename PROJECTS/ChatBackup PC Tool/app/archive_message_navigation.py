@@ -46,10 +46,8 @@ def message_context(conversation: dict[str, Any], index: int, *, radius: int = 2
             body = str(body)
         spans = []
         if pos == index and highlight:
-            folded = body.casefold()
-            needle = highlight.casefold()
-            # Casefold may change character counts (e.g. ß -> ss), so use
-            # original-length literal matching and never synthesize offsets.
+            # Use regex-provided offsets in the original text; avoid index
+            # distortion from casefold expansions (e.g. ß -> ss).
             from re import finditer, escape, IGNORECASE
             spans = [(m.start(), m.end()) for m in finditer(escape(highlight), body, IGNORECASE)]
         segments.append({
