@@ -29,10 +29,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
-      - name: Checkout exact triggering revision
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
+      - name: Checkout exact triggering revision (no submodule metadata mutation)
+        shell: bash
+        env:
+          CHECKOUT_SHA: ${{ github.sha }}
+          CHECKOUT_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          git init -q .
+          git -c protocol.version=2 fetch --no-tags --depth=1 "https://github.com/${CHECKOUT_REPOSITORY}.git" "${CHECKOUT_SHA}"
+          git checkout --detach --force FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "${CHECKOUT_SHA}"
+          echo "Verified exact read-only checkout: ${CHECKOUT_SHA}"
       - name: Python 3.12
         uses: actions/setup-python@v5
         with:
