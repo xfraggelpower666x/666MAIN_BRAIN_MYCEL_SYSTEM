@@ -5,6 +5,8 @@ on:
       - feature/chatbackup-archive-intelligence-r5-20261120
     paths:
       - '.github/workflows/chatbackup-r52-current-main-windows.yml'
+      - 'PROJECTS/ChatBackup PC Tool/MANIFEST.sha256'
+      - 'PROJECTS/ChatBackup PC Tool/tools/archive_windows_acceptance.py'
   workflow_dispatch:
 permissions:
   contents: read
