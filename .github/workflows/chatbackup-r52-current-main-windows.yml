@@ -1,0 +1,86 @@
+name: ChatBackup R5.2 current-main compatibility and Windows package
+on:
+  push:
+    branches:
+      - feature/chatbackup-archive-intelligence-r5-20261120
+    paths:
+      - '.github/workflows/chatbackup-r52-current-main-windows.yml'
+      - 'PROJECTS/ChatBackup PC Tool/MANIFEST.sha256'
+      - 'PROJECTS/ChatBackup PC Tool/tools/archive_windows_acceptance.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate-and-package:
+    runs-on: windows-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout feature with complete ancestry
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+          sparse-checkout: |
+            PROJECTS/ChatBackup PC Tool
+          sparse-checkout-cone-mode: false
+      - name: Preserve original Git bytes in ChatBackup working files
+        shell: pwsh
+        run: |
+          git config core.autocrlf false
+          git restore --source=HEAD --worktree -- 'PROJECTS/ChatBackup PC Tool'
+          echo CHATBACKUP_SOURCE_BYTES_NO_EOL_REWRITE
+      - name: Read current main and perform ephemeral conflict check
+        shell: bash
+        run: |
+          git fetch origin 666MAIN_BRAIN
+          git -c user.name=CI-Verification -c user.email=ci-verification@invalid.example merge --no-commit --no-ff origin/666MAIN_BRAIN
+          echo CURRENT_MAIN_MERGE_CHECK_PASS
+      - name: Python host runtime
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Node test runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install existing regression tools
+        shell: pwsh
+        run: python -m pip install pytest 'Pillow>=11,<13'
+      - name: All ChatBackup Python tests on merged Windows source tree
+        working-directory: 'PROJECTS/ChatBackup PC Tool'
+        shell: pwsh
+        run: python -m pytest -q tests
+      - name: Baseline Windows tests
+        working-directory: 'PROJECTS/ChatBackup PC Tool'
+        shell: pwsh
+        run: python tests/run_tests.py
+      - name: Scriptable source simulation
+        working-directory: 'PROJECTS/ChatBackup PC Tool'
+        shell: pwsh
+        run: |
+          node mobile_scriptable/source/tests/host_acceptance.test.cjs mobile_scriptable/source/666_CHATBACKUP_SCRIPTABLE_IPHONE_v1.0.9.js
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node mobile_scriptable/source/tests/image_download_security.test.cjs
+          exit $LASTEXITCODE
+      - name: Windows source module host smoke and acceptance report
+        working-directory: 'PROJECTS/ChatBackup PC Tool'
+        shell: pwsh
+        run: python tools/archive_windows_acceptance.py --verify --report ARCHIVE_WINDOWS_CI_REPORT.json
+      - name: Verify full release integrity before package build
+        working-directory: 'PROJECTS/ChatBackup PC Tool'
+        shell: pwsh
+        run: python tests/release_integrity_probe.py
+      - name: Build portable editable Windows host acceptance ZIP
+        working-directory: 'PROJECTS/ChatBackup PC Tool'
+        shell: pwsh
+        run: |
+          python tools/archive_windows_acceptance.py --build '666_CHATBACKUP_ARCHIVE_R52_WINDOWS.zip'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Upload Windows acceptance package and test report
+        uses: actions/upload-artifact@v4
+        with:
+          name: 666_CHATBACKUP_R52_WINDOWS_ABNAHME
+          path: |
+            PROJECTS/ChatBackup PC Tool/666_CHATBACKUP_ARCHIVE_R52_WINDOWS.zip
+            PROJECTS/ChatBackup PC Tool/ARCHIVE_WINDOWS_CI_REPORT.json
+          if-no-files-found: error
