@@ -58,6 +58,7 @@ jobs:
       - name: Windows fixture host pipeline (must NOT promote to live PASS)
         shell: pwsh
         run: |
+          $PSNativeCommandUseErrorActionPreference = $false
           python tests/host_acceptance_probe.py --fixture
           if ($LASTEXITCODE -ne 3) { throw "Expected fixture exit 3 (host gate open); got $LASTEXITCODE" }
       - name: Optional Windows runner live public Share parse and readback
