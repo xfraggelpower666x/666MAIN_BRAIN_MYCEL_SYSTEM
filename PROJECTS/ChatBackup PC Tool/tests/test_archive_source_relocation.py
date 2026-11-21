@@ -83,7 +83,7 @@ def test_malformed_checkpoint_fails_closed(tmp_path, raw):
 
 def test_invalid_utf8_checkpoint_fails_closed(tmp_path):
     src, cp = setup(tmp_path, {})
-    cp.write_bytes(b'\\xff\\xfe')
+    cp.write_bytes(bytes([255, 254]))
     with pytest.raises(RelocationError, match='Invalid checkpoint JSON'):
         propose_relocations(src, cp)
 
