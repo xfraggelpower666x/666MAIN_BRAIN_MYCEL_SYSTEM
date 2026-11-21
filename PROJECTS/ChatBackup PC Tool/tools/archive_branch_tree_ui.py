@@ -105,12 +105,12 @@ def open_branch_tree_window(owner, conversation, selected_index, on_jump):
     def reveal(position):
         parent = None
         for pos in tree_ancestry(projection,position):
-            if not ensure_loaded(parent,pos):
-                return
             if parent is not None:
                 pid = node_id(parent)
-                tree.item(pid,open=True)
                 expand_node(pid)
+                tree.item(pid,open=True)
+            if not ensure_loaded(parent,pos):
+                return
             parent=pos
         item=node_id(position)
         tree.selection_set(item)
