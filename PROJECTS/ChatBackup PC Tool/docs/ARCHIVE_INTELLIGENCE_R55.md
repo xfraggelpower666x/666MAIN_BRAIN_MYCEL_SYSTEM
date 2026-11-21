@@ -12,7 +12,7 @@ Scope: `PROJECTS/ChatBackup PC Tool/`. Archive Intelligence R5.4, Windows-Haupta
 - `RELOCATED_CANDIDATE`: ursprünglicher Pfad fehlt, exakt ein anderer ZIP-Pfad hat denselben SHA-256.
 - `AMBIGUOUS`: mehrere Kandidaten mit identischem Hash; manuelle Prüfung erforderlich.
 - `MISSING`: kein passender Kandidat gefunden.
-- Symlinks werden übersprungen, ungültige relative Checkpoint-Pfade zurückgewiesen, Suchmenge ist auf 10.000 ZIPs begrenzt.
+- Symlinks werden übersprungen; absolut beginnende und laufwerksbezogene Checkpoint-Pfade werden plattformunabhängig zurückgewiesen, Suchmenge ist auf 10.000 ZIPs begrenzt.
 - Die Funktion ist ausschließlich lesend. Sie verändert weder Checkpoint noch SQLite-Index noch ZIP-Originale.
 - Relocation ist eine **Empfehlung**, keine automatische Reparatur oder Änderung der Herkunftszuordnung.
 
@@ -27,7 +27,7 @@ Mit `--flat` nur das oberste Verzeichnis durchsuchen. Standard ist rekursives Su
 ## Abnahme
 
 - `python -m pytest -q tests/test_archive_source_relocation.py`
-- Isolierte lokale Entwickler-Regression: 10/10 PASS (synthetische Testdateien).
+- Isolierte lokale Entwickler-Regression: 10/10 PASS vor Windows-Re-Audit; plattformübergreifender Re-Audit nach Security-Fix offen.
 - Vollständige Repository-Regression/Windows-Geräteabnahme und GitHub-Readback gesondert nachweisen.
 - Keine Current-Pointer-Mutation vor bestandenem Gesamt-Readback.
 
