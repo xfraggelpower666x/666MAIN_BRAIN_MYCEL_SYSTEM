@@ -9,7 +9,7 @@ from archive_research import export_jsonl
 from archive_extensions import import_directory, search_fts, conversation_view
 from archive_navigation import browse_conversations, search_filtered, audit_sources
 from archive_source_relocation import propose_relocations
-from archive_message_navigation import message_position, message_context
+from archive_message_navigation import message_position, message_context, branch_index, branch_context
 
 BG='#090f1b';PANEL='#10192a';TXT='#edf4ff';CYAN='#00e8ff';PINK='#ff2acb'
 
@@ -257,6 +257,7 @@ class ArchiveWindow(tk.Tk):
                 messagebox.showinfo('Conversation viewer','No indexed conversation with this ID')
                 return
             index=message_position(data,message_id)
+            graph=branch_index(data)
             if index<0:
                 messagebox.showinfo('Conversation viewer','No indexed messages in this conversation')
                 return
@@ -267,12 +268,38 @@ class ArchiveWindow(tk.Tk):
             location=tk.StringVar()
             tk.Label(header,textvariable=location,bg=BG,fg=CYAN,anchor='w').pack(
                 side='left',fill='x',expand=True,padx=12,pady=8)
+            branchbar=tk.Frame(win,bg=BG);branchbar.pack(fill='x',padx=8)
+            branch_status=tk.StringVar()
+            tk.Label(branchbar,textvariable=branch_status,bg=BG,fg=PINK,anchor='w').pack(
+                fill='x',pady=(2,5))
+            parent_button=tk.Button(branchbar,text='Parent',width=10)
+            parent_button.pack(side='left',padx=(0,5))
+            child_choice=ttk.Combobox(branchbar,state='readonly',width=29)
+            child_choice.pack(side='left',padx=5)
+            child_button=tk.Button(branchbar,text='Go to child',width=12)
+            child_button.pack(side='left',padx=5)
+            sibling_choice=ttk.Combobox(branchbar,state='readonly',width=29)
+            sibling_choice.pack(side='left',padx=5)
+            sibling_button=tk.Button(branchbar,text='Switch branch',width=14)
+            sibling_button.pack(side='left',padx=5)
             pane=tk.Text(win,bg=PANEL,fg=TXT,wrap='word',insertbackground=TXT)
             pane.pack(fill='both',expand=True)
             pane.tag_configure('selected',background='#253750',foreground=TXT)
             pane.tag_configure('highlight',background='#ffcc33',foreground='#101015')
             def render():
                 result=message_context(data,index,radius=2,highlight=highlight)
+                relation=branch_context(data,index,graph=graph)
+                child_positions=relation['children']
+                sibling_positions=relation['siblings']
+                parent_pos=relation['parent']
+                parent_button.configure(state='normal' if parent_pos is not None else 'disabled')
+                child_choice['values']=[f"{pos+1}/{len(data['messages'])} · {data['messages'][pos]['id']}" for pos in child_positions]
+                sibling_choice['values']=[f"{pos+1}/{len(data['messages'])} · {data['messages'][pos]['id']}" for pos in sibling_positions]
+                child_choice.current(0) if child_positions else child_choice.set('')
+                sibling_choice.current(0) if sibling_positions else sibling_choice.set('')
+                child_button.configure(state='normal' if child_positions else 'disabled')
+                sibling_button.configure(state='normal' if sibling_positions else 'disabled')
+                branch_status.set(f"Branch: {len(child_positions)} direct child(ren) · {len(sibling_positions)} sibling(s) · ancestor path {len(relation['lineage'])} · {', '.join(relation['warnings']) or 'INDEXED_PARENT_ID_VERIFIED'}")
                 pane.configure(state='normal')
                 pane.delete('1.0','end')
                 pane.insert('end',f"{data['title']}\nSource: {data['source_file']}\nRevision: {data['revision']}\nIntegrity: {data['integrity']}\n\n")
@@ -295,6 +322,23 @@ class ArchiveWindow(tk.Tk):
                 nonlocal index
                 index=max(0,min(len(data['messages'])-1,index+delta))
                 render()
+            def go_parent():
+                relation=branch_context(data,index,graph=graph)
+                if relation['parent'] is not None:
+                    jump(relation['parent'])
+            def jump(target):
+                nonlocal index
+                index=target
+                render()
+            def go_choice(selector,relation_key):
+                relation=branch_context(data,index,graph=graph)
+                positions=relation[relation_key]
+                selection=selector.current()
+                if 0<=selection<len(positions):
+                    jump(positions[selection])
+            parent_button.configure(command=go_parent)
+            child_button.configure(command=lambda:go_choice(child_choice,'children'))
+            sibling_button.configure(command=lambda:go_choice(sibling_choice,'siblings'))
             navigation=tk.Frame(win,bg=BG);navigation.pack(fill='x',padx=8,pady=6)
             previous=tk.Button(navigation,text='Previous message',command=lambda:move(-1))
             previous.pack(side='left')
