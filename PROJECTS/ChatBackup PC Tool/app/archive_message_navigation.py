@@ -63,3 +63,79 @@ def message_context(conversation: dict[str, Any], index: int, *, radius: int = 2
         'context': segments,
         'visual_parity': 'NOT_CLAIMED',
     }
+
+def branch_index(conversation: dict[str, Any]) -> dict[str, Any]:
+    """Index only existing parent IDs; report unresolved edges and cycles."""
+    messages = conversation.get('messages', [])
+    if not isinstance(messages, list):
+        raise ValueError('Invalid conversation messages')
+    ids = {}
+    for pos, msg in enumerate(messages):
+        identity = msg.get('id') if isinstance(msg, dict) else None
+        if not isinstance(identity, str) or not identity or identity in ids:
+            raise ValueError('Invalid or duplicate indexed message ID')
+        ids[identity] = pos
+    parents = []
+    children = [[] for _ in messages]
+    unresolved = []
+    for pos, msg in enumerate(messages):
+        pid = msg.get('parent')
+        if pid is None or pid == '':
+            parents.append(None)
+        elif not isinstance(pid, str) or pid not in ids or ids[pid] == pos:
+            parents.append(None)
+            unresolved.append({'position': pos, 'message_id': msg['id'],
+                               'parent_id': str(pid), 'reason': 'SELF_PARENT' if pid == msg['id'] else 'MISSING_PARENT'})
+        else:
+            parent = ids[pid]
+            parents.append(parent)
+            children[parent].append(pos)
+    cyclic = set()
+    for pos in range(len(messages)):
+        seen = {}
+        path = []
+        cursor = pos
+        while cursor is not None and cursor not in seen:
+            seen[cursor] = len(path)
+            path.append(cursor)
+            cursor = parents[cursor]
+        if cursor is not None:
+            cyclic.update(path[seen[cursor]:])
+    return {'ids': ids, 'parents': parents, 'children': children,
+            'unresolved': unresolved, 'cyclic': cyclic}
+
+
+def branch_context(conversation: dict[str, Any], index: int,
+                   *, graph: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Read-only relationships and ancestor route for the selected message."""
+    messages = conversation.get('messages', [])
+    if not isinstance(messages, list) or not isinstance(index, int) or not 0 <= index < len(messages):
+        raise ValueError('Invalid branch position')
+    graph = branch_index(conversation) if graph is None else graph
+    parents, children = graph['parents'], graph['children']
+    parent = parents[index]
+    siblings = [pos for pos in children[parent] if pos != index] if parent is not None else []
+    lineage = []
+    visited = set()
+    cursor = index
+    cycle = False
+    while cursor is not None:
+        if cursor in visited:
+            cycle = True
+            break
+        visited.add(cursor)
+        lineage.append(cursor)
+        cursor = parents[cursor]
+    lineage.reverse()
+    warnings = []
+    if any(row['position'] == index for row in graph['unresolved']):
+        warnings.append('PARENT_UNRESOLVED')
+    if cycle:
+        warnings.append('PARENT_CYCLE')
+    if index in graph['cyclic']:
+        warnings.append('CYCLE_MEMBER')
+    return {'position': index, 'id': messages[index]['id'],
+            'parent': parent, 'children': list(children[index]), 'siblings': siblings,
+            'lineage': lineage, 'warnings': warnings,
+            'parent_id_recorded': messages[index].get('parent'),
+            'source': 'INDEXED_PARENT_ID_ONLY', 'visual_parity': 'NOT_CLAIMED'}
