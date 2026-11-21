@@ -3002,37 +3002,47 @@ class ChatBackupApp(tk.Tk):
             messagebox.showerror(self._t("Systemstatus"), self._t("Statusdatei konnte nicht gelesen werden:\n\n") + self._localize_runtime(exc))
 
     def open_archive_intelligence(self) -> None:
-        """Launch optional local archive add-on without changing existing app behavior."""
+        """Launch optional offline archive application with packaged EXE precedence."""
         project_root = (Path(sys.executable).resolve().parent if getattr(sys, "frozen", False)
                         else Path(__file__).resolve().parent.parent)
+        companion = project_root / "666_CHATBACKUP_ARCHIVE_INTELLIGENCE.exe"
+        if companion.is_file():
+            try:
+                subprocess.Popen([str(companion)], cwd=str(project_root))
+                self._log("ARCHIVE_INTELLIGENCE_PACKAGED_EXE_LAUNCH")
+            except OSError as exc:
+                messagebox.showerror(self._bi("Archive Intelligence", "Archivsuche & Massenimport"),
+                                     self._localize_runtime(exc))
+            return
+
         script = project_root / "tools" / "archive_intelligence_gui.py"
         if not script.is_file():
             messagebox.showinfo(
                 self._bi("Archive Intelligence", "Archivsuche & Massenimport"),
                 self._bi(
-                    "The optional Archive Intelligence source module is not installed next to this build. "
+                    "The optional Archive Intelligence companion is missing. "
                     "The existing ChatBackup functions remain available.",
-                    "Das optionale Archivmodul liegt nicht neben dieser Anwendung. "
+                    "Die optionale Archive-Intelligence-Anwendung fehlt. "
                     "Die bisherigen ChatBackup-Funktionen bleiben verfügbar.",
                 ),
             )
             return
         if getattr(sys, "frozen", False):
             python_cmd = shutil.which("py") or shutil.which("python")
-            args = ["-3"] if python_cmd and Path(python_cmd).stem.lower()=="py" else []
+            args = ["-3"] if python_cmd and Path(python_cmd).stem.lower() == "py" else []
         else:
             python_cmd = sys.executable
             args = []
         if not python_cmd:
             messagebox.showerror(
                 self._bi("Archive Intelligence", "Archivsuche & Massenimport"),
-                self._bi("Python 3 was not found for the optional module.",
-                         "Python 3 für das optionale Modul wurde nicht gefunden."),
+                self._bi("Python 3 was not found for the optional source module.",
+                         "Python 3 wurde fuer das optionale Quellmodul nicht gefunden."),
             )
             return
         try:
             subprocess.Popen([str(python_cmd), *args, str(script)], cwd=str(project_root))
-            self._log("ARCHIVE_INTELLIGENCE_OPTIONAL_LAUNCH")
+            self._log("ARCHIVE_INTELLIGENCE_OPTIONAL_SOURCE_LAUNCH")
         except OSError as exc:
             messagebox.showerror(self._bi("Archive Intelligence", "Archivsuche & Massenimport"),
                                  self._localize_runtime(exc))
