@@ -320,7 +320,16 @@
     "audit/R3_SYSTEM_RECOVERY.json": "f1d5db38e9f55a52a4a8eb1314dc331a208156ed6539324fc7b7ab41559219f0",
     "audit/R3_NOTES.md": "b1bbfef4426cbaf515fb990859cd15bb074c75a9b6a2de664904c7d1d6572ba8",
     "audit/R3_LOCAL_REGRESSION.txt": "c0e6f2980f796cfdd47140c80d4e9001bd1f24935a7ddc525178a3468ed7873d",
-    "audit/R3_LOCAL_BROWSER.json": "02402e362686c4cbbc7e6b3bab2c737682ab815e611842dc06760c4b3c57bc7b"
+    "audit/R3_LOCAL_BROWSER.json": "02402e362686c4cbbc7e6b3bab2c737682ab815e611842dc06760c4b3c57bc7b",
+    "integrations/tdh-native-v1/INTEGRATION_CONTRACT.md": "dbc22dda6037a7b32883f6e5e2cf62d3a37a7512ca33c2b96b113a85e0e3d3e6",
+    "integrations/tdh-native-v1/R3_COMPATIBILITY_DELTA.md": "52a4a1debf4e9366c1e5e3ebdb58f81436e9e0caabee62128ac14de6ea7a52eb",
+    "integrations/tdh-native-v1/SOURCE_INVENTORY.json": "467b0c865e1aff6ac16b39c6eadf5dbebffc7caf9d29652ce21b7362c66b82d0",
+    "skills/tdh-integration-v1/dtste/SKILL.md": "c705b715b5e0e06658b6b45149d841d8082aadc60b35ec4da6b7826114c7f358",
+    "skills/tdh-integration-v1/fse/SKILL.md": "50cb66168735b72bf8469008930cb5292fd3e3227d2b225a61885422f4970821",
+    "skills/tdh-integration-v1/hub/SKILL.md": "7fb13e9b971090fea572f258a231c83a39aa4595a22a8c6e2c3d5c388e567970",
+    "skills/tdh-integration-v1/lcts/SKILL.md": "dd60fff3f6fd5e3dfe2e41866017cb96d0e9d6c422272073d8342cc6d695b225",
+    "skills/tdh-integration-v1/shachiviti/SKILL.md": "a2157b754a111a3a83b685ff453f812752cc02a94b0532d0b1cfe5538d61c492",
+    "skills/tdh-integration-v1/td/SKILL.md": "8d5fb11d5c0be5ade84a59890a2c6d33922ed79290edf138a3615e19290619ce"
   },
   "source_snapshot": {
     "release": "v1.15.0",
@@ -383,5 +392,12 @@
     "freeze_manifest": "audit/R2_FREEZE.json",
     "audit_manifest": "audit/R2_AUDIT.json",
     "system_backup_manifest": "audit/R2_SYSTEM_RECOVERY.json"
+  },
+  "r3_compat_delta": {
+    "revision": "v1.6",
+    "status": "FILES_VERIFIED_HOST_OPEN",
+    "data_commit": "586f1e3abbf2e890c0196ac34bb4b9e82dd1cb7f",
+    "host_render": "OPEN_NOT_VERIFIED",
+    "native_release_unchanged": true
   }
 }
