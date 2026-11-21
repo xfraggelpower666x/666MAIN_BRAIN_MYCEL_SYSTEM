@@ -3,6 +3,7 @@ from pathlib import Path
 
 project_dir = Path(SPECPATH)
 app_dir = project_dir / "app"
+tools_dir = project_dir / "tools"
 assets_dir = project_dir / "assets"
 icon_path = assets_dir / "chatbackup.ico"
 
@@ -15,7 +16,7 @@ runtime_assets = [
 
 a = Analysis(
     [str(app_dir / "chatbackup_gui.pyw")],
-    pathex=[str(app_dir)],
+    pathex=[str(app_dir), str(tools_dir)],
     binaries=[],
     datas=runtime_assets,
     hiddenimports=[],
