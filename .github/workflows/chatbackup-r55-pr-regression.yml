@@ -84,11 +84,6 @@ jobs:
           test -f 'PROJECTS/ChatBackup PC Tool/app/archive_source_relocation.py'
           echo "R55_SCOPED_SOURCE_CHECKOUT_PASS"
 
-      - name: Prevent Windows line ending transformation
-        shell: pwsh
-        run: |
-          git config core.autocrlf false
-          git restore --source=HEAD --worktree -- 'PROJECTS/ChatBackup PC Tool'
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
