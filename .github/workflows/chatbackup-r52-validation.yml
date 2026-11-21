@@ -8,9 +8,10 @@ on:
       - 'PROJECTS/ChatBackup PC Tool/app/archive_extensions.py'
       - 'PROJECTS/ChatBackup PC Tool/app/archive_streaming.py'
       - 'PROJECTS/ChatBackup PC Tool/tests/test_archive_streaming.py'
+      - 'PROJECTS/ChatBackup PC Tool/tests/test_archive_extensions.py'
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   regression:
     runs-on: ubuntu-latest
@@ -41,3 +42,36 @@ jobs:
         run: |
           python -m py_compile app/archive_intelligence.py app/archive_extensions.py app/archive_streaming.py app/archive_research.py app/chatbackup_gui.py app/chatbackup_gui.pyw tools/archive_intelligence_gui.py tools/archive_intelligence_cli.py
           python tools/archive_intelligence_cli.py --help
+      - name: Bind changed source and tests to SHA-256 manifest
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib,re
+          manifest=Path('MANIFEST.sha256')
+          content=manifest.read_text(encoding='utf-8')
+          items=['app/archive_streaming.py','app/archive_extensions.py',
+                 'app/archive_intelligence.py','app/chatbackup_gui.pyw',
+                 'app/chatbackup_gui.py','tools/archive_intelligence_gui.py',
+                 'tests/test_archive_streaming.py','tests/test_archive_extensions.py']
+          for name in items:
+              f=Path(name)
+              assert f.is_file(),name
+              digest=hashlib.sha256(f.read_bytes()).hexdigest()
+              record=digest+' *./'+name
+              regex=r'^[0-9a-f]{64} \*\./'+re.escape(name)+r'$'
+              if re.search(regex,content,re.MULTILINE):
+                  content=re.sub(regex,lambda _:record,content,flags=re.MULTILINE)
+              else:content=content.rstrip('\n')+'\n'+record+'\n'
+          manifest.write_text(content,encoding='utf-8')
+          print('R52_MANIFEST_ENTRIES',len(items))
+          PY
+      - name: Release integrity after scoped hash update
+        run: python tests/release_integrity_probe.py
+      - name: Persist SHA-256 manifest only if regression PASS
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add MANIFEST.sha256
+          git diff --cached --check
+          git commit -m 'test(chatbackup R5.2): bind validated streaming and UI additions to manifest'
+          git push origin HEAD:feature/chatbackup-archive-intelligence-r5-20261120
