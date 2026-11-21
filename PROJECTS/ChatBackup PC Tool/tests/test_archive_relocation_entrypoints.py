@@ -6,6 +6,7 @@ import importlib.util
 import json
 import subprocess
 import sys
+import types
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -73,4 +74,6 @@ def test_gui_exposes_relocation_without_starting_tk_window():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     assert callable(module.ArchiveWindow.find_moved_sources)
-    assert 'propose_relocations' in module.ArchiveWindow.find_moved_sources.__code__.co_names
+    nested = [value for value in module.ArchiveWindow.find_moved_sources.__code__.co_consts
+              if isinstance(value, types.CodeType)]
+    assert any('propose_relocations' in code.co_names for code in nested)
