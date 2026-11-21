@@ -36,6 +36,16 @@ Die direkte Modul-Funktion und `python tools/archive_intelligence_cli.py relocat
 
 Mit `--flat` nur das oberste Verzeichnis durchsuchen. Standard ist rekursives Suchen.
 
+## Nachrichtennavigation (additive R5.5-Erweiterung)
+
+- Der neue Reiter **Search navigation** zeigt die bisherigen Textsuche-Ergebnisse als anklickbare Treffer mit Titel, Rolle, Herkunft und Vorschau. Der alte rohe JSON-Ergebnisreiter bleibt vorhanden.
+- Doppelklick oder **Open selected message** liest die vollständige Nachricht mittels `conversation_id` und `message_id` aus dem bestehenden SQLite-Katalog; keine Rekonstruktion aus abgeschnittenen Snippets.
+- Der Viewer zeigt die markierte Originalnachricht samt maximal zwei chronologisch benachbarten Nachrichten je Seite, Parent-ID, Vor/Zurück-Tasten sowie hervorgehobenen wörtlichen Treffern.
+- Die Navigation beruht auf der durch `conversation_view` gespeicherten Nachrichtenfolge. Parent-IDs sind nur Belegkontext; verzweigte Chatpfade werden nicht als unbestätigte lineare Unterhaltung ausgegeben.
+- Reine Offline-Leseoperationen auf dem lokalen Katalog. Keine Mutation von ChatGPT-Original-ZIPs, Checkpoints, Exportdateien oder fremden nativen Projekten.
+- Tests in `tests/test_archive_message_navigation.py` prüfen exakte IDs, Trefferpositionen, Kontextgrenzen, wörtliche Hervorhebung und SQLite-Suchergebnis-zu-Volltext-Readback.
+- Der kompilierte Windows-EXE-Host und die tatsächliche visuelle Tkinter-Bedienung müssen separat auf einem echten Desktop geprüft werden; CI kann dies nicht ersetzen.
+
 ## Abnahme
 
 - Neue Bedienregressionen: `tests/test_archive_relocation_entrypoints.py` (CLI-End-to-End, Fehlerpfad, Flat-Modus, GUI-Import ohne Display). GitHub-CI-Readback für diesen Erweiterungs-HEAD erforderlich.
