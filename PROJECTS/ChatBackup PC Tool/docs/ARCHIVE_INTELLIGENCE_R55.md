@@ -46,6 +46,15 @@ Mit `--flat` nur das oberste Verzeichnis durchsuchen. Standard ist rekursives Su
 - Tests in `tests/test_archive_message_navigation.py` prüfen exakte IDs, Trefferpositionen, Kontextgrenzen, wörtliche Hervorhebung und SQLite-Suchergebnis-zu-Volltext-Readback.
 - Der kompilierte Windows-EXE-Host und die tatsächliche visuelle Tkinter-Bedienung müssen separat auf einem echten Desktop geprüft werden; CI kann dies nicht ersetzen.
 
+## Parent-/Child-Zweignavigation
+
+- Im bestehenden Volltext-Viewer stehen jetzt **Parent**, **Go to child** (direkte Kinder) und **Switch branch** (Geschwisterantworten) bereit; die bisherige chronologische Vor-/Zurück-Navigation bleibt erhalten.
+- Die Beziehungen stammen ausschließlich aus den im SQLite-Katalog bereits vorhandenen `message_id` / `parent_id`. Die grafische Auswahl verwendet die exakt gespeicherten IDs, niemals Treffer-Snippets oder Textähnlichkeiten.
+- Mehrere direkte Kinder werden einzeln auswählbar; echte alternative Antworten werden als Geschwisterzweige gezeigt.
+- Fehlende Eltern-IDs, Selbstreferenzen und zyklische Parent-Ketten werden als Warnungen behandelt. Keine künstliche Kante, keine automatische Zusammenführung von Zweigen.
+- Parent-IDs außerhalb des indexierten Nachrichtenbestands können aus strukturell nicht indexierten Export-Knoten stammen; diese sind offen statt als gelöschte Nachrichten behauptet.
+- GUI-Readback im echten Windows-Tkinter-Host bleibt getrennt von CI-Codeabnahme.
+
 ## Abnahme
 
 - Neue Bedienregressionen: `tests/test_archive_relocation_entrypoints.py` (CLI-End-to-End, Fehlerpfad, Flat-Modus, GUI-Import ohne Display). GitHub-CI-Readback für diesen Erweiterungs-HEAD erforderlich.
