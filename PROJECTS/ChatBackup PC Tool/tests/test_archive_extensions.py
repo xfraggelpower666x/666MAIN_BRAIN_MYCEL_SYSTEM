@@ -25,11 +25,11 @@ def test_batch_import_resume_source_untouched(tmp_path):
     make_archive(one,"one");make_archive(two,"two",text="psytrance")
     before=one.read_bytes(),two.read_bytes()
     db=tmp_path/"catalog.sqlite";cp=tmp_path/"progress.json"
-    fired=[]
-    def stop():
-        fired.append(1)
-        return len(fired)>1
-    first=import_directory(folder,db,cp,stop=stop)
+    completed=[]
+    def progress(event):
+        if event.get("stage")=="IMPORTED":
+            completed.append(event["filename"])
+    first=import_directory(folder,db,cp,stop=lambda:bool(completed),progress=progress)
     assert first["imported"]==1 and first["stopped"] and first["status"]=="PARTIAL"
     with ArchiveCatalog(db) as cat:assert cat.status()["conversations"]==1
     second=import_directory(folder,db,cp)
