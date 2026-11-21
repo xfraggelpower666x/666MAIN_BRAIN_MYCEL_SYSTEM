@@ -9,6 +9,7 @@ from archive_research import export_jsonl
 from archive_extensions import import_directory, search_fts, conversation_view
 from archive_navigation import browse_conversations, search_filtered, audit_sources
 from archive_source_relocation import propose_relocations
+from archive_message_navigation import message_position, message_context
 
 BG='#090f1b';PANEL='#10192a';TXT='#edf4ff';CYAN='#00e8ff';PINK='#ff2acb'
 
@@ -22,6 +23,7 @@ class ArchiveWindow(tk.Tk):
         self.term=tk.StringVar()
         self.source_filter=tk.StringVar()
         self.role_filter=tk.StringVar(value='Any role')
+        self.search_rows=[]
         self.archive_rows=[]
         self.relocation_rows=[]
         self.archive_offset=0
@@ -65,6 +67,21 @@ class ArchiveWindow(tk.Tk):
         self.matches=tk.Text(tabs,bg=PANEL,fg=TXT,wrap='word',insertbackground=TXT)
         self.report=tk.Text(tabs,bg=PANEL,fg=TXT,wrap='word',insertbackground=TXT)
         tabs.add(self.matches,text='Matches');tabs.add(self.report,text='Import and completeness')
+        hits_tab=tk.Frame(tabs,bg=PANEL)
+        tk.Label(hits_tab,text='DOUBLE-CLICK A SEARCH RESULT TO OPEN EXACT MESSAGE',
+                 fg=CYAN,bg=PANEL).pack(anchor='w',padx=8,pady=6)
+        self.search_list=ttk.Treeview(
+            hits_tab,columns=('title','role','source','snippet'),
+            show='headings',selectmode='browse')
+        for key,label,width in (('title','Conversation',260),('role','Role',85),
+                                ('source','Source',160),('snippet','Match preview',420)):
+            self.search_list.heading(key,text=label)
+            self.search_list.column(key,width=width,minwidth=65)
+        self.search_list.pack(fill='both',expand=True,padx=8,pady=4)
+        self.search_list.bind('<Double-1>',lambda event:self.open_selected_hit())
+        tk.Button(hits_tab,text='Open selected message',
+                  command=self.open_selected_hit).pack(anchor='e',padx=8,pady=6)
+        tabs.add(hits_tab,text='Search navigation')
         browse_tab=tk.Frame(tabs,bg=PANEL)
         self.archive_list=ttk.Treeview(browse_tab,columns=('title','source','count','integrity'),
                                       show='headings',selectmode='browse')
@@ -218,7 +235,15 @@ class ArchiveWindow(tk.Tk):
             self.after(0,finish)
         self.run_worker(work)
 
-    def view_conversation(self,chat_id=None):
+    def open_selected_hit(self):
+        selected=self.search_list.selection()
+        if not selected:return
+        idx=int(selected[0])
+        if idx<0 or idx>=len(self.search_rows):return
+        hit=self.search_rows[idx]
+        self.view_conversation(hit['conversation_id'],hit['message_id'],self.term.get().strip())
+
+    def view_conversation(self,chat_id=None,message_id=None,highlight=''):
         if chat_id is None:
             chat_id=simpledialog.askstring('Conversation viewer','Conversation ID from search results:',parent=self)
         if not chat_id:return
@@ -228,15 +253,54 @@ class ArchiveWindow(tk.Tk):
             if data is None:
                 messagebox.showinfo('Conversation viewer','No indexed conversation with this ID')
                 return
+            index=message_position(data,message_id)
+            if index<0:
+                messagebox.showinfo('Conversation viewer','No indexed messages in this conversation')
+                return
             win=tk.Toplevel(self)
             win.title('666 ChatBackup · '+data['title'][:90])
             win.geometry('940x660')
-            pane=tk.Text(win,bg=PANEL,fg=TXT,wrap='word')
+            header=tk.Frame(win,bg=BG);header.pack(fill='x')
+            location=tk.StringVar()
+            tk.Label(header,textvariable=location,bg=BG,fg=CYAN,anchor='w').pack(
+                side='left',fill='x',expand=True,padx=12,pady=8)
+            pane=tk.Text(win,bg=PANEL,fg=TXT,wrap='word',insertbackground=TXT)
             pane.pack(fill='both',expand=True)
-            pane.insert('end',f"{data['title']}\nSource: {data['source_file']}\nRevision: {data['revision']}\nIntegrity: {data['integrity']}\n\n")
-            for message in data['messages']:
-                pane.insert('end',f"[{message['role']}] {message['id']}\n{message['text']}\n\n")
-            pane.configure(state='disabled')
+            pane.tag_configure('selected',background='#253750',foreground=TXT)
+            pane.tag_configure('highlight',background='#ffcc33',foreground='#101015')
+            def render():
+                result=message_context(data,index,radius=2,highlight=highlight)
+                pane.configure(state='normal')
+                pane.delete('1.0','end')
+                pane.insert('end',f"{data['title']}\\nSource: {data['source_file']}\\nRevision: {data['revision']}\\nIntegrity: {data['integrity']}\\n\\n")
+                for row in result['context']:
+                    pane.insert('end',f"[{row['position']+1}/{result['count']}] [{row['role']}] {row['id']}\\nParent: {row['parent']}\\n")
+                    begin=pane.index('end-1c')
+                    pane.insert('end',row['text'])
+                    end=pane.index('end-1c')
+                    if row['selected']:
+                        pane.tag_add('selected',begin,end)
+                        for first,last in row['highlight_spans']:
+                            pane.tag_add('highlight',f'{begin}+{first}c',f'{begin}+{last}c')
+                        pane.see(begin)
+                    pane.insert('end','\\n\\n')
+                pane.configure(state='disabled')
+                location.set(f"Message {result['index']+1}/{result['count']} · exact message ID · contextual ±2")
+                previous.configure(state='normal' if result['has_previous'] else 'disabled')
+                following.configure(state='normal' if result['has_next'] else 'disabled')
+            def move(delta):
+                nonlocal index
+                index=max(0,min(len(data['messages'])-1,index+delta))
+                render()
+            navigation=tk.Frame(win,bg=BG);navigation.pack(fill='x',padx=8,pady=6)
+            previous=tk.Button(navigation,text='Previous message',command=lambda:move(-1))
+            previous.pack(side='left')
+            following=tk.Button(navigation,text='Next message',command=lambda:move(1))
+            following.pack(side='left',padx=8)
+            tk.Button(navigation,text='Close',command=win.destroy).pack(side='right')
+            win.bind('<Left>',lambda event:move(-1))
+            win.bind('<Right>',lambda event:move(1))
+            render()
         except Exception as exc:
             self.error(str(exc))
 
@@ -268,7 +332,15 @@ class ArchiveWindow(tk.Tk):
             with ArchiveCatalog(db) as catalog:
                 rows=search_filtered(catalog,term,source=source,
                       role='' if role=='Any role' else role,limit=200)
-            self.after(0,lambda:self.show(self.matches,rows))
+            def finish():
+                self.search_rows=rows
+                self.show(self.matches,rows)
+                for child in self.search_list.get_children():
+                    self.search_list.delete(child)
+                for idx,row in enumerate(rows):
+                    self.search_list.insert('','end',iid=str(idx),
+                        values=(row['title'],row['role'],row['source'],row['snippet']))
+            self.after(0,finish)
             self.after(0,lambda:self.state.set(f'{len(rows)} local results'))
         self.run_worker(work)
 
