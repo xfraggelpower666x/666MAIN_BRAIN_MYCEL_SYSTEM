@@ -10,6 +10,7 @@ from archive_extensions import import_directory, search_fts, conversation_view
 from archive_navigation import browse_conversations, search_filtered, audit_sources
 from archive_source_relocation import propose_relocations
 from archive_message_navigation import message_position, message_context, branch_index, branch_context
+from archive_branch_tree_ui import open_branch_tree_window
 
 BG='#090f1b';PANEL='#10192a';TXT='#edf4ff';CYAN='#00e8ff';PINK='#ff2acb'
 
@@ -344,6 +345,8 @@ class ArchiveWindow(tk.Tk):
             previous.pack(side='left')
             following=tk.Button(navigation,text='Next message',command=lambda:move(1))
             following.pack(side='left',padx=8)
+            tk.Button(navigation,text='Explore branch tree',
+                      command=lambda:open_branch_tree_window(win,data,index,jump)).pack(side='left',padx=8)
             tk.Button(navigation,text='Close',command=win.destroy).pack(side='right')
             win.bind('<Left>',lambda event:move(-1))
             win.bind('<Right>',lambda event:move(1))
