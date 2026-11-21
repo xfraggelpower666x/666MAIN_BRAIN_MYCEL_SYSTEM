@@ -11,6 +11,8 @@ on:
       - 'DAEMON/**'
       - 'RUNTIME/RUNTIME_REGISTRY.json'
       - 'RUNTIME/FACET_RUNTIME_REGISTRY.json'
+      - 'INTELLIGENCE/DEV/**'
+      - 'RUNTIME/FACET_SUB_REHYDRATION.md'
   pull_request:
     paths:
       - '.github/workflows/mycel-repository-checks.yml'
@@ -19,6 +21,8 @@ on:
       - 'DAEMON/**'
       - 'RUNTIME/RUNTIME_REGISTRY.json'
       - 'RUNTIME/FACET_RUNTIME_REGISTRY.json'
+      - 'INTELLIGENCE/DEV/**'
+      - 'RUNTIME/FACET_SUB_REHYDRATION.md'
   workflow_dispatch:
 
 permissions:
@@ -60,7 +64,7 @@ jobs:
           index.discard("")
           registry = json.loads((root / "RUNTIME/RUNTIME_REGISTRY.json").read_text(encoding="utf-8"))
           references = []
-          for version in ("mycel_r01", "mycel_r02", "mycel_r03", "mycel_r05"):
+          for version in ("mycel_r01", "mycel_r02", "mycel_r03", "mycel_r05", "mycel_r06"):
               value = registry.get(version)
               assert isinstance(value, dict), "Missing MYCEL version: " + version
               def visit(item):
