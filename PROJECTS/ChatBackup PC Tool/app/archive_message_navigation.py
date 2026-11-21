@@ -90,17 +90,23 @@ def branch_index(conversation: dict[str, Any]) -> dict[str, Any]:
             parent = ids[pid]
             parents.append(parent)
             children[parent].append(pos)
+    # Linear-time cycle detection: do not repeatedly traverse shared ancestry
+    # for long chats with thousands of messages.
     cyclic = set()
+    complete = set()
     for pos in range(len(messages)):
+        if pos in complete:
+            continue
         seen = {}
         path = []
         cursor = pos
-        while cursor is not None and cursor not in seen:
+        while cursor is not None and cursor not in complete and cursor not in seen:
             seen[cursor] = len(path)
             path.append(cursor)
             cursor = parents[cursor]
-        if cursor is not None:
+        if cursor in seen:
             cyclic.update(path[seen[cursor]:])
+        complete.update(path)
     return {'ids': ids, 'parents': parents, 'children': children,
             'unresolved': unresolved, 'cyclic': cyclic}
 
