@@ -67,3 +67,49 @@ class AdapterContractTests(unittest.TestCase):
         self.assertEqual(plan(r)["status"],"HOLD")
 
 if __name__=="__main__": unittest.main()
+
+class AdapterHardeningTests(unittest.TestCase):
+    def test_invalid_nested_containers_return_hold(self):
+        for key in ("target","authority","execution","language","constraints"):
+            for value in (42, "invalid", ["invalid"]):
+                with self.subTest(key=key, value=value):
+                    r=request();r[key]=value
+                    result=plan(r)
+                    self.assertEqual(result["status"],"HOLD")
+                    self.assertFalse(result["execution_performed"])
+    def test_unhashable_source_type_returns_hold(self):
+        for value in ([], {}, ["LYRICS"]):
+            with self.subTest(value=value):
+                r=request();r["sources"][0]["source_type"]=value
+                self.assertEqual(plan(r)["status"],"HOLD")
+    def test_unhashable_source_language_returns_hold(self):
+        for value in ([], {}, ["de"]):
+            with self.subTest(value=value):
+                r=request("lyrik-reconstruction-v1.5.4");r["sources"][0]["language"]=value
+                self.assertEqual(plan(r)["status"],"HOLD")
+    def test_unhashable_target_language_returns_hold(self):
+        for value in ([], {}, ["en"]):
+            with self.subTest(value=value):
+                r=request();r["language"]["explicit_target"]=value
+                self.assertEqual(plan(r)["status"],"HOLD")
+    def test_missing_native_readback_returns_hold(self):
+        from unittest.mock import patch
+        with patch("reconstruction_adapter.rehydrate", side_effect=ValueError("broken current")):
+            result=plan(request())
+            self.assertEqual(result["unresolved"],["NATIVE_CURRENT_READBACK_FAILED"])
+            self.assertEqual(result["mutations"],[])
+    def test_wrong_native_identity_returns_hold(self):
+        from unittest.mock import patch
+        with patch("reconstruction_adapter.rehydrate", return_value={"status":"VERIFIZIERT","system_id":"FOREIGN"}):
+            self.assertEqual(plan(request())["unresolved"],["NATIVE_CURRENT_UNVERIFIED"])
+    def test_native_readback_called_for_each_plan(self):
+        from unittest.mock import patch
+        with patch("reconstruction_adapter.rehydrate", return_value={"status":"VERIFIZIERT","system_id":"666CLS-CORE-001"}) as mock:
+            self.assertEqual(plan(request())["status"],"READY_FOR_OWNER_REVIEW")
+            self.assertEqual(mock.call_count,1)
+    def test_rejects_bad_profile_schema(self):
+        from unittest.mock import patch
+        valid_request=request()
+        with patch("reconstruction_adapter.PROFILE_FILE") as mocked:
+            mocked.read_text.return_value='{"schema":"WRONG","profiles":{}}'
+            self.assertEqual(plan(valid_request)["unresolved"],["PROFILE_REGISTRY_INVALID"])

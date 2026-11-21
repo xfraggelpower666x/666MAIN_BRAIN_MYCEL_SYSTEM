@@ -124,21 +124,24 @@
       }
     },
     {
-      "name": "666CLS Reconstruction Contract Adapter R01",
+      "name": "666CLS Reconstruction Contract Adapter R02",
       "role": "READ_ONLY_RECONSTRUCTION_CONTRACT_ROUTER",
       "scope": "CLS_NATIVE_NO_FOREIGN_EXECUTION",
       "source": {
-        "version": "R01",
+        "version": "R02",
         "cls_source_commit": "030d66c5ff27cc62fcf70e6fc2fe73907ab8f629",
         "original_systems_unmodified": true,
         "semantic_regression": "NOT_EXECUTED",
-        "external_archive_readback": "PARTIAL"
+        "external_archive_readback": "PARTIAL",
+        "base_version": "R01",
+        "native_python_regression": "CANDIDATE_RUN_REQUIRED",
+        "unrelated_original_systems_unchanged": true
       },
       "sha256": {
-        "runtime/reconstruction_adapter.py": "e20959d6f3c0f80a3e4daed7c189b51b4f963a65f5dffa078b5cf6b13b2c42bc",
+        "runtime/reconstruction_adapter.py": "1a36e7946f908257ca25f375aad9d2e2c6996ca771f1634e87665094ac7e56ae",
         "contracts/RECONSTRUCTION_PROFILES_R01.json": "20dd8e2c931d5a8a95535a0424afe902bed83d3cd5adb6f06261ea3887190d86",
         "contracts/RECONSTRUCTION_ADAPTER_R01.md": "743a40a52331537b19ab9ac2a6a30c79257803cc97a7ed1b5af5ba71a74bff8b",
-        "tests/test_reconstruction_adapter.py": "288ac962ab0a7f90df47aea516f9d71dfee8c2baf12b94c86b635b15b89ed1f5"
+        "tests/test_reconstruction_adapter.py": "6199bac9ac2afdcee0f185d03e8dbe5cf02c58f8022b4e115c13c53a7bdd4183"
       }
     }
   ]
