@@ -21,6 +21,12 @@ jobs:
           sparse-checkout: |
             PROJECTS/ChatBackup PC Tool
           sparse-checkout-cone-mode: false
+      - name: Preserve original Git bytes in ChatBackup working files
+        shell: pwsh
+        run: |
+          git config core.autocrlf false
+          git restore --source=HEAD --worktree -- 'PROJECTS/ChatBackup PC Tool'
+          echo CHATBACKUP_SOURCE_BYTES_NO_EOL_REWRITE
       - name: Read current main and perform ephemeral conflict check
         shell: bash
         run: |
