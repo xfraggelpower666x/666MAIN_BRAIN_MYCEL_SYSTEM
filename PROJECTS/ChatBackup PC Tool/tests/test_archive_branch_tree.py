@@ -10,7 +10,7 @@ ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'app'))
 sys.path.insert(0,str(ROOT/'tools'))
 from archive_message_navigation import branch_index
-from archive_branch_tree import project_branch_tree,tree_ancestry,describe_tree_node
+from archive_branch_tree import project_branch_tree,tree_ancestry,describe_tree_node,search_branch_tree
 
 
 def sample():
@@ -95,3 +95,42 @@ def test_tree_window_module_imports_without_graphics_display():
     gui=importlib.util.module_from_spec(gui_spec)
     gui_spec.loader.exec_module(gui)
     assert gui.open_branch_tree_window.__name__ == module.open_branch_tree_window.__name__
+
+
+def test_real_tree_search_uses_message_text_and_id_and_verified_path():
+    chat=sample()
+    projection=project_branch_tree(chat)
+    result=search_branch_tree(chat,projection,'FOLLOWUP')
+    assert result['total']==1
+    assert result['matches'][0]['id']=='grandchild'
+    assert result['matches'][0]['path']==[0,2,3]
+    assert result['matches'][0]['matched_in']=='TEXT'
+    id_hit=search_branch_tree(chat,projection,'CHILD-B')
+    assert id_hit['matches'][0]['matched_in']=='ID'
+    assert id_hit['matches'][0]['position']==2
+
+
+def test_real_tree_search_pagination_guards_and_read_only():
+    chat=sample()
+    projection=project_branch_tree(chat)
+    before=repr(chat)
+    first=search_branch_tree(chat,projection,'answer',limit=1)
+    assert first['total']==2 and first['has_more']
+    next_page=search_branch_tree(chat,projection,'answer',offset=1,limit=1)
+    assert next_page['matches'][0]['id']=='child-b'
+    assert repr(chat)==before and next_page['originals_modified'] is False
+    for query in ('', ' ' * 4, 'x'*501):
+        with pytest.raises(ValueError):
+            search_branch_tree(chat,projection,query)
+    with pytest.raises(ValueError):
+        search_branch_tree(chat,projection,'answer',limit=0)
+    with pytest.raises(ValueError):
+        search_branch_tree(chat,projection,'answer',offset=-1)
+    with pytest.raises(ValueError):
+        search_branch_tree(chat,{'count':42},'answer')
+
+
+def test_tree_search_ui_wired_to_existing_viewer():
+    import archive_branch_tree_ui as ui
+    assert ui.search_branch_tree is search_branch_tree
+    assert 'on_jump' in ui.open_branch_tree_window.__code__.co_varnames
