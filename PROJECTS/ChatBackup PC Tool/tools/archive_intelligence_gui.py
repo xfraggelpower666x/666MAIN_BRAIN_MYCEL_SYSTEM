@@ -8,6 +8,7 @@ from archive_intelligence import ArchiveCatalog,load_export,completeness
 from archive_research import export_jsonl
 from archive_extensions import import_directory, search_fts, conversation_view
 from archive_navigation import browse_conversations, search_filtered, audit_sources
+from archive_source_relocation import propose_relocations
 
 BG='#090f1b';PANEL='#10192a';TXT='#edf4ff';CYAN='#00e8ff';PINK='#ff2acb'
 
@@ -22,6 +23,7 @@ class ArchiveWindow(tk.Tk):
         self.source_filter=tk.StringVar()
         self.role_filter=tk.StringVar(value='Any role')
         self.archive_rows=[]
+        self.relocation_rows=[]
         self.archive_offset=0
         self.state=tk.StringVar(value='READY · Local-only; original exports remain unchanged')
         self.chats=[]
@@ -41,6 +43,7 @@ class ArchiveWindow(tk.Tk):
         tk.Button(buttons,text='Cancel batch',command=self.cancel_batch).pack(side='left',padx=(0,8))
         tk.Button(buttons,text='View conversation',command=self.view_conversation).pack(side='left',padx=(0,8))
         tk.Button(buttons,text='Check source ZIPs',command=self.audit_source_folder).pack(side='left',padx=(0,8))
+        tk.Button(buttons,text='Find moved ZIPs',command=self.find_moved_sources).pack(side='left',padx=(0,8))
         index=tk.Frame(root,bg=BG);index.pack(fill='x',pady=12)
         tk.Label(index,text='SQLite catalog: ',bg=BG,fg=CYAN).pack(side='left')
         tk.Entry(index,textvariable=self.database).pack(side='left',fill='x',expand=True)
@@ -74,6 +77,19 @@ class ArchiveWindow(tk.Tk):
         tk.Button(browse_tab,text='Open selected conversation',
                   command=self.open_selected_archive).pack(anchor='e',pady=6)
         tabs.add(browse_tab,text='Archive navigation')
+        relocation_tab=tk.Frame(tabs,bg=PANEL)
+        tk.Label(relocation_tab,text='SHA-256 SOURCE RELOCATION · READ-ONLY SUGGESTIONS',
+                 fg=CYAN,bg=PANEL,anchor='w').pack(fill='x',padx=8,pady=(8,4))
+        self.relocation_list=ttk.Treeview(
+            relocation_tab,columns=('status','original','candidates'),show='headings',selectmode='browse')
+        for key,label,width in (('status','Status',170),('original','Original ZIP',340),
+                                ('candidates','Verified-hash candidate(s)',430)):
+            self.relocation_list.heading(key,text=label)
+            self.relocation_list.column(key,width=width,minwidth=90)
+        self.relocation_list.pack(fill='both',expand=True,padx=8,pady=4)
+        tk.Button(relocation_tab,text='Scan selected source folder (no changes)',
+                  command=self.find_moved_sources).pack(anchor='e',padx=8,pady=6)
+        tabs.add(relocation_tab,text='Source relocation')
         self.progress=ttk.Progressbar(root,orient='horizontal',mode='determinate',maximum=100)
         self.progress.pack(fill='x',pady=(8,0))
         tk.Label(root,textvariable=self.state,fg=CYAN,bg=BG,anchor='w').pack(fill='x',pady=(10,0))
@@ -174,6 +190,31 @@ class ArchiveWindow(tk.Tk):
             def finish():
                 self.show(self.report,result)
                 self.state.set(f"SOURCE AUDIT {result['status']} · {result['checked']} ZIPs")
+            self.after(0,finish)
+        self.run_worker(work)
+
+    def find_moved_sources(self):
+        """Display hash-verified suggestions without moving or rewriting any source."""
+        folder=filedialog.askdirectory(title='Locate current folder of ChatGPT export ZIPs')
+        if not folder:return
+        checkpoint=self.database.get()+'.batch-checkpoint.json'
+        if not Path(checkpoint).is_file():
+            checkpoint=filedialog.askopenfilename(
+                title='Select existing batch checkpoint (read-only)',filetypes=[('JSON','*.json')])
+            if not checkpoint:return
+        def work():
+            report=propose_relocations(folder,checkpoint)
+            def finish():
+                self.relocation_rows=report['sources']
+                for child in self.relocation_list.get_children():
+                    self.relocation_list.delete(child)
+                for idx,row in enumerate(self.relocation_rows):
+                    self.relocation_list.insert('','end',iid=str(idx),
+                        values=(row['status'],row['source'],', '.join(row['candidates'])))
+                self.show(self.report,report)
+                found=sum(row['status']=='RELOCATED_CANDIDATE' for row in self.relocation_rows)
+                ambiguous=sum(row['status']=='AMBIGUOUS' for row in self.relocation_rows)
+                self.state.set(f"SOURCE RELOCATION · {found} candidate(s), {ambiguous} ambiguous · NO FILES CHANGED")
             self.after(0,finish)
         self.run_worker(work)
 
