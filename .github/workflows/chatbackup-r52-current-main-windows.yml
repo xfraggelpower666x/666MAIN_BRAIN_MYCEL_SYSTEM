@@ -18,6 +18,9 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: true
+          sparse-checkout: |
+            PROJECTS/ChatBackup PC Tool
+          sparse-checkout-cone-mode: false
       - name: Read current main and perform ephemeral conflict check
         shell: bash
         run: |
