@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
+from cls_livecircle import rehydrate
 
 ROOT = Path(__file__).resolve().parents[1]
 PROFILE_FILE = ROOT / "contracts" / "RECONSTRUCTION_PROFILES_R01.json"
@@ -15,7 +16,9 @@ RESULT_SCHEMA = "cls.reconstruction.result.v0.1"
 
 def profiles():
     data = json.loads(PROFILE_FILE.read_text(encoding="utf-8"))
-    assert data["schema"] == "cls.reconstruction.profiles.v0.1"
+    if (not isinstance(data,dict) or data.get("schema") != "cls.reconstruction.profiles.v0.1"
+            or not isinstance(data.get("profiles"),dict)):
+        raise ValueError("PROFILE_REGISTRY_INVALID")
     return data["profiles"]
 
 def _hold(request_id, reason, profile_id=None):
@@ -32,9 +35,21 @@ def plan(request):
     rid=request.get("request_id","unspecified")
     if not isinstance(rid,str) or not (1 <= len(rid) <= 128):
         return _hold("unspecified","INVALID_REQUEST_ID")
+    try:
+        current = rehydrate(ROOT)
+        if (not isinstance(current,dict) or current.get("status")!="VERIFIZIERT"
+                or current.get("system_id")!="666CLS-CORE-001"):
+            return _hold(rid,"NATIVE_CURRENT_UNVERIFIED")
+    except Exception:
+        return _hold(rid,"NATIVE_CURRENT_READBACK_FAILED")
     target=request.get("target") or {}
+    if not isinstance(target,dict):
+        return _hold(rid,"INVALID_TARGET")
     pid=target.get("profile_id")
-    known=profiles()
+    try:
+        known=profiles()
+    except (OSError,ValueError,TypeError,KeyError,AttributeError):
+        return _hold(rid,"PROFILE_REGISTRY_INVALID")
     if not isinstance(pid,str) or pid not in known:
         return _hold(rid,"PROFILE_MISSING_OR_UNKNOWN",pid)
     profile=known[pid]
@@ -45,6 +60,8 @@ def plan(request):
         return _hold(rid,"OPERATION_NOT_PERMITTED",pid)
     authority=request.get("authority") or {}
     execution=request.get("execution") or {}
+    if not isinstance(authority,dict) or not isinstance(execution,dict):
+        return _hold(rid,"INVALID_AUTHORITY_OR_EXECUTION")
     if (authority.get("cls_system_id")!="666CLS-CORE-001"
         or authority.get("foreign_execution") is not False
         or execution.get("mode")!="DRY_RUN"
@@ -61,9 +78,13 @@ def plan(request):
         if not isinstance(sid,str) or not sid or sid in ids:
             return _hold(rid,"DUPLICATE_OR_INVALID_SOURCE_ID",pid)
         ids.add(sid)
-        if (item.get("source_type") not in ALLOWED_SOURCE_TYPES
-            or item.get("source_type") in ("SYSTEM_CONFIG","UNCLEAR")):
+        source_type=item.get("source_type")
+        if (not isinstance(source_type,str) or source_type not in ALLOWED_SOURCE_TYPES
+            or source_type in ("SYSTEM_CONFIG","UNCLEAR")):
             return _hold(rid,"SOURCE_INERT_OR_UNCLEAR",pid)
+        if "language" in item and (not isinstance(item["language"],str)
+                                    or item["language"] not in ALLOWED_LANGUAGES):
+            return _hold(rid,"INVALID_SOURCE_LANGUAGE",pid)
         if "source_text" in item or not isinstance(item.get("source_ref"),str) or not item["source_ref"]:
             return _hold(rid,"SOURCE_REFERENCE_REQUIRED_NO_RAW_TEXT",pid)
         digest=item.get("original_sha256")
@@ -72,6 +93,8 @@ def plan(request):
         if item.get("integrity_status")=="VERIFIED":
             return _hold(rid,"VERIFIED_REQUIRES_INDEPENDENT_BYTE_READBACK",pid)
     constraints=request.get("constraints") or {}
+    if not isinstance(constraints,dict):
+        return _hold(rid,"INVALID_CONSTRAINTS",pid)
     if operation=="MERGE" and (len(source)<2 or constraints.get("allow_source_merge") is not True):
         return _hold(rid,"MERGE_NOT_EXPLICITLY_AUTHORIZED",pid)
     if len(source)>1 and constraints.get("allow_source_merge") is not True:
@@ -83,6 +106,8 @@ def plan(request):
     if constraints.get("allow_new_story_events") is True:
         return _hold(rid,"CREATIVE_INVENTION_NOT_GRANTED_BY_ADAPTER",pid)
     language=request.get("language") or {}
+    if not isinstance(language,dict):
+        return _hold(rid,"INVALID_LANGUAGE",pid)
     choice=language.get("explicit_target")
     basis="EXPLICIT_USER_LANGUAGE" if choice is not None else None
     if choice is None:
@@ -98,7 +123,7 @@ def plan(request):
     if choice is None:
         choice=profile["default_language"]
         basis="PROFILE_DEFAULT"
-    if choice not in ALLOWED_LANGUAGES:
+    if not isinstance(choice,str) or choice not in ALLOWED_LANGUAGES:
         return _hold(rid,"LANGUAGE_NOT_SUPPORTED",pid)
     result=_hold(rid,"OWNER_EXECUTION_NOT_AUTHORIZED",pid)
     result.update(status="READY_FOR_OWNER_REVIEW",plan={
