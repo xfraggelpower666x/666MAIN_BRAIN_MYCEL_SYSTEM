@@ -103,3 +103,68 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python tests/release_integrity_probe.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+  windows-build-original-exe:
+    name: Build original 666_CHATBACKUP_PC_TOOL.exe
+    runs-on: windows-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: 'PROJECTS/ChatBackup PC Tool'
+    steps:
+      - name: Checkout exact candidate without unrelated submodules
+        working-directory: .
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git init -q .
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git -c protocol.version=2 fetch --depth=1 --no-tags --no-recurse-submodules origin "${GITHUB_SHA}"
+          git sparse-checkout init --no-cone
+          git sparse-checkout set 'PROJECTS/ChatBackup PC Tool/**'
+          git -c core.autocrlf=false checkout --force FETCH_HEAD
+          git remote set-url origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          test -f 'PROJECTS/ChatBackup PC Tool/666_CHATBACKUP_PC_TOOL.spec'
+          test -f 'PROJECTS/ChatBackup PC Tool/app/chatbackup_gui.pyw'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Windows EXE build dependencies
+        shell: pwsh
+        run: |
+          python -m pip install --disable-pip-version-check 'pyinstaller>=6,<7' 'Pillow>=11,<13'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Build original unchanged EXE name from primary entrypoint
+        shell: pwsh
+        run: |
+          python -m PyInstaller --noconfirm --clean .\666_CHATBACKUP_PC_TOOL.spec
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $exe = Join-Path (Get-Location) 'dist\666_CHATBACKUP_PC_TOOL.exe'
+          if (!(Test-Path -LiteralPath $exe)) { throw 'ORIGINAL_PC_TOOL_EXE_NOT_CREATED' }
+          $file = Get-Item -LiteralPath $exe
+          if ($file.Length -lt 1000000) { throw 'ORIGINAL_PC_TOOL_EXE_TOO_SMALL' }
+          $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $exe).Hash
+          Write-Host "ORIGINAL_PC_TOOL_EXE_BUILD_PASS bytes=$($file.Length) sha256=$hash"
+      - name: Windows process-start smoke check (not visual host acceptance)
+        shell: pwsh
+        run: |
+          $exe = Join-Path (Get-Location) 'dist\666_CHATBACKUP_PC_TOOL.exe'
+          $process = Start-Process -FilePath $exe -PassThru
+          try {
+            Start-Sleep -Seconds 6
+            $process.Refresh()
+            if ($process.HasExited) {
+              throw "ORIGINAL_PC_TOOL_EXE_EXITED_EARLY code=$($process.ExitCode)"
+            }
+            Write-Host 'ORIGINAL_PC_TOOL_EXE_PROCESS_START_PASS_NONVISUAL'
+          } finally {
+            if (!$process.HasExited) { Stop-Process -Id $process.Id -Force }
+          }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 666_CHATBACKUP_PC_TOOL_R55_WINDOWS_CANDIDATE
+          path: PROJECTS/ChatBackup PC Tool/dist/666_CHATBACKUP_PC_TOOL.exe
+          if-no-files-found: error
+          retention-days: 7
