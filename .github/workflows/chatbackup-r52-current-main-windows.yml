@@ -7,7 +7,7 @@ on:
       - '.github/workflows/chatbackup-r52-current-main-windows.yml'
   workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
 jobs:
   validate-and-package:
     runs-on: windows-latest
@@ -64,49 +64,16 @@ jobs:
         working-directory: 'PROJECTS/ChatBackup PC Tool'
         shell: pwsh
         run: python tools/archive_windows_acceptance.py --verify --report ARCHIVE_WINDOWS_CI_REPORT.json
+      - name: Verify full release integrity before package build
+        working-directory: 'PROJECTS/ChatBackup PC Tool'
+        shell: pwsh
+        run: python tests/release_integrity_probe.py
       - name: Build portable editable Windows host acceptance ZIP
         working-directory: 'PROJECTS/ChatBackup PC Tool'
         shell: pwsh
         run: |
           python tools/archive_windows_acceptance.py --build '666_CHATBACKUP_ARCHIVE_R52_WINDOWS.zip'
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Commit manifest for Windows acceptance builder after all validations
-        working-directory: 'PROJECTS/ChatBackup PC Tool'
-        shell: pwsh
-        run: |
-          @'
-          import hashlib,re
-          from pathlib import Path
-          name='tools/archive_windows_acceptance.py'
-          path=Path(name)
-          assert path.is_file()
-          manifest=Path('MANIFEST.sha256')
-          body=manifest.read_text(encoding='utf-8')
-          value=hashlib.sha256(path.read_bytes()).hexdigest()+' *./'+name
-          pattern=r'^[0-9a-f]{64} \*\./'+re.escape(name)+r'
-        uses: actions/upload-artifact@v4
-        with:
-          name: 666_CHATBACKUP_R52_WINDOWS_ABNAHME
-          path: |
-            PROJECTS/ChatBackup PC Tool/666_CHATBACKUP_ARCHIVE_R52_WINDOWS.zip
-            PROJECTS/ChatBackup PC Tool/ARCHIVE_WINDOWS_CI_REPORT.json
-          if-no-files-found: error
-
-          body=re.sub(pattern,lambda m:value,body,flags=re.MULTILINE) if re.search(pattern,body,re.MULTILINE) else body.rstrip('\n')+'\n'+value+'\n'
-          manifest.write_text(body,encoding='utf-8',newline='\n')
-          print('WINDOWS_ACCEPTANCE_BUILDER_SHA256_BOUND')
-          '@ | python -
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python tests/release_integrity_probe.py
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add MANIFEST.sha256
-          git diff --cached --check
-          git commit -m 'test(chatbackup R5.2): bind Windows package builder to release manifest'
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          git push origin HEAD:feature/chatbackup-archive-intelligence-r5-20261120
-          exit $LASTEXITCODE
       - name: Upload Windows acceptance package and test report
         uses: actions/upload-artifact@v4
         with:
