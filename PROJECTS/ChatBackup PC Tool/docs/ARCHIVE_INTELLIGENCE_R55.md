@@ -27,7 +27,7 @@ Mit `--flat` nur das oberste Verzeichnis durchsuchen. Standard ist rekursives Su
 ## Abnahme
 
 - `python -m pytest -q tests/test_archive_source_relocation.py`
-- Isolierte lokale Entwickler-Regression: 11/11 PASS unter Linux und Windows im GitHub-Actions-Run #16 (ID 44850128628); vollständige Python-Regression 126/126 je Plattform; Basistests 16/16 je Plattform; Release Integrity PASS; Scriptable-Simulation Linux 6/6 + Security 11/11 PASS.
+- GitHub-Actions-Regression: 11/11 PASS unter Linux und Windows im GitHub-Actions-Run #16 (ID 44850128628); vollständige Python-Regression 126/126 je Plattform; Basistests 16/16 je Plattform; Release Integrity PASS; Scriptable-Simulation Linux 6/6 + Security 11/11 PASS.
 - GitHub-Actions-CI und SHA-geprüfte Branch-Dateien sind separat von echter Geräteabnahme zu bewerten. Realer Windows-PC-/iPhone-Host-Readback bleibt offen.
 - GitHub-CI-Run: https://github.com/xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM/actions/runs/44850128628
 - Keine Current-Pointer-Mutation vor bestandenem Gesamt-Readback.
