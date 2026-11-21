@@ -29,11 +29,42 @@ jobs:
             PROJECTS/ChatBackup PC Tool
           sparse-checkout-cone-mode: false
           persist-credentials: true
-      - name: Preserve SHA256-managed Git bytes on Windows
+      - name: Restore exact manifest-bound Git blobs in Windows checkout
         shell: pwsh
         run: |
-          git config core.autocrlf false
-          git restore --source=HEAD --worktree -- .
+          @'
+          import hashlib
+          import pathlib
+          import re
+          import subprocess
+
+          root = pathlib.Path.cwd().resolve()
+          manifest = root / "MANIFEST.sha256"
+          fixed = 0
+          for line in manifest.read_text(encoding="utf-8").splitlines():
+              if not line.strip():
+                  continue
+              match = re.fullmatch(r"([0-9a-f]{64})\\s+\\*?(.+)", line)
+              if not match:
+                  raise ValueError("Invalid SHA-256 manifest line")
+              expected, relative = match.groups()
+              rel = pathlib.PurePosixPath(relative.replace("\\\\", "/").removeprefix("./"))
+              if rel.is_absolute() or ".." in rel.parts:
+                  raise ValueError("Unsafe manifest path")
+              target = root.joinpath(*rel.parts)
+              if not target.is_file():
+                  raise FileNotFoundError(str(rel))
+              if hashlib.sha256(target.read_bytes()).hexdigest() == expected:
+                  continue
+              blob_name = "PROJECTS/ChatBackup PC Tool/" + rel.as_posix()
+              original = subprocess.check_output(["git", "show", "HEAD:" + blob_name])
+              if hashlib.sha256(original).hexdigest() != expected:
+                  raise ValueError("Manifest does not match authoritative Git blob: " + blob_name)
+              target.write_bytes(original)
+              fixed += 1
+          print("WINDOWS_GIT_BLOB_SHA256_READBACK_PASS", fixed, "file(s) restored")
+          '@ | python -
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
