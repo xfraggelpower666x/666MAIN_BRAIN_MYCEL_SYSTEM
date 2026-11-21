@@ -13,6 +13,9 @@ Scope: `PROJECTS/ChatBackup PC Tool/`. Archive Intelligence R5.4, Windows-Haupta
 - `AMBIGUOUS`: mehrere Kandidaten mit identischem Hash; manuelle Prüfung erforderlich.
 - `MISSING`: kein passender Kandidat gefunden.
 - Symlinks werden übersprungen; absolut beginnende und laufwerksbezogene Checkpoint-Pfade werden plattformunabhängig zurückgewiesen, Suchmenge ist auf 10.000 ZIPs begrenzt.
+- R55-01: Iterativer, nicht-symlinkfolgender Verzeichnisscan mit Limit von 100.000 Einträgen (einschließlich Nicht-ZIPs); weiterhin höchstens 10.000 ZIP-Kandidaten.
+- R55-02: Checkpoint-Eingabe auf 1 MiB begrenzt; beschädigtes JSON bzw. UTF-8 wird kontrolliert abgelehnt.
+- R55-03: Zusätzliche Negativ- und Regressionstests für rekursive/flat Suche, Symlink-Verzeichnisse, Scan- und Byte-Limits, ungültige Hashwerte und JSON.
 - Die Funktion ist ausschließlich lesend. Sie verändert weder Checkpoint noch SQLite-Index noch ZIP-Originale.
 - Relocation ist eine **Empfehlung**, keine automatische Reparatur oder Änderung der Herkunftszuordnung.
 
@@ -25,6 +28,8 @@ python app/archive_source_relocation.py "C:\\ChatGPT-Exporte" "C:\\Archiv\\catal
 Mit `--flat` nur das oberste Verzeichnis durchsuchen. Standard ist rekursives Suchen.
 
 ## Abnahme
+
+- Nach Härtung R55-01 bis R55-03: GitHub-CI-Re-Audit für den finalen Branch-HEAD erforderlich. Die unten genannten PASS-Werte stammen aus der vorherigen Revision und gelten nicht automatisch für den neuen HEAD.
 
 - `python -m pytest -q tests/test_archive_source_relocation.py`
 - GitHub-Actions-Regression: 11/11 PASS unter Linux und Windows im GitHub-Actions-Run #16 (ID 44850128628); vollständige Python-Regression 126/126 je Plattform; Basistests 16/16 je Plattform; Release Integrity PASS; Scriptable-Simulation Linux 6/6 + Security 11/11 PASS.
