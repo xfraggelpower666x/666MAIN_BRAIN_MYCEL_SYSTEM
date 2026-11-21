@@ -3143,6 +3143,10 @@ class ChatBackupApp(tk.Tk):
             existing.focus_set()
             return
         try:
+            if not getattr(sys, "frozen", False):
+                tools_path = Path(__file__).resolve().parent.parent / "tools"
+                if tools_path.is_dir() and str(tools_path) not in sys.path:
+                    sys.path.insert(0, str(tools_path))
             from archive_intelligence_gui import ArchiveWindow
             self._archive_intelligence_window = ArchiveWindow(master=self)
             self._archive_intelligence_window.lift()
