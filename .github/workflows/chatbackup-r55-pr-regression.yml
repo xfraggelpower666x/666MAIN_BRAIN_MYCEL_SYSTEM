@@ -162,6 +162,21 @@ jobs:
           } finally {
             if (!$process.HasExited) { Stop-Process -Id $process.Id -Force }
           }
+      - name: Exercise real Windows Tkinter windows and controls (source host)
+        shell: pwsh
+        run: |
+          python tests/windows_gui_acceptance.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $report = 'runtime_readback/WINDOWS_GUI_CI_PROBE.json'
+          if (!(Test-Path -LiteralPath $report)) { throw 'WINDOWS_GUI_READBACK_NOT_CREATED' }
+          Get-Content -LiteralPath $report
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: 666_CHATBACKUP_R55_WINDOWS_GUI_HOST_REPORT
+          path: PROJECTS/ChatBackup PC Tool/runtime_readback/WINDOWS_GUI_CI_PROBE.json
+          if-no-files-found: warn
+          retention-days: 7
       - uses: actions/upload-artifact@v4
         with:
           name: 666_CHATBACKUP_PC_TOOL_R55_WINDOWS_CANDIDATE
