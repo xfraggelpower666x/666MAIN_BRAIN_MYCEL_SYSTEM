@@ -61,6 +61,7 @@ jobs:
           $PSNativeCommandUseErrorActionPreference = $false
           python tests/host_acceptance_probe.py --fixture
           if ($LASTEXITCODE -ne 3) { throw "Expected fixture exit 3 (host gate open); got $LASTEXITCODE" }
+          exit 0
       - name: Optional Windows runner live public Share parse and readback
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.public_share_url != '' }}
         env:
