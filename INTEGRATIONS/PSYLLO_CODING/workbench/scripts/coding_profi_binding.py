@@ -42,7 +42,10 @@ def bind_project(*, whole_verified: bool, facet_id: str,
     if not isinstance(current, Mapping):
         raise BindingIncomplete("No verified coding project selected")
 
-    selected = {key: _identity(current.get(key), key) for key in FIELDS}
+    selected = {key: _identity(current.get(key), key) for key in FIELDS if key != "owner"}
+    if current.get("owner") != OWNER:
+        raise BindingConflict("Project owner is not the authorised MAIN BRAIN owner")
+    selected["owner"] = OWNER
     if not SHA.fullmatch(selected["source_head"]):
         raise BindingIncomplete("source_head: full lowercase Git SHA required")
     if not isinstance(checkpoint, Mapping) and checkpoint is not None:
