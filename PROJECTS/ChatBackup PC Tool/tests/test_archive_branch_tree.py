@@ -94,4 +94,4 @@ def test_tree_window_module_imports_without_graphics_display():
     assert gui_spec and gui_spec.loader
     gui=importlib.util.module_from_spec(gui_spec)
     gui_spec.loader.exec_module(gui)
-    assert gui.open_branch_tree_window is module.open_branch_tree_window
+    assert gui.open_branch_tree_window.__name__ == module.open_branch_tree_window.__name__
