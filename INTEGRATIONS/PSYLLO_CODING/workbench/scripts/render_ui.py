@@ -216,7 +216,12 @@ def apply_checkpoint(data: dict, checkpoint: object) -> dict:
     format_id = checkpoint.get("format_id")
     if mode == "formats" and isinstance(format_id, str) and ID_RE.fullmatch(format_id):
         defaults["start_format"] = format_id
-    return {**data, "companion": {**defaults, **companion}}
+    # Der gueltige Workbench-Checkpoint darf Modus/Format aktualisieren.
+    # Eine bereits nativ gebundene MYCEL-Ansicht hat Vorrang vor UI-Praeferenzen.
+    restored = {**companion, **defaults}
+    if "start_view" in companion:
+        restored["start_view"] = companion["start_view"]
+    return {**data, "companion": restored}
 
 
 def main() -> int:
