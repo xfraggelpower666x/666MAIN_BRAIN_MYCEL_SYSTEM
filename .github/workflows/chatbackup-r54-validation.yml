@@ -1,0 +1,48 @@
+name: ChatBackup R5.4 scoped archive navigation regression
+on:
+  push:
+    branches: [feature/chatbackup-r54-index-navigation-20261121]
+    paths:
+      - .github/workflows/chatbackup-r54-validation.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  python-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: 'PROJECTS/ChatBackup PC Tool'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            PROJECTS/ChatBackup PC Tool
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Dependency setup
+        run: python -m pip install pytest 'Pillow>=11,<13'
+      - name: New R5.4 navigation and integrity fixtures
+        run: python -m pytest -q tests/test_archive_navigation.py
+      - name: All existing ChatBackup tests
+        run: python -m pytest -q tests
+      - name: Existing baseline
+        run: python tests/run_tests.py
+      - name: Release manifest integrity
+        run: python tests/release_integrity_probe.py
+      - name: Syntax and offline CLI routing
+        run: |
+          python -m py_compile app/archive_navigation.py app/archive_extensions.py tools/archive_intelligence_cli.py tools/archive_intelligence_gui.py
+          python tools/archive_intelligence_cli.py --help
+          python tools/archive_intelligence_cli.py browse --help
+          python tools/archive_intelligence_cli.py search-filtered --help
+      - name: Scriptable baseline unchanged
+        run: |
+          node mobile_scriptable/source/tests/host_acceptance.test.cjs mobile_scriptable/source/666_CHATBACKUP_SCRIPTABLE_IPHONE_v1.0.9.js
+          node mobile_scriptable/source/tests/image_download_security.test.cjs
