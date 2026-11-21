@@ -86,6 +86,19 @@ class RendererHandoffR05(unittest.TestCase):
         with self.assertRaises(ValueError):
             apply_checkpoint(fixture(), bad)
 
+    def test_native_handoff_schema_view_ids_match_renderer(self):
+        schema = json.loads((ROOT / "UI/INTELLIGENT_UI/UI_HANDOFF_SCHEMA.json").read_text(encoding="utf-8"))
+        expected = {v["id"] for v in fixture()["views"]}
+        self.assertEqual(set(schema["properties"]["view_id"].split("|")), expected)
+        self.assertEqual(schema["properties"]["view_id_encoding"], "lowercase-renderer-view-id")
+
+    def test_daemon_statuses_match_actual_bridge(self):
+        from mycel_bridge import VALID
+        schema = json.loads((ROOT / "DAEMON/STATE_SCHEMA.json").read_text(encoding="utf-8"))
+        self.assertEqual(set(schema["allowed_evidence"]), VALID)
+        self.assertFalse(schema["permissions"]["foreign_activation"])
+        self.assertFalse(schema["permissions"]["background_execution"])
+
     def test_real_bridge_to_standalone_html(self):
         with tempfile.TemporaryDirectory(prefix="mycel-r05-") as folder:
             tmp = Path(folder)
