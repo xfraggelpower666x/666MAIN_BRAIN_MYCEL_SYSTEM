@@ -55,6 +55,17 @@ Mit `--flat` nur das oberste Verzeichnis durchsuchen. Standard ist rekursives Su
 - Parent-IDs außerhalb des indexierten Nachrichtenbestands können aus strukturell nicht indexierten Export-Knoten stammen; diese sind offen statt als gelöschte Nachrichten behauptet.
 - GUI-Readback im echten Windows-Tkinter-Host bleibt getrennt von CI-Codeabnahme.
 
+## Interaktive Baumansicht (additive R5.5-Erweiterung)
+
+- **Explore branch tree** im bestehenden Conversation Viewer öffnet ein eigenständiges Tkinter-Fenster mit den indexierten Parent-/Child-Beziehungen und deren tatsächlichen `message_id`-Werten.
+- **Aufklappbare Knoten:** direkte Antworten werden bei Bedarf geladen, jeweils in Seiten von 120 Nachrichten. Damit erzeugen große Unterzweige nicht sofort Tausende UI-Zeilen.
+- **Doppelklick oder Jump to selected message** öffnet die gewählte Nachricht im bereits vorhandenen Volltext-Viewer. **Show original selected message** bringt den Ausgangstreffer im Baum wieder in Sicht.
+- **Diagnose:** nicht auflösbare Eltern werden als eigene diagnostische Wurzeln dargestellt; zyklische Beziehungen werden im Sichtbaum gekappt und mit `CYCLE_EDGE_OMITTED_FROM_TREE` gekennzeichnet, ohne die Quelle zu verändern.
+- **Determinismus:** jede gespeicherte Nachricht erscheint genau einmal; Reihenfolge entspricht der bestehenden lokalen Index-Reihenfolge. Weder Lücken noch Zweige werden durch Textähnlichkeit erraten.
+- **Performance:** einmaliger linearer Zyklus-Scan in `archive_message_navigation.branch_index`; iterative Abstammung, rekursionsfreies UI-Laden, begrenzte Nachrichtenvorschau.
+- **Tests:** `tests/test_archive_branch_tree.py` prüft exakte Wege, Mehrfachzweige, fehlerhafte Parent-IDs, Zyklen, 2.500 Nachrichtenknoten und den GUI-Import ohne Bildschirm.
+- **Abnahmegrenze:** CI prüft Modul-/Importverträge und Datenbeziehungen; die visuelle Bedienung der kompilierten Windows-EXE bleibt gesondert `READBACK_PENDING`.
+
 ## Abnahme
 
 - Neue Bedienregressionen: `tests/test_archive_relocation_entrypoints.py` (CLI-End-to-End, Fehlerpfad, Flat-Modus, GUI-Import ohne Display). GitHub-CI-Readback für diesen Erweiterungs-HEAD erforderlich.
