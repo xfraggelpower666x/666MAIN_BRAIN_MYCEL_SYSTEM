@@ -46,7 +46,7 @@ def test_missing(tmp_path):
     src, cp = setup(tmp_path, {'old.zip': h(b'zip')})
     assert propose_relocations(src, cp)['sources'][0]['status'] == 'MISSING'
 
-@pytest.mark.parametrize('name', ['../escape.zip', '/absolute.zip', 'bad\\windows.zip', 'bad.txt'])
+@pytest.mark.parametrize('name', ['../escape.zip', '/absolute.zip', 'bad\\windows.zip', 'C:drive.zip', 'bad.txt'])
 def test_invalid_checkpoint_names(tmp_path, name):
     src, cp = setup(tmp_path, {name: h(b'zip')})
     with pytest.raises(RelocationError): propose_relocations(src, cp)
