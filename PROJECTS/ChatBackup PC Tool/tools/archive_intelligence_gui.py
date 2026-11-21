@@ -221,9 +221,9 @@ class ArchiveWindow(tk.Tk):
         term=self.term.get().strip()
         if not term:return
         db=self.database.get()
+        source=self.source_filter.get().strip()
+        role=self.role_filter.get()
         def work():
-            source=self.source_filter.get().strip()
-            role=self.role_filter.get()
             with ArchiveCatalog(db) as catalog:
                 rows=search_filtered(catalog,term,source=source,
                       role='' if role=='Any role' else role,limit=200)
