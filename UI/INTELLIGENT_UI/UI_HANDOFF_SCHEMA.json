@@ -6,15 +6,17 @@
     "project_id": "string|null",
     "lineage_id": "string|null",
     "source_commit": "full-git-sha",
-    "view_id": "OVERVIEW|DEVELOPMENT|FACETS|GUIDANCE|EVIDENCE|CONTINUITY",
+    "view_id": "overview|development|facets|guidance|evidence|continuity",
     "selected_facet": "string|null",
-    "evidence_filters": "array"
+    "evidence_filters": "array",
+    "view_id_encoding": "lowercase-renderer-view-id"
   },
   "restore": {
     "verify_native_current_first": true,
     "require_exact_project_lineage_revision_match": true,
     "on_mismatch": "IGNORE_VIEW_PREFERENCE_AND_RENDER_CURRENT",
-    "native_checkpoint_unchanged": true
+    "native_checkpoint_unchanged": true,
+    "view_ids_match_actual_renderer": true
   },
   "forbidden": [
     "write_authorization",
