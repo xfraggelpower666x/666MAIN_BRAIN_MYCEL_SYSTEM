@@ -19,15 +19,26 @@ Scope: `PROJECTS/ChatBackup PC Tool/`. Archive Intelligence R5.4, Windows-Haupta
 - Die Funktion ist ausschließlich lesend. Sie verändert weder Checkpoint noch SQLite-Index noch ZIP-Originale.
 - Relocation ist eine **Empfehlung**, keine automatische Reparatur oder Änderung der Herkunftszuordnung.
 
+## Bedienbare R5.5-Erweiterung
+
+- In der bestehenden optionalen Archive-Intelligence-Oberfläche steht jetzt **Find moved ZIPs** bereit.
+- Der neue Reiter **Source relocation** zeigt Original-Quellpfad, SHA-256-Prüfstatus und gefundene Kandidaten.
+- Die bestehende Archive-Intelligence-CLI stellt zusätzlich `relocate-sources` bereit, mit optionalem `--flat`.
+- Alles bleibt offline und lesend; keine Änderung von ZIPs, Checkpoint, Datenbank oder Hauptanwendung.
+
 ## Direkter Aufruf
 
 ```powershell
 python app/archive_source_relocation.py "C:\\ChatGPT-Exporte" "C:\\Archiv\\catalog.sqlite3.batch-checkpoint.json"
 ```
 
+Die direkte Modul-Funktion und `python tools/archive_intelligence_cli.py relocate-sources "C:\\ChatGPT-Exporte" "C:\\Archiv\\catalog.sqlite3.batch-checkpoint.json"` stehen beide zur Verfügung.
+
 Mit `--flat` nur das oberste Verzeichnis durchsuchen. Standard ist rekursives Suchen.
 
 ## Abnahme
+
+- Neue Bedienregressionen: `tests/test_archive_relocation_entrypoints.py` (CLI-End-to-End, Fehlerpfad, Flat-Modus, GUI-Import ohne Display). GitHub-CI-Readback für diesen Erweiterungs-HEAD erforderlich.
 
 - Nach Härtung R55-01 bis R55-03: GitHub-CI-Re-Audit für den finalen Branch-HEAD erforderlich. Die unten genannten PASS-Werte stammen aus der vorherigen Revision und gelten nicht automatisch für den neuen HEAD.
 
