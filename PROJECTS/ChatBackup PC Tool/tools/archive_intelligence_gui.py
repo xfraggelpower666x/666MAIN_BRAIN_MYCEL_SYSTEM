@@ -14,10 +14,17 @@ from archive_branch_tree_ui import open_branch_tree_window
 
 BG='#090f1b';PANEL='#10192a';TXT='#edf4ff';CYAN='#00e8ff';PINK='#ff2acb'
 
-class ArchiveWindow(tk.Tk):
-    def __init__(self):
-        super().__init__()
-        self.title('666 ChatBackup · Archive Intelligence R5 · OFFLINE')
+class ArchiveWindow(tk.Toplevel):
+    """Optionale Archivfacette innerhalb des bestehenden PC-Tool-Prozesses."""
+
+    def __init__(self, master=None):
+        self._standalone_root = None
+        if master is None:
+            self._standalone_root = tk.Tk()
+            self._standalone_root.withdraw()
+            master = self._standalone_root
+        super().__init__(master)
+        self.title('666 ChatBackup PC Tool · Archive Intelligence · OFFLINE')
         self.geometry('1030x700')
         self.configure(bg=BG)
         self.database=tk.StringVar(value=str(Path.home()/'.666chatbackup'/'catalog.sqlite3'))
@@ -34,6 +41,12 @@ class ArchiveWindow(tk.Tk):
         self.cancel_requested=threading.Event()
         self.worker_active=False
         self.create_ui()
+        self.protocol('WM_DELETE_WINDOW', self.close_archive)
+
+    def close_archive(self):
+        self.destroy()
+        if self._standalone_root is not None:
+            self._standalone_root.destroy()
 
     def create_ui(self):
         root=tk.Frame(self,bg=BG,padx=20,pady=16);root.pack(fill='both',expand=True)
