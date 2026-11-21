@@ -24,6 +24,7 @@ jobs:
         working-directory: 'PROJECTS/ChatBackup PC Tool'
     steps:
       - name: Scoped Git checkout without unrelated submodule enumeration
+        working-directory: .
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -67,6 +68,7 @@ jobs:
         working-directory: 'PROJECTS/ChatBackup PC Tool'
     steps:
       - name: Scoped Git checkout without unrelated submodule enumeration
+        working-directory: .
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
