@@ -66,6 +66,16 @@ Mit `--flat` nur das oberste Verzeichnis durchsuchen. Standard ist rekursives Su
 - **Tests:** `tests/test_archive_branch_tree.py` prüft exakte Wege, Mehrfachzweige, fehlerhafte Parent-IDs, Zyklen, 2.500 Nachrichtenknoten und den GUI-Import ohne Bildschirm.
 - **Abnahmegrenze:** CI prüft Modul-/Importverträge und Datenbeziehungen; die visuelle Bedienung der kompilierten Windows-EXE bleibt gesondert `READBACK_PENDING`.
 
+## Native Python-Suche im Gesprächsbaum (R5.5 Weiterentwicklung)
+
+- Im tatsächlichen `tools/archive_branch_tree_ui.py` existiert nun ein Eingabefeld für **Message-ID oder Text**, mit **Search tree** und Ergebnisliste.
+- Der Suchkern `app/archive_branch_tree.search_branch_tree` durchsucht die aus `ArchiveCatalog` via `conversation_view` geladenen, real indexierten Nachrichten; Ergebnis enthält **exakte Message-ID**, Original-Index, Rolle, Auszug und den aus der Parent-Registry aufgelösten Pfad.
+- Doppelklick in der Suchliste oder **Open selected tree-search result** klappt den zugehörigen Pfad im Baum auf und springt im bestehenden Textviewer zur gefundenen Nachricht.
+- Die Suche hat eine harte Ausgabegrenze (standardmäßig maximal 200 Treffer; Core unterstützt Offset/Limit). Sie erfindet keine Beziehungen und schreibt weder Exportdateien noch Datenbankinhalte.
+- Tests: `tests/test_archive_branch_tree.py` prüft Suche nach Text/ID, reale Pfadauflösung, Pagination, Eingabegrenzen, Read-only-Verhalten und UI-Verkabelung.
+- Bei mehr als 200 Ergebnissen ist **weitere Pagination im UI** noch zu ergänzen; der Core stellt `offset` bereits bereit. Dies ist kein Beleg für vollständig implementierte UI-Pagination.
+- Nur Code-/CI-Tests gelten als verifiziert; realer Tkinter-/Windows-EXE-Bedientest bleibt getrennt offen.
+
 ## Abnahme
 
 - Neue Bedienregressionen: `tests/test_archive_relocation_entrypoints.py` (CLI-End-to-End, Fehlerpfad, Flat-Modus, GUI-Import ohne Display). GitHub-CI-Readback für diesen Erweiterungs-HEAD erforderlich.
