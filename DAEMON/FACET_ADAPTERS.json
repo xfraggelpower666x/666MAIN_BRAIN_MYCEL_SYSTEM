@@ -13,9 +13,16 @@
         "AUDIT_EVIDENCE",
         "REPAIR_VS_DEVELOP",
         "CHECK_TESTS",
-        "GUIDE_CHECKPOINT"
+        "GUIDE_CHECKPOINT",
+        "VERIFY_CODING_PROFI_SKILL_SOURCE",
+        "CHECK_OWNED_PROJECT_CONTEXT",
+        "RESOLVE_PEER_LIVECIRCLE",
+        "RETURN_TO_WHOLE"
       ],
-      "runtime": "INTELLIGENCE/DEV/FACET_CONTRACT.md"
+      "runtime": "INTELLIGENCE/DEV/FACET_CONTRACT.md",
+      "method_capability": "INTEGRATIONS/PSYLLO_CODING/CODING_PROFI_FACET_ADAPTER_R06.md",
+      "method_provider": "L.Y.V.R.A. CODING PROFI",
+      "provider_invocation": "DIRECT_USER_REQUEST_AND_VERIFIED_PROJECT_SCOPE_ONLY"
     },
     {
       "facet": "PSYLLO.VISUAL",
