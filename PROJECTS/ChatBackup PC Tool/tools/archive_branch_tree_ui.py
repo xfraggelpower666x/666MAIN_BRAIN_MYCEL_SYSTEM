@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import tkinter as tk
 from tkinter import ttk
-from archive_branch_tree import project_branch_tree, tree_ancestry, describe_tree_node
+from archive_branch_tree import project_branch_tree, tree_ancestry, describe_tree_node, search_branch_tree
 
 PAGE = 120
 
@@ -22,6 +22,16 @@ def open_branch_tree_window(owner, conversation, selected_index, on_jump):
     window.configure(bg='#090f1b')
     summary = tk.StringVar(value=f"{projection['count']} indexed messages · {len(projection['roots'])} visual roots · {projection['status']} · NO SOURCE WRITES")
     tk.Label(window, textvariable=summary, bg='#090f1b', fg='#00e8ff', anchor='w').pack(fill='x', padx=12, pady=8)
+    searchbar = tk.Frame(window, bg='#090f1b')
+    searchbar.pack(fill='x', padx=12, pady=(0, 6))
+    tk.Label(searchbar, text='Find message ID or text:',
+             fg='#00e8ff', bg='#090f1b').pack(side='left')
+    search_term = tk.StringVar()
+    search_entry = tk.Entry(searchbar, textvariable=search_term, width=38)
+    search_entry.pack(side='left', fill='x', expand=True, padx=8)
+    search_status = tk.StringVar(value='Exact indexed message search · read only')
+    tk.Label(window, textvariable=search_status, fg='#ff2acb',
+             bg='#090f1b', anchor='w').pack(fill='x', padx=12)
     frame = tk.Frame(window, bg='#10192a')
     frame.pack(fill='both', expand=True, padx=12, pady=4)
     tree = ttk.Treeview(frame, columns=('role','preview','children','warning'), show='tree headings',
@@ -125,12 +135,55 @@ def open_branch_tree_window(owner, conversation, selected_index, on_jump):
             tree.delete(placeholder)
             add_page(item,pos,0)
 
+    def search_tree():
+        query = search_term.get().strip()
+        try:
+            result = search_branch_tree(conversation, projection, query, limit=200)
+        except ValueError as exc:
+            search_status.set(str(exc))
+            return
+        for item in hits.get_children():
+            hits.delete(item)
+        for row in result['matches']:
+            hits.insert('', 'end', iid=f'hit:{row["position"]}',
+                        values=(row['id'], row['role'], row['preview'],
+                                ' / '.join(str(n+1) for n in row['path']),
+                                ', '.join(row['warnings'])))
+        search_status.set(f'{result["total"]} match(es), {len(result["matches"])} displayed'
+                          + (' · more matches available' if result['has_more'] else ''))
+        if result['matches']:
+            hits.selection_set(f'hit:{result["matches"][0]["position"]}')
+
+    def open_search_hit(event=None):
+        selected = hits.selection()
+        if not selected:
+            return
+        pos = int(selected[0].split(':', 1)[1])
+        reveal(pos)
+        on_jump(pos)
+        owner.lift()
+
     tree.bind('<<TreeviewOpen>>',expand)
     tree.bind('<Double-1>',jump)
     bar = tk.Frame(window,bg='#090f1b');bar.pack(fill='x',padx=12,pady=8)
     tk.Button(bar,text='Jump to selected message',command=jump).pack(side='left')
     tk.Button(bar,text='Show original selected message',command=lambda:reveal(selected_index)).pack(side='left',padx=8)
     tk.Button(bar,text='Close tree',command=window.destroy).pack(side='right')
+    tk.Button(searchbar, text='Search tree', command=search_tree).pack(side='left')
+    search_entry.bind('<Return>', lambda event: search_tree())
+    result_frame = tk.Frame(window, bg='#10192a')
+    result_frame.pack(fill='x', padx=12, pady=(3,8))
+    hits = ttk.Treeview(result_frame, columns=('id','role','preview','path','warnings'),
+                        show='headings', height=5, selectmode='browse')
+    for col,label,width in [('id','Message ID',205),('role','Role',80),
+                            ('preview','Match preview',350),
+                            ('path','Verified ancestry',190),('warnings','Warnings',190)]:
+        hits.heading(col,text=label)
+        hits.column(col,width=width,minwidth=65)
+    hits.pack(fill='x', expand=True)
+    hits.bind('<Double-1>', open_search_hit)
+    tk.Button(window, text='Open selected tree-search result',
+              command=open_search_hit).pack(anchor='e',padx=12,pady=(0,5))
     add_page('',None,0)
     reveal(selected_index)
     return window
