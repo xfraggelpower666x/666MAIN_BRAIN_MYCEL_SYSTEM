@@ -19,7 +19,7 @@ class ClicR07NativeFences(unittest.TestCase):
         self.assertIn("REPO_FIRST_AUTH=FALSE_UNTIL_FINAL_COMPLETION_GATE", pointer)
         self.assertIn("DRIVE_ROLE=MIGRATION_SOURCE_RECOVERY", pointer)
         self.assertIn("MIGRATION_STATE=IN_PROGRESS_UNTIL_FINAL_COMPLETION_GATE", state)
-        self.assertNotIn("DRIVE_ROLE=HISTORY_ONLY\n", state)
+        self.assertIn("Before that gate:\n\nDRIVE_ROLE=MIGRATION_SOURCE_RECOVERY\nDRIVE_HISTORY_ONLY=FALSE", state)
 
     def test_mb02_peer_freshness_does_not_promote_peer(self) -> None:
         text = read("INTELLIGENCE/DEV/DEV_SOURCE_ADAPTER.md")
