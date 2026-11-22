@@ -23,4 +23,14 @@ R19_ELECTRON_UI: D default, remaining tab parity still PARTIAL
 RUNTIME_BUNDLE: Electron and frozen Python engine configured, clean-Windows verification OPEN
 PRESERVE: original R18 code, versions, tests, Windows launchers retained under r18-legacy
 SCOPE: no foreign systems changed; no Git force; no backup promoted to live
+
+R19_DE_IMPLEMENTATION_COMMIT: 94af49b2b529b591d7bd6b5b891ac2560d3f23f9
+R19_DE_IMPLEMENTATION_TREE: 1ab88678920bdcc05dd647bbcbd4b53ff0dc815c
+R19_D_IMPLEMENTED: real physical DiskActivitySampler values in separate physical field, Caps/Num/Scroll visual preview only; no hardware writes, no persisted bindings yet
+R19_E_IMPLEMENTED: real logical Windows PDH volumes and GUID identities, original tray/overlay state; editable tray/overlay boolean selection and minimal/horizontal/vertical layout through narrow IPC, R18 Workspace.save atomic persistence
+R19_DE_UI_GUARD: editing focus preserved across 500ms metrics refresh, renderer V8 parse PASS
+R19_DE_VALIDATION: remote direct readback main/preload/renderer/HTML/CSS/Python bridge; R18 unchanged original ZIP 288/288 pytest PASS on Linux
+R19_DE_OPEN_TESTS: new Python command bridge IPC integration not run; Windows Electron PDH/Hotplug/Overlay/Tray visual acceptance pending
+R19_DE_NEXT: execute bridge command contract tests; validate E persistence and D live-preview on Windows; implement R18 D binding persistence and E bicolor hold/quiet logic without hardening into device writes
+
 NEXT_EXECUTABLE: Windows checkout of verified GitHub Current; START_BUILD_WINDOWS.bat -> menu 9; inspect real EXEs, setup install directory choice, tray, overlay and USB hotplug, then hash/readback release artifacts
