@@ -3,7 +3,29 @@ const {app, BrowserWindow, ipcMain, Tray, Menu, nativeImage} = require('electron
 const {spawn} = require('node:child_process');
 const path = require('node:path');
 let mainWindow = null, overlay = null, tray = null, worker = null, pending = '';
+const pendingReplies = new Map();
+let nextRequestId = 0;
 let latest = {protocol:'cyber-drive.metrics.v2',status:'starting', volumes:[], timestamp:null, error:null};
+function processReply(data) {
+  const r=pendingReplies.get(data.request_id);
+  if(!r)return;
+  clearTimeout(r.timer);pendingReplies.delete(data.request_id);
+  r.resolve({ok:data.ok===true,error:typeof data.error==='string'?data.error:null});
+}
+function workspaceCommand(action,payload) {
+  if(!['set-drive-visibility','set-overlay-layout'].includes(action))
+    return Promise.resolve({ok:false,error:'Unsupported action'});
+  if(!worker||!worker.stdin?.writable)
+    return Promise.resolve({ok:false,error:'Metrics bridge not running'});
+  return new Promise(resolve=>{
+    const id=++nextRequestId;
+    const timer=setTimeout(()=>{pendingReplies.delete(id);resolve({ok:false,error:'Command timeout'});},5000);
+    pendingReplies.set(id,{resolve,timer});
+    worker.stdin.write(JSON.stringify({...payload,action,request_id:id})+'\n',err=>{
+      if(err&&pendingReplies.has(id)){clearTimeout(timer);pendingReplies.delete(id);resolve({ok:false,error:'Bridge pipe error'});}
+    });
+  });
+}
 const send = () => { for (const w of [mainWindow, overlay]) if (w && !w.isDestroyed()) w.webContents.send('metrics', latest); };
 function createWindow() {
   mainWindow = new BrowserWindow({width:1250,height:820,minWidth:800,minHeight:500,backgroundColor:'#11141A',
@@ -31,7 +53,7 @@ function startSampler() {
     (process.platform==='win32'?['-3.13','-u',path.join(__dirname,'bridge','volume_metrics.py')]:
       ['-u',path.join(__dirname,'bridge','volume_metrics.py')]);
   try {
-    worker=spawn(exe,args,{windowsHide:true,stdio:['ignore','pipe','pipe'],env:{...process.env,PYTHONUNBUFFERED:'1'}});
+    worker=spawn(exe,args,{windowsHide:true,stdio:['pipe','pipe','pipe'],env:{...process.env,PYTHONUNBUFFERED:'1'}});
     worker.stdout.setEncoding('utf8');
     worker.stdout.on('data',chunk=>{
       pending += chunk;
@@ -39,7 +61,7 @@ function startSampler() {
       let ix;
       while((ix=pending.indexOf('\n'))!==-1){
         const line=pending.slice(0,ix); pending=pending.slice(ix+1);
-        try {const data=JSON.parse(line);if(data&&Array.isArray(data.volumes) && data.protocol === 'cyber-drive.metrics.v2'&&typeof data.status==='string'){latest=data;send();}}catch{}
+        try {const data=JSON.parse(line);if(data?.type==='reply'){processReply(data);continue;}if(data&&Array.isArray(data.volumes) && data.protocol === 'cyber-drive.metrics.v2'&&typeof data.status==='string'){latest=data;send();}}catch{}
       }
     });
     let stderr='';
@@ -64,6 +86,15 @@ function startTray(){
   }catch(e){latest.error='Tray unavailable: '+e.message;}
 }
 ipcMain.handle('get-latest',()=>latest);
+ipcMain.handle('set-drive-visibility',(_e,id,target,enabled)=>{
+  if(typeof id!=='string'||!id||id.length>512||!['tray','overlay'].includes(target)||typeof enabled!=='boolean')
+    return {ok:false,error:'Invalid visibility request'};
+  return workspaceCommand('set-drive-visibility',{volume_id:id,target,enabled});
+});
+ipcMain.handle('set-overlay-layout',(_e,layout)=>{
+  if(!['minimal','horizontal','vertical'].includes(layout))return {ok:false,error:'Invalid layout'};
+  return workspaceCommand('set-overlay-layout',{layout});
+});
 ipcMain.handle('overlay-toggle',()=>{toggleOverlay();return Boolean(overlay);});
 ipcMain.handle('show-main',()=>{if(mainWindow)mainWindow.show();});
 app.whenReady().then(()=>{createWindow();startTray();startSampler();});

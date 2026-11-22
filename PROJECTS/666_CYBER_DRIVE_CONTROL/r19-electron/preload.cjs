@@ -9,5 +9,7 @@ contextBridge.exposeInMainWorld('cyber',{
     return()=>ipcRenderer.removeListener('metrics',fn);
   },
   toggleOverlay:()=>ipcRenderer.invoke('overlay-toggle'),
+  setDriveVisibility:(id,target,enabled)=>ipcRenderer.invoke('set-drive-visibility',id,target,enabled),
+  setOverlayLayout:layout=>ipcRenderer.invoke('set-overlay-layout',layout),
   showMain:()=>ipcRenderer.invoke('show-main')
 });
