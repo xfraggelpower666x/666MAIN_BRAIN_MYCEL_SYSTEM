@@ -1,0 +1,62 @@
+name: Import ISSRC source for 3DX Dream (one shot)
+on:
+  push:
+    branches: [666MAIN_BRAIN]
+    paths:
+      - .github/workflows/import-issrc-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 666MAIN_BRAIN
+          fetch-depth: 1
+          persist-credentials: true
+      - name: Verify and import original source trees
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch main https://github.com/jrsoftware/issrc.git /tmp/issrc-main
+          git clone --depth 1 --branch is-7_1_1 https://github.com/jrsoftware/issrc.git /tmp/issrc-711
+          test "$(git -C /tmp/issrc-main rev-parse HEAD)" = "660c7d04b88f98a9813b55c677182281c74e2d76"
+          test "$(git -C /tmp/issrc-711 rev-parse HEAD)" = "2527da77ff7983514f535d19391a748c5d898336"
+          python3 - <<'PY'
+          from pathlib import Path
+          from hashlib import sha256
+          cases = [
+            (Path('/tmp/issrc-main'), 742, 'd2d4c8f8775adae80adab34ef1a073cc191111d1f2af93aa634ff92a8dcc6ebf'),
+            (Path('/tmp/issrc-711'), 714, 'cbe3841c387d574338d9ec003403243c6cae4c93752cee9abc608b91ce18b4ac'),
+          ]
+          for root, expected_count, expected_hash in cases:
+              files = sorted((p for p in root.rglob('*') if p.is_file() and '.git' not in p.relative_to(root).parts), key=lambda p: p.relative_to(root).as_posix())
+              lines = ''.join(f'{p.relative_to(root).as_posix()}\0{sha256(p.read_bytes()).hexdigest()}\n' for p in files).encode()
+              digest = sha256(lines).hexdigest()
+              print(f'{root}: {len(files)} files; manifest_sha256={digest}', flush=True)
+              if len(files) != expected_count or digest != expected_hash:
+                  raise SystemExit('BLOCKED: upstream source does not exactly match user-supplied ZIP archive')
+          targets = [(Path('/tmp/issrc-main'), Path('PROJECTS/issrc-main')), (Path('/tmp/issrc-711'), Path('PROJECTS/issrc-is-7_1_1'))]
+          for root, dest in targets:
+              for src in root.rglob('*'):
+                  if not src.is_file() or '.git' in src.relative_to(root).parts:
+                      continue
+                  path = dest / src.relative_to(root)
+                  if path.exists():
+                      raise SystemExit(f'BLOCKED: refusing to overwrite {path}')
+          for root, dest in targets:
+              for src in root.rglob('*'):
+                  if not src.is_file() or '.git' in src.relative_to(root).parts:
+                      continue
+                  path = dest / src.relative_to(root)
+                  path.parent.mkdir(parents=True, exist_ok=True)
+                  path.write_bytes(src.read_bytes())
+          print('All 1456 files written as independent files; PROJECT_CONTEXT.md preserved.')
+          PY
+          git add -- PROJECTS/issrc-main PROJECTS/issrc-is-7_1_1
+          test "$(git diff --cached --name-only | wc -l)" -eq 1456
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "Import original ISSRC main and 7.1.1 source trees for 3DX Dream"
+          git push origin HEAD:666MAIN_BRAIN
