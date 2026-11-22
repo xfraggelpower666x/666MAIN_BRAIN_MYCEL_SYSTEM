@@ -1166,14 +1166,6 @@ class ChatBackupApp(tk.Tk):
             font=("Segoe UI", 9, "bold"),
             anchor="center",
         ).grid(row=0, column=1, sticky="ew", padx=10)
-        NeonButton(
-            footer,
-            text=self._t("Systemstatus"),
-            command=self.show_system_status,
-            accent=GREEN,
-            surface="#0D241C",
-            compact=True,
-        ).grid(row=0, column=2, sticky="e", padx=8, pady=3)
 
     def _on_root_configure(self, _event: tk.Event) -> None:
         if self._resize_job:
@@ -3132,11 +3124,7 @@ class ChatBackupApp(tk.Tk):
             messagebox.showerror(self._t("Systemstatus"), self._t("Statusdatei konnte nicht gelesen werden:\n\n") + self._localize_runtime(exc))
 
     def open_archive_intelligence(self) -> None:
-        """Archivfacette innerhalb des ursprünglichen PC-Tools öffnen.
-
-        Bestehende Export-, Parser- und Bildfunktionen bleiben unverändert.
-        Ein optionaler fehlender Baustein darf den Hauptstart nicht blockieren.
-        """
+        """Archive Intelligence ueber das linke Menue im Hauptprozess oeffnen."""
         existing = getattr(self, "_archive_intelligence_window", None)
         if existing is not None and existing.winfo_exists():
             existing.lift()
@@ -3151,56 +3139,15 @@ class ChatBackupApp(tk.Tk):
             self._archive_intelligence_window = ArchiveWindow(master=self)
             self._archive_intelligence_window.lift()
             self._log("ARCHIVE_INTELLIGENCE_IN_PROCESS_WINDOW")
-            return
         except (ImportError, OSError, tk.TclError) as exc:
             self._log(f"ARCHIVE_INTELLIGENCE_IN_PROCESS_UNAVAILABLE {type(exc).__name__}: {exc}")
-            # Bewährten Legacy-Fallback erhalten, falls ein altes Paket ohne
-            # eingebettete Archivmodule gestartet wird.
-            pass
-
-        project_root = (Path(sys.executable).resolve().parent if getattr(sys, "frozen", False)
-                        else Path(__file__).resolve().parent.parent)
-        companion = project_root / "666_CHATBACKUP_ARCHIVE_INTELLIGENCE.exe"
-        if companion.is_file():
-            try:
-                subprocess.Popen([str(companion)], cwd=str(project_root))
-                self._log("ARCHIVE_INTELLIGENCE_PACKAGED_EXE_LAUNCH")
-            except OSError as exc:
-                messagebox.showerror(self._bi("Archive Intelligence", "Archivsuche & Massenimport"),
-                                     self._localize_runtime(exc))
-            return
-
-        script = project_root / "tools" / "archive_intelligence_gui.py"
-        if not script.is_file():
-            messagebox.showinfo(
-                self._bi("Archive Intelligence", "Archivsuche & Massenimport"),
-                self._bi(
-                    "The optional Archive Intelligence companion is missing. "
-                    "The existing ChatBackup functions remain available.",
-                    "Die optionale Archive-Intelligence-Anwendung fehlt. "
-                    "Die bisherigen ChatBackup-Funktionen bleiben verfügbar.",
-                ),
-            )
-            return
-        if getattr(sys, "frozen", False):
-            python_cmd = shutil.which("py") or shutil.which("python")
-            args = ["-3"] if python_cmd and Path(python_cmd).stem.lower() == "py" else []
-        else:
-            python_cmd = sys.executable
-            args = []
-        if not python_cmd:
             messagebox.showerror(
                 self._bi("Archive Intelligence", "Archivsuche & Massenimport"),
-                self._bi("Python 3 was not found for the optional source module.",
-                         "Python 3 wurde fuer das optionale Quellmodul nicht gefunden."),
+                self._bi("The integrated archive module could not be opened.",
+                         "Das integrierte Archivmodul konnte nicht geoeffnet werden.")
+                + "\n\n" + self._localize_runtime(exc),
+                parent=self,
             )
-            return
-        try:
-            subprocess.Popen([str(python_cmd), *args, str(script)], cwd=str(project_root))
-            self._log("ARCHIVE_INTELLIGENCE_OPTIONAL_SOURCE_LAUNCH")
-        except OSError as exc:
-            messagebox.showerror(self._bi("Archive Intelligence", "Archivsuche & Massenimport"),
-                                 self._localize_runtime(exc))
 
     def show_log(self) -> None:
         win = tk.Toplevel(self)
