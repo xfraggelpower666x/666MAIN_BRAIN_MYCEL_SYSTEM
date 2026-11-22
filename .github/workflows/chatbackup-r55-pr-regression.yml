@@ -134,7 +134,7 @@ jobs:
       - name: Install Windows EXE build dependencies
         shell: pwsh
         run: |
-          python -m pip install --disable-pip-version-check 'pyinstaller>=6,<7' 'Pillow>=11,<13'
+          python -m pip install --disable-pip-version-check 'pyinstaller>=6,<7' 'Pillow>=11,<13' 'pywinauto>=0.6.8,<0.7'
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Build original unchanged EXE name from primary entrypoint
         shell: pwsh
@@ -170,6 +170,21 @@ jobs:
           $report = 'runtime_readback/WINDOWS_GUI_CI_PROBE.json'
           if (!(Test-Path -LiteralPath $report)) { throw 'WINDOWS_GUI_READBACK_NOT_CREATED' }
           Get-Content -LiteralPath $report
+      - name: External UI Automation of built original EXE
+        shell: pwsh
+        run: |
+          python tests/windows_compiled_exe_gui_acceptance.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Get-Content -LiteralPath 'runtime_readback/WINDOWS_COMPILED_EXE_GUI_PROBE.json'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: 666_CHATBACKUP_R55_COMPILED_EXE_GUI_READBACK
+          path: |
+            PROJECTS/ChatBackup PC Tool/runtime_readback/WINDOWS_COMPILED_EXE_GUI_PROBE.json
+            PROJECTS/ChatBackup PC Tool/runtime_readback/gui_screenshots/
+          if-no-files-found: warn
+          retention-days: 7
       - uses: actions/upload-artifact@v4
         if: always()
         with:
