@@ -32,3 +32,14 @@ Der Status-CLI ist lesend und kann den unvollständigen Source-Readback nicht al
 - `tests/` — zusätzliche LiveCircle-Regression
 
 **Ausschluss:** keine generierten Texte, Lyrics, Bilder, Audio, PDFs/DOCX, Ergebnisse, Suchhistorien, Credentials, User-Stems oder temporären Dateien einchecken. `history/` speichert ausschließlich notwendige Release-Metadaten, nicht einen Suchverlauf.
+
+## Recovery-Suche in Originalmodulen (Node.js 18+)
+
+Die zusätzlichen Recovery-Tools können die **drei nach SHA-256 verifizierten Originalmodule** in einer isolierten, lesenden Umgebung prüfen und durchsuchen. Das ist kein Ersatz für die fehlende v1.7.1-Runtime.
+
+```bash
+node recovery/tools/catalog_probe.js --summary
+node recovery/tools/catalog_probe.js --search psycho
+node recovery/tools/catalog_probe.js --id chaos-theory
+node --test recovery/tests/catalog_probe.test.js
+```
