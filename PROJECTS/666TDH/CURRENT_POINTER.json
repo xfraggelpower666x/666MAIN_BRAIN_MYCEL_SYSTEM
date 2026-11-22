@@ -329,7 +329,9 @@
     "skills/tdh-integration-v1/hub/SKILL.md": "7fb13e9b971090fea572f258a231c83a39aa4595a22a8c6e2c3d5c388e567970",
     "skills/tdh-integration-v1/lcts/SKILL.md": "dd60fff3f6fd5e3dfe2e41866017cb96d0e9d6c422272073d8342cc6d695b225",
     "skills/tdh-integration-v1/shachiviti/SKILL.md": "a2157b754a111a3a83b685ff453f812752cc02a94b0532d0b1cfe5538d61c492",
-    "skills/tdh-integration-v1/td/SKILL.md": "8d5fb11d5c0be5ade84a59890a2c6d33922ed79290edf138a3615e19290619ce"
+    "skills/tdh-integration-v1/td/SKILL.md": "8d5fb11d5c0be5ade84a59890a2c6d33922ed79290edf138a3615e19290619ce",
+    "integrations/clic-r10/TDH_R10_NATIVE_REVIEW.json": "36c100ae64b742bcd2ecef8c5cb8efe09b58f178b2b3d79abd4bddcad53a3026",
+    "outbox/666CLIC/666TDH-TO-666CLIC-R10-20261122-01.json": "981e1cf8ea784fa179023c52cd7e4a996ed2a8ba7ca92a3fec394af8b67b4c3a"
   },
   "source_snapshot": {
     "release": "v1.15.0",
@@ -399,5 +401,33 @@
     "data_commit": "586f1e3abbf2e890c0196ac34bb4b9e82dd1cb7f",
     "host_render": "OPEN_NOT_VERIFIED",
     "native_release_unchanged": true
+  },
+  "r10_clic_intake": {
+    "revision": "TDH_CLIC_R10_20261122",
+    "target_system_id": "666TRACKHUB-001",
+    "base_commit": "a1e3aad4ff3d38315429a7f1cfb1746c6418b204",
+    "data_commit": "fb8aeccd90f70d7162dc686bb07d4435bb6c2bbb",
+    "source_repo": "xfraggelpower666x/666CLICPRO",
+    "source_branch": "clic-migration-rev79-staging",
+    "source_handoff_id": "CLIC-TO-666TDH-R10-20261122-01",
+    "source_handoff_blob": "ae8de1cb6280a6fe602f9d4cb0f7be914ff7046b",
+    "source_readback_commit": "de02b5afa85a04015fed70b64eb54ba48fb933c1",
+    "source_readback_tree": "d30e0a2428ae1dffd0f58bcf0622fdd62bab8339",
+    "prechange_backup_ref": "backup/666TDH/pre-CLIC-R10-20261122-a1e3aad4",
+    "audit_path": "integrations/clic-r10/TDH_R10_NATIVE_REVIEW.json",
+    "native_return_receipt": "outbox/666CLIC/666TDH-TO-666CLIC-R10-20261122-01.json",
+    "reviewed_findings": 5,
+    "confirmed_runtime_defects": 0,
+    "runtime_changes": 0,
+    "targeted_evidence_and_schema_tests": "PASS",
+    "full_303_binding_windows_host_test": "NOT_RUN",
+    "original_28_of_28_windows_checkout_commit": "5e63099ec8b90f40042b01c52d4bee7f6eeced11",
+    "independent_clic_recipient_readback": "PENDING",
+    "interactive_chatgpt_host": "OPEN_NOT_VERIFIED",
+    "source_vault_only": "PRESERVED",
+    "child_versions_unchanged": true,
+    "prior_starbridge_receipts_unchanged": true,
+    "no_foreign_writes": true,
+    "native_source_release_preserved": "v1.15.0"
   }
 }
