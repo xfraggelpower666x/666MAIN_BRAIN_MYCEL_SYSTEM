@@ -102,10 +102,14 @@ def main():
         print(json.dumps({"protocol": PROTOCOL, "status": "error", "volumes": [],
             "error": "R18 module import failed: " + str(exc)}), flush=True)
         return 4
-    from klrw.ssd import DiskActivitySampler
+    from klrw.ssd import DiskActivitySampler, DiskRates, indicator_hex, IndicatorSettings
+    from klrw.volumes import VolumeSampler
+    from klrw.overview import OverviewSampler
     from r19_features import VisualBindings, VolumePulseMonitor
     workspace = Workspace()
     physical_sampler = DiskActivitySampler()
+    capacity_sampler = VolumeSampler()
+    overview_sampler = OverviewSampler()
     visual = VisualBindings(workspace.path)
     pulse = VolumePulseMonitor()
     commands = queue.Queue()
@@ -170,6 +174,32 @@ def main():
                     read, write = normalize_rates(rate)
                     physical.append({"id": device, "read_bps": read, "write_bps": write})
                 sample["physical"] = physical
+                try:
+                    volumes, errors = capacity_sampler.sample()
+                    sample["capacity"] = [
+                        {"mountpoint": v.mountpoint, "device": v.device,
+                         "filesystem": v.filesystem, "total_bytes": v.total_bytes,
+                         "used_bytes": v.used_bytes, "free_bytes": v.free_bytes,
+                         "used_percent": v.used_percent, "status": v.status}
+                        for v in volumes]
+                    sample["capacity_errors"] = errors
+                except (OSError, RuntimeError, ValueError) as exc:
+                    sample["capacity"] = []
+                    sample["capacity_errors"] = {"sampler": type(exc).__name__}
+                try:
+                    info = overview_sampler.sample()
+                    sample["overview"] = {
+                        "cpu_pct": info.cpu_pct, "memory_pct": info.memory_pct,
+                        "disk_read_bps": info.disk_read_bps, "disk_write_bps": info.disk_write_bps,
+                        "rx_bps": info.rx_bps, "tx_bps": info.tx_bps}
+                except (OSError, RuntimeError, ValueError) as exc:
+                    sample["overview_error"] = type(exc).__name__
+                total = next((p for p in physical if p["id"] == "_total"), None)
+                if total is not None and total["read_bps"] is not None and total["write_bps"] is not None:
+                    sample["classic_preview"] = {"device": "_total",
+                        "indicator_color": indicator_hex(
+                            DiskRates("_total", total["read_bps"], total["write_bps"]),
+                            IndicatorSettings("_total", 1024.0))}
                 sample["bindings"] = dict(visual.bindings)
                 sample["binding_preview"] = visual.preview({
                     d["id"]: (d["read_bps"], d["write_bps"]) if d["read_bps"] is not None and d["write_bps"] is not None else None
