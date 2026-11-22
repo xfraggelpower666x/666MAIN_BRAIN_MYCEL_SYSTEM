@@ -1,0 +1,23 @@
+{
+  "schema": "666TDI_NATIVE_UPDATE_AUTHORITY_V1",
+  "system_id": "666TDI-001",
+  "namespace": "666TDI",
+  "authorized_by": "DIRECT_USER_MESSAGE_2026-11-22",
+  "allowed_repository": "xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM",
+  "allowed_branch": "666MAIN_BRAIN",
+  "allowed_path_prefix": "PROJECTS/666TDI/",
+  "forbidden_foreign_writes": true,
+  "handoff_source_repo": "xfraggelpower666x/666CLICPRO",
+  "source_mode": "READ_ONLY",
+  "foreign_autoactivation": false,
+  "root_pointer_last": true,
+  "pre_change_backup_required": true,
+  "direct_readback_required": true,
+  "audio_optional": true,
+  "trigger_installation": "NOT_INSTALLED",
+  "registered_update_trigger": false,
+  "host_pass_claimed": false,
+  "scope": "ONLY_666TDI",
+  "consumer": "native/handoff_consumer.py",
+  "approved_action": "R11_NATIVE_ADOPTION_AND_TDI03_OPTIONAL_AUDIO_FIX"
+}

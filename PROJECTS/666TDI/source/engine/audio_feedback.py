@@ -5,7 +5,14 @@ from __future__ import annotations
 from pathlib import Path
 from . import portable as p, relational as r
 import hashlib, math
-import numpy as np
+
+# Audio is optional. Core track creation/rehydration must not import numpy.
+def _numpy():
+    try:
+        import numpy as np
+    except ImportError as exc:
+        raise AudioError('OPTIONAL_AUDIO_DEPENDENCY_MISSING:numpy (install 666TDI[audio])') from exc
+    return np
 
 SCHEMA='666TDI_CAUSAL_AUDIO_FEEDBACK_V1'
 class AudioError(ValueError): pass
@@ -15,8 +22,12 @@ def _read_audio(path):
     if not path.is_file():raise AudioError('AUDIO_FILE_NOT_FOUND')
     if path.stat().st_size>350*1024*1024:raise AudioError('AUDIO_TOO_LARGE')
     if path.suffix.lower() not in {'.wav','.flac','.aiff','.aif'}:raise AudioError('UNSUPPORTED_LOCAL_AUDIO_FORMAT')
+    np=_numpy()
     try:
         import soundfile as sf
+    except ImportError as exc:
+        raise AudioError('OPTIONAL_AUDIO_DEPENDENCY_MISSING:soundfile (install 666TDI[audio])') from exc
+    try:
         info=sf.info(str(path))
         if not 1<=info.channels<=2 or not 8000<=info.samplerate<=192000:raise AudioError('UNSUPPORTED_CHANNELS_OR_SAMPLE_RATE')
         if info.frames>info.samplerate*1800:raise AudioError('AUDIO_TOO_LONG')
@@ -30,6 +41,7 @@ def _read_audio(path):
 
 def measure(path, window_seconds=0.1):
     """Deterministische Pegel-/Spektralmessung ohne trainiertes Wahrnehmungsmodell."""
+    np=_numpy()
     data,sr,digest=_read_audio(path)
     channels=data.shape[1]
     mono=data.mean(axis=1,dtype=np.float64)

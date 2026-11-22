@@ -4,7 +4,7 @@
 
 ## Installation und portable Nutzung
 
-Benötigt Python 3.10+ (nur Standardbibliothek). ZIP an beliebigen Ort entpacken. Im entpackten Hauptordner starten:
+Benötigt für normalen Trackbau Python 3.10+ (nur Standardbibliothek). **Optionaler Audiozweig:** `numpy` und `soundfile` (separat installieren). Diese Pakete sind für Systemstart, Trackdesign, Renderer-Kompilierung und Rehydration nicht erforderlich. ZIP an beliebigen Ort entpacken. Im entpackten Hauptordner starten:
 
 ```bash
 python -m engine.cli systemstart
