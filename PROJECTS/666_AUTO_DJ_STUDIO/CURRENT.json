@@ -1,0 +1,16 @@
+{
+  "system": "666_AUTO_DJ_STUDIO",
+  "scope": "PROJECTS/666_AUTO_DJ_STUDIO",
+  "status": "PARTIAL",
+  "revision": "R01_LIVE_SOURCE",
+  "source_commit": "411e41bbddfa211fb3a830f67962dd16946a14d9",
+  "source_branch": "666MAIN_BRAIN",
+  "readback": "SOURCE_FILES_VERIFIED",
+  "windows_build": "PENDING",
+  "portable": "NOT_BUILT",
+  "installer": "NOT_BUILT",
+  "legacy_parity": "INCOMPLETE",
+  "production_freeze": "BLOCKED",
+  "next": "Windows BUILD.bat test/run/all; verify portable and NSIS, complete legacy parity",
+  "non_destructive": true
+}
