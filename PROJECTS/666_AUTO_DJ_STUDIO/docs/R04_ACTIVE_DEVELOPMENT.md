@@ -1,0 +1,5 @@
+# R04 Active construction — 2026-11-22
+Source basis: R03_PLANNER_SOURCE_LIVE from GitHub native CURRENT.json; original R03 PowerShell retained.
+Implemented: existing MP3 single-track path kept as default; optional AutoDJ BLOCK MODE now calls legacy_planner.catalog, balanced_blocks and smart_shuffle; ffprobe calculates each track duration; block-specific isolated output folders and M3U export; Hardcore energy ordering flag; Electron controls and IPC forwarded; packaged ffprobe invoked from bundled resources.
+This is an additive implementation, not a claim of full PowerShell/AutoDJ functional equivalence. Metatag writing, cover rotation, full existing AutoDJ STREAM_READY export and crossfade operations remain open. No Windows builds or runtime tests performed in this development turn (user requested active coding rather than tests).
+Known gap: full backup contracts and source-native audio parity must be carried over before production freeze. Deployed production app unchanged. No independent Windows acceptance.
