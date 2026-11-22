@@ -1,0 +1,7 @@
+{
+  "name": "research-orchestra-reimplementation-r02",
+  "version": "0.2.0",
+  "private": true,
+  "engines": {"node": ">=18"},
+  "scripts": {"start": "node cli.js status", "test": "node --test tests/*.test.js", "audit": "node --test tests/*.test.js && node cli.js status"}
+}
