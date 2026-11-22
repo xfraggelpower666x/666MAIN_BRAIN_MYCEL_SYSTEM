@@ -4,7 +4,7 @@
 
 ## Current state
 
-R03 source is a locally tested Electron + Python/SQLite application. A safe GitHub migration was started here on 2026-11-22. **The complete Electron and Python R03 source has NOT yet been deposited in this repository.** This path is an active, versioned project workspace with a live project registry and continuity evidence; do not misrepresent it as a runnable GitHub checkout until source transfer and direct readback are complete.
+R03 source is a locally tested Electron + Python/SQLite application. A safe GitHub migration was started here on 2026-11-22. **The complete public-safe R03 Electron/Python application core and regression source files have now been deposited with exact Git blob SHA parity to the local R03 version. The private original R02 data and binary backups are deliberately excluded.** This is a live, versioned source workspace. The app core is present, but read-only legacy migration requires the original private database locally; real Windows Electron host, bundled portable EXE and installer remain unverified.
 
 - Current project state: `runtime/CURRENT.json`
 - Continuity / recovery: `runtime/LIVECIRCLE.md`
@@ -24,6 +24,6 @@ All future modifications target this directory only, begin by checking the lates
 
 ## Local R03 baseline evidence
 
-Local source: `666_FULL_LYRICS_INTELLIGENCE_ELECTRON_R03_COMPLETE.zip` from this chat, containing `engine/bridge.py`, `electron/main.cjs`, `electron/preload.cjs`, `renderer/{index.html,style.css,app.js}`, `tests/test_engine.py`, `package.json`, `START.cmd`, and preserved `legacy_r02/`. Verified in current session: `python -m unittest discover -s tests -v` **10/10 PASS** on unpacked local R03.
+Local source: `666_FULL_LYRICS_INTELLIGENCE_ELECTRON_R03_COMPLETE.zip` from this chat, containing `engine/bridge.py`, `electron/main.cjs`, `electron/preload.cjs`, `renderer/{index.html,style.css,app.js}`, `tests/test_engine.py`, `package.json`, `START.cmd`, and preserved `legacy_r02/`. Verified in current session: `python -m unittest discover -s tests -v` **10/10 PASS** on unpacked local R03 with original private R02 DB. The public checkout cannot pass the legacy fixture test until the user supplies that DB offline.
 
-**Not verified yet:** source-by-source GitHub migration, GitHub CI, Windows Electron host, portable EXE or installer.
+**Not verified yet:** GitHub CI, Windows Electron host, portable EXE or installer. Legacy R02 migration test requires the private original R02 DB, never committed here.

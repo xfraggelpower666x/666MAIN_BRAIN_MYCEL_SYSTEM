@@ -36,4 +36,4 @@ Original R02 assets can be retained offline or via an explicitly authorized priv
 4. Confirm no sensitive data or secret files in commit diff.
 5. Only then set `source_migration_status` to VERIFIED in project Current and consider build automation.
 
-Original R03 source transfer is **READBACK_PENDING**, not silently replaced by this governance scaffold.
+Core R03 source files and regression test were uploaded and verified via their exact local Git blob SHAs. Private legacy R02 source/data and binaries were not pushed. Windows and GitHub CI readbacks remain open.
