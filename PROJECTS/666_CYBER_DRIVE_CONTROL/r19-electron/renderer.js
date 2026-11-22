@@ -83,7 +83,10 @@ function drawOverlay(root){
     item.append(create('span','led '+color));root.append(item);}
 }
 function draw(){
-  const root=$('drives');root.replaceChildren();$('controls').replaceChildren();
+  const root=$('drives'),controls=$('controls');
+  const active=document.activeElement;
+  if(!overlay && controls.contains(active) && (active.tagName==='INPUT'||active.tagName==='SELECT'))return;
+  root.replaceChildren();controls.replaceChildren();
   $('notice').textContent=last.status==='ok'?'R18 live · D physische Devices / E logische Volumes':(last.error||'Sampler: '+last.status);
   $('statustext').textContent=last.status+' · '+(last.timestamp||'kein Sample')+' · '+(last.volumes||[]).length+' Volumes';
   if(overlay){drawOverlay(root);return;}
@@ -94,6 +97,7 @@ function draw(){
   else if(tab==='status')$('controls').append(create('div','control-card','Quelle: '+String(last.source||'?')+' · PDH-Volumes: '+(last.volumes||[]).length+' · Physische Datentraeger: '+(last.physical||[]).length));
 }
 for(const b of document.querySelectorAll('[data-tab]'))b.addEventListener('click',()=>{tab=b.dataset.tab;document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));draw();});
+$('controls').addEventListener('focusout',()=>queueMicrotask(()=>{if(!$('controls').contains(document.activeElement))draw();}));
 $('overlay-toggle').addEventListener('click',()=>window.cyber.toggleOverlay());
 window.cyber.onMetrics(data=>{last=data;draw();});
 window.cyber.readMetrics().then(data=>{last=data;draw();}).catch(e=>{$('notice').textContent=String(e);});
