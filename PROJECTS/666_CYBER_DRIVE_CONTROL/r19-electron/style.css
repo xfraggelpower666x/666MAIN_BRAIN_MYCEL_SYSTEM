@@ -8,3 +8,5 @@ body.overlay{background:transparent}body.overlay #shell{min-height:0;background:
 .target-options{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px}.target-options label{display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--text)}.target-options input{accent-color:var(--cyan)}
 
 .control-card input[type=number]{width:100px;max-width:100%;padding:7px;background:#202535;color:var(--text);border:1px solid var(--violet);border-radius:6px}
+
+.classic-indicator{font-size:52px;line-height:1.2;text-shadow:0 0 14px currentColor}

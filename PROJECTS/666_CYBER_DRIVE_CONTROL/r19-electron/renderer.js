@@ -90,6 +90,55 @@ function drawE(root){
     card.append(settingsRow);root.append(card);
   }
 }
+function drawA(root){
+  const capacity=Array.isArray(last.capacity)?last.capacity:[];
+  const issues=last.capacity_errors||{};
+  for(const v of capacity){
+    const card=create('article','drive');
+    card.append(create('h2',null,v.mountpoint+' · '+(v.filesystem||'Volume')));
+    const size=Number(v.total_bytes)||0,free=Number(v.free_bytes)||0,used=Number(v.used_bytes)||0;
+    card.append(create('div','drive-meta','Gesamt: '+(size/(1024**3)).toFixed(1)+' GiB · Frei: '+(free/(1024**3)).toFixed(1)+' GiB · Belegt: '+(used/(1024**3)).toFixed(1)+' GiB'));
+    const track=create('div','track'),fill=create('div','fill '+(v.status==='critical'?'write':'read'));
+    fill.style.width=Math.max(0,Math.min(100,Number(v.used_percent)||0))+'%';track.append(fill);
+    card.append(track,create('p','state-line','Belegung '+v.used_percent+'% · '+String(v.status||'unavailable').toUpperCase()));
+    root.append(card);
+  }
+  for(const [drive,error] of Object.entries(issues)){
+    root.append(create('div','control-card',drive+': '+error));
+  }
+  if(!capacity.length&&!Object.keys(issues).length)root.append(create('div','control-card','Keine Kapazitätsmessung verfügbar.'));
+}
+function drawB(root){
+  const p=create('div','control-card');
+  p.append(create('h2',null,'B · CLASSIC SSD / LOCK-ANZEIGE (LESEMODUS)'));
+  p.append(create('p','state-line','Originale R18-Classic-Farbvorschau. Hardware-Schaltfunktion ist nicht aktiviert.'));
+  const preview=last.classic_preview;
+  if(preview){
+    const sample=last.physical?.find(x=>x.id===preview.device);
+    const indicator=create('div','classic-indicator','●');
+    indicator.style.color=typeof preview.indicator_color==='string'?preview.indicator_color:'#394354';
+    p.append(indicator);
+    if(sample)p.append(create('div','drive-meta','READ '+fmt(sample.read_bps)+' · WRITE '+fmt(sample.write_bps)));
+  }else p.append(create('p','state-line','Classic-Signal derzeit nicht verfügbar.'));
+  root.append(p);
+}
+function drawC(root){
+  const p=create('div','control-card');
+  p.append(create('h2',null,'C · TOOL-DIAGNOSE / RECOVERY — ENTWICKLERSEITIG'));
+  p.append(create('p',null,'R18 besitzt separate Tools für Diagnose, Setup, Updates und Python-Recovery. Diese Aktionen bleiben vollständig im zentralen Windows-Batch und werden nicht in das Endbenutzer-Tool eingebaut.'));
+  p.append(create('p','state-line','Kein Installations- oder Update-Befehl aus Electron.'));
+  root.append(p);
+}
+function drawStatus(root){
+  const x=last.overview;
+  if(!x){root.append(create('div','control-card','Systemmessung nicht verfügbar: '+String(last.overview_error||'?')));return;}
+  const p=create('div','control-card');
+  p.append(create('h2',null,'R18 · SYSTEMÜBERSICHT'));
+  for(const [label,value,unit] of [['CPU',x.cpu_pct,'%'],['RAM',x.memory_pct,'%'],['DISK READ',x.disk_read_bps,'bytes'],['DISK WRITE',x.disk_write_bps,'bytes'],['NETWORK RX',x.rx_bps,'bytes'],['NETWORK TX',x.tx_bps,'bytes']]){
+    p.append(create('div','drive-meta',label+' · '+(unit==='%'?Number(value).toFixed(1)+'%':fmt(value))));
+  }
+  root.append(p);
+}
 function drawOverlay(root){
   for(const d of last.volumes||[]){if(!d.targets?.overlay)continue;
     const item=create('div','mini');item.title=[d.letter,d.label,d.id,'R '+fmt(d.read_bps),'W '+fmt(d.write_bps),d.filesystem].join(' · ');
@@ -112,11 +161,14 @@ function draw(){
   $('notice').textContent=last.status==='ok'?'R18 live · D physische Devices / E logische Volumes':(last.error||'Sampler: '+last.status);
   $('statustext').textContent=last.status+' · '+(last.timestamp||'kein Sample')+' · '+(last.volumes||[]).length+' Volumes';
   if(overlay){drawOverlay(root);return;}
-  const headings={d:'D · PHYSICAL DRIVE LED MAPPING',e:'E · DRIVE WORKSPACE',a:'A · STORAGE · OFFEN',b:'B · CLASSIC · OFFEN',c:'C · TOOLS · OFFEN',status:'SYSTEM STATUS'};
+  const headings={d:'D · PHYSICAL DRIVE LED MAPPING',e:'E · DRIVE WORKSPACE',a:'A · VOLUME CAPACITY',b:'B · CLASSIC · SAFE PREVIEW',c:'C · TOOLS / RECOVERY · EXTERNAL',status:'SYSTEM STATUS'};
   $('heading').textContent=headings[tab];
-  $('details').textContent=tab==='d'?'D verwendet den R18 DiskActivitySampler; sichere Mapping-Einstellungen werden separat dauerhaft gespeichert, ohne Hardwarezugriff.':tab==='e'?'E zeigt R18 Volume-GUID, PDH und gespeicherte Auswahl.': 'Dieses R18-Funktionsmodul ist in Electron noch nicht uebernommen.';
+  $('details').textContent=tab==='d'?'D verwendet den R18 DiskActivitySampler; sichere Mapping-Einstellungen werden separat dauerhaft gespeichert, ohne Hardwarezugriff.':tab==='e'?'E zeigt R18 Volume-GUID, PDH und gespeicherte Auswahl.': 'R18 Daten werden lesend genutzt. Funktionen mit Systemaenderungen bleiben in den externen Windows-Tools.';
   if(tab==='d')drawD(root);else if(tab==='e')drawE(root);
-  else if(tab==='status')$('controls').append(create('div','control-card','Quelle: '+String(last.source||'?')+' · PDH-Volumes: '+(last.volumes||[]).length+' · Physische Datentraeger: '+(last.physical||[]).length));
+  else if(tab==='a')drawA(root);
+  else if(tab==='b')drawB(root);
+  else if(tab==='c')drawC(root);
+  else if(tab==='status')drawStatus(root);
 }
 for(const b of document.querySelectorAll('[data-tab]'))b.addEventListener('click',()=>{tab=b.dataset.tab;document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));draw();});
 $('controls').addEventListener('focusout',()=>queueMicrotask(()=>{if(!$('controls').contains(document.activeElement))draw();}));
