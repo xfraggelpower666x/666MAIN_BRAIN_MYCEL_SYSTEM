@@ -33,7 +33,7 @@ function Package($target) {
  }
  & python -m PyInstaller --noconfirm --clean --onefile --name autodj-engine --distpath build/runtime --workpath build/pyi-work --specpath build/pyi-spec engine/worker.py
  if($LASTEXITCODE -ne 0){throw 'Python Build failed'}
- & npx electron-builder --win $target --x64
+ if($target -eq 'both'){ & npx electron-builder --win portable nsis --x64 } else { & npx electron-builder --win $target --x64 }
  if($LASTEXITCODE -ne 0){throw "Package $target failed"}
 }
 if($Action -eq 'menu'){
@@ -48,5 +48,5 @@ switch($Action){
  'run' {Deps;& npm start}
  'portable' {Package 'portable'}
  'setup' {Package 'nsis'}
- 'all' {Package 'portable nsis'}
+ 'all' {Package 'both'}
 }
