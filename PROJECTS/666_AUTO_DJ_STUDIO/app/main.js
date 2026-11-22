@@ -21,14 +21,14 @@ ipcMain.handle('job:start',async(_,p)=>{
  const profile=['stream','dj','custom'].includes(p.profile)?p.profile:'stream';
  const cmd=app.isPackaged?res('engine/autodj-engine.exe'):(process.platform==='win32'?'py':'python3');
  const args=app.isPackaged?[]:['-u',res('engine/worker.py')];
- args.push('--input-json','-','--ffmpeg',app.isPackaged?res('ffmpeg/ffmpeg.exe'):(process.env.AUTO_DJ_FFMPEG||'ffmpeg'));
+ args.push('--input-json','-','--ffmpeg',app.isPackaged?res('ffmpeg/ffmpeg.exe'):(process.env.AUTO_DJ_FFMPEG||'ffmpeg'),'--ffprobe',app.isPackaged?res('ffmpeg/ffprobe.exe'):(process.env.AUTO_DJ_FFPROBE||'ffprobe'));
  try{
   const proc=spawn(cmd,args,{stdio:['pipe','pipe','pipe'],windowsHide:true});job=proc;
   let pending='';proc.stdout.on('data',chunk=>{pending+=chunk.toString();let lines=pending.split(/\r?\n/);pending=lines.pop();for(const line of lines){try{emit('progress',JSON.parse(line));}catch{emit('message',line);}}});
   proc.stderr.on('data',chunk=>emit('message',chunk.toString().slice(0,500)));
   proc.once('error',err=>{emit('error',err.message);if(job===proc)job=null;});
   proc.once('close',code=>{emit('finished',{code});if(job===proc)job=null;});
-  proc.stdin.end(JSON.stringify({files,output,profile,bitrate:p.bitrate===320?320:256,export_m3u:p.export_m3u===true})+'\n');
+  proc.stdin.end(JSON.stringify({files,output,profile,bitrate:p.bitrate===320?320:256,export_m3u:p.export_m3u===true,block_mode:p.block_mode===true,split_mode:['MINUTES','TRACKS','HYBRID'].includes(p.split_mode)?p.split_mode:'MINUTES',target_minutes:Number.isInteger(p.target_minutes)?p.target_minutes:180,target_tracks:Number.isInteger(p.target_tracks)?p.target_tracks:40,hardcore:p.hardcore===true})+'\n');
   return {ok:true};
  }catch(err){job=null;return {ok:false,error:err.message};}
 });
