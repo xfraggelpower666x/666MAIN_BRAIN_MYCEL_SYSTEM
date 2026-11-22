@@ -1,5 +1,6 @@
 """666 AutoDJ Studio isolated Python worker. R01: MP3 conversion only, not legacy full parity."""
 import argparse,json,os,subprocess,sys,tempfile
+from playlist import export_m3u
 from pathlib import Path
 PROFILES={"stream":["-af","loudnorm=I=-14:TP=-1.5:LRA=11"],"dj":["-af","loudnorm=I=-10:TP=-1.0:LRA=9"],"custom":[]}
 EXT={".mp3",".wav",".flac",".ogg",".m4a",".aac",".aiff",".wma"}
@@ -19,7 +20,7 @@ def validate(data):
  return files,root,profile,bitrate
 def emit(**kw):print(json.dumps(kw,ensure_ascii=False),flush=True)
 def process(data,ffmpeg):
- files,root,profile,bitrate=validate(data);ok=0
+ files,root,profile,bitrate=validate(data);ok=0;exported=[]
  for i,src in enumerate(files,1):
   dst=destination(src,root)
   fd,name=tempfile.mkstemp(prefix="autodj_",suffix=".mp3",dir=root);os.close(fd);tmp=Path(name)
@@ -27,9 +28,14 @@ def process(data,ffmpeg):
    args=[ffmpeg,"-hide_banner","-nostdin","-loglevel","error","-y","-i",str(src),*PROFILES[profile],"-codec:a","libmp3lame","-b:a",str(bitrate)+"k",str(tmp)]
    r=subprocess.run(args,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=7200)
    if r.returncode or tmp.stat().st_size==0:raise RuntimeError(r.stderr.decode(errors="replace")[-900:])
-   tmp.replace(dst);ok+=1;emit(done=i,total=len(files),message="OK: "+src.name+" -> "+dst.name)
+   tmp.replace(dst);ok+=1;exported.append(dst);emit(done=i,total=len(files),message="OK: "+src.name+" -> "+dst.name)
   except Exception as exc:emit(done=i,total=len(files),message="ERROR: "+src.name+": "+str(exc))
   finally:tmp.unlink(missing_ok=True)
+ if data.get('export_m3u') and exported:
+  try:
+   p=export_m3u(root,exported);emit(done=len(files),total=len(files),message='M3U: '+str(p))
+  except Exception as exc:
+   emit(message='M3U ERROR: '+str(exc));return 3
  return 0 if ok==len(files) else 2
 def main():
  parser=argparse.ArgumentParser();parser.add_argument("--input-json",default="-");parser.add_argument("--ffmpeg",default="ffmpeg");args=parser.parse_args()
