@@ -100,7 +100,9 @@ def main():
         print(json.dumps({"protocol": PROTOCOL, "status": "error", "volumes": [],
             "error": "R18 module import failed: " + str(exc)}), flush=True)
         return 4
+    from klrw.ssd import DiskActivitySampler
     workspace = Workspace()
+    physical_sampler = DiskActivitySampler()
     sampler = None
     try:
         sampler = WindowsLogicalDiskSampler()
@@ -110,6 +112,12 @@ def main():
         while True:
             try:
                 sample = snapshot(workspace, enumerate_drives, sampler)
+                physical = []
+                for device in physical_sampler.devices():
+                    rate = physical_sampler.sample(device)
+                    read, write = normalize_rates(rate)
+                    physical.append({"id": device, "read_bps": read, "write_bps": write})
+                sample["physical"] = physical
                 print(json.dumps(sample, ensure_ascii=False, separators=(",", ":")), flush=True)
             except (OSError, ValueError, RuntimeError) as exc:
                 print(json.dumps({"protocol": PROTOCOL, "status": "error", "volumes": [],
