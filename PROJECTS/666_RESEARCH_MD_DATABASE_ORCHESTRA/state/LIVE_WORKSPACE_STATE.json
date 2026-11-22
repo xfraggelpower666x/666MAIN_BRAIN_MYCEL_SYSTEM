@@ -1,0 +1,23 @@
+{
+  "project": "666 RESEARCH MD DATABASE ORCHESTRA",
+  "workspace": "PROJECTS/666_RESEARCH_MD_DATABASE_ORCHESTRA",
+  "status": "PARTIAL_READBACK_PENDING",
+  "historical_release": "v1.7.1-clean-system.1",
+  "production_promotion": "FORBIDDEN_UNTIL_FULL_READBACK",
+  "native_authority": "INDEPENDENT_RESEARCH_PROJECT",
+  "shared_host": "666MAIN_BRAIN_MYCEL_SYSTEM/PROJECTS only; no authority inheritance",
+  "original_sha256_source": "history/v1_7_1/SYSTEM_ONLY_FILE_MANIFEST_SHA256.txt",
+  "originals_restored_to_paths": [
+    "data/topics/topic-chaos-theory.js",
+    "data/topics/topic-chaos-psytrance-psychoacoustics.js",
+    "data/prompts/prompt-chaos-psytrance-suno-specialist.js"
+  ],
+  "runtime_contract": "Current recovered data files are read-only original sources; original v1.7.1 core and bootstrap remain missing.",
+  "next_steps": [
+    "Locate missing v1.7.1 source bytes from authenticated primary sources; do not invent or promote legacy files.",
+    "For every recovered file verify SHA-256 against historical file manifest, then add in original path.",
+    "Rehydrate original bootstrap, core, prompt registry, tests, audio tools and verify dependencies.",
+    "Execute JS build and Python audio regression on the fully recovered tree.",
+    "Run full source audit, freeze only after all tests and verified readback; keep system-only exclusions."
+  ]
+}
