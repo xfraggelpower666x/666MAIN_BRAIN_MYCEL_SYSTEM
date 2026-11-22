@@ -24,13 +24,7 @@ $('archiveSelected').onclick=()=>task(async()=>{if(!state.selected)return notice
 async function loadProjects(){const r=await task(()=>api.projects());if(!r)return;const box=$('projectCards');box.replaceChildren();r.forEach(p=>{const el=node('div','project-card');el.append(node('strong','',p.project),node('p','',p.records+' katalogisierte Einträge'),node('p','',`Themen: ${p.topics.map(t=>t[0]+' ('+t[1]+')').join(', ')||'noch keine'}`),node('p','',`Empfehlung: ${p.recommendation}`));box.append(el)});if(!r.length)box.textContent='Noch keine Projekte.'}
 async function loadArchived(){const r=await task(()=>api.list({archived:true}));if(!r)return;const el=$('archiveList');el.replaceChildren();r.forEach(x=>el.append(node('div','queue-row',x.project+' · '+x.title)));if(!r.length)el.textContent='Noch keine archivierten Datensätze.'}
 $('showArchived').onclick=loadArchived;$('openDataFolder').onclick=()=>task(()=>api.openFolder());
-async function checkTools(){const x=await task(()=>api.check());if(!x)return;$('systemInfo').textContent=`Python: ${x.python?.version||'NICHT INSTALLIERT'}
-Node.js: ${x.node}
-Electron: ${x.electron}
-Plattform: ${x.platform}
-Speicher: ${x.storage}
-pypdf: ${x.dependencies?.pypdf?'OK':'FEHLT (optional)'}
-python-docx: ${x.dependencies?.docx?'OK':'FEHLT (optional)'}`}
+async function checkTools(){const x=await task(()=>api.check());if(!x)return;$('systemInfo').textContent=`Python: ${x.python?.version||'NICHT INSTALLIERT'}\nNode.js: ${x.node}\nElectron: ${x.electron}\nPlattform: ${x.platform}\nSpeicher: ${x.storage}\npypdf: ${x.dependencies?.pypdf?'OK':'FEHLT (optional)'}\npython-docx: ${x.dependencies?.docx?'OK':'FEHLT (optional)'}`}
 $('checkTools').onclick=checkTools;$('installExtras').onclick=()=>task(async()=>{const x=await api.install();notice(JSON.stringify(x));await checkTools()});
 async function migrate(){const path='../legacy_r02/app/lyrics_library.db';// absolute path resolved in main only, never from renderer
  const r=await task(()=>api.migrate({bundled:true}));if(r){notice(`R02-Migration: ${r.inserted} neu, ${r.duplicates} bereits vorhanden.`);await refresh()}}
