@@ -31,6 +31,13 @@ R19_E_IMPLEMENTED: real logical Windows PDH volumes and GUID identities, origina
 R19_DE_UI_GUARD: editing focus preserved across 500ms metrics refresh, renderer V8 parse PASS
 R19_DE_VALIDATION: remote direct readback main/preload/renderer/HTML/CSS/Python bridge; R18 unchanged original ZIP 288/288 pytest PASS on Linux
 R19_DE_OPEN_TESTS: new Python command bridge IPC integration not run; Windows Electron PDH/Hotplug/Overlay/Tray visual acceptance pending
-R19_DE_NEXT: execute bridge command contract tests; validate E persistence and D live-preview on Windows; implement R18 D binding persistence and E bicolor hold/quiet logic without hardening into device writes
+R19_DE_NEXT: validate native Windows Electron IPC, LED pulse rendering and full R18-to-R19 parity; complete A/B/C; portable/setup host acceptance
+R19_DE_D_PERSISTENCE: implemented in separate atomic r19_visual_bindings.json via R18 DriveBinding/evaluate; no keyboard writes
+R19_DE_E_PULSE: implemented via original R18 BicolorActivity, actual threshold/burst/hold/quiet and missing-volume cleanup
+R19_DE_CHANNEL: set-visual-binding restricted IPC; Python validates physical device and finite threshold; no hardware control
+R19_DE_TESTS: local candidate D/E features 3/3 PASS and R18 unchanged regression 288/288 PASS; exact GitHub Windows IPC/EXE test READBACK_PENDING
+R19_DE_BUILD_GATE: BUILD/BUILD_CONTROL.ps1 now runs R19 D/E pytest after R18 tests, before freezing backend
+R19_DE_IMPLEMENTATION_FINAL: 8465dc9f7a1352f593490d136ee0273a671d8d7e
+R19_DE_IMPLEMENTATION_TREE_FINAL: ea4527a362e9a05b082ec47e67e2106276c6cfaa
 
 NEXT_EXECUTABLE: Windows checkout of verified GitHub Current; START_BUILD_WINDOWS.bat -> menu 9; inspect real EXEs, setup install directory choice, tray, overlay and USB hotplug, then hash/readback release artifacts
