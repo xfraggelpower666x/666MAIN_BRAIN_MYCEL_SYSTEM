@@ -106,9 +106,25 @@ function Check-Release {
   if (-not (Test-Path (Join-Path $App 'node_modules\electron'))) { throw 'BUILD_BLOCKED: node_modules missing.' }
   Ensure-Source
 }
+function Verify-R18 {
+  Ensure-Source
+  if (-not $script:BuildPython) { Ensure-Dependencies }
+  $verifier = Join-Path $Root 'scripts\VERIFY_R18_RELEASE.py'
+  Run $script:BuildPython @($verifier)
+  Push-Location $Legacy
+  $oldPythonPath = $env:PYTHONPATH
+  try {
+    $env:PYTHONPATH = Join-Path $Legacy 'src'
+    Run $script:BuildPython @('-m','pytest','-q','tests')
+  } finally {
+    $env:PYTHONPATH = $oldPythonPath
+    Pop-Location
+  }
+}
 function Build-Target([string]$target) {
   Ensure-Source
   Ensure-Dependencies
+  Verify-R18
   Build-Engine
   Check-Release
   Push-Location $App
@@ -144,7 +160,7 @@ function Show-Menu {
   Write-Host '6  Portable + Setup bauen'
   Write-Host '7  Kompilierte portable EXE sofort starten/testen'
   Write-Host '8  Build- und Quellstatus anzeigen'
-  Write-Host '9  R18 importieren + GitHub-Readback + Portable und Setup bauen'
+  Write-Host '9  Git-R18-Quellen verifizieren + Tests + Portable und Setup bauen'
   Write-Host '0  Beenden'
 }
 Log "Build host started; project $Root"
@@ -162,17 +178,9 @@ while ($true) {
       '7' { Test-Compiled }
       '8' { Log "R18 original source present: $(Test-Path (Join-Path $Legacy 'src\klrw\drive_workspace.py'))"; Log "Frozen engine present: $(Test-Path $Metrics)"; Log "Node: $(Find-Command 'node')"; Log "Build report: $Report" }
       '9' {
-        $zip = Read-Host 'Vollstaendiger Pfad zum unveraenderten R18-Original-ZIP'
-        if (-not (Test-Path -LiteralPath $zip -PathType Leaf)) { throw 'R18 ZIP not found' }
-        Ensure-Dependencies
-        $importer = Join-Path $Root 'scripts\R18_IMPORT_AND_VERIFY.py'
-        Run $script:BuildPython @($importer, $zip)
-        $repoRoot = (Resolve-Path (Join-Path $Root '..\..')).Path
-        $publisher = Join-Path $Root 'scripts\PUBLISH_R18_GIT.py'
-        Run $script:BuildPython @($publisher, $zip, '--checkout', $repoRoot)
-        Log 'R18 source published and GitHub HEAD readback verified.'
+        Log 'R18 original sources are versioned in GitHub. No ZIP input is required.'
         Build-Target 'both'
-        Log 'R18 migration + Portable EXE + Setup completed. Verify artifacts and host behavior.'
+        Log 'Build finished. Clean Windows host acceptance and installer validation still required.'
       }
       '0' { Log 'Exit'; exit 0 }
       default { Write-Host 'Unknown option.' }
