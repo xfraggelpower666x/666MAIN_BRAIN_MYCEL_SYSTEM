@@ -18,7 +18,7 @@ function Deps {
  if($LASTEXITCODE -ne 0){throw 'PyInstaller fehlgeschlagen'}
 }
 function Test {
- & python -m unittest discover -s tests -p test_engine.py -v
+ & python -m unittest discover -s tests -p 'test_*.py' -v
  if($LASTEXITCODE -ne 0){throw 'Python-Tests fehlgeschlagen'}
  foreach($f in @('app/main.js','app/preload.js','app/renderer.js')){& node --check $f;if($LASTEXITCODE -ne 0){throw "Syntaxfehler $f"}}
 }

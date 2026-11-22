@@ -28,7 +28,7 @@ ipcMain.handle('job:start',async(_,p)=>{
   proc.stderr.on('data',chunk=>emit('message',chunk.toString().slice(0,500)));
   proc.once('error',err=>{emit('error',err.message);if(job===proc)job=null;});
   proc.once('close',code=>{emit('finished',{code});if(job===proc)job=null;});
-  proc.stdin.end(JSON.stringify({files,output,profile,bitrate:p.bitrate===320?320:256})+'\n');
+  proc.stdin.end(JSON.stringify({files,output,profile,bitrate:p.bitrate===320?320:256,export_m3u:p.export_m3u===true})+'\n');
   return {ok:true};
  }catch(err){job=null;return {ok:false,error:err.message};}
 });
