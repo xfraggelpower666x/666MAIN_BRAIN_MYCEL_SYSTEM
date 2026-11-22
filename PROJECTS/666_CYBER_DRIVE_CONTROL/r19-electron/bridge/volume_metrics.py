@@ -12,6 +12,8 @@ import os
 from pathlib import Path
 import sys
 import time
+import threading
+import queue
 from datetime import datetime, timezone
 
 PROTOCOL = "cyber-drive.metrics.v2"
@@ -103,6 +105,14 @@ def main():
     from klrw.ssd import DiskActivitySampler
     workspace = Workspace()
     physical_sampler = DiskActivitySampler()
+    commands = queue.Queue()
+    def read_commands():
+        for line in sys.stdin:
+            try:
+                commands.put(json.loads(line))
+            except (ValueError, UnicodeError):
+                continue
+    threading.Thread(target=read_commands, daemon=True).start()
     sampler = None
     try:
         sampler = WindowsLogicalDiskSampler()
@@ -111,6 +121,39 @@ def main():
     try:
         while True:
             try:
+                while not commands.empty():
+                    item = commands.get_nowait()
+                    identifier = item.get("request_id") if isinstance(item, dict) else None
+                    response = {"protocol": PROTOCOL, "type": "reply", "request_id": identifier}
+                    try:
+                        if not isinstance(item, dict):
+                            raise ValueError("Invalid request")
+                        action = item.get("action")
+                        if action == "set-drive-visibility":
+                            key = item.get("volume_id")
+                            target = item.get("target")
+                            enabled = item.get("enabled")
+                            if not isinstance(key, str) or len(key) > 512 or not key:
+                                raise ValueError("Invalid volume ID")
+                            if target not in ("tray", "overlay") or type(enabled) is not bool:
+                                raise ValueError("Only tray/overlay boolean selections are supported")
+                            drive = next((d for d in enumerate_drives() if d.key == key), None)
+                            if drive is None:
+                                raise ValueError("Drive no longer present")
+                            workspace.preferences(drive)[target] = enabled
+                        elif action == "set-overlay-layout":
+                            layout = item.get("layout")
+                            if layout not in ("minimal", "horizontal", "vertical"):
+                                raise ValueError("Invalid overlay layout")
+                            workspace.data["overlay"]["layout"] = layout
+                        else:
+                            raise ValueError("Unsupported command")
+                        workspace.save()
+                        response["ok"] = True
+                    except (OSError, ValueError, TypeError) as exc:
+                        response["ok"] = False
+                        response["error"] = str(exc)
+                    print(json.dumps(response, ensure_ascii=False), flush=True)
                 sample = snapshot(workspace, enumerate_drives, sampler)
                 physical = []
                 for device in physical_sampler.devices():
