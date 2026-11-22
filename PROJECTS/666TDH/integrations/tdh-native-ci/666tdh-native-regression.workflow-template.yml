@@ -1,0 +1,38 @@
+# VORBEREITETE VORLAGE – NICHT AKTIVIERT.
+# Der native TDH-R1-Vertrag erlaubt nur Writes unter PROJECTS/666TDH.
+# GitHub Actions akzeptiert Workflowdateien ausschließlich in .github/workflows/.
+# Installation erfordert eine getrennte autorisierte Repository-Governance-Mutation.
+name: 666TDH native repository regression (read-only)
+on:
+  push:
+    branches:
+      - 666MAIN_BRAIN
+    paths:
+      - 'PROJECTS/666TDH/**'
+      - '.github/workflows/666tdh-native-regression.yml'
+  pull_request:
+    paths:
+      - 'PROJECTS/666TDH/**'
+      - '.github/workflows/666tdh-native-regression.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  tdh-native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout triggering revision
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Use Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify native Current, child isolation, daemon and regression suite
+        env:
+          TDH_EXPECTED_COMMIT: ${{ github.sha }}
+        shell: bash
+        run: |
+          python -B PROJECTS/666TDH/tools/ci_validate.py --expected-head "$TDH_EXPECTED_COMMIT"
