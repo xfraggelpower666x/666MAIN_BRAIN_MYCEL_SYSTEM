@@ -40,4 +40,15 @@ R19_DE_BUILD_GATE: BUILD/BUILD_CONTROL.ps1 now runs R19 D/E pytest after R18 tes
 R19_DE_IMPLEMENTATION_FINAL: 8465dc9f7a1352f593490d136ee0273a671d8d7e
 R19_DE_IMPLEMENTATION_TREE_FINAL: ea4527a362e9a05b082ec47e67e2106276c6cfaa
 
+
+R19_ABC_SOURCE_IMPLEMENTATION: 8a555415c050532f946fb81f36973c546711f205
+R19_ABC_IMPLEMENTATION_TREE: 685d3553cd38f7e2afd6ab60f22d692bed6f1097
+R19_A: original R18 VolumeSampler capacity + warnings + unavailable paths, read-only
+R19_B: original R18 indicator_hex classic disk preview, no Windows Lock LED mutations
+R19_C: build, setup, update and Python recovery deliberately remain in external Windows batch only
+R19_STATUS: original R18 OverviewSampler CPU/RAM/disk/network telemetry
+R19_ABC_TESTS: unchanged R18 local regression 288/288 PASS at 2026-11-22; renderer V8 syntax PASS; repository file readback PASS
+R19_ABC_HOST_GATES: Python bridge native Windows host behavior, full B classic feature parity, portable and NSIS executable builds READBACK_PENDING
+NEXT_DEVELOPMENT: targeted Windows host bridge/renderer IPC smoke test, real portable/setup proof, then remaining parity without removing R18 or exposing installer UI
+
 NEXT_EXECUTABLE: Windows checkout of verified GitHub Current; START_BUILD_WINDOWS.bat -> menu 9; inspect real EXEs, setup install directory choice, tray, overlay and USB hotplug, then hash/readback release artifacts
