@@ -2,15 +2,16 @@
   "system": "666_AUTO_DJ_STUDIO",
   "scope": "PROJECTS/666_AUTO_DJ_STUDIO",
   "status": "PARTIAL",
-  "revision": "R01_LIVE_SOURCE",
-  "source_commit": "411e41bbddfa211fb3a830f67962dd16946a14d9",
+  "revision": "R02_M3U_LIVE",
+  "source_commit": "12200e216b03503c8a2fe02524ffd2909c3a3ae5",
   "source_branch": "666MAIN_BRAIN",
-  "readback": "SOURCE_FILES_VERIFIED",
+  "readback": "M3U_FILES_AND_FIX_VERIFIED",
   "windows_build": "PENDING",
   "portable": "NOT_BUILT",
   "installer": "NOT_BUILT",
   "legacy_parity": "INCOMPLETE",
   "production_freeze": "BLOCKED",
-  "next": "Windows BUILD.bat test/run/all; verify portable and NSIS, complete legacy parity",
-  "non_destructive": true
+  "next": "Run Windows regression and direct-start checks; restore legacy parity; validate FFmpeg provisioning, portable and NSIS outputs",
+  "non_destructive": true,
+  "m3u": "INTEGRATED_SOURCE"
 }
