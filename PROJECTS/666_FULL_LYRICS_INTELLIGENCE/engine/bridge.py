@@ -236,6 +236,32 @@ def archive(c,base,data):
  with c:c.executemany('UPDATE records SET archived=1 WHERE id=?',[(x,) for x in ids])
  snapshot(c,base)
  return {'path':str(target),'archived':result['count']}
+def correct_record(c,base,data):
+ """Manuelle, projektlokale Katalogkorrektur ohne Textverlust."""
+ rid=data.get('id')
+ old=c.execute('SELECT * FROM records WHERE id=?',(rid,)).fetchone()
+ if old is None:raise ValueError('Datensatz nicht gefunden')
+ project=str(data.get('project','')).strip()
+ category=str(data.get('category','')).strip()
+ title=str(data.get('title','')).strip()
+ if not project or len(project)>100 or '/' in project or '\\' in project or project.startswith('.'):raise ValueError('Ungültiger Projektname')
+ if category not in ('lyrics','style_prompt','prompt','framework','code','diverse'):raise ValueError('Ungültige Kategorie')
+ if not title or len(title)>240:raise ValueError('Ungültiger Titel')
+ new=dict(old);new.update({'project':project,'category':category,'title':title,'confidence':1.0})
+ previous=base/'records'/safe_name(old['project'])/(rid+'.json')
+ target=base/'records'/safe_name(project)/(rid+'.json')
+ # DB bleibt Autorität. Keine Lyrics-Textänderung und keine fremden Systemwrites.
+ with c:
+  c.execute('INSERT OR IGNORE INTO projects(name,created_at) VALUES(?,?)',(project,DATE()))
+  c.execute('UPDATE records SET project=?,category=?,title=?,confidence=? WHERE id=?',(project,category,title,1.0,rid))
+  try:
+   c.execute('DELETE FROM records_fts WHERE id=?',(rid,))
+   c.execute('INSERT INTO records_fts VALUES(?,?,?,?,?)',(rid,title,old['content'],project,category))
+  except sqlite3.OperationalError:pass
+ atomic_json(target,{'schema':'666-catalog-record/1',**new})
+ if previous!=target and previous.is_file():previous.unlink()
+ snapshot(c,base)
+ return {'id':rid,'project':project,'category':category,'title':title,'content_unchanged':True}
 def migrate(c,base,data):
  db=Path(data.get('path',''))
  if not db.is_file():raise ValueError('Legacy-Datenbank nicht gefunden')
@@ -270,6 +296,7 @@ def run(arg):
    return [dict(r) for r in rows]
   if action=='record':
    row=c.execute('SELECT * FROM records WHERE id=?',(data.get('id'),)).fetchone();return dict(row) if row else None
+  if action=='correct':return correct_record(c,base,data)
   if action=='export':return export_records(c,base,data)
   if action=='archive':return archive(c,base,data)
   if action=='migrate':return migrate(c,base,data)
