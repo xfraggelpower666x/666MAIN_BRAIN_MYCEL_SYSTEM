@@ -1,0 +1,58 @@
+unit Shared.CompilerInt;
+
+{
+  Inno Setup
+  Copyright (C) 1997-2026 Jordan Russell
+  Portions by Martijn Laan
+  For conditions of distribution and use, see LICENSE.TXT.
+
+  Compiler interface
+}
+
+interface
+
+uses
+  Shared.CompilerInt.Struct;
+
+const
+  ISCmplrDLL = 'ISCmplr.dll';
+
+var
+  ISCmplrLibrary: HMODULE;
+
+{ The ISDllCompileScript function begins compilation of a script. See the
+  description of the TCompileScriptParamsEx record in Shared.CompilerInt.Struct.
+  Return value is one of the isce* constants. }
+  ISDllCompileScript: function(const Params: TCompileScriptParamsEx): Integer; stdcall;
+
+{ The ISDllGetVersion returns a pointer to a TCompilerVersionInfo record which
+  contains information about the compiler version. }
+  ISDllGetVersion: function: PCompilerVersionInfo; stdcall;
+
+procedure InitISCmplrLibrary;
+
+implementation
+
+uses
+  Windows,
+  SysUtils,
+  PathFunc, TrustFunc;
+
+procedure InitISCmplrLibrary;
+begin
+  var FileName := AddBackslash(PathExtractPath(ParamStr(0))) + ISCmplrDLL;
+  ISCmplrLibrary := LoadTrustedLibrary(FileName, [ltloTrustAllOnDebug]);
+  if ISCmplrLibrary <> 0 then begin
+    ISDllCompileScript := GetProcAddress(ISCmplrLibrary, 'ISDllCompileScriptW');
+    ISDllGetVersion := GetProcAddress(ISCmplrLibrary, 'ISDllGetVersion');
+    if not Assigned(ISDllCompileScript) or not Assigned(ISDllGetVersion) then begin
+      FreeLibrary(ISCmplrLibrary);
+      ISCmplrLibrary := 0;
+      ISDllCompileScript := nil;
+      ISDllGetVersion := nil;
+      raise Exception.Create('One or more required functions are missing');
+    end;
+  end;
+end;
+
+end.

@@ -1,0 +1,149 @@
+/*
+  Inno Setup
+  Copyright (C) 1997-2026 Jordan Russell
+  Portions by Martijn Laan
+  For conditions of distribution and use, see LICENSE.TXT.
+
+  Style sheet used by contents.htm
+*/
+
+:root {
+	color-scheme: light dark;
+	--main-fg-color: light-dark(#282828, #d6d6d6);
+	--main-bg-color: light-dark(white, #1f1f1f);
+	--link-fg-color: light-dark(hsl(206, 100%, 37%), hsl(206, 100%, 50%));
+	--link-hover-fg-color: light-dark(hsl(206, 100%, 27%), hsl(206, 100%, 43%));
+	--header-bg-color: light-dark(#e0e0e0, #403e41);
+	--code-bg-color: light-dark(#f0f0f0, #353135);
+	--selected-bg-color: var(--header-bg-color);
+}
+BODY {
+	font: calc(12rem/16) "Segoe UI", sans-serif;
+	margin: 0;
+	color: var(--main-fg-color);
+	background-color: var(--main-bg-color);
+	display: grid;
+	grid-template-rows: max-content auto;
+	height: 100vh;
+}
+INPUT {
+	font: inherit;
+}
+
+
+#tabbar {
+	background-color: var(--header-bg-color);
+	padding-block-start: 8px;
+	padding-inline-start: 8px;
+	display: flex;
+	overflow-x: hidden;
+
+	& > A {
+		/* Height of tabs should match topic heading */
+		line-height: calc((20rem/16) * 1.5 - 2px);
+		font-size: calc(14rem/16);
+		color: inherit;
+		background-color: transparent;
+		text-decoration: none;
+		padding-inline: calc(10rem/16);
+		user-select: none;
+
+		&[aria-selected="true"] {
+			font-weight: 600;  /* semibold */
+			border-block-end: 2px solid var(--link-fg-color);
+			cursor: default;
+		}
+		&:not([aria-selected="true"]):hover {
+			color: var(--link-fg-color);
+		}
+	}
+}
+
+
+#tabbody-contents {
+	overflow: auto;
+
+	& > ul {
+		/* A's margin-block-end collapses with this margin */
+		margin: 4px;
+		padding: 0;
+
+		& ul {
+			margin: 0;
+			padding: 0;
+			padding-inline-start: 20px;
+		}
+	}
+	& li {
+		display: block;
+	}
+	& a:any-link, & summary {
+		display: flex;
+		inline-size: fit-content;
+		align-items: center;
+		gap: 2px;
+		margin-block-end: calc(2rem/16);
+
+		& > img, & > svg {
+			inline-size: calc(16rem/16);
+			block-size: calc(16rem/16);
+			/* Prevent SVG from shrinking when there isn't enough room for the text */
+			flex-shrink: 0;
+		}
+		& > span {
+			padding-inline: 2px;
+			padding-block: 1px;
+		}
+	}
+	& a:any-link {
+		color: inherit;
+		background-color: transparent;
+		text-decoration: none;
+
+		&:hover:not([aria-selected="true"]) {
+			color: var(--link-hover-fg-color);
+			text-decoration: underline;
+		}
+		&[aria-selected="true"] > span {
+			background-color: var(--selected-bg-color);
+			border-radius: 4px;
+		}
+	}
+	& summary {
+		cursor: pointer;
+		-webkit-user-select: none;  /* Safari doesn't support user-select */
+		user-select: none;
+	}
+	& details[open] > summary > svg {
+		transform: rotate(90deg);
+	}
+}
+
+
+#tabbody-index {
+	overflow: auto;
+	padding: 4px;
+	white-space: nowrap;
+}
+#tabbody-index A {
+	display: inline-block;
+	padding-inline: 2px;
+	box-sizing: border-box;
+	min-width: 100%;
+}
+#tabbody-index A:link,
+#tabbody-index A:visited {
+	color: inherit;
+	background-color: transparent;
+	text-decoration: none;
+}
+#tabbody-index A:hover {
+	color: var(--link-hover-fg-color);
+	text-decoration: underline;
+}
+#tabbody-index A:focus {
+	color: inherit;
+	background-color: var(--selected-bg-color);
+	text-decoration: none;
+	border-radius: 4px;
+}

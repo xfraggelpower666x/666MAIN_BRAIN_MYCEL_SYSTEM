@@ -1,0 +1,58 @@
+; -- Debug.iss --
+; Opened when you run the ISIDE project in Debug mode from the Delphi IDE
+; Same for ISCmplr, ISCC, and ISPP and for any of the islzma projects
+; Use it to test the compiler or Setup or the uninstaller
+; The Setup project enables logging to Setup.log when you run it
+
+#pragma message "ɯɐɹƃoɹd ʎɯ"
+
+#include "Debug2.iss"
+
+[Setup]
+AppName=ɯɐɹƃoɹd ʎɯ
+AppVersion=1.5
+DefaultDirName={autopf}\My Program
+DefaultGroupName=My Program
+WizardStyle=modern dynamic
+InfoBeforeFile=Colortest.rtf
+
+; DisableWelcomePage=no
+DisableDirPage=no
+DisableProgramGroupPage=no
+
+; This enables debugging
+UseSetupLdr=no
+OutputDir={#CompilerPath}
+OutputBaseFilename=Setup
+PrivilegesRequired=lowest
+SetupArchitecture=x64
+
+; This makes a task dialog show at startup
+; UsePreviousPrivileges=no
+; PrivilegesRequiredOverridesAllowed=dialog
+
+; This enables RTL and scaling for testing
+;[LangOptions]
+; RightToLeft=true
+; DialogFontSize=12
+
+[Languages]
+Name: en; MessagesFile: "compiler:Default.isl"
+; Name: nl; MessagesFile: "compiler:Languages\Dutch.isl"
+
+[Files]
+Source: "..\..\Examples\MyProg.exe"; DestDir: "{app}"
+Source: "..\..\Examples\MyProg.chm"; DestDir: "{app}"
+Source: "..\..\Examples\Readme.txt"; DestDir: "{app}"; Flags: isreadme
+
+[Icons]
+Name: "{group}\My Program"; Filename: "{app}\MyProg.exe"
+
+[Messages]
+BeveledLabel=BeveledLabel
+
+[Code]
+function InitializeSetup: Boolean;
+begin
+  Result := True;
+end;

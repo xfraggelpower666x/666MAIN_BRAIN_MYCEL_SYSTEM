@@ -1,0 +1,8 @@
+format issig-v2
+file-name "islzma32.exe"
+file-size 204192
+file-hash bf6b30b360b6379aa85ee65a734bafc0f78e618f6a67b074c9e645e8d9439f7d
+file-tag ""
+key-id def0147c3bbc17ab99bf7b7a9c2de1390283f38972152418d7c2a4a7d7131a38
+sig-r 11f2721b3afd276e3afccb5ccb7a6d78335344f034d1a7930e92e5c932dceb7b
+sig-s fb7baf1a890df09f4a8b7f62849dae55bb8efcece6c04b044ba5f9226bf8aeed

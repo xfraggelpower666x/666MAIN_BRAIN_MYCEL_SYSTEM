@@ -1,0 +1,126 @@
+<!--
+  Inno Setup
+  Copyright (C) 1997-2026 Jordan Russell
+  Portions by Martijn Laan
+  For conditions of distribution and use, see LICENSE.TXT.
+
+  Document Type Definition for isetup.xml
+-->
+
+<!ENTITY nbsp   "&#x00A0;">
+<!ENTITY copy   "&#x00A9;">
+<!ENTITY times  "&#x00D7;">
+<!ENTITY divide "&#x00F7;">
+<!ENTITY ndash  "&#x2013;">
+<!ENTITY mdash  "&#x2014;">
+<!ENTITY rarr   "&#x2192;">
+<!ENTITY minus  "&#x2212;">
+<!ENTITY approx "&#x2248;">
+<!ENTITY le     "&#x2264;">
+<!ENTITY ge     "&#x2265;">
+
+<!ENTITY % _inlineExceptLink "b | br | i | sup | tt | u">
+<!ENTITY % _inline "%_inlineExceptLink; | link | extlink | img | a | anchorlink | sd | sn | isxfunc">
+<!ENTITY % _block "p | heading | pre | precode | example | examples | indent | ul | ol | dl | paramlist | flaglist | table">
+<!ENTITY % _highlight "sec | evt | key | com | con | str | num | ispp">
+
+<!ENTITY % Inline "(#PCDATA | %_inline;)*">
+<!ENTITY % InlineExceptLink "(#PCDATA | %_inlineExceptLink;)*">
+<!ENTITY % Block "(%_block;)*">
+<!ENTITY % InlineOrBlock "(#PCDATA | %_inline; | %_block;)*">
+<!ENTITY % InlineWithHighlight "(#PCDATA | %_inline; | %_highlight;)*">
+<!ENTITY % InlineOrBlockWithHighlight "(#PCDATA | %_inline; | %_highlight; | %_block;)*">
+
+<!ELEMENT ishelp (contents?, (topic | setuptopic)*)>
+<!ATTLIST ishelp version CDATA #REQUIRED>
+
+<!ELEMENT contents ((contentstopic | contentsheading)*)>
+<!ELEMENT contentstopic EMPTY>
+<!ATTLIST contentstopic title CDATA #REQUIRED topic CDATA #REQUIRED>
+<!ELEMENT contentsheading ((contentstopic | contentsheading)*)>
+<!ATTLIST contentsheading title CDATA #REQUIRED>
+
+<!ELEMENT topic (keyword*, body)>
+<!ATTLIST topic name CDATA #REQUIRED title CDATA #REQUIRED>
+<!ELEMENT keyword EMPTY>
+<!ATTLIST keyword value CDATA #REQUIRED anchor CDATA #IMPLIED>
+
+<!ELEMENT setuptopic (keyword*, setupformat?, setupvalid?, setupdefault?, body)>
+<!ATTLIST setuptopic directive CDATA #REQUIRED title CDATA #IMPLIED>
+<!ELEMENT setupformat %Inline;>
+<!ELEMENT setupvalid %Inline;>
+<!ELEMENT setupdefault %Inline;> 
+
+<!ELEMENT body %Block;>
+
+<!-- Inline elements -->
+
+<!ELEMENT b %Inline;>
+<!ELEMENT br EMPTY>
+<!ELEMENT i %Inline;>
+<!ELEMENT sup %Inline;>
+<!ELEMENT tt %InlineWithHighlight;>
+<!ELEMENT u %Inline;>
+<!ELEMENT link %InlineExceptLink;>
+<!ATTLIST link topic CDATA #REQUIRED anchor CDATA #IMPLIED>
+<!ELEMENT extlink %InlineExceptLink;>
+<!ATTLIST extlink href CDATA #REQUIRED>
+<!ELEMENT img %InlineExceptLink;>
+<!ATTLIST img src CDATA #REQUIRED>
+<!ELEMENT a %InlineExceptLink;>
+<!ATTLIST a name CDATA #REQUIRED>
+<!ELEMENT anchorlink %InlineExceptLink;>
+<!ATTLIST anchorlink name CDATA #REQUIRED>
+<!ELEMENT sd %InlineExceptLink;>
+<!ELEMENT sn %InlineExceptLink;>
+<!ELEMENT isxfunc %InlineExceptLink;>
+
+<!-- Syntax highlighting elements -->
+
+<!ELEMENT sec %InlineWithHighlight;>
+<!ELEMENT evt %InlineWithHighlight;>
+<!ELEMENT key %InlineWithHighlight;>
+<!ELEMENT com %InlineWithHighlight;>
+<!ELEMENT con %InlineWithHighlight;>
+<!ELEMENT str %InlineWithHighlight;>
+<!ELEMENT num %InlineWithHighlight;>
+<!ELEMENT ispp %InlineWithHighlight;>
+
+<!-- Simple block elements -->
+
+<!ELEMENT p %Inline;>
+<!ATTLIST p margin (yes|no) "yes">
+<!ELEMENT heading %Inline;>
+<!ELEMENT pre %InlineWithHighlight;>
+<!ELEMENT precode %InlineWithHighlight;>
+<!ELEMENT example %InlineOrBlockWithHighlight;>
+<!ATTLIST example noheader CDATA #IMPLIED>
+<!ELEMENT examples %InlineOrBlockWithHighlight;>
+<!ATTLIST examples noheader CDATA #IMPLIED>
+<!ELEMENT indent %Block;>
+
+<!-- Fancier block elements -->
+
+<!ELEMENT ul (li|ul)*>
+<!ATTLIST ul appearance (normal|compact) "normal">
+<!ELEMENT ol (li*)>
+<!ELEMENT li %InlineOrBlock;>
+
+<!ELEMENT dl (dt, dd)*>
+<!ELEMENT dt %Inline;>
+<!ELEMENT dd %Block;>
+
+<!ELEMENT paramlist (param*)>
+<!ELEMENT param %Block;>
+<!ATTLIST param name CDATA #REQUIRED required (yes|no) "no">
+
+<!ELEMENT flaglist (flag*)>
+<!ELEMENT flag %Block;>
+<!ATTLIST flag name CDATA #REQUIRED>
+
+<!ELEMENT table (tr*)>
+<!ELEMENT tr (th|td)*>
+<!ELEMENT th %InlineOrBlock;>
+<!ATTLIST th nowrap CDATA #IMPLIED>
+<!ELEMENT td %InlineOrBlock;>
+<!ATTLIST td nowrap CDATA #IMPLIED>

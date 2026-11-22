@@ -1,0 +1,914 @@
+﻿unit IDE.HelperFunc;
+
+{
+  Inno Setup
+  Copyright (C) 1997-2026 Jordan Russell
+  Portions by Martijn Laan
+  For conditions of distribution and use, see LICENSE.TXT.
+
+  Additional Compiler IDE functions
+}
+
+interface
+
+uses
+  Windows,
+  Classes, Forms, Dialogs, Menus, Controls, StdCtrls, Graphics,
+  ScintEdit, ModernColors,
+  Shared.ConfigIniFile,
+  IDE.IDEScintEdit, IDE.LocalizeFunc;
+
+type
+  TAddLinesPrefix = (alpNone, alpTimestamp, alpCountdown);
+  TKeyMappingType = (kmtDelphi, kmtVisualStudio);
+
+procedure InitFormFont(Form: TForm);
+procedure SetControlWindowTheme(const WinControl: TWinControl; const Dark: Boolean);
+procedure InitFormThemeInit(const Theme: TTheme);
+function InitFormTheme(const Form: TForm; const AlwaysStyle: Boolean = False): Boolean;
+function InitFormThemeGetBkColor(const WindowColor: Boolean): TColor;
+function InitFormThemeIsDark: Boolean;
+function GetDisplayFilename(const Filename: String): String;
+function GetFileTitle(const Filename: String): String;
+function GetCleanFileNameOfFile(const Filename: String): String;
+procedure AddFileToRecentDocs(const Filename: String);
+function GenerateGuid: String;
+function ISPPInstalled: Boolean;
+function IsISPPBuiltins(const Filename: String): Boolean;
+function WindowsVersionAtLeast(const AMajor, AMinor: Byte; const ABuild: Word = 0): Boolean;
+function IsWindows10: Boolean;
+function GetDefaultThemeType: TThemeType;
+function GetDefaultLanguage: TIDELanguage;
+function GetDefaultKeyMappingType: TKeyMappingType;
+function GetDefaultMemoKeyMappingType: TIDEScintKeyMappingType;
+procedure LaunchFileOrURL(const AFilename: String; const AParameters: String = '');
+procedure OpenDonateSite;
+procedure OpenMailingListSite;
+procedure LoadKnownIncludedAndHiddenFiles(const AFilename: String; const IncludedFiles, HiddenFiles: TStringList);
+procedure SaveKnownIncludedAndHiddenFiles(const AFilename: String; const IncludedFiles, HiddenFiles: TStringList);
+function LoadKnownRichEditFile(const AFilename: String): String;
+procedure SaveKnownRichEditFile(const AFilename, ARichEditFilename: String);
+procedure DeleteKnownIncludedHiddenAndRichEditFiles(const AFilename: String);
+procedure LoadBreakPointLines(const AFilename: String; const BreakPointLines: TStringList);
+procedure SaveBreakPointLines(const AFilename: String; const BreakPointLines: TStringList);
+procedure DeleteBreakPointLines(const AFilename: String);
+function NewShortCutToText(const ShortCut: TShortCut): String;
+procedure SetFakeShortCutText(const MenuItem: TMenuItem; const S: String);
+procedure SetFakeShortCut(const MenuItem: TMenuItem; const Key: Word;
+  const Shift: TShiftState); overload;
+procedure SetFakeShortCut(const MenuItem: TMenuItem; const ShortCut: TShortCut); overload;
+procedure SaveTextToFile(const Filename: String;
+  const S: String; const SaveEncoding: TSaveEncoding);
+procedure AddLines(const ListBox: TListBox; const S: String; const AObject: TObject; const LineBreaks: Boolean; const Prefix: TAddLinesPrefix; const PrefixParam: Integer);
+procedure UpdateAddedLinesScrollWidth(const ListBox: TListBox; const Prefix: TAddLinesPrefix; const PrefixParam: Integer);
+procedure SetLowPriority(ALowPriority: Boolean; var SavePriorityClass: DWORD);
+procedure SetHelpFileDark(const Dark: Boolean);
+function GetHelpFile: String;
+function FindOptionsToSearchOptions(const FindOptions: TFindOptions;
+  const RegEx: Boolean): TScintFindOptions;
+function RegExToReplaceMode(const RegEx: Boolean): TScintReplaceMode;
+function GetSourcePath(const AFilename: String): String;
+function ReadScriptLines(const ALines: TStringList; const ReadFromFile: Boolean;
+  const ReadFromFileFilename: String; const NotReadFromFileMemo: TScintEdit): Integer;
+function CreateBitmapInfo(const Width, Height: Integer; const BitCount: Word): TBitmapInfo;
+function GetPreferredMemoFont: String;
+function DoubleAmp(const S: String): String;
+procedure LoadWindowState(const Form: TForm;
+  const Section: String; const Ini: TConfigIniFile = nil);
+procedure SaveWindowState(const Form: TForm;
+  const Section: String; const Ini: TConfigIniFile = nil);
+
+implementation
+
+uses
+  ActiveX, ShlObj, ShellApi, CommDlg, SysUtils, StrUtils,
+  Shared.CommonFunc, Shared.CommonFunc.Vcl, PathFunc, Shared.FileClass, NewUxTheme,
+  IDE.MainForm, IDE.Messages;
+
+procedure InitFormFont(Form: TForm);
+begin
+  var Metrics: TNonClientMetrics;
+  var FontName: String;
+  Metrics.cbSize := SizeOf(Metrics);
+  if SystemParametersInfo(SPI_GETNONCLIENTMETRICS, SizeOf(Metrics),
+     @Metrics, 0) then
+    FontName := Metrics.lfMessageFont.lfFaceName;
+  { Only allow fonts that we know will fit the text correctly }
+  if not SameText(FontName, 'Microsoft Sans Serif') and
+     not SameText(FontName, 'Segoe UI') then
+    FontName := 'Tahoma';
+  var FontSize: Integer;
+  if SameText(FontName, 'Segoe UI') then
+    FontSize := 9
+  else
+    FontSize := 8;
+  Form.Font.Name := FontName;
+  Form.Font.Size := FontSize;
+end;
+
+procedure SetControlWindowTheme(const WinControl: TWinControl; const Dark: Boolean);
+{ Can be used for memos and listboxes to switch them to (or from) a native dark scrollbar }
+begin
+  if UseThemes then begin
+    WinControl.StyleName := 'Windows';
+    if Dark then
+      SetWindowTheme(WinControl.Handle, 'DarkMode_Explorer', nil)
+    else
+      SetWindowTheme(WinControl.Handle, nil, nil);
+  end;
+end;
+
+var
+  FormTheme: TTheme;
+
+procedure InitFormThemeInit(const Theme: TTheme);
+begin
+  FormTheme := Theme;
+end;
+
+function InitFormTheme(const Form: TForm; const AlwaysStyle: Boolean): Boolean;
+
+{$IF RtlVersion >= 36.0}
+  procedure HideGroupBoxFrames(const ParentControl: TWinControl);
+  begin
+    for var I := 0 to ParentControl.ControlCount-1 do begin
+      const Control = ParentControl.Controls[I];
+      if Control is TCustomGroupBox then
+        TCustomGroupBox(Control).ShowFrame := False;
+
+      if Control is TWinControl then
+        HideGroupBoxFrames(Control as TWinControl);
+    end;
+  end;
+{$ENDIF}
+
+{ Modal forms should call this function only once during creation with AlwaysStyle set to False.
+  It then assumes they don't need any styling if the theme is non dark. Returns True if it did
+  style, False otherwise. }
+begin
+  Result := AlwaysStyle or FormTheme.Dark;
+  if Result then begin
+    Form.Color := InitFormThemeGetBkColor(Form = MainForm); { Prevents some flicker, but not all }
+    SetDarkTitleBar(Form, FormTheme.Dark);
+  end;
+
+{$IF RtlVersion >= 36.0}
+  HideGroupBoxFrames(Form);
+{$ENDIF}
+end;
+
+function InitFormThemeGetBkColor(const WindowColor: Boolean): TColor;
+begin
+  if WindowColor then begin
+    Result := FormTheme.Colors[tcBack]; { This is white if not dark mode }
+    if Result = clWhite then
+      Result := clWindow; { For high contrast themes }
+  end else
+    Result := FormTheme.Colors[tcToolBack]; { This is gray/btnface if not dark mode }
+end;
+
+function InitFormThemeIsDark: Boolean;
+begin
+  Result := FormTheme.Dark;
+end;
+
+function GetDisplayFilename(const Filename: String): String;
+var
+  Buf: array[0..MAX_PATH-1] of Char;
+begin
+  if CommDlg.GetFileTitle(PChar(Filename), Buf, SizeOf(Buf) div SizeOf(Buf[0])) = 0 then
+    Result := Buf
+  else
+    Result := Filename;
+end;
+
+function GetFileTitle(const Filename: String): String;
+begin
+  if Filename = '' then
+    Result := LFmtMessage(SCompilerUntitledFile)
+  else
+    Result := Filename;
+end;
+
+function GetCleanFileNameOfFile(const Filename: String): String;
+begin
+  var FindData: TWin32FindData;
+  const H = FindFirstFile(PChar(Filename), FindData);
+  if H <> INVALID_HANDLE_VALUE then begin
+    Windows.FindClose(H);
+    { If the specified name is an 8.3 short name, FindFirstFile returns the
+      long name. Don't use that result. In other words, only use a result that
+      equals the specified name, ignoring case. }
+    if PathSame(FindData.cFileName, PathExtractName(Filename)) then
+      Exit(PathExtractPath(Filename) + FindData.cFileName);
+  end;
+  Result := Filename;
+end;
+
+procedure AddFileToRecentDocs(const Filename: String);
+{ Notifies the shell that a document has been opened. This will
+  add the file to the Recent section of the app's Jump List.
+  It is only necessary to call this function when the shell is unaware that
+  a file is being opened. Files opened through Explorer or common dialogs get
+  added to the Jump List automatically. }
+begin
+  SHAddToRecentDocs(SHARD_PATHW, PChar(Filename));
+end;
+
+function GenerateGuid: String;
+var
+  Guid: TGUID;
+  P: PWideChar;
+begin
+  if CoCreateGuid(Guid) <> S_OK then
+    raise Exception.Create('CoCreateGuid failed');
+  if StringFromCLSID(Guid, P) <> S_OK then
+    raise Exception.Create('StringFromCLSID failed');
+  try
+    Result := P;
+  finally
+    CoTaskMemFree(P);
+  end;
+end;
+
+function ISPPInstalled: Boolean;
+begin
+  Result := NewFileExists(PathExtractPath(NewParamStr(0)) + 'ISPP.dll');
+end;
+
+function IsISPPBuiltins(const Filename: String): Boolean;
+begin
+  Result := PathSame(PathExtractName(Filename), 'ISPPBuiltins.iss');
+end;
+
+var
+  WindowsVersion: Cardinal;
+
+function WindowsVersionAtLeast(const AMajor, AMinor: Byte; const ABuild: Word): Boolean;
+begin
+  Result := WindowsVersion >= Cardinal((AMajor shl 24) or (AMinor shl 16) or ABuild);
+end;
+
+function IsWindows10: Boolean;
+begin
+  Result := WindowsVersionAtLeast(10, 0);
+end;
+
+function GetDefaultThemeType: TThemeType;
+begin
+  if DarkModeActive then
+    Result := ttModernDark
+  else
+    Result := ttModernLight;
+end;
+
+function GetDefaultLanguage: TIDELanguage;
+begin
+  Result := ilEnglish;
+end;
+
+function GetDefaultKeyMappingType: TKeyMappingType;
+begin
+  Result := kmtDelphi;
+end;
+
+function GetDefaultMemoKeyMappingType: TIDEScintKeyMappingType;
+begin
+  Result := kmtDefault;
+end;
+
+procedure LaunchFileOrURL(const AFilename: String; const AParameters: String = '');
+begin
+  { SEE_MASK_FLAG_NO_UI isn't used, so error dialogs are possible }
+  const OwnerWnd = GetOwnerWndForMessageBox;
+  const WindowList = DisableTaskWindows(OwnerWnd);
+  try
+    const Dir = GetSystemDir;
+    var Info: TShellExecuteInfo;
+    FillChar(Info, SizeOf(Info), 0);
+    Info.cbSize := SizeOf(Info);
+    Info.fMask := SEE_MASK_NOASYNC;
+    Info.Wnd := OwnerWnd;
+    Info.lpVerb := 'open';
+    Info.lpFile := PChar(AFilename);
+    Info.lpParameters := PChar(AParameters);
+    Info.lpDirectory := PChar(Dir);
+    Info.nShow := SW_SHOWNORMAL;
+    ShellExecuteEx(@Info);
+  finally
+    EnableTaskWindows(WindowList);
+  end;
+end;
+
+procedure OpenDonateSite;
+begin
+  LaunchFileOrURL('https://jrsoftware.org/isdonate.php');
+end;
+
+procedure OpenMailingListSite;
+begin
+  LaunchFileOrURL('https://jrsoftware.org/ismail.php');
+end;
+
+procedure LoadConfigIniList(const AIni: TConfigIniFile; const ASection, AIdent: String;
+  const AList: TStringList; const ADelimiter: Char);
+begin
+  if ASection = '' then
+    raise Exception.Create('ASection must be set');
+
+  var OldDelimiter := AList.Delimiter;
+  AList.Delimiter := ADelimiter;
+  try
+    AList.DelimitedText := AIni.ReadString(ASection, AIdent, '');
+  finally
+    AList.Delimiter := OldDelimiter;
+  end;
+end;
+
+procedure DeleteConfigIniList(const AIni: TConfigIniFile; const ASection, AIdent: String);
+begin
+  if ASection = '' then
+    raise Exception.Create('ASection must be set');
+
+  AIni.DeleteKey(ASection, AIdent);
+end;
+
+procedure SaveConfigIniList(const AIni: TConfigIniFile; const ASection, AIdent: String;
+  const AList: TStringList; const ADelimiter: Char);
+begin
+  if AList.Count = 0 then begin
+    DeleteConfigIniList(AIni, ASection, AIdent);
+    Exit;
+  end;
+
+  if ASection = '' then
+    raise Exception.Create('ASection must be set');
+
+  var OldDelimiter := AList.Delimiter;
+  AList.Delimiter := ADelimiter;
+  try
+    AIni.WriteString(ASection, AIdent, AList.DelimitedText);
+  finally
+    AList.Delimiter := OldDelimiter;
+  end;
+end;
+
+procedure LoadKnownIncludedAndHiddenFiles(const AFilename: String; const IncludedFiles, HiddenFiles: TStringList);
+begin
+  var Ini := TConfigIniFile.Create;
+  try
+    LoadConfigIniList(Ini, 'IncludedFilesHistory', AFilename, IncludedFiles, '*');
+    LoadConfigIniList(Ini, 'HiddenFilesHistory', AFilename, HiddenFiles, '*');
+  finally
+    Ini.Free;
+  end;
+end;
+
+procedure SaveKnownIncludedAndHiddenFiles(const AFilename: String; const IncludedFiles, HiddenFiles: TStringList);
+begin
+  var Ini := TConfigIniFile.Create;
+  try
+    SaveConfigIniList(Ini, 'IncludedFilesHistory', AFilename, IncludedFiles, '*');
+    SaveConfigIniList(Ini, 'HiddenFilesHistory', AFilename, HiddenFiles, '*');
+  finally
+    Ini.Free;
+  end;
+end;
+
+function LoadKnownRichEditFile(const AFilename: String): String;
+begin
+  Result := '';
+  if AFilename = '' then
+    Exit;
+  var Ini := TConfigIniFile.Create;
+  try
+    Result := Ini.ReadString('RichEditFilesHistory', AFilename, '');
+  finally
+    Ini.Free;
+  end;
+end;
+
+procedure SaveKnownRichEditFile(const AFilename, ARichEditFilename: String);
+begin
+  if AFilename = '' then
+    Exit;
+  var Ini := TConfigIniFile.Create;
+  try
+    if ARichEditFilename = '' then
+      Ini.DeleteKey('RichEditFilesHistory', AFilename)
+    else
+      Ini.WriteString('RichEditFilesHistory', AFilename, ARichEditFilename);
+  finally
+    Ini.Free;
+  end;
+end;
+
+procedure DeleteKnownIncludedHiddenAndRichEditFiles(const AFilename: String);
+begin
+  var Ini := TConfigIniFile.Create;
+  try
+    DeleteConfigIniList(Ini, 'IncludedFilesHistory', AFilename);
+    DeleteConfigIniList(Ini, 'HiddenFilesHistory', AFilename);
+    DeleteConfigIniList(Ini, 'RichEditFilesHistory', AFilename);
+  finally
+    Ini.Free;
+  end;
+end;
+
+procedure LoadBreakPointLines(const AFilename: String; const BreakPointLines: TStringList);
+begin
+  var Ini := TConfigIniFile.Create;
+  try
+    LoadConfigIniList(Ini, 'BreakPointLines', AFilename, BreakPointLines, ',');
+  finally
+    Ini.Free;
+  end;
+end;
+
+procedure SaveBreakPointLines(const AFilename: String; const BreakPointLines: TStringList);
+begin
+  var Ini := TConfigIniFile.Create;
+  try
+    SaveConfigIniList(Ini, 'BreakPointLines', AFilename, BreakPointLines, ',');
+  finally
+    Ini.Free;
+  end;
+end;
+
+procedure DeleteBreakPointLines(const AFilename: String);
+begin
+  var Ini := TConfigIniFile.Create;
+  try
+    DeleteConfigIniList(Ini, 'BreakPointLines', AFilename);
+  finally
+    Ini.Free;
+  end;
+end;
+
+function NewShortCutToText(const ShortCut: TShortCut): String;
+{ This function is better than Delphi's ShortCutToText function because:
+  -It works for dead keys. A dead key is a key which waits for the user to press
+   another key so it can be combined. For example `+e=è (backtick and then e
+   becomes è). Pressing space after a dead key produces the dead key char itself.
+   For example `+space=` (backtick and then space becomes backtick and no space).
+  -It uses 'Ctrl+Shift+Alt' ordering like VSCode and Visual Studio, and not
+   'Ctrl+Alt+Shift' like VCL.
+  -It supports modifier localization via LFmtMessage. }
+
+  function PrependModifiers(const KeyName: String): String;
+  begin
+    Result := '';
+    if ShortCut and scCtrl <> 0 then Result := Result + LFmtMessage(SShortCutCtrl);
+    if ShortCut and scShift <> 0 then Result := Result + LFmtMessage(SShortCutShift);
+    if ShortCut and scAlt <> 0 then Result := Result + LFmtMessage(SShortCutAlt);
+    Result := Result + KeyName;
+  end;
+
+const
+  { List of chars ShortCutToText knows about and doesn't rely on Win32's
+  GetKeyNameText for, taken from Vcl.Menus.pas }
+  OKKeys = [$08, $09, $0D, $1B, $20..$28, $2D..$2E, $30..$39, $41..$5A, $70..$87];
+begin
+  Result := '';
+
+  var Key := LoByte(Word(ShortCut));
+  if not (Key in OKKeys) then begin
+    { ShortCutToText will use Win32's GetKeyNameText for this key and if it's
+      a dead key this gives long names like 'ACCENT CIRCONFLEXE' instead of a
+      short name like '^'. Long names are not what we want so handle these dead
+      keys ourselves and use ToUnicode instead of GetKeyNameText to find the
+      short name. For non-dead keys we always call ShortCutToText even if
+      ToUnicode might work as well. }
+    var ScanCode := MapVirtualKey(Key, MAPVK_VK_TO_VSC);
+    if ScanCode <> 0 then begin
+      var KeyboardState: TKeyboardState;
+      GetKeyboardState(KeyboardState);
+      const TempSize = 64; { Same as Vcl.Touch.Keyboard.pas }
+      var TempStr: String;
+      SetLength(TempStr, TempSize);
+      ZeroMemory(@TempStr[1], Cardinal(TempSize) * SizeOf(Char));
+      var Size := ToUnicode(Key, ScanCode, KeyboardState, @TempStr[1], TempSize, 0);
+      if Size = -1 then begin
+        { This was a dead key, now stored in TempStr. Add space to get the dead
+          key char itself. }
+        ScanCode := MapVirtualKey(VK_SPACE, MAPVK_VK_TO_VSC);
+        if ScanCode <> 0 then begin
+          Size := ToUnicode(VK_SPACE, ScanCode, KeyboardState, @TempStr[1], TempSize, 0);
+          if Size = 1 then
+            Result := PrependModifiers(TempStr[1]);
+        end;
+      end;
+    end else begin
+      { This virtual key has no scan code meaning it's impossible to enter with
+        the current keyboard layout (for example French AZERTY + VK_OEM_MINUS).
+        We can just exit because calling ShortCutToText is pointless. }
+      Exit;
+    end;
+  end;
+
+  if Result = '' then begin
+    const KeyName = ShortCutToText(TShortCut(ShortCut and not (scCtrl or scAlt or scShift)));
+    if KeyName <> '' then
+      Result := PrependModifiers(KeyName);
+  end;
+
+  { Example CompForm test code:
+    SetFakeShortCut(HDonate, ShortCut(VK_OEM_1, []));
+    SetFakeShortCut(HShortcutsDoc, ShortCut(VK_OEM_PLUS, []));
+    SetFakeShortCut(HDoc, ShortCut(VK_OEM_COMMA, []));
+    SetFakeShortCut(HExamples, ShortCut(VK_OEM_MINUS, []));
+    SetFakeShortCut(HFaq, ShortCut(VK_OEM_PERIOD, []));
+    SetFakeShortCut(HMailingList, ShortCut(VK_OEM_2, []));
+    SetFakeShortCut(HWhatsNew, ShortCut(VK_OEM_3, []));
+    SetFakeShortCut(HWebsite, ShortCut(VK_OEM_4, []));
+    SetFakeShortCut(HISPPDoc, ShortCut(VK_OEM_5, []));
+    SetFakeShortCut(HAbout, ShortCut(VK_OEM_6, []));
+    SetFakeShortCut(TAddRemovePrograms, ShortCut(VK_OEM_7, []));
+
+    Without our dead key handling this produces for example:
+    -US International + VK_OEM_3: "GRAVE"
+    -French AZERTY + VK_OEM_7: "ACCENT CIRCONFLEXE"
+
+    To add a keyboard layout follow the instructions at
+    https://www.thewindowsclub.com/add-or-remove-keyboard-layout-in-windows-11
+    and then switch to the language using the task bar's language bar.
+
+    Also see https://code.visualstudio.com/docs/getstarted/keybindings#_keyboard-layouts }
+end;
+
+procedure SetFakeShortCutText(const MenuItem: TMenuItem; const S: String);
+begin
+  var Caption := MenuItem.Caption;
+  var P := Pos(#9, Caption);
+  if P <> 0 then
+    Delete(Caption, P, MaxInt);
+  if S <> '' then
+    MenuItem.Caption := Caption + #9 + S
+  else
+    MenuItem.Caption := Caption;
+end;
+
+procedure SetFakeShortCut(const MenuItem: TMenuItem; const Key: Word;
+  const Shift: TShiftState);
+begin
+  SetFakeShortCut(MenuItem, ShortCut(Key, Shift));
+end;
+
+procedure SetFakeShortCut(const MenuItem: TMenuItem; const ShortCut: TShortCut);
+begin
+  SetFakeShortCutText(MenuItem, NewShortCutToText(ShortCut));
+end;
+
+procedure SaveTextToFile(const Filename: String;
+  const S: String; const SaveEncoding: TSaveEncoding);
+var
+  AnsiMode: Boolean;
+  AnsiStr: AnsiString;
+  F: TTextFileWriter;
+begin
+  AnsiMode := False;
+  if SaveEncoding = seAuto then begin
+    AnsiStr := AnsiString(S);
+    if S = String(AnsiStr) then
+      AnsiMode := True;
+  end;
+
+  F := TTextFileWriter.Create(Filename, fdCreateAlways, faWrite, fsNone);
+  try
+    if AnsiMode then
+      F.WriteAnsi(AnsiStr)
+    else begin
+      F.UTF8WithoutBOM := SaveEncoding <> seUTF8WithBOM;
+      F.Write(S);
+    end;
+  finally
+    F.Free;
+  end;
+end;
+
+function GetAddedLineScrollWidth(const ListBox: TListBox; const DC: HDC; const S: String;
+  const TimestampPrefixTab: Boolean; const TimestampsWidth: Integer): Integer;
+{ DC must have ListBox's font selected }
+begin
+  var Size: TSize;
+  if TimestampPrefixTab then
+    GetTextExtentPoint(DC, PChar(S)+1, Length(S)-1, Size)
+  else
+    GetTextExtentPoint(DC, PChar(S), Length(S), Size);
+  Result := Size.cx + MulDiv(5, ListBox.CurrentPPI, 96);
+  if TimestampPrefixTab then
+    Inc(Result, TimestampsWidth);
+end;
+
+procedure AddLines(const ListBox: TListBox; const S: String; const AObject: TObject; const LineBreaks: Boolean; const Prefix: TAddLinesPrefix; const PrefixParam: Integer);
+var
+  ST: TSystemTime;
+  LineNumber: Cardinal;
+
+  procedure AddLine(S: String);
+  var
+    TimestampPrefixTab: Boolean;
+    DC: HDC;
+  begin
+    TimestampPrefixTab := False;
+    case Prefix of
+      alpTimestamp:
+        begin
+          if LineNumber = 0 then begin
+            { Don't forget about ListBox's DrawItem if you change the format of the following timestamp. }
+            Insert(Format('[%.2u%s%.2u%s%.2u%s%.3u]   ', [ST.wHour, FormatSettings.TimeSeparator,
+              ST.wMinute, FormatSettings.TimeSeparator, ST.wSecond, FormatSettings.DecimalSeparator,
+              ST.wMilliseconds]), S, 1);
+          end else begin
+            Insert(#9, S, 1); { Not actually painted - just for Ctrl+C }
+            TimestampPrefixTab := True;
+          end;
+        end;
+      alpCountdown:
+        begin
+          if (PrefixParam < 0) or (Cardinal(PrefixParam) < LineNumber) then
+            raise Exception.Create('Unexpected PrefixParam value');
+          Insert(Format('[%.2u]   ', [Cardinal(PrefixParam)-LineNumber]), S, 1);
+        end;
+    end;
+    try
+      ListBox.TopIndex := ListBox.Items.AddObject(S, AObject);
+    except
+      on EOutOfResources do begin
+        ListBox.Clear;
+        ListBox.ScrollWidth := 0;
+        ListBox.Items.Add(SLitStatusEventPrefix + LFmtMessage(SCompilerStatusReset));
+        ListBox.TopIndex := ListBox.Items.AddObject(S, AObject);
+      end;
+    end;
+    var ScrollWidth: Integer;
+    DC := GetDC(0);
+    try
+      SelectObject(DC, ListBox.Font.Handle);
+      ScrollWidth := GetAddedLineScrollWidth(ListBox, DC, S, TimestampPrefixTab, PrefixParam);
+    finally
+      ReleaseDC(0, DC);
+    end;
+    if ScrollWidth > ListBox.ScrollWidth then
+      ListBox.ScrollWidth := ScrollWidth;
+    Inc(LineNumber);
+  end;
+
+var
+  LineStart, I: Integer;
+  LastWasCR: Boolean;
+begin
+  GetLocalTime(ST);
+  LineNumber := 0;
+  if LineBreaks then begin
+    LineStart := 1;
+    LastWasCR := False;
+    { Call AddLine for each line. CR, LF, and CRLF line breaks are supported. }
+    for I := 1 to Length(S) do begin
+      if S[I] = #13 then begin
+        AddLine(Copy(S, LineStart, I - LineStart));
+        LineStart := I + 1;
+        LastWasCR := True;
+      end
+      else begin
+        if S[I] = #10 then begin
+          if not LastWasCR then
+            AddLine(Copy(S, LineStart, I - LineStart));
+          LineStart := I + 1;
+        end;
+        LastWasCR := False;
+      end;
+    end;
+    AddLine(Copy(S, LineStart, Maxint));
+  end else
+    AddLine(S);
+end;
+
+procedure UpdateAddedLinesScrollWidth(const ListBox: TListBox; const Prefix: TAddLinesPrefix; const PrefixParam: Integer);
+begin
+  var MaxScrollWidth := 0;
+  const DC = GetDC(0);
+  try
+    SelectObject(DC, ListBox.Font.Handle);
+    for var I := 0 to ListBox.Items.Count-1 do begin
+      const S = ListBox.Items[I];
+      const TimestampPrefixTab = (Prefix = alpTimestamp) and (S <> '') and (S[1] = #9);
+      const ScrollWidth = GetAddedLineScrollWidth(ListBox, DC, S, TimestampPrefixTab, PrefixParam);
+      if ScrollWidth > MaxScrollWidth then
+        MaxScrollWidth := ScrollWidth;
+    end;
+  finally
+    ReleaseDC(0, DC);
+  end;
+  ListBox.ScrollWidth := MaxScrollWidth;
+end;
+
+procedure SetLowPriority(ALowPriority: Boolean; var SavePriorityClass: DWORD);
+begin
+  if ALowPriority then begin
+    { Save current priority and change to 'low' }
+    if SavePriorityClass = 0 then
+      SavePriorityClass := GetPriorityClass(GetCurrentProcess);
+    SetPriorityClass(GetCurrentProcess, IDLE_PRIORITY_CLASS);
+  end
+  else begin
+    { Restore original priority }
+    if SavePriorityClass <> 0 then begin
+      SetPriorityClass(GetCurrentProcess, SavePriorityClass);
+      SavePriorityClass := 0;
+    end;
+  end;
+end;
+
+var
+  HelpFileDark: Boolean;
+
+procedure SetHelpFileDark(const Dark: Boolean);
+begin
+  HelpFileDark := Dark;
+end;
+
+function GetHelpFile: String;
+begin
+  Result := Format('%sisetup%s.chm', [PathExtractPath(NewParamStr(0)) {$IFDEF DEBUG} + '..\..\Files\' {$ENDIF}, IfThen(HelpFileDark, '-dark', '')]);
+end;
+
+function FindOptionsToSearchOptions(const FindOptions: TFindOptions;
+  const RegEx: Boolean): TScintFindOptions;
+begin
+  Result := [];
+  if frMatchCase in FindOptions then
+    Include(Result, sfoMatchCase);
+  if frWholeWord in FindOptions then
+    Include(Result, sfoWholeWord);
+  if RegEx then
+    Include(Result, sfoRegEx);
+end;
+
+function RegExToReplaceMode(const RegEx: Boolean): TScintReplaceMode;
+begin
+  if RegEx then
+    Result := srmRegEx
+  else
+    Result := srmMinimal;
+end;
+
+function GetSourcePath(const AFilename: String): String;
+begin
+  if AFilename <> '' then
+    Result := PathExtractPath(AFilename)
+  else begin
+    { If the script was not saved, default to My Documents }
+    Result := GetShellFolderPath(CSIDL_PERSONAL);
+    if Result = '' then
+      raise Exception.Create('GetShellFolderPath failed');
+  end;
+end;
+
+function ReadScriptLines(const ALines: TStringList; const ReadFromFile: Boolean;
+  const ReadFromFileFilename: String; const NotReadFromFileMemo: TScintEdit): Integer;
+
+  function ContainsNullChar(const S: String): Boolean;
+  var
+    I: Integer;
+  begin
+    Result := False;
+    for I := 1 to Length(S) do
+      if S[I] = #0 then begin
+        Result := True;
+        Break;
+      end;
+  end;
+
+var
+  F: TTextFileReader;
+  I: Integer;
+begin
+  if ReadFromFile then begin
+    F := TTextFileReader.Create(ReadFromFileFilename, fdOpenExisting, faRead, fsRead);
+    try
+      while not F.Eof do
+        ALines.Add(F.ReadLine);
+    finally
+      F.Free;
+    end;
+  end
+  else begin
+    ALines.Capacity := NotReadFromFileMemo.Lines.Count;
+    ALines.Assign(NotReadFromFileMemo.Lines);
+  end;
+
+  { Check for null characters }
+  for I := 0 to ALines.Count-1 do begin
+    if ContainsNullChar(ALines[I]) then begin
+      Result := I;
+      Exit;
+    end;
+  end;
+  Result := -1;
+end;
+
+function CreateBitmapInfo(const Width, Height: Integer; const BitCount: Word): TBitmapInfo;
+begin
+  ZeroMemory(@Result, SizeOf(Result));
+  Result.bmiHeader.biSize := SizeOf(Result.bmiHeader);
+  Result.bmiHeader.biWidth := Width;
+  Result.bmiHeader.biHeight := Height;
+  Result.bmiHeader.biPlanes := 1;
+  Result.bmiHeader.biBitCount := BitCount;
+  Result.bmiHeader.biCompression := BI_RGB;
+end;
+
+var
+  PreferredMemoFont: String;
+
+function GetPreferredMemoFont: String;
+begin
+  Result := PreferredMemoFont;
+end;
+
+function DoubleAmp(const S: String): String;
+begin
+  Result := S;
+  for var I := Length(Result) downto 1 do
+    if Result[I] = '&' then
+      Insert('&', Result, I + 1);
+end;
+
+procedure LoadWindowState(const Form: TForm;
+  const Section: String; const Ini: TConfigIniFile);
+begin
+  var ConfigIni := Ini;
+  if ConfigIni = nil then
+    ConfigIni := TConfigIniFile.Create;
+  try
+    if ConfigIni.KeyExists(Section) then begin
+      if Form.Position in [poScreenCenter, poDesktopCenter, poMainFormCenter, poOwnerFormCenter] then
+        Form.Position := poDesigned; { Stop Delphi from updating the loaded state by centering }
+      var WindowPlacement: TWindowPlacement;
+      WindowPlacement.length := SizeOf(WindowPlacement);
+      GetWindowPlacement(Form.Handle, @WindowPlacement);
+      WindowPlacement.showCmd := SW_HIDE;  { the form isn't Visible yet }
+      WindowPlacement.rcNormalPosition.Left := ConfigIni.ReadInteger(Section,
+        'WindowLeft', WindowPlacement.rcNormalPosition.Left);
+      WindowPlacement.rcNormalPosition.Top := ConfigIni.ReadInteger(Section,
+        'WindowTop', WindowPlacement.rcNormalPosition.Top);
+      WindowPlacement.rcNormalPosition.Right := ConfigIni.ReadInteger(Section,
+        'WindowRight', WindowPlacement.rcNormalPosition.Left + Form.Width);
+      WindowPlacement.rcNormalPosition.Bottom := ConfigIni.ReadInteger(Section,
+        'WindowBottom', WindowPlacement.rcNormalPosition.Top + Form.Height);
+      const OldPPI = Form.CurrentPPI;
+      SetWindowPlacement(Form.Handle, @WindowPlacement);
+      if Form.CurrentPPI <> OldPPI then begin
+        { Restore was to a monitor with another DPI. This makes Windows send
+          WM_DPICHANGED, which makes VCL resize the form, but our rect was
+          already correct for that other monitor. So must restore once more. }
+        SetWindowPlacement(Form.Handle, @WindowPlacement);
+      end;
+      { Note: Must set WindowState *after* calling SetWindowPlacement, since
+        TCustomForm.WMSize resets WindowState }
+      if ConfigIni.ReadBool(Section, 'WindowMaximized', False) then
+        Form.WindowState := wsMaximized;
+    end;
+  finally
+    if ConfigIni <> Ini then
+      ConfigIni.Free;
+  end;
+end;
+
+procedure SaveWindowState(const Form: TForm;
+  const Section: String; const Ini: TConfigIniFile);
+begin
+  var ConfigIni := Ini;
+  if ConfigIni = nil then
+    ConfigIni := TConfigIniFile.Create;
+  try
+    var WindowPlacement: TWindowPlacement;
+    WindowPlacement.length := SizeOf(WindowPlacement);
+    GetWindowPlacement(Form.Handle, @WindowPlacement);
+    ConfigIni.WriteInteger(Section, 'WindowLeft', WindowPlacement.rcNormalPosition.Left);
+    ConfigIni.WriteInteger(Section, 'WindowTop', WindowPlacement.rcNormalPosition.Top);
+    ConfigIni.WriteInteger(Section, 'WindowRight', WindowPlacement.rcNormalPosition.Right);
+    ConfigIni.WriteInteger(Section, 'WindowBottom', WindowPlacement.rcNormalPosition.Bottom);
+    { The GetWindowPlacement docs claim that "flags" is always zero.
+      Fortunately, that's wrong. WPF_RESTORETOMAXIMIZED is set when the
+      window is either currently maximized, or currently minimized from a
+      previous maximized state. }
+    ConfigIni.WriteBool(Section, 'WindowMaximized',
+      WindowPlacement.flags and WPF_RESTORETOMAXIMIZED <> 0);
+  finally
+    if ConfigIni <> Ini then
+      ConfigIni.Free;
+  end;
+end;
+
+initialization
+  var OSVersionInfo: TOSVersionInfo;
+  OSVersionInfo.dwOSVersionInfoSize := SizeOf(OSVersionInfo);
+  GetVersionEx(OSVersionInfo);
+  WindowsVersion := (Byte(OSVersionInfo.dwMajorVersion) shl 24) or (Byte(OSVersionInfo.dwMinorVersion) shl 16) or Word(OSVersionInfo.dwBuildNumber);
+  PreferredMemoFont := 'Consolas';
+  if not FontExists(PreferredMemoFont) then
+    PreferredMemoFont := 'Courier New';
+
+end.

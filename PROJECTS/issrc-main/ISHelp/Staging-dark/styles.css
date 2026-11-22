@@ -1,0 +1,225 @@
+/*
+  Inno Setup
+  Copyright (C) 1997-2026 Jordan Russell
+  Portions by Martijn Laan
+  For conditions of distribution and use, see LICENSE.TXT.
+
+  Style sheet used by topic_*.htm
+*/
+
+HTML {
+	/* Ensure that anchor targets don't get hidden underneath the sticky header.
+	   This is the height of .topicheading plus an extra 2rem of breathing room. */
+	scroll-padding-block-start: calc((20rem/16) * 1.5 + 8px + 2rem);
+	/* Ensure dark scrollbar */
+	scrollbar-face-color: #696969;   /* thumb (Windows 7: also arrow background) */
+	scrollbar-shadow-color: #1f1f1f; /* thumb border */
+	scrollbar-track-color: #1f1f1f;  /* track */
+	scrollbar-arrow-color: #d6d6d6;  /* arrows (these use the track color as background, except on Windows 7) */
+	/* For Windows 7 */
+	scrollbar-highlight-color: #1f1f1f;
+	scrollbar-3dlight-color: #1f1f1f;
+	scrollbar-darkshadow-color: #1f1f1f;
+}
+BODY {
+	font: calc(14rem/16)/1.5 "Segoe UI", sans-serif;
+	margin: 0;
+	color: #d6d6d6;
+	background-color: #1f1f1f;
+}
+PRE, TT {
+	font: calc(13rem/16) Consolas, monospace;
+}
+P, H1, H2, H3, H4, H5, BLOCKQUOTE, PRE, FORM, OL, UL, DL, DD, TABLE, .examplebox {
+	/* only the end of paragraphs etc. has a margin */
+	margin-top: 0;
+	margin-bottom: 1em;
+}
+UL, OL, DD {
+	/* specify both of these for firefox compat. */
+	margin-left: 0;
+	padding-left: calc(28rem/16);  /* 2em with default font */
+}
+li {
+	/* LI does need a top margin when lists are nested */
+	margin-top: 1em;
+	margin-bottom: 1em;
+}
+TABLE {
+	/* equivalent of cellspacing="0" */
+	border-collapse: collapse;
+}
+th, td {
+	padding: 6px 10px;
+	border: 1px solid #403E41;
+}
+th.nowrap, td.nowrap {
+	white-space: nowrap;
+}
+th {
+	background-color: #353135;
+	text-align: left;
+}
+td {
+	vertical-align: baseline;
+}
+td > :last-child {
+	/* Suppress margin of <p>; see Setup Exit Codes topic */
+	margin-bottom: 0;
+}
+IMG {
+	border-style: none;
+}
+IMG.extlink {
+	width: 16px;
+	height: 16px;
+	padding-left: 2px;
+}
+A:link, A:visited {
+	color: hsl(206, 100%, 50%);
+	background-color: transparent;
+	text-decoration: none;
+}
+A[href]:hover {
+	color: hsl(206, 100%, 43%);
+	text-decoration: underline;
+}
+a[href]:hover > tt {
+	text-decoration: underline;
+}
+span:target {
+	background-color: #ffff00;
+	color: black;
+}
+
+.small {
+	font-size: calc(12rem/16);
+}
+.heading {
+	margin-top: 1em;
+	font-size: calc(20rem/16);
+	font-weight: bold;
+}
+.notopmargin {
+	margin-top: 0;
+}
+.indent {
+	margin-left: calc(28rem/16);  /* 2em with default font */
+}
+ul.compact > li {
+	margin-top: calc(2rem/16);
+	margin-bottom: calc(2rem/16);
+}
+
+.topicheading {
+	background-color: #403E41;
+	color: inherit;
+	padding: 4px 8px;
+	margin: 0;
+	font-size: calc(20rem/16);
+	font-weight: bold;
+	/* Can't allow wrapping because the scroll-padding setting expects a fixed height */
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	/* IE doesn't support sticky or scroll-padding */
+	position: sticky;
+	inset-block-start: 0;
+}
+.topicbody {
+	padding: 8px;
+}
+
+TT, .examplebox {
+	background-color: #353135;
+	color: inherit;
+}
+TT {
+	padding: 2px 4px;
+	border-radius: 4px;
+	display: inline-block;
+}
+.examplebox {
+	padding: 10px;
+	border-radius: 6px;
+	overflow-x: auto;
+}
+.examplebox > :last-child {
+	margin-bottom: 0;
+}
+.exampleheader {
+	font-size: calc(12rem/16);
+	font-weight: bold;
+	line-height: normal;
+	margin-bottom: 0.5em;
+}
+
+/* Syntax highlighting in script examples */
+.sec {
+	font-weight: bold;
+}
+.evt {
+	font-weight: bold;
+}
+.key {
+	color: #0088f0;
+}
+.com {
+	color: #339933;
+}
+.con {
+	color: #a278b5;
+}
+.str, .num {
+	color: #f09060;
+}
+.ispp {
+	color: #d95e6c;
+}
+
+
+dl.paramlist > dd {
+	margin-top: 0.5em;
+	/* give a little extra spacing between items */
+	margin-bottom: 1.5em;
+}
+
+dl.flaglist > dt {
+	font-weight: bold;
+}
+
+table.setuphdr {
+	margin: 0;
+}
+table.setuphdr > tbody > tr > th {
+	padding: 0;
+	border: none;
+	background-color: transparent;
+	vertical-align: baseline;
+	text-align: left;
+	font-weight: bold;
+	white-space: nowrap;
+}
+table.setuphdr > tbody > tr > td {
+	padding: 0;
+	padding-left: 1em;
+	border: none;
+}
+table.setuphdr > tbody > tr > th > div,
+table.setuphdr > tbody > tr > td > div {
+	margin-bottom: 1em;
+}
+
+
+#redirectbox {
+	position: absolute;
+	background-color: InfoBackground;
+	color: InfoText;
+	padding: 16px 24px;
+	border: 1px solid ThreeDDarkShadow;
+	font-size: 120%;
+	font-weight: bold;
+	        box-shadow: #808080 0 0 12px;
+	   -moz-box-shadow: #808080 0 0 12px;	/* for Firefox 3.6 */
+	-webkit-box-shadow: #808080 0 0 12px;	/* for Chrome 6.0 */
+}

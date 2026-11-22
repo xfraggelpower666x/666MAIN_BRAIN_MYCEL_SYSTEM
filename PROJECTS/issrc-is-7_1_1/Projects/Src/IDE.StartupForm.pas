@@ -1,0 +1,202 @@
+unit IDE.StartupForm;
+
+{
+  Inno Setup
+  Copyright (C) 1997-2026 Jordan Russell
+  Portions by Martijn Laan
+  For conditions of distribution and use, see LICENSE.TXT.
+
+  Compiler IDE Startup form
+}
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
+  StdCtrls, ExtCtrls,
+  BitmapButton, BitmapImage, NewGroupBox,
+  IDE.IDEForm;
+
+type
+  TStartupFormResult = (srNone, srEmpty, srWizard, srOpenFile, srOpenDialog,
+    srOpenDialogExamples);
+
+  TStartupForm = class(TIDEForm)
+    OKButton: TButton;
+    CancelButton: TButton;
+    GroupBox1: TNewGroupBox;
+    GroupBox2: TNewGroupBox;
+    EmptyRadioButton: TRadioButton;
+    WizardRadioButton: TRadioButton;
+    OpenRadioButton: TRadioButton;
+    OpenListBox: TListBox;
+    StartupCheck: TCheckBox;
+    NewImage: TImage;
+    OpenImage: TImage;
+    DonateBitBtn: TBitmapButton;
+    MailingListBitBtn: TBitmapButton;
+    DonateImageDark: TBitmapImage;
+    MailingListImageDark: TBitmapImage;
+    procedure RadioButtonClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure DblClick_(Sender: TObject);
+    procedure OpenListBoxClick(Sender: TObject);
+    procedure OKButtonClick(Sender: TObject);
+    procedure FormAfterMonitorDpiChanged(Sender: TObject; OldDPI,
+      NewDPI: Integer);
+    procedure DonateBitBtnClick(Sender: TObject);
+    procedure MailingListBitBtnClick(Sender: TObject);
+  private
+    FResult: TStartupFormResult;
+    FResultMainFileName: TFileName;
+    procedure SetMRUFilesList(const MRUFilesList: TStringList);
+    procedure UpdateImages;
+  protected
+    procedure CreateWnd; override;
+    procedure CreateParams(var Params: TCreateParams); override;
+  public
+    property MRUFilesList: TStringList write SetMRUFilesList;
+    property Result: TStartupFormResult read FResult;
+    property ResultMainFileName: TFileName read FResultMainFileName;
+  end;
+
+implementation
+
+uses
+  ComCtrls,
+  Shared.LicenseFunc, Shared.CommonFunc.Vcl,
+  IDE.Messages, IDE.LocalizeFunc, IDE.HelperFunc, IDE.MainForm, IDE.ImagesModule;
+
+{$R *.DFM}
+
+procedure TStartupForm.SetMRUFilesList(const MRUFilesList: TStringList);
+begin
+  if MRUFilesList.Count > 0 then begin
+    const NDefault = OpenListBox.Items.Count;
+    OpenListBox.Items.AddStrings(MRUFilesList);
+    UpdateScrollWidth(OpenListBox);
+    OpenListBox.ItemIndex := NDefault;
+  end;
+end;
+
+procedure TStartupForm.UpdateImages;
+
+  function GetImage(const Button: TToolButton; const WH: Integer): TWICImage;
+  begin
+    Result := ImagesModule.ToolbarImageCollection[InitFormThemeIsDark].GetSourceImage(Button.ImageIndex, WH, WH)
+  end;
+
+begin
+  { After a DPI change the button's Width and Height isn't yet updated, so calculate it ourselves }
+  var WH := MulDiv(16, CurrentPPI, 96);
+  NewImage.Picture.Graphic:= GetImage(MainForm.NewMainFileButton, WH);
+  OpenImage.Picture.Graphic := GetImage(MainForm.OpenMainFileButton, WH);
+end;
+
+procedure TStartupForm.FormAfterMonitorDpiChanged(Sender: TObject; OldDPI,
+  NewDPI: Integer);
+begin
+  UpdateImages;
+  UpdateScrollWidth(OpenListBox);
+end;
+
+procedure TStartupForm.FormCreate(Sender: TObject);
+begin
+  { Finish localization }
+  SizeBottomButtons(OKButton, CancelButton, StartupCheck);
+
+  FResult := srNone;
+
+  if IsLicensed then begin
+    DonateBitBtn.Visible := False;
+    const DiffX = MailingListBitBtn.Left - DonateBitBtn.Left;
+    MailingListBitBtn.Left := MailingListBitBtn.Left - DiffX;
+    StartupCheck.Left := StartupCheck.Left - DiffX;
+  end else begin
+    DonateBitBtn.Caption := MainForm.UpdatePanelDonateBitBtn.Caption;
+    DonateBitBtn.Hint := MainForm.UpdatePanelDonateBitBtn.Hint;
+  end;
+
+  if InitFormThemeIsDark then begin
+    if DonateBitBtn.Visible then
+      DonateBitBtn.Bitmap := DonateImageDark.Bitmap;
+    MailingListBitBtn.Bitmap := MailingListImageDark.Bitmap;
+  end;
+
+  UpdateImages;
+
+  OpenListBox.Items.Add(LFmtMessage(SCompilerExampleScripts));
+  OpenListBox.Items.Add(LFmtMessage(SCompilerMoreFiles));
+  OpenListBox.ItemIndex := 0;
+  UpdateScrollWidth(OpenListBox);
+
+  OpenRadioButton.Checked := True;
+  ActiveControl := OpenRadioButton;
+end;
+
+{ This and CreateParams make bsSizeable (which has an unwanted icon) look like bsDialog, see:
+  https://stackoverflow.com/questions/32096482/delphi-resizable-bsdialog-form/32098633 }
+procedure TStartupForm.CreateWnd;
+begin
+  inherited;
+  SendMessage(Handle, WM_SETICON, ICON_BIG, 0);
+end;
+
+procedure TStartupForm.CreateParams(var Params: TCreateParams);
+begin
+  inherited CreateParams(Params);
+  Params.ExStyle := Params.ExStyle or WS_EX_DLGMODALFRAME or WS_EX_WINDOWEDGE;
+end;
+
+procedure TStartupForm.RadioButtonClick(Sender: TObject);
+begin
+  EmptyRadioButton.Checked := Sender = EmptyRadioButton;
+  WizardRadioButton.Checked := Sender = WizardRadioButton;
+  OpenRadioButton.Checked := Sender = OpenRadioButton;
+  if Sender = OpenRadioButton then begin
+    if OpenListBox.ItemIndex = -1 then
+      OpenListBox.ItemIndex := 0;
+  end
+  else
+    OpenListBox.ItemIndex := -1;
+end;
+
+procedure TStartupForm.DblClick_(Sender: TObject);
+begin
+  if OkButton.Enabled then
+    OkButton.Click;
+end;
+
+procedure TStartupForm.OpenListBoxClick(Sender: TObject);
+begin
+  OpenRadioButton.Checked := True;
+end;
+
+procedure TStartupForm.DonateBitBtnClick(Sender: TObject);
+begin
+  OpenDonateSite;
+end;
+
+procedure TStartupForm.MailingListBitBtnClick(Sender: TObject);
+begin
+  OpenMailingListSite;
+end;
+
+procedure TStartupForm.OKButtonClick(Sender: TObject);
+begin
+  if EmptyRadioButton.Checked then
+    FResult := srEmpty
+  else if WizardRadioButton.Checked then
+    FResult := srWizard
+  else { if OpenRadioButton.Checked then } begin
+    if OpenListBox.ItemIndex = 0 then
+      FResult := srOpenDialogExamples
+    else if OpenListBox.ItemIndex > 1 then begin
+      FResult := srOpenFile;
+      FResultMainFileName := OpenListBox.Items[OpenListBox.ItemIndex];
+    end else
+      FResult := srOpenDialog;
+  end;
+end;
+
+end.

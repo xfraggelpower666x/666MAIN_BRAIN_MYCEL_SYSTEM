@@ -1,0 +1,105 @@
+<!--
+  Inno Setup Preprocessor
+  Copyright (C) 2001-2002 Alex Yackimoff
+  
+  Inno Setup
+  Copyright (C) 1997-2026 Jordan Russell
+  Portions by Martijn Laan
+  For conditions of distribution and use, see LICENSE.TXT.
+
+  Document Type Definition for ispp.xml
+-->
+
+<!ENTITY % _inlineExceptLink "b | br | i | tt">
+<!ENTITY % _highlight "sec|evt|key|com|con|str|num|ispp">
+
+<!ENTITY % InlineExceptLink "(#PCDATA | %_inlineExceptLink;)*">
+
+<!ELEMENT yasyx     (topic)*>
+<!ELEMENT topic     (title|subtopicstitle|keywords|syntax|description|(topic|section)*)+>
+<!ATTLIST topic
+  id      ID        #IMPLIED
+  unlisted (yes|no) "no"
+  usetitle (yes|no) "yes">
+
+<!ELEMENT title     (#PCDATA)*>
+<!ELEMENT subtopicstitle     (#PCDATA)*>
+
+<!ELEMENT keywords  (kwd)*>
+<!ELEMENT kwd       (#PCDATA)*>
+
+<!ELEMENT description (p|pre|table|ul)*>
+<!ATTLIST description 
+  header (yes|no)   "yes">
+
+<!ELEMENT section (p|pre|table|ul)*>
+<!ATTLIST section
+  title  CDATA      #REQUIRED>
+
+<!ELEMENT p         (#PCDATA|tt|i|link|extlink|sd|sn)*>
+<!ELEMENT pre       (line)*>
+<!ELEMENT line      (#PCDATA|link|b|%_highlight;)*>
+<!ELEMENT tt        (#PCDATA|b|i|link|extlink)*>
+<!ELEMENT link      %InlineExceptLink;>
+<!ATTLIST link
+  href    CDATA     #IMPLIED
+  popup   (yes|no)  "no">
+<!ELEMENT extlink   %InlineExceptLink;>
+<!ATTLIST extlink
+  href    CDATA     #REQUIRED>
+<!ELEMENT i         (#PCDATA)*>
+<!ELEMENT b         (#PCDATA)*>
+<!ELEMENT br        EMPTY>
+<!ELEMENT sd        (#PCDATA)*>
+<!ELEMENT sn        (#PCDATA)*>
+
+<!ELEMENT sec       (#PCDATA|%_highlight;)*>
+<!ELEMENT evt       (#PCDATA|%_highlight;)*>
+<!ELEMENT key       (#PCDATA|%_highlight;)*>
+<!ELEMENT com       (#PCDATA|%_highlight;)*>
+<!ELEMENT con       (#PCDATA|%_highlight;)*>
+<!ELEMENT str       (#PCDATA|%_highlight;)*>
+<!ELEMENT num       (#PCDATA|%_highlight;)*>
+<!ELEMENT ispp      (#PCDATA|%_highlight;)*>
+
+<!ELEMENT syntax (define)*>
+
+<!ELEMENT define (variant|cases|opt|txt|nt|group)*>
+<!ATTLIST define 
+  id    ID      #IMPLIED
+  inline (yes|no) "no">
+
+<!ELEMENT variant (txt|nt|opt|cases|group)*>
+<!ATTLIST variant
+  br      (yes|no)  "yes">
+
+<!ELEMENT group (txt|nt|opt|group|cases)*>
+<!ATTLIST group
+  repeated (yes|no) "no">
+
+<!ELEMENT txt (#PCDATA)>
+<!ELEMENT nt (#PCDATA)*>
+<!ATTLIST nt
+  doc    CDATA #IMPLIED
+  name   CDATA #IMPLIED>
+<!ELEMENT opt (txt|nt|opt|group)*>
+<!ATTLIST opt
+  repeated (yes|no) "no">
+
+<!ELEMENT cases (case)+>
+<!ATTLIST cases
+  repeated (yes|no) "no">
+
+<!ELEMENT case (txt|nt|opt|cases)*>
+
+<!ELEMENT table       (tr)*>
+<!ELEMENT tr          (th|td)*>
+<!ELEMENT th          (#PCDATA|tt)*>
+<!ATTLIST th
+  nowrap CDATA #IMPLIED>
+<!ELEMENT td          (#PCDATA|b|i|link|extlink|table|tt)*>
+<!ATTLIST td
+  nowrap CDATA #IMPLIED>
+
+<!ELEMENT ul          (li)*>
+<!ELEMENT li          (#PCDATA|tt|link|extlink|p|pre)*>

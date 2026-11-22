@@ -1,0 +1,125 @@
+unit DropListBox;
+
+{
+  Inno Setup
+  Copyright (C) 1997-2026 Jordan Russell
+  Portions by Martijn Laan
+  For conditions of distribution and use, see LICENSE.TXT.
+
+  This unit provides a listbox with drop files support.
+}
+
+interface
+
+uses
+  StdCtrls,
+  Messages;
+
+type
+  TDropListBox = class;
+
+  TDropFileEvent = procedure(Sender: TDropListBox; const FileName: String) of object;
+
+  TDropListBox = class(TCustomListBox)
+  private
+    FOnDropFile: TDropFileEvent;
+  protected
+    procedure CreateWnd; override;
+    procedure WMDropFiles(var Msg: TWMDropFiles); message WM_DROPFILES;
+  published
+    property Align;
+    property Anchors;
+    property BorderStyle;
+    property Color;
+    property Columns;
+    property Ctl3D;
+    property DragCursor;
+    property DragMode;
+    property Enabled;
+    property ExtendedSelect;
+    property Font;
+    property ImeMode;
+    property ImeName;
+    property IntegralHeight;
+    property ItemHeight;
+    property Items;
+    property MultiSelect;
+    property ParentColor;
+    property ParentCtl3D;
+    property ParentFont;
+    property ParentShowHint;
+    property PopupMenu;
+    property ShowHint;
+    property Sorted;
+    property Style;
+    property TabOrder;
+    property TabStop;
+    property TabWidth;
+    property Visible;
+    property OnClick;
+    property OnDblClick;
+    property OnDragDrop;
+    property OnDragOver;
+    property OnDrawItem;
+    property OnDropFile: TDropFileEvent read FOnDropFile write FOnDropFile;
+    property OnEndDrag;
+    property OnEnter;
+    property OnExit;
+    property OnKeyDown;
+    property OnKeyPress;
+    property OnKeyUp;
+    property OnMeasureItem;
+    property OnMouseDown;
+    property OnMouseMove;
+    property OnMouseUp;
+    property OnStartDrag;
+  end;
+
+procedure Register;
+
+implementation
+
+uses
+  Classes,
+  Windows, ShellAPI;
+
+procedure TDropListBox.CreateWnd;
+begin
+  inherited;
+  if csDesigning in ComponentState then
+    Exit;
+
+  DragAcceptFiles(Handle, True);
+end;
+
+procedure TDropListBox.WMDropFiles(var Msg: TWMDropFiles);
+begin
+  try
+    if Assigned(FOnDropFile) then begin
+      const FileCount = DragQueryFile(Msg.Drop, $FFFFFFFF, nil, 0);
+      if FileCount > 0 then
+        for var I := 0 to FileCount-1 do begin
+          const Len = DragQueryFile(Msg.Drop, I, nil, 0);
+          if Len > 0 then begin
+            var FileName: String;
+            SetLength(FileName, Len);
+            const Copied = DragQueryFile(Msg.Drop, I, PChar(FileName), Len + 1);
+            if Copied > 0 then begin
+              SetLength(FileName, Copied);
+              FOnDropFile(Self, FileName);
+            end;
+          end;
+        end;
+    end;
+    Msg.Result := 0;
+  finally
+    DragFinish(Msg.Drop);
+  end;
+end;
+
+procedure Register;
+begin
+  RegisterComponents('JR', [TDropListBox]);
+end;
+
+end.

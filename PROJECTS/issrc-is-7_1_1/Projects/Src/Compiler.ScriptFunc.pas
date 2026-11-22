@@ -1,0 +1,468 @@
+unit Compiler.ScriptFunc;
+
+{
+  Inno Setup
+  Copyright (C) 1997-2026 Jordan Russell
+  Portions by Martijn Laan
+  For conditions of distribution and use, see LICENSE.TXT.
+
+  Script support functions (compile time - used by ISCmplr)
+}
+
+interface
+
+uses
+  Generics.Collections, uPSCompiler, uPSUtils;
+
+procedure ScriptFuncLibraryRegister_C(const ScriptCompiler: TPSPascalCompiler;
+  const ObsoleteFunctionWarnings: TDictionary<String, String>);
+
+implementation
+
+uses
+  Windows, SysUtils, TypInfo,
+  Shared.CommonFunc, Shared.SetupMessageIDs, Shared.Struct,
+  Shared.SetupTypes, Shared.SetupSteps, Shared.ScriptFunc, Compiler.Messages, Shared.DotNetVersion;
+
+{ This type copied from Shared.CommonFunc.Vcl. We don't actually 'use'
+  Shared.CommonFunc.Vcl since it would cause VCL units to be linked in. }
+type
+  TMsgBoxType = (mbInformation, mbConfirmation, mbError, mbCriticalError);
+
+procedure ScriptFuncLibraryRegister_C(const ScriptCompiler: TPSPascalCompiler;
+  const ObsoleteFunctionWarnings: TDictionary<String, String>);
+
+  procedure RegisterType(const Name, Value: tbtstring);
+  begin
+    ScriptCompiler.AddTypeS(Name, Value);
+  end;
+
+  procedure RegisterFunctionTable(const FunctionTable: array of tbtstring);
+  begin
+    for var Func in FunctionTable do
+      ScriptCompiler.AddFunction(Func);
+  end;
+
+  procedure RegisterDelphiFunctionTable(const FunctionTable: array of tbtstring);
+  begin
+    for var I := Low(FunctionTable) to High(FunctionTable) do
+      ScriptCompiler.AddDelphiFunction(FunctionTable[I]);
+  end;
+
+  procedure RegisterConst(const Name: tbtstring; const Value: Integer);
+  var
+    C: TPSConstant;
+  begin
+    C := ScriptCompiler.AddConstant(Name, ScriptCompiler.FindType('Integer'));
+    C.Value.tS32 := Value;
+  end;
+
+  procedure RegisterRealEnum(const Name: tbtstring; const TypeInfo: PTypeInfo);
+  var
+    TypeData: PTypeData;
+    S: tbtstring;
+    I: Integer;
+  begin
+    TypeData := GetTypeData(TypeInfo);
+    if (TypeInfo.Kind <> tkEnumeration) or (TypeData.MinValue <> 0) then
+      raise Exception.Create('Internal error: RegisterRealEnum not passed a valid enum type');
+    S := '(';
+    for I := 0 to TypeData.MaxValue do begin
+      if I > 0 then
+        S := S + ',';
+      S := S + tbtstring(GetEnumName(TypeInfo, I));
+    end;
+    S := S + ')';
+    ScriptCompiler.AddTypeS(Name, S);
+  end;
+
+  { Internal, used only by Script.Test.iss }
+  procedure RegisterTestSetType(const SetName: tbtstring; const ByteSize: Integer);
+  begin
+    { Uses an enum set. ROPS sizes these as number of enums rounded up to whole bytes. }
+    var Enum: tbtstring := '(';
+    for var I := 0 to ByteSize * 8 - 1 do begin
+      if I > 0 then
+        Enum := Enum + ',';
+      Enum := Enum + SetName + 'M' + tbtstring(IntToStr(I));
+    end;
+    Enum := Enum + ')';
+    RegisterType(SetName + 'Base', Enum);
+    RegisterType(SetName, 'set of ' + SetName + 'Base');
+  end;
+
+begin
+  RegisterType('TArrayOfString', 'array of String');
+  RegisterType('TArrayOfChar', 'array of Char');
+  RegisterType('TArrayOfBoolean', 'array of Boolean');
+  RegisterType('TArrayOfInteger', 'array of Integer');
+  RegisterType('TArrayOfGraphic', 'array of TGraphic');
+
+  RegisterType('DWORD', 'Cardinal');
+  RegisterType('UINT', 'Cardinal');
+  RegisterType('BOOL', 'LongBool');
+  RegisterType('LONG', 'Integer');
+  RegisterType('ULONG', 'Cardinal');
+  RegisterType('HANDLE', 'THandle');
+  RegisterType('COLORREF', 'DWORD');
+
+  RegisterType('INT_PTR', 'NativeInt');
+  RegisterType('LONG_PTR', 'NativeInt');
+  RegisterType('DWORD_PTR', 'NativeUInt');
+  RegisterType('UINT_PTR', 'NativeUInt');
+  RegisterType('ULONG_PTR', 'NativeUInt');
+
+  RegisterType('LRESULT', 'LONG_PTR');
+  RegisterType('HKEY', 'HANDLE');
+  RegisterType('HINSTANCE', 'HANDLE');
+  RegisterType('HMODULE', 'HINSTANCE');
+  RegisterType('WPARAM', 'UINT_PTR');
+  RegisterType('LPARAM', 'LONG_PTR');
+  RegisterType('SIZE_T', 'ULONG_PTR');
+  RegisterType('SSIZE_T', 'LONG_PTR');
+
+  RegisterType('TFileTime',
+    'record' +
+    '  dwLowDateTime: DWORD;' +
+    '  dwHighDateTime: DWORD;' +
+    'end');
+
+  RegisterRealEnum('TMsgBoxType', TypeInfo(TMsgBoxType));
+  RegisterRealEnum('TSetupMessageID', TypeInfo(TSetupMessageID));
+  RegisterRealEnum('TSetupStep', TypeInfo(TSetupStep));
+  RegisterRealEnum('TUninstallStep', TypeInfo(TUninstallStep));
+  RegisterRealEnum('TSetupProcessorArchitecture', TypeInfo(TSetupProcessorArchitecture));
+  RegisterRealEnum('TDotNetVersion', TypeInfo(TDotNetVersion));
+  RegisterRealEnum('TPathRedirTargetProcess', TypeInfo(TPathRedirTargetProcess));
+
+  RegisterType('TSplitType', '(stAll, stExcludeEmpty, stExcludeLastEmpty)'); //must be compatible with System.SysUtils.TStringSplitOptions
+
+  RegisterType('TExecWait', '(ewNoWait, ewWaitUntilTerminated, ewWaitUntilIdle)');
+
+  RegisterType('TExecOutput',
+    'record' +
+    '  StdOut: TArrayOfString;' +
+    '  StdErr: TArrayOfString;' +
+    '  Error: Boolean;' +
+    'end');
+
+  RegisterType('TFindRec',
+    'record' +
+    '  Name: String;' +
+    '  Attributes: LongWord;' +
+    '  SizeHigh: LongWord;' +
+    '  SizeLow: LongWord;' +
+    '  CreationTime: TFileTime;' +
+    '  LastAccessTime: TFileTime;' +
+    '  LastWriteTime: TFileTime;' +
+    '  AlternateName: String;' +
+    '  FindHandle: THandle;' +
+    'end');
+  RegisterType('TWindowsVersion',
+    'record' +
+    '  Major: Cardinal;' +
+    '  Minor: Cardinal;' +
+    '  Build: Cardinal;' +
+    '  ServicePackMajor: Cardinal;' +
+    '  ServicePackMinor: Cardinal;' +
+    '  NTPlatform: Boolean;' +
+    '  ProductType: Byte;' +
+    '  SuiteMask: Word;' +
+    'end');
+
+  RegisterType('TOnDownloadProgress', 'function(const Url, FileName: String; const Progress, ProgressMax: Int64): Boolean;');
+  RegisterType('TOnExtractionProgress', 'function(const ArchiveName, FileName: String; const Progress, ProgressMax: Int64): Boolean;');
+  RegisterType('TOnLog', 'procedure(const S: String; const Error, FirstLine: Boolean);');
+
+  for var ScriptFuncTable in ScriptFuncTables do
+    RegisterFunctionTable(ScriptFuncTable);
+  RegisterDelphiFunctionTable(DelphiScriptFuncTable);
+
+  { These are internal, used only by Script.Test.iss }
+  RegisterType('TTestInnerfuseSmallRec', 'record A: Byte; B: Byte; end');
+  RegisterType('TTestInnerfuseLargeRec', 'record A: Integer; B: String; end');
+  RegisterType('TTestHandlerRec1', 'record A: Byte; end');
+  RegisterType('TTestHandlerRec3', 'record A: Byte; B: Byte; C: Byte; end');
+  RegisterType('TTestHandlerRec4', 'record A: Word; B: Word; end');
+  RegisterType('TTestHandlerRec6', 'record A: Word; B: Word; C: Word; end');
+  RegisterType('TTestHandlerRec8', 'record A: Word; B: Word; C: Word; D: Word; end');
+  RegisterType('TTestHandlerRec10', 'record A: Word; B: Word; C: Word; D: Word; E: Word; end');
+  RegisterType('TTestHandlerRecString', 'record S: String; end');
+  RegisterTestSetType('TTestHandlerSet3', 3);
+  RegisterTestSetType('TTestHandlerSet4', 4);
+  RegisterTestSetType('TTestHandlerSet6', 6);
+  RegisterTestSetType('TTestHandlerSet8', 8);
+  RegisterTestSetType('TTestHandlerSet10', 10);
+  RegisterType('TTestHandlerArr1', 'array[0..0] of Byte');
+  RegisterType('TTestHandlerArr2', 'array[0..1] of Byte');
+  RegisterType('TTestHandlerArr3', 'array[0..2] of Byte');
+  RegisterType('TTestHandlerArr4', 'array[0..3] of Byte');
+  RegisterType('TTestHandlerArr6', 'array[0..5] of Byte');
+  RegisterType('TTestHandlerArr8', 'array[0..7] of Byte');
+  RegisterType('TTestHandlerArr10', 'array[0..9] of Byte');
+  RegisterType('TTestHandlerArrString', 'array[0..0] of String');
+  RegisterDelphiFunctionTable(TestInnerfuseScriptFuncTable);
+  RegisterType('TTestPSStackHelperProc', 'function(Value: Integer): Integer;');
+  ScriptCompiler.AddFunction('function TestPSStackHelper_InvokeCallback(const Callback: TTestPSStackHelperProc; const Value: Integer): Integer;');
+  RegisterType('TTestHandlerExtendedProc', 'function(E1, E2, E3: Extended; Tail: Integer): Extended;');
+  RegisterType('TTestHandlerCurrencyProc', 'function(C1, C2, C3: Currency; Tail: Integer): Currency;');
+  RegisterType('TTestHandlerMixedProc', 'procedure(A: Integer; E: Extended; C: Currency; Tail: Integer);');
+  ScriptCompiler.AddFunction('function TestHandler_InvokeExtended(const Callback: TTestHandlerExtendedProc): Extended;');
+  ScriptCompiler.AddFunction('function TestHandler_InvokeCurrency(const Callback: TTestHandlerCurrencyProc): Currency;');
+  ScriptCompiler.AddFunction('procedure TestHandler_InvokeMixed(const Callback: TTestHandlerMixedProc);');
+  RegisterType('TTestHandlerRecProc', 'function(R1: TTestHandlerRec4; R2: TTestHandlerRec6; R3: TTestHandlerRec8; Tail: Integer): Integer;');
+  RegisterType('TTestHandlerRecProc2', 'function(R1: TTestHandlerRec3; R2: TTestHandlerRec10; Tail: Integer): Integer;');
+  ScriptCompiler.AddFunction('function TestHandler_InvokeRec(const Callback: TTestHandlerRecProc): Integer;');
+  ScriptCompiler.AddFunction('function TestHandler_InvokeRec2(const Callback: TTestHandlerRecProc2): Integer;');
+  RegisterType('TTestHandlerSetProc', 'function(S1: TTestHandlerSet4; S2: TTestHandlerSet6; S3: TTestHandlerSet8; Tail: Integer): Integer;');
+  RegisterType('TTestHandlerSetProc2', 'function(S1: TTestHandlerSet3; S2: TTestHandlerSet10; Tail: Integer): Integer;');
+  ScriptCompiler.AddFunction('function TestHandler_InvokeSet(const Callback: TTestHandlerSetProc): Integer;');
+  ScriptCompiler.AddFunction('function TestHandler_InvokeSet2(const Callback: TTestHandlerSetProc2): Integer;');
+  RegisterType('TTestHandlerArrProc', 'function(A1: TTestHandlerArr4; A2: TTestHandlerArr6; A3: TTestHandlerArr8; Tail: Integer): Integer;');
+  RegisterType('TTestHandlerArrProc2', 'function(A1: TTestHandlerArr3; A2: TTestHandlerArr10; Tail: Integer): Integer;');
+  ScriptCompiler.AddFunction('function TestHandler_InvokeArray(const Callback: TTestHandlerArrProc): Integer;');
+  ScriptCompiler.AddFunction('function TestHandler_InvokeArray2(const Callback: TTestHandlerArrProc2): Integer;');
+  RegisterType('TTestHandlerRecRet1Proc', 'function(A, B: Integer): TTestHandlerRec1;');
+  RegisterType('TTestHandlerRecRet3Proc', 'function(A, B: Integer): TTestHandlerRec3;');
+  RegisterType('TTestHandlerRecRet4Proc', 'function(A, B: Integer): TTestHandlerRec4;');
+  RegisterType('TTestHandlerRecRet8Proc', 'function(A, B: Integer): TTestHandlerRec8;');
+  RegisterType('TTestHandlerRecRetStringProc', 'function(A, B: Integer): TTestHandlerRecString;');
+  ScriptCompiler.AddFunction('function TestHandler_InvokeRecRet1(const Callback: TTestHandlerRecRet1Proc): String;');
+  ScriptCompiler.AddFunction('function TestHandler_InvokeRecRet3(const Callback: TTestHandlerRecRet3Proc): String;');
+  ScriptCompiler.AddFunction('function TestHandler_InvokeRecRet4(const Callback: TTestHandlerRecRet4Proc): String;');
+  ScriptCompiler.AddFunction('function TestHandler_InvokeRecRet8(const Callback: TTestHandlerRecRet8Proc): String;');
+  ScriptCompiler.AddFunction('function TestHandler_InvokeRecRetString(const Callback: TTestHandlerRecRetStringProc): String;');
+  RegisterType('TTestHandlerArrRet3Proc', 'function(A, B: Integer): TTestHandlerArr3;');
+  RegisterType('TTestHandlerArrRet4Proc', 'function(A, B: Integer): TTestHandlerArr4;');
+  RegisterType('TTestHandlerArrRet8Proc', 'function(A, B: Integer): TTestHandlerArr8;');
+  RegisterType('TTestHandlerArrRetStringProc', 'function(A, B: Integer): TTestHandlerArrString;');
+  ScriptCompiler.AddFunction('function TestHandler_InvokeArrRet3(const Callback: TTestHandlerArrRet3Proc): String;');
+  ScriptCompiler.AddFunction('function TestHandler_InvokeArrRet4(const Callback: TTestHandlerArrRet4Proc): String;');
+  ScriptCompiler.AddFunction('function TestHandler_InvokeArrRet8(const Callback: TTestHandlerArrRet8Proc): String;');
+  ScriptCompiler.AddFunction('function TestHandler_InvokeArrRetString(const Callback: TTestHandlerArrRetStringProc): String;');
+  ScriptCompiler.AddFunction('function TestRefCount_StringRefCount(const S: String): Integer;');
+  ScriptCompiler.AddFunction('function TestTypes_NativeSizeOf(const TypeName: String): Integer;');
+
+  ObsoleteFunctionWarnings.Add('IsAdminLoggedOn', Format(SCompilerCodeFunctionRenamedWithAlternative, ['IsAdminLoggedOn', 'IsAdmin', 'IsAdminInstallMode']));
+  ObsoleteFunctionWarnings.Add('IsComponentSelected', Format(SCompilerCodeFunctionRenamed, ['IsComponentSelected', 'WizardIsComponentSelected']));
+  ObsoleteFunctionWarnings.Add('IsTaskSelected', Format(SCompilerCodeFunctionRenamed, ['IsTaskSelected', 'WizardIsTaskSelected']));
+  ObsoleteFunctionWarnings.Add('IsX64', Format(SCompilerCodeFunctionDeprecatedWithAlternativeAndDocs, ['IsX64', 'IsX64OS', 'IsX64Compatible', 'Architecture Identifiers']));
+  ObsoleteFunctionWarnings.Add('FileCopy', Format(SCompilerCodeFunctionRenamed, ['FileCopy', 'CopyFile']));
+  ObsoleteFunctionWarnings.Add('Extract7ZipArchive', Format(SCompilerCodeFunctionDeprecatedWithHint, ['Extract7ZipArchive', 'ExtractArchive', SCompilerCodeFunctionExtractArchiveHint]));
+
+  RegisterConst('MaxInt', MaxInt);
+
+  ScriptCompiler.AddConstantN('irInstall', 'Boolean').SetUInt(1);
+
+  RegisterConst('wpWelcome', wpWelcome);
+  RegisterConst('wpLicense', wpLicense);
+  RegisterConst('wpPassword', wpPassword);
+  RegisterConst('wpInfoBefore', wpInfoBefore);
+  RegisterConst('wpUserInfo', wpUserInfo);
+  RegisterConst('wpSelectDir', wpSelectDir);
+  RegisterConst('wpSelectComponents', wpSelectComponents);
+  RegisterConst('wpSelectProgramGroup', wpSelectProgramGroup);
+  RegisterConst('wpSelectTasks', wpSelectTasks);
+  RegisterConst('wpReady', wpReady);
+  RegisterConst('wpPreparing', wpPreparing);
+  RegisterConst('wpInstalling', wpInstalling);
+  RegisterConst('wpInfoAfter', wpInfoAfter);
+  RegisterConst('wpFinished', wpFinished);
+
+  RegisterConst('MB_OK', MB_OK);
+  RegisterConst('MB_OKCANCEL', MB_OKCANCEL);
+  RegisterConst('MB_ABORTRETRYIGNORE', MB_ABORTRETRYIGNORE);
+  RegisterConst('MB_YESNOCANCEL', MB_YESNOCANCEL);
+  RegisterConst('MB_YESNO', MB_YESNO);
+  RegisterConst('MB_RETRYCANCEL', MB_RETRYCANCEL);
+  RegisterConst('MB_DEFBUTTON1', MB_DEFBUTTON1);
+  RegisterConst('MB_DEFBUTTON2', MB_DEFBUTTON2);
+  RegisterConst('MB_DEFBUTTON3', MB_DEFBUTTON3);
+  RegisterConst('MB_SETFOREGROUND', MB_SETFOREGROUND);
+
+  RegisterConst('IDOK', IDOK);
+  RegisterConst('IDCANCEL', IDCANCEL);
+  RegisterConst('IDABORT', IDABORT);
+  RegisterConst('IDRETRY', IDRETRY);
+  RegisterConst('IDIGNORE', IDIGNORE);
+  RegisterConst('IDYES', IDYES);
+  RegisterConst('IDNO', IDNO);
+
+  RegisterConst('HWND_BROADCAST', HWND_BROADCAST);
+
+  RegisterConst('HKEY_AUTO', Integer(HKEY_AUTO));
+  RegisterConst('HKEY_AUTO_32', Integer(HKEY_AUTO or CodeRootKeyFlag32Bit));
+  RegisterConst('HKEY_AUTO_64', Integer(HKEY_AUTO or CodeRootKeyFlag64Bit));
+  RegisterConst('HKEY_CLASSES_ROOT', Integer(HKEY_CLASSES_ROOT));
+  RegisterConst('HKEY_CLASSES_ROOT_32', Integer(HKEY_CLASSES_ROOT or CodeRootKeyFlag32Bit));
+  RegisterConst('HKEY_CLASSES_ROOT_64', Integer(HKEY_CLASSES_ROOT or CodeRootKeyFlag64Bit));
+  RegisterConst('HKEY_CURRENT_USER', Integer(HKEY_CURRENT_USER));
+  RegisterConst('HKEY_CURRENT_USER_32', Integer(HKEY_CURRENT_USER or CodeRootKeyFlag32Bit));
+  RegisterConst('HKEY_CURRENT_USER_64', Integer(HKEY_CURRENT_USER or CodeRootKeyFlag64Bit));
+  RegisterConst('HKEY_LOCAL_MACHINE', Integer(HKEY_LOCAL_MACHINE));
+  RegisterConst('HKEY_LOCAL_MACHINE_32', Integer(HKEY_LOCAL_MACHINE or CodeRootKeyFlag32Bit));
+  RegisterConst('HKEY_LOCAL_MACHINE_64', Integer(HKEY_LOCAL_MACHINE or CodeRootKeyFlag64Bit));
+  RegisterConst('HKEY_USERS', Integer(HKEY_USERS));
+  RegisterConst('HKEY_USERS_32', Integer(HKEY_USERS or CodeRootKeyFlag32Bit));
+  RegisterConst('HKEY_USERS_64', Integer(HKEY_USERS or CodeRootKeyFlag64Bit));
+  RegisterConst('HKEY_PERFORMANCE_DATA', Integer(HKEY_PERFORMANCE_DATA));
+  RegisterConst('HKEY_CURRENT_CONFIG', Integer(HKEY_CURRENT_CONFIG));
+  RegisterConst('HKEY_CURRENT_CONFIG_32', Integer(HKEY_CURRENT_CONFIG or CodeRootKeyFlag32Bit));
+  RegisterConst('HKEY_CURRENT_CONFIG_64', Integer(HKEY_CURRENT_CONFIG or CodeRootKeyFlag64Bit));
+  RegisterConst('HKEY_DYN_DATA', Integer(HKEY_DYN_DATA));
+
+  RegisterConst('HKA', Integer(HKEY_AUTO));
+  RegisterConst('HKA32', Integer(HKEY_AUTO or CodeRootKeyFlag32Bit));
+  RegisterConst('HKA64', Integer(HKEY_AUTO or CodeRootKeyFlag64Bit));
+  RegisterConst('HKCR', Integer(HKEY_CLASSES_ROOT));
+  RegisterConst('HKCR32', Integer(HKEY_CLASSES_ROOT or CodeRootKeyFlag32Bit));
+  RegisterConst('HKCR64', Integer(HKEY_CLASSES_ROOT or CodeRootKeyFlag64Bit));
+  RegisterConst('HKCU', Integer(HKEY_CURRENT_USER));
+  RegisterConst('HKCU32', Integer(HKEY_CURRENT_USER or CodeRootKeyFlag32Bit));
+  RegisterConst('HKCU64', Integer(HKEY_CURRENT_USER or CodeRootKeyFlag64Bit));
+  RegisterConst('HKLM', Integer(HKEY_LOCAL_MACHINE));
+  RegisterConst('HKLM32', Integer(HKEY_LOCAL_MACHINE or CodeRootKeyFlag32Bit));
+  RegisterConst('HKLM64', Integer(HKEY_LOCAL_MACHINE or CodeRootKeyFlag64Bit));
+  RegisterConst('HKU', Integer(HKEY_USERS));
+  RegisterConst('HKU32', Integer(HKEY_USERS or CodeRootKeyFlag32Bit));
+  RegisterConst('HKU64', Integer(HKEY_USERS or CodeRootKeyFlag64Bit));
+  RegisterConst('HKCC', Integer(HKEY_CURRENT_CONFIG));
+  RegisterConst('HKCC32', Integer(HKEY_CURRENT_CONFIG or CodeRootKeyFlag32Bit));
+  RegisterConst('HKCC64', Integer(HKEY_CURRENT_CONFIG or CodeRootKeyFlag64Bit));
+
+  RegisterConst('SW_HIDE', SW_HIDE);
+  RegisterConst('SW_SHOWNORMAL', SW_SHOWNORMAL);
+  RegisterConst('SW_SHOWMINIMIZED', SW_SHOWMINIMIZED);
+  RegisterConst('SW_SHOWMAXIMIZED', SW_SHOWMAXIMIZED);
+  RegisterConst('SW_SHOWMINNOACTIVE', SW_SHOWMINNOACTIVE);
+  RegisterConst('SW_SHOW', SW_SHOW);
+
+  RegisterConst('FILE_ATTRIBUTE_READONLY', FILE_ATTRIBUTE_READONLY);
+  RegisterConst('FILE_ATTRIBUTE_HIDDEN', FILE_ATTRIBUTE_HIDDEN);
+  RegisterConst('FILE_ATTRIBUTE_SYSTEM', FILE_ATTRIBUTE_SYSTEM);
+  RegisterConst('FILE_ATTRIBUTE_DIRECTORY', FILE_ATTRIBUTE_DIRECTORY);
+  RegisterConst('FILE_ATTRIBUTE_ARCHIVE', FILE_ATTRIBUTE_ARCHIVE);
+  RegisterConst('FILE_ATTRIBUTE_DEVICE', $00000040);
+  RegisterConst('FILE_ATTRIBUTE_NORMAL', FILE_ATTRIBUTE_NORMAL);
+  RegisterConst('FILE_ATTRIBUTE_TEMPORARY', FILE_ATTRIBUTE_TEMPORARY);
+  RegisterConst('FILE_ATTRIBUTE_SPARSE_FILE', $00000200);
+  RegisterConst('FILE_ATTRIBUTE_REPARSE_POINT', $00000400);
+  RegisterConst('FILE_ATTRIBUTE_COMPRESSED', $00000800);
+  RegisterConst('FILE_ATTRIBUTE_OFFLINE', $00001000);
+  RegisterConst('FILE_ATTRIBUTE_NOT_CONTENT_INDEXED', $00002000);
+  RegisterConst('FILE_ATTRIBUTE_ENCRYPTED', $00004000);
+
+  RegisterConst('VER_NT_WORKSTATION', $0000001);
+  RegisterConst('VER_NT_DOMAIN_CONTROLLER', $0000002);
+  RegisterConst('VER_NT_SERVER', $0000003);
+
+  RegisterConst('VER_SUITE_SMALLBUSINESS', $00000001);
+  RegisterConst('VER_SUITE_ENTERPRISE', $00000002);
+  RegisterConst('VER_SUITE_BACKOFFICE', $00000004);
+  RegisterConst('VER_SUITE_COMMUNICATIONS', $00000008);
+  RegisterConst('VER_SUITE_TERMINAL', $00000010);
+  RegisterConst('VER_SUITE_SMALLBUSINESS_RESTRICTED', $00000020);
+  RegisterConst('VER_SUITE_EMBEDDEDNT', $00000040);
+  RegisterConst('VER_SUITE_DATACENTER', $00000080);
+  RegisterConst('VER_SUITE_SINGLEUSERTS', $00000100);
+  RegisterConst('VER_SUITE_PERSONAL', $00000200);
+  RegisterConst('VER_SUITE_BLADE', $00000400);
+  RegisterConst('VER_SUITE_EMBEDDED_RESTRICTED', $00000800);
+  RegisterConst('VER_SUITE_SECURITY_APPLIANCE', $00001000);
+
+  RegisterConst('SIID_DOCNOASSOC', 0);
+  RegisterConst('SIID_DOCASSOC', 1);
+  RegisterConst('SIID_APPLICATION', 2);
+  RegisterConst('SIID_FOLDER', 3);
+  RegisterConst('SIID_FOLDEROPEN', 4);
+  RegisterConst('SIID_DRIVE525', 5);
+  RegisterConst('SIID_DRIVE35', 6);
+  RegisterConst('SIID_DRIVEREMOVE', 7);
+  RegisterConst('SIID_DRIVEFIXED', 8);
+  RegisterConst('SIID_DRIVENET', 9);
+  RegisterConst('SIID_DRIVENETDISABLED', 10);
+  RegisterConst('SIID_DRIVECD', 11);
+  RegisterConst('SIID_DRIVERAM', 12);
+  RegisterConst('SIID_WORLD', 13);
+  RegisterConst('SIID_SERVER', 15);
+  RegisterConst('SIID_PRINTER', 16);
+  RegisterConst('SIID_MYNETWORK', 17);
+  RegisterConst('SIID_FIND', 22);
+  RegisterConst('SIID_HELP', 23);
+  RegisterConst('SIID_SHARE', 28);
+  RegisterConst('SIID_LINK', 29);
+  RegisterConst('SIID_SLOWFILE', 30);
+  RegisterConst('SIID_RECYCLER', 31);
+  RegisterConst('SIID_RECYCLERFULL', 32);
+  RegisterConst('SIID_MEDIACDAUDIO', 40);
+  RegisterConst('SIID_LOCK', 47);
+  RegisterConst('SIID_AUTOLIST', 49);
+  RegisterConst('SIID_PRINTERNET', 50);
+  RegisterConst('SIID_SERVERSHARE', 51);
+  RegisterConst('SIID_PRINTERFAX', 52);
+  RegisterConst('SIID_PRINTERFAXNET', 53);
+  RegisterConst('SIID_PRINTERFILE', 54);
+  RegisterConst('SIID_STACK', 55);
+  RegisterConst('SIID_MEDIASVCD', 56);
+  RegisterConst('SIID_STUFFEDFOLDER', 57);
+  RegisterConst('SIID_DRIVEUNKNOWN', 58);
+  RegisterConst('SIID_DRIVEDVD', 59);
+  RegisterConst('SIID_MEDIADVD', 60);
+  RegisterConst('SIID_MEDIADVDRAM', 61);
+  RegisterConst('SIID_MEDIADVDRW', 62);
+  RegisterConst('SIID_MEDIADVDR', 63);
+  RegisterConst('SIID_MEDIADVDROM', 64);
+  RegisterConst('SIID_MEDIACDAUDIOPLUS', 65);
+  RegisterConst('SIID_MEDIACDRW', 66);
+  RegisterConst('SIID_MEDIACDR', 67);
+  RegisterConst('SIID_MEDIACDBURN', 68);
+  RegisterConst('SIID_MEDIABLANKCD', 69);
+  RegisterConst('SIID_MEDIACDROM', 70);
+  RegisterConst('SIID_AUDIOFILES', 71);
+  RegisterConst('SIID_IMAGEFILES', 72);
+  RegisterConst('SIID_VIDEOFILES', 73);
+  RegisterConst('SIID_MIXEDFILES', 74);
+  RegisterConst('SIID_FOLDERBACK', 75);
+  RegisterConst('SIID_FOLDERFRONT', 76);
+  RegisterConst('SIID_SHIELD', 77);
+  RegisterConst('SIID_WARNING', 78);
+  RegisterConst('SIID_INFO', 79);
+  RegisterConst('SIID_ERROR', 80);
+  RegisterConst('SIID_KEY', 81);
+  RegisterConst('SIID_SOFTWARE', 82);
+  RegisterConst('SIID_RENAME', 83);
+  RegisterConst('SIID_DELETE', 84);
+  RegisterConst('SIID_MEDIAAUDIODVD', 85);
+  RegisterConst('SIID_MEDIAMOVIEDVD', 86);
+  RegisterConst('SIID_MEDIAENHANCEDCD', 87);
+  RegisterConst('SIID_MEDIAENHANCEDDVD', 88);
+  RegisterConst('SIID_MEDIAHDDVD', 89);
+  RegisterConst('SIID_MEDIABLURAY', 90);
+  RegisterConst('SIID_MEDIAVCD', 91);
+  RegisterConst('SIID_MEDIADVDPLUSR', 92);
+  RegisterConst('SIID_MEDIADVDPLUSRW', 93);
+  RegisterConst('SIID_DESKTOPPC', 94);
+  RegisterConst('SIID_MOBILEPC', 95);
+  RegisterConst('SIID_USERS', 96);
+  RegisterConst('SIID_MEDIASMARTMEDIA', 97);
+  RegisterConst('SIID_MEDIACOMPACTFLASH', 98);
+  RegisterConst('SIID_DEVICECELLPHONE', 99);
+  RegisterConst('SIID_DEVICECAMERA', 100);
+  RegisterConst('SIID_DEVICEVIDEOCAMERA', 101);
+  RegisterConst('SIID_DEVICEAUDIOPLAYER', 102);
+  RegisterConst('SIID_NETWORKCONNECT', 103);
+  RegisterConst('SIID_INTERNET', 104);
+  RegisterConst('SIID_ZIPFILE', 105);
+  RegisterConst('SIID_SETTINGS', 106);
+  RegisterConst('SIID_DRIVEHDDVD', 132);
+  RegisterConst('SIID_DRIVEBD', 133);
+  RegisterConst('SIID_MEDIAHDDVDROM', 134);
+  RegisterConst('SIID_MEDIAHDDVDR', 135);
+  RegisterConst('SIID_MEDIAHDDVDRAM', 136);
+  RegisterConst('SIID_MEDIABDROM', 137);
+  RegisterConst('SIID_MEDIABDR', 138);
+  RegisterConst('SIID_MEDIABDRE', 139);
+  RegisterConst('SIID_CLUSTEREDDRIVE', 140);
+end;
+
+end.
