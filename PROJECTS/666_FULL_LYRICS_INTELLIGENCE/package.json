@@ -1,0 +1,9 @@
+{
+  "name": "666-lyrics-intelligence-archive",
+  "version": "0.1.0",
+  "private": true,
+  "description": "666SOUNDsDESIGn project-aware content catalog, isolated from preserved R02",
+  "main": "electron/main.cjs",
+  "scripts": {"start":"electron .", "test":"python -m unittest discover -s tests -v", "check":"node --check electron/main.cjs && node --check electron/preload.cjs && python -m py_compile engine/bridge.py"},
+  "devDependencies": {"electron":"^35.7.5"}
+}
