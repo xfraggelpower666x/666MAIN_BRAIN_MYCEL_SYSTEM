@@ -103,8 +103,11 @@ def main():
             "error": "R18 module import failed: " + str(exc)}), flush=True)
         return 4
     from klrw.ssd import DiskActivitySampler
+    from r19_features import VisualBindings, VolumePulseMonitor
     workspace = Workspace()
     physical_sampler = DiskActivitySampler()
+    visual = VisualBindings(workspace.path)
+    pulse = VolumePulseMonitor()
     commands = queue.Queue()
     def read_commands():
         for line in sys.stdin:
@@ -129,7 +132,12 @@ def main():
                         if not isinstance(item, dict):
                             raise ValueError("Invalid request")
                         action = item.get("action")
-                        if action == "set-drive-visibility":
+                        if action == "set-visual-binding":
+                            led, device = item.get("led"), item.get("device")
+                            mode, threshold = item.get("mode"), item.get("threshold_kib")
+                            visual.set_binding(led, device, mode, threshold,
+                                               set(physical_sampler.devices()))
+                        elif action == "set-drive-visibility":
                             key = item.get("volume_id")
                             target = item.get("target")
                             enabled = item.get("enabled")
@@ -148,7 +156,8 @@ def main():
                             workspace.data["overlay"]["layout"] = layout
                         else:
                             raise ValueError("Unsupported command")
-                        workspace.save()
+                        if action != "set-visual-binding":
+                            workspace.save()
                         response["ok"] = True
                     except (OSError, ValueError, TypeError) as exc:
                         response["ok"] = False
@@ -161,6 +170,16 @@ def main():
                     read, write = normalize_rates(rate)
                     physical.append({"id": device, "read_bps": read, "write_bps": write})
                 sample["physical"] = physical
+                sample["bindings"] = dict(visual.bindings)
+                sample["binding_preview"] = visual.preview({
+                    d["id"]: (d["read_bps"], d["write_bps"]) if d["read_bps"] is not None and d["write_bps"] is not None else None
+                    for d in physical
+                })
+                sample["settings"]["burst_bps"] = workspace.data["burst_bps"]
+                colors = pulse.sample(sample["volumes"], time.monotonic() * 1000,
+                                     workspace.data)
+                for volume in sample["volumes"]:
+                    volume["led_color"] = colors[volume["id"]]
                 print(json.dumps(sample, ensure_ascii=False, separators=(",", ":")), flush=True)
             except (OSError, ValueError, RuntimeError) as exc:
                 print(json.dumps({"protocol": PROTOCOL, "status": "error", "volumes": [],
