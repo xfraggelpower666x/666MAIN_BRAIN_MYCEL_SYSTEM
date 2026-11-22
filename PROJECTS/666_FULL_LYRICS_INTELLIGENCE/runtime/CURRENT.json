@@ -1,0 +1,22 @@
+{
+  "schema": "666.full-lyrics-intelligence.project-current.v1",
+  "project": "666_FULL_LYRICS_INTELLIGENCE",
+  "repository": "xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM",
+  "branch": "666MAIN_BRAIN",
+  "scope": "PROJECTS/666_FULL_LYRICS_INTELLIGENCE/",
+  "state": "PARTIAL",
+  "source_migration_status": "READBACK_PENDING",
+  "workspace_status": "VERIFIED",
+  "local_r03_tests": "10/10_PASS_LOCAL_ONLY",
+  "github_ci": "NOT_CONFIGURED",
+  "windows_electron_host": "OPEN",
+  "windows_portable_and_setup": "OPEN",
+  "data_storage": "LOCAL_PRIVATE_ONLY",
+  "public_repo_no_private_data": true,
+  "prechange_commit": "17462d8fef5e82c2fae6c99fd9ef61993bcd6392",
+  "workspace_body_commit": "6cd766e48cfbfe7f2f67bb1c353d8359861fbc46",
+  "workspace_body_readback": "6/6_PASS",
+  "global_main_brain_pointer_unchanged": true,
+  "foreign_system_writes": false,
+  "next": "Transfer and independently verify original R03 source files; protect all local user databases/lyrics and build on Windows."
+}
