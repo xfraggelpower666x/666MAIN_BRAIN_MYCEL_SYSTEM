@@ -20,6 +20,9 @@ def main() -> int:
         raise SystemExit("Windows runner required")
     from pywinauto import Desktop
     from PIL import ImageGrab
+    import psutil
+    import win32gui
+    import win32process
 
     project = Path(__file__).resolve().parents[1]
     exe = project / "dist" / "666_CHATBACKUP_PC_TOOL.exe"
@@ -45,19 +48,55 @@ def main() -> int:
         process = subprocess.Popen([str(exe)], cwd=str(exe.parent))
         desk = Desktop(backend="uia")
         mainwin = None
-        deadline = time.monotonic() + 22
+        deadline = time.monotonic() + 45
+        # PyInstaller OneFile may retain a parent bootloader while running the
+        # real Tk process as a child. Never equate only the initial PID with
+        # every window owned by the compiled executable.
+        tracked = {process.pid}
+        def list_windows():
+            found = []
+            def collect(hwnd, _):
+                title = win32gui.GetWindowText(hwnd)
+                if title:
+                    _, pid = win32process.GetWindowThreadProcessId(hwnd)
+                    found.append({"title": title[:180], "pid": pid,
+                                  "visible": bool(win32gui.IsWindowVisible(hwnd)),
+                                  "hwnd": hwnd})
+            win32gui.EnumWindows(collect, None)
+            return found
+
         while time.monotonic() < deadline:
-            if process.poll() is not None:
-                raise AssertionError(f"EXE exited early: {process.returncode}")
-            matches = [win for win in desk.windows()
-                       if "666 ChatBackup PC Tool v" in win.window_text()
-                       and win.process_id() == process.pid]
-            if matches:
-                mainwin = matches[0]
+            try:
+                tree = psutil.Process(process.pid)
+                tracked.update(child.pid for child in tree.children(recursive=True))
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                pass
+            window_rows = list_windows()
+            candidates = [row for row in window_rows
+                          if "666 ChatBackup PC Tool v" in row["title"]
+                          and row["pid"] in tracked]
+            if candidates:
+                for row in candidates:
+                    try:
+                        mainwin = desk.window(handle=row["hwnd"])
+                        mainwin.window_text()
+                        break
+                    except Exception:
+                        mainwin = None
+                if mainwin is not None:
+                    receipt["main_window_pid"] = candidates[0]["pid"]
+                    break
+            if process.poll() is not None and not any(psutil.pid_exists(pid) for pid in tracked):
                 break
-            time.sleep(.4)
+            time.sleep(.5)
+        receipt["tracked_pids"] = sorted(tracked)
+        receipt["windows_discovered"] = [
+            {"title": row["title"], "pid": row["pid"], "visible": row["visible"]}
+            for row in list_windows() if row["pid"] in tracked or "ChatBackup" in row["title"]
+        ][:100]
         if mainwin is None:
-            raise AssertionError("Original EXE main window not exposed")
+            ImageGrab.grab().save(screenshot_dir / "compiled_window_not_found.png")
+            raise AssertionError("No original EXE Tk top-level window from tracked PyInstaller process tree")
         mainwin.set_focus()
         receipt["windows"].append(mainwin.window_text())
         receipt["tests"]["compiled_main_window"] = "PASS"
@@ -74,12 +113,15 @@ def main() -> int:
         archive = None
         deadline = time.monotonic() + 18
         while time.monotonic() < deadline:
-            matches = [win for win in desk.windows()
-                       if "Archive Intelligence" in win.window_text()
-                       and win.process_id() == process.pid]
-            if matches:
-                archive = matches[0]
-                break
+            rows = [row for row in list_windows()
+                    if "Archive Intelligence" in row["title"] and row["pid"] in tracked]
+            if rows:
+                try:
+                    archive = desk.window(handle=rows[0]["hwnd"])
+                    archive.window_text()
+                    break
+                except Exception:
+                    archive = None
             time.sleep(.35)
         if archive is None:
             raise AssertionError("Compiled EXE did not open integrated Archive window")
