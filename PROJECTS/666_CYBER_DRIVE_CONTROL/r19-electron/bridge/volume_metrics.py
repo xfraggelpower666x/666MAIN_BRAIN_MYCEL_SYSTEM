@@ -25,7 +25,7 @@ def locate_r18_source():
             return path
         if (path / "src" / "klrw" / "drive_workspace.py").is_file():
             return path / "src"
-    base = Path(__file__).resolve().parents[3] / "r18-legacy"
+    base = Path(__file__).resolve().parents[2] / "r18-legacy"
     if (base / "src" / "klrw" / "drive_workspace.py").is_file():
         return base / "src"
     return None

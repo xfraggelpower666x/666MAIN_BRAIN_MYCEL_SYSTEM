@@ -3,7 +3,7 @@ const {app, BrowserWindow, ipcMain, Tray, Menu, nativeImage} = require('electron
 const {spawn} = require('node:child_process');
 const path = require('node:path');
 let mainWindow = null, overlay = null, tray = null, worker = null, pending = '';
-let latest = {status:'starting', disks:[], timestamp:null, error:null};
+let latest = {protocol:'cyber-drive.metrics.v2',status:'starting', volumes:[], timestamp:null, error:null};
 const send = () => { for (const w of [mainWindow, overlay]) if (w && !w.isDestroyed()) w.webContents.send('metrics', latest); };
 function createWindow() {
   mainWindow = new BrowserWindow({width:1250,height:820,minWidth:800,minHeight:500,backgroundColor:'#11141A',
@@ -22,27 +22,27 @@ function toggleOverlay() {
 function startSampler() {
   const requested=process.env.KLRW_PYTHON;
   const exe=requested || (process.platform==='win32'?'py':'python3');
-  const args=requested?['-u',path.join(__dirname,'bridge','metrics.py')]:
-    (process.platform==='win32'?['-3.13','-u',path.join(__dirname,'bridge','metrics.py')]:
-      ['-u',path.join(__dirname,'bridge','metrics.py')]);
+  const args=requested?['-u',path.join(__dirname,'bridge','volume_metrics.py')]:
+    (process.platform==='win32'?['-3.13','-u',path.join(__dirname,'bridge','volume_metrics.py')]:
+      ['-u',path.join(__dirname,'bridge','volume_metrics.py')]);
   try {
     worker=spawn(exe,args,{windowsHide:true,stdio:['ignore','pipe','pipe'],env:{...process.env,PYTHONUNBUFFERED:'1'}});
     worker.stdout.setEncoding('utf8');
     worker.stdout.on('data',chunk=>{
       pending += chunk;
-      if(pending.length>1048576){pending='';latest={status:'error',disks:[],error:'Metrics stream over limit'};send();return;}
+      if(pending.length>1048576){pending='';latest={status:'error',volumes:[],error:'Metrics stream over limit'};send();return;}
       let ix;
       while((ix=pending.indexOf('\n'))!==-1){
         const line=pending.slice(0,ix); pending=pending.slice(ix+1);
-        try {const data=JSON.parse(line);if(data&&Array.isArray(data.disks)&&typeof data.status==='string'){latest=data;send();}}catch{}
+        try {const data=JSON.parse(line);if(data&&Array.isArray(data.volumes) && data.protocol === 'cyber-drive.metrics.v2'&&typeof data.status==='string'){latest=data;send();}}catch{}
       }
     });
     let stderr='';
     worker.stderr.setEncoding('utf8');
     worker.stderr.on('data',s=>{stderr=(stderr+s).slice(-1800);});
-    worker.on('error',e=>{latest={status:'error',disks:[],error:e.message};send();});
-    worker.on('exit',(code)=>{worker=null;latest={status:'stopped',disks:[],error:stderr || ('Metrics worker exited: '+code)};send();});
-  } catch(e) {latest={status:'error',disks:[],error:e.message};send();}
+    worker.on('error',e=>{latest={status:'error',volumes:[],error:e.message};send();});
+    worker.on('exit',(code)=>{worker=null;latest={status:'stopped',volumes:[],error:stderr || ('Metrics worker exited: '+code)};send();});
+  } catch(e) {latest={status:'error',volumes:[],error:e.message};send();}
 }
 function startTray(){
   // A visible tray icon is not promised on a headless environment. Never fake its status.
