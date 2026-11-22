@@ -288,3 +288,55 @@ jobs:
           path: output/666_CHATBACKUP_PC_TOOL_R55_SINGLE_EXE_FULL_SOURCE.zip
           if-no-files-found: error
           retention-days: 7
+
+
+  offline-windows-x64-toolchain:
+    name: Signed Python plus complete Windows x64 pip wheels
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          architecture: x64
+      - name: Download signed Python installer
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          New-Item -ItemType Directory -Force -Path offline/python | Out-Null
+          Invoke-WebRequest -Uri 'https://www.python.org/ftp/python/3.12.10/python-3.12.10-amd64.exe' -OutFile 'offline/python/python-3.12.10-amd64.exe'
+          $sig=Get-AuthenticodeSignature 'offline/python/python-3.12.10-amd64.exe'
+          if ($sig.Status -ne 'Valid') { throw "Python installer signature invalid: $($sig.Status)" }
+      - name: Build and verify offline wheelhouse
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path offline/wheels | Out-Null
+          python -m pip download --disable-pip-version-check --only-binary=:all: --dest offline/wheels 'pyinstaller>=6.17,<7.0' 'Pillow>=11,<13' pytest
+          if ($LASTEXITCODE -ne 0) { throw 'Wheelhouse download failed' }
+          python -m venv test-venv
+          & .\test-venv\Scripts\python.exe -m pip install --disable-pip-version-check --no-index --find-links offline/wheels 'pyinstaller>=6.17,<7.0' 'Pillow>=11,<13' pytest
+          if ($LASTEXITCODE -ne 0) { throw 'Offline wheelhouse cannot install' }
+      - name: Create bundle
+        shell: pwsh
+        run: |
+          @'
+          import hashlib,json,pathlib,zipfile
+          root=pathlib.Path('offline')
+          files=sorted(p for p in root.rglob('*') if p.is_file())
+          assert len(files)>=6
+          receipt={'platform':'win_amd64','python':'3.12.10','files':{p.relative_to(root).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in files}}
+          (root/'TOOLCHAIN_MANIFEST.json').write_text(json.dumps(receipt,indent=2),encoding='utf-8')
+          target=pathlib.Path('666_CHATBACKUP_R55_WINDOWS_OFFLINE_TOOLS.zip')
+          with zipfile.ZipFile(target,'w',zipfile.ZIP_DEFLATED,compresslevel=6) as z:
+              for p in sorted(root.rglob('*')):
+                  if p.is_file(): z.write(p,p.as_posix())
+          with zipfile.ZipFile(target) as z: assert z.testzip() is None
+          print('OFFLINE_TOOLCHAIN_VERIFIED',len(files),target.stat().st_size)
+          '@ | python -
+          if ($LASTEXITCODE -ne 0) { throw 'Offline artifact failed' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 666_CHATBACKUP_R55_WINDOWS_OFFLINE_TOOLS
+          path: 666_CHATBACKUP_R55_WINDOWS_OFFLINE_TOOLS.zip
+          if-no-files-found: error
+          retention-days: 7
