@@ -22,7 +22,7 @@
   "triggers": "PROJECTS/666TDI/triggers/TRIGGER_REGISTRY.json",
   "source_commit_sha": "efb84ada4fd97aaf552a82637e180549a99a3b6a",
   "audio_validation": "OPTIONAL_ON_DEMAND",
-  "next_action": "CLIC native ACK pending; run native regression CI when available; audio analysis optional",
+  "next_action": "TDI semantic presentation R01 available; native host acceptance open; CLIC ACK pending; audio optional",
   "source_readback_commit_sha": "efb84ada4fd97aaf552a82637e180549a99a3b6a",
   "source_readback_result": "71_OF_71_GIT_BLOBS_MATCH_R11_MANIFEST",
   "audio_analysis_required": false,
@@ -53,5 +53,21 @@
     "clic_ack": "PENDING",
     "no_new_update_trigger": true,
     "audio_optional": true
+  },
+  "semantic_presentation_r01": {
+    "status": "ADDITIVE_SOURCE_PUBLISHED_BLOB_READBACK",
+    "module": "PROJECTS/666TDI/facets/semantic_presentation/adapter.py",
+    "contract": "PROJECTS/666TDI/facets/semantic_presentation/CONTRACT.json",
+    "tests": "PROJECTS/666TDI/native/tests/test_semantic_presentation.py",
+    "source_reference": "LYVRA_HANDOFF_R01_READ_ONLY",
+    "source_repo_head": "9a94e33707def2d19ca8893bf4f8da715fbe1e73",
+    "integration_commit": "e3b624db6b19ec087f518f91d96e51e9ee7296ca",
+    "git_blob_readback": "4_OF_4_PASS",
+    "local_python_regression": "12_OF_12_PASS",
+    "native_host_ci": "NOT_EXECUTED",
+    "external_clipboard": "NOT_OBSERVED",
+    "audio": "OPTIONAL_NOT_EXECUTED",
+    "no_foreign_activation": true,
+    "no_new_music_controller": true
   }
 }
