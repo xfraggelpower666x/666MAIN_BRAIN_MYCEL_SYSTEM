@@ -151,10 +151,62 @@ def main() -> int:
         archive_names = [(getattr(control.element_info, "name", "") or "").strip()
                          for control in archive_controls]
         receipt["uia_archive_controls"] = archive_names[:150]
-        if not any("View conversation" in name for name in archive_names):
-            raise AssertionError("Archive conversation control missing in compiled EXE")
-        if not any("Search" in name for name in archive_names):
-            raise AssertionError("Archive search control missing in compiled EXE")
+        # Tk buttons are drawn without accessible UIA names. For the
+        # real compiled binary, click actual controls in its verified window
+        # geometry and require their distinct native Windows modal dialogs.
+        archive_rect = archive.rectangle()
+        if not (archive_rect.width() >= 950 and archive_rect.height() >= 650):
+            raise AssertionError("Unexpected compiled Archive window geometry")
+
+        def click_archive(relative_x, relative_y, label):
+            x = archive_rect.left + relative_x
+            y = archive_rect.top + relative_y
+            screen_w, screen_h = pyautogui.size()
+            if not (0 <= x < screen_w and 0 <= y < screen_h):
+                raise AssertionError(f"{label} outside the visible Windows desktop")
+            pyautogui.click(x, y)
+            receipt.setdefault("physical_archive_clicks", []).append(
+                {"control": label, "xy": [x, y]})
+
+        def require_modal(expected, timeout=8):
+            deadline = time.monotonic() + timeout
+            while time.monotonic() < deadline:
+                rows = [row for row in list_windows()
+                        if expected in row["title"] and row["pid"] in tracked
+                        and row["visible"]]
+                if rows:
+                    return rows[0]
+                time.sleep(.25)
+            raise AssertionError(f"Compiled EXE modal {expected!r} was not opened")
+
+        click_archive(328, 138, "Catalog status")
+        dialog = require_modal("Local catalog")
+        receipt["tests"]["compiled_catalog_status_dialog"] = "PASS"
+        ImageGrab.grab().save(screenshot_dir / "compiled_catalog_dialog.png")
+        pyautogui.press("enter")
+        time.sleep(.4)
+        if win32gui.IsWindow(dialog["hwnd"]):
+            raise AssertionError("Catalog status dialog did not close")
+
+        archive.set_focus()
+        click_archive(647, 138, "View conversation")
+        dialog = require_modal("Conversation viewer")
+        receipt["tests"]["compiled_conversation_viewer_dialog"] = "PASS"
+        ImageGrab.grab().save(screenshot_dir / "compiled_conversation_prompt.png")
+        pyautogui.press("esc")
+        time.sleep(.4)
+        if win32gui.IsWindow(dialog["hwnd"]):
+            raise AssertionError("Conversation prompt did not close")
+
+        archive.set_focus()
+        click_archive(450, 214, "Search term entry")
+        pyautogui.write("r55-compiled-fixture-absent", interval=.01)
+        click_archive(985, 214, "Search")
+        time.sleep(1)
+        if process.poll() is not None:
+            raise AssertionError("Compiled EXE exited while searching the catalog")
+        receipt["tests"]["compiled_empty_catalog_search_no_crash"] = "PASS"
+        ImageGrab.grab().save(screenshot_dir / "compiled_search.png")
         receipt["tests"]["compiled_archive_actions"] = "PASS"
         receipt["status"] = "COMPILED_EXE_GUI_AUTOMATION_PASS"
         print(receipt["status"])
