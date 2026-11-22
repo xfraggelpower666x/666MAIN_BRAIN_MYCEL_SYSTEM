@@ -2,7 +2,7 @@ name: 666CLS reference update native audit and full pre-change backup
 on:
   push:
     branches:
-      - candidate/666cls-ref-12410-20261121
+      - candidate/666cls-cures-p1-12411-20261122
     paths:
       - '.github/workflows/666cls-reference-backup.yml'
       - 'PROJECTS/666CLS/**'
@@ -19,7 +19,7 @@ jobs:
         env:
           REPO: ${{ github.repository }}
           CANDIDATE_SHA: ${{ github.sha }}
-          BASE_SHA: 360120fcf420736ed0abb5b2462d623fda62c85e
+          BASE_SHA: 7b53625b72c6f0457f06c6df17dc84cdbb5e7e89
         run: |
           set -euo pipefail
           for dir in candidate prechange; do
@@ -42,7 +42,7 @@ jobs:
           python - <<'PY'
           import hashlib, pathlib, zipfile, tempfile, json
           source=pathlib.Path("prechange/PROJECTS/666CLS")
-          target=pathlib.Path("666CLS_PRECHANGE_v1.24.9_FULL_20261121.zip")
+          target=pathlib.Path("666CLS_PRECHANGE_v1.24.10_FULL_20261122.zip")
           files=sorted(p for p in source.rglob("*") if p.is_file())
           assert len(files)>=150, "Incomplete source inventory"
           with zipfile.ZipFile(target,"w",compression=zipfile.ZIP_DEFLATED,compresslevel=6) as z:
@@ -58,8 +58,8 @@ jobs:
       - name: Publish immutable recovery ZIP artifact
         uses: actions/upload-artifact@v4
         with:
-          name: 666CLS_PRECHANGE_1_24_9_FULL_RECOVERY
-          path: 666CLS_PRECHANGE_v1.24.9_FULL_20261121.zip
+          name: 666CLS_PRECHANGE_1_24_10_FULL_RECOVERY
+          path: 666CLS_PRECHANGE_v1.24.10_FULL_20261122.zip
           retention-days: 90
           if-no-files-found: error
       - name: Native complete CLS regression
@@ -72,16 +72,25 @@ jobs:
           new=pathlib.Path("candidate/PROJECTS/666CLS")
           old=json.loads((base/"CURRENT_POINTER.json").read_text())
           current=json.loads((new/"CURRENT_POINTER.json").read_text())
-          assert old["current_version"]=="1.24.9"
-          assert current["current_version"]=="1.24.10"
+          assert old["current_version"]=="1.24.10"
+          assert current["current_version"]=="1.24.11"
           paths=["DATABASE/"+x+"_ARCHIVE.json" for x in ("LYRICS","RAW_MATERIAL","STORIES","TEXT")]
           paths+=["MENU/"+x+"_MENU.json" for x in ("LYRICS","RAW_MATERIAL","STORIES","TEXT")]
           for p in paths:
-              assert (base/"releases/1.24.9"/p).read_bytes()==(new/"releases/1.24.10"/p).read_bytes(),p
+              assert (base/"releases/1.24.10"/p).read_bytes()==(new/"releases/1.24.11"/p).read_bytes(),p
           reg=json.loads((new/"facets/FACET_REGISTRY.json").read_text())
           cures=next(x for x in reg["sources"] if x["id"]=="cures")
           assert cures["native_authority_readback"]["head"]=="08989d5dc71259cbebf108c71d2e315aa9ac28a1"
           assert cures["native_authority_readback"]["pfs_state"]=="HOLD_FUNCTIONAL_PAYLOAD_SOURCE_NOT_FOUND"
+          before=json.loads((base/"facets/cures/LIVECIRCLE.json").read_text())
+          after=json.loads((new/"facets/cures/LIVECIRCLE.json").read_text())
+          assert before["native_authority_readback"]["head"]=="199c24a1ad3b9a0baa218f2b97cd847dbbd0448c"
+          assert after["native_authority_readback"]["head"]=="08989d5dc71259cbebf108c71d2e315aa9ac28a1"
+          before["native_authority_readback"]["head"]=after["native_authority_readback"]["head"]
+          assert before==after,"Unexpected CURES field change"
+          assert after["state"]=="REFERENCE_ONLY" and after["autoload"] is False
+          assert after["triggers"]=={} and after["execution_authority"]=="NATIVE_OWNER_ONLY"
+          assert after["native_authority_readback"]["state"]=="HOLD_FUNCTIONAL_PAYLOAD_SOURCE_NOT_FOUND"
           assert not reg["autoload"]
           print("ARCHIVE_PARITY_8_OF_8_PASS PFS_HOLD_PRESERVED")
           PY

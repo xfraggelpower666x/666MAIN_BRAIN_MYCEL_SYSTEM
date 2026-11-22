@@ -14,7 +14,7 @@
   "continuation": "PFS_FUNCTIONAL_PAYLOAD_AND_NATIVE_READBACK_PENDING",
   "native_authority_readback": {
     "repository": "xfraggelpower666x/666PFS_CSM",
-    "head": "199c24a1ad3b9a0baa218f2b97cd847dbbd0448c",
+    "head": "08989d5dc71259cbebf108c71d2e315aa9ac28a1",
     "state": "HOLD_FUNCTIONAL_PAYLOAD_SOURCE_NOT_FOUND",
     "source": "children/CURES-16001/SYSTEM_IDENTITY.md"
   },
