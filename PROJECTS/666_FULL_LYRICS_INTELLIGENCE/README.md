@@ -27,3 +27,7 @@ All future modifications target this directory only, begin by checking the lates
 Local source: `666_FULL_LYRICS_INTELLIGENCE_ELECTRON_R03_COMPLETE.zip` from this chat, containing `engine/bridge.py`, `electron/main.cjs`, `electron/preload.cjs`, `renderer/{index.html,style.css,app.js}`, `tests/test_engine.py`, `package.json`, `START.cmd`, and preserved `legacy_r02/`. Verified in current session: `python -m unittest discover -s tests -v` **10/10 PASS** on unpacked local R03 with original private R02 DB. The public checkout cannot pass the legacy fixture test until the user supplies that DB offline.
 
 **Not verified yet:** GitHub CI, Windows Electron host, portable EXE or installer. Legacy R02 migration test requires the private original R02 DB, never committed here.
+
+## Public-source regression (no private R02 database)
+
+Run `python tests/run_portable_regression.py` after cloning the project. It runs all 9 public-only cases; if the original legacy R02 SQLite file is supplied locally at `legacy_r02/app/lyrics_library.db`, it also executes the 10th read-only migration case. **Never commit that database to this public repo.** The original 10-case test suite remains unchanged.
