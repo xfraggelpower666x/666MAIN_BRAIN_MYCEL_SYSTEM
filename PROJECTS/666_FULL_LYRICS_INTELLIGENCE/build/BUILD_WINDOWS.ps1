@@ -14,8 +14,9 @@ if(-not (Test-Path node_modules/electron)){throw 'npm dependencies missing. Run 
 if($Action -eq 'run') { & npm start;exit $LASTEXITCODE }
 & py -3 -m PyInstaller --version | Out-Null
 if($LASTEXITCODE -ne 0){throw 'PyInstaller missing. Install explicitly with py -3 -m pip install pyinstaller'}
+& py -3 -c "import pypdf, docx"; if($LASTEXITCODE -ne 0){throw 'PDF/DOCX packaging dependencies missing. Install explicitly: py -3 -m pip install pypdf python-docx'}
 New-Item -ItemType Directory -Force build/runtime | Out-Null
-& py -3 -m PyInstaller --onefile --clean --noconfirm --name 666-catalog-bridge --distpath build/runtime --workpath build/pyi-work --specpath build/pyi-spec engine/bridge.py
+& py -3 -m PyInstaller --onefile --clean --noconfirm --collect-all pypdf --collect-all docx --name 666-catalog-bridge --distpath build/runtime --workpath build/pyi-work --specpath build/pyi-spec engine/bridge.py
 if($LASTEXITCODE -ne 0 -or -not (Test-Path build/runtime/666-catalog-bridge.exe)){throw 'Python bridge build failed'}
 $targets=@();switch($Action){portable{$targets=@('portable')};setup{$targets=@('nsis')};all{$targets=@('portable','nsis')}}
 foreach($target in $targets){& npx --no-install electron-builder --win $target --x64;if($LASTEXITCODE -ne 0){throw "Electron target $target failed"}}
