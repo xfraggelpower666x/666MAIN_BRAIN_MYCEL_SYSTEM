@@ -1,14 +1,66 @@
 {
   "name": "666-cyber-drive-control",
-  "version": "0.19.0-dev",
+  "version": "0.19.1-dev",
   "private": true,
-  "description": "Independent Cyber Drive Control R19 Electron candidate",
+  "description": "666 Cyber Drive Control R19 isolated Electron candidate",
   "main": "main.cjs",
   "scripts": {
     "start": "electron .",
-    "check": "node --check main.cjs && node --check preload.cjs && node --check renderer.js"
+    "check": "node --check main.cjs && node --check preload.cjs && node --check renderer.js",
+    "dist:portable": "electron-builder --win portable --x64",
+    "dist:setup": "electron-builder --win nsis --x64",
+    "dist:both": "electron-builder --win portable nsis --x64"
   },
   "devDependencies": {
-    "electron": "^33.4.11"
+    "electron": "33.4.11",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "com.666soundsdesign.cyberdrive",
+    "productName": "666 Cyber Drive Control",
+    "directories": {
+      "output": "dist"
+    },
+    "asar": true,
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "renderer.js",
+      "index.html",
+      "style.css",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "build/engine/666CyberMetrics.exe",
+        "to": "engine/666CyberMetrics.exe"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "signAndEditExecutable": false,
+      "artifactName": "666-Cyber-Drive-Control-${version}-${arch}-${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "deleteAppDataOnUninstall": false
+    }
   }
 }

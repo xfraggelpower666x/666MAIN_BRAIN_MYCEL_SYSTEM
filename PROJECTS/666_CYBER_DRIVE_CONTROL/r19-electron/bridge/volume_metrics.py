@@ -85,13 +85,14 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--once", action="store_true", help="Single snapshot for diagnostics")
     args = parser.parse_args()
-    source = locate_r18_source()
-    if source is None:
+    source = locate_r18_source() if not getattr(sys, 'frozen', False) else None
+    if source is None and not getattr(sys, 'frozen', False):
         print(json.dumps({"protocol": PROTOCOL, "status": "source_pending",
             "volumes": [], "error": "R18 source missing: import r18-legacy or set KLRW_R18_SRC",
             "timestamp": datetime.now(timezone.utc).isoformat()}), flush=True)
         return 3
-    sys.path.insert(0, str(source))
+    if source is not None:
+        sys.path.insert(0, str(source))
     try:
         from klrw.drive_workspace import Workspace, enumerate_drives
         from klrw.windows_logical_io import WindowsLogicalDiskSampler

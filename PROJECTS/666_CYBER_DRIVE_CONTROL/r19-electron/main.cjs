@@ -20,9 +20,14 @@ function toggleOverlay() {
   overlay.on('closed',()=>{overlay=null;});
 }
 function startSampler() {
-  const requested=process.env.KLRW_PYTHON;
-  const exe=requested || (process.platform==='win32'?'py':'python3');
-  const args=requested?['-u',path.join(__dirname,'bridge','volume_metrics.py')]:
+  // Packaged releases run ONLY the embedded, independently frozen Python engine.
+  // Development runs the same bridge through the selected Python 3.13 interpreter.
+  const packaged = app.isPackaged;
+  const requested = process.env.KLRW_PYTHON;
+  const exe = packaged ? path.join(process.resourcesPath,'engine','666CyberMetrics.exe') :
+    (requested || (process.platform==='win32'?'py':'python3'));
+  const args = packaged ? [] : requested ?
+    ['-u',path.join(__dirname,'bridge','volume_metrics.py')] :
     (process.platform==='win32'?['-3.13','-u',path.join(__dirname,'bridge','volume_metrics.py')]:
       ['-u',path.join(__dirname,'bridge','volume_metrics.py')]);
   try {
