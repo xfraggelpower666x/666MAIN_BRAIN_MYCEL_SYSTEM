@@ -1,0 +1,82 @@
+{
+  "schema": "666CLS_P3_CLINT_PROVENANCE_SECURITY_AUDIT_V1",
+  "date": "2026-11-22",
+  "scope": "CLS_ONLY_EVIDENCE_REPAIR_NO_FOREIGN_WRITES",
+  "current": {
+    "system": "666CLS-CORE-001",
+    "version": "1.24.11",
+    "repo": "xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM",
+    "branch": "666MAIN_BRAIN",
+    "prechange_head": "6183b5a3087bf8df47eb4ef56c7ffad22486c606",
+    "prechange_tree": "b0ac29b8afee1f6c8eee92892a57cbcb2e334c91",
+    "pointer_blob": "afb3c09c7e966789c520459b6aa7bb5629e7cb9b"
+  },
+  "backup": {
+    "branch": "backup/666cls-force-repair-clint-provenance-20261122-7bcf50c",
+    "head": "6183b5a3087bf8df47eb4ef56c7ffad22486c606",
+    "note": "Branch name contains previous CLS anchor; content is exact fresh shared repository HEAD"
+  },
+  "cross_project_head_drift": {
+    "previous": "7bcf50ca53c0e72370bd96fee8aee769c66c1127",
+    "latest": "6183b5a3087bf8df47eb4ef56c7ffad22486c606",
+    "comparison": "AHEAD_FIVE_COMMITS_TDH_TDI_SCOPED_UNRELATED",
+    "decision": "PRESERVE_ALL_NEWER_VALID_COMMITS"
+  },
+  "historical_clint": {
+    "system": "666PFS-CLINT-001",
+    "entry": "CLINT-17001",
+    "version": "1.0.0_U2_HISTORICAL",
+    "accessible_master_id": "1GAdBhBNC-sOMvuQA0gb3Ok8jPlpzT5AJFCi4bjunrVE",
+    "accessible_pointer_id": "17N3zDVAHsAZAAx3DuUzXdgMm-WnJ6lE2rf-EK3f2kS4",
+    "source_origin_declared": "LYVRA_CAUSAL_FULLTEXT_UNDERSTANDING_FRAMEWORK",
+    "original_source_ids": [
+      "1PfByHw56emIF4cNaXtIXUL6bWZSynWVdfJOraufgo1M",
+      "1DdzR1a3RdKw8cx9fWf-g0-32AnjjbbkO4MC0s35i1XM",
+      "1y1VDcI3c9Efz2lpji_A8_IFet3Z0ClxMyU0DRuwT204"
+    ],
+    "original_fetch_status": "NOT_FOUND_404_ALL_THREE",
+    "historical_source_sha256": "cad43e646b8a7b161ffb0e477e9f0365586f49c8a62c72326ee48766ff8a8da7",
+    "sha256_recomputed": false,
+    "overlap_with_cures": "SEMANTIC_FUNCTION_OVERLAP_ONLY",
+    "clint_is_cures": false,
+    "identity_transfer_allowed": false,
+    "engine_reuse_proven": false
+  },
+  "cures": {
+    "system": "666PFS-CURES-001",
+    "entry": "CURES-16001",
+    "pfs_current_head": "08989d5dc71259cbebf108c71d2e315aa9ac28a1",
+    "status": "HOLD_FUNCTIONAL_PAYLOAD_SOURCE_NOT_FOUND",
+    "canonical_purpose": "SYSTEMTEXT_TO_CAUSAL_FULLTEXT_UNDERSTANDING",
+    "original_engine_verified": false
+  },
+  "security": {
+    "source": "DRIVE_METADATA_DIRECT_READ",
+    "checked_objects": 7,
+    "all_have_anyone_writer": true,
+    "allow_file_discovery": false,
+    "risk": "LINK_HOLDERS_MAY_MODIFY_RECOVERY_EVIDENCE",
+    "tampering_detected": false,
+    "remediation": "AUTHORIZED_OWNER_PERMISSION_REVIEW_AFTER_INDEPENDENT_BACKUP",
+    "permissions_changed": false
+  },
+  "tests": {
+    "metadata_json_parse": "PASS",
+    "git_blob_readback": "PENDING",
+    "cls_runtime_changed": false,
+    "runtime_ci_rerun": "NOT_NEEDED",
+    "host": "OPEN"
+  },
+  "decisions": [
+    "RETAIN_CURES_PFS_HOLD",
+    "DO_NOT_PROMOTE_HISTORICAL_CLINT",
+    "DO_NOT_RECREATE_MISSING_EXECUTABLE_BYTES",
+    "DO_NOT_EDIT_DRIVE_PERMISSIONS_WITHOUT_OWNER_SCOPE",
+    "PRESERVE_CLS_CURRENT_AND_UNRELATED_TDH_TDI_COMMITS"
+  ],
+  "return_anchor": {
+    "system": "666CLS-CORE-001",
+    "version": "1.24.11",
+    "pointer_blob": "afb3c09c7e966789c520459b6aa7bb5629e7cb9b"
+  }
+}
