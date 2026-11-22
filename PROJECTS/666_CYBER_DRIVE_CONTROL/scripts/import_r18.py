@@ -45,7 +45,7 @@ def main(argv=None):
     args=parser.parse_args(argv)
     if not args.source.exists():
         parser.error("R18 source not found")
-    if args.destination.exists() and any(args.destination.iterdir()):
+    if args.destination.exists() and (not args.destination.is_dir() or any(args.destination.iterdir())):
         parser.error("Destination exists and is non-empty; refusing to overwrite")
     entries=list(members(args.source))
     if not entries:
@@ -67,7 +67,7 @@ def main(argv=None):
         "dry_run":args.dry_run},indent=2))
     if args.dry_run:
         return 0
-    args.destination.mkdir(parents=True,exist_ok=False)
+    args.destination.mkdir(parents=True,exist_ok=True)
     for name,data in clean:
         target=args.destination.joinpath(*pathlib.PurePosixPath(name).parts)
         target.parent.mkdir(parents=True,exist_ok=True)
