@@ -11,7 +11,7 @@ def _numpy():
     try:
         import numpy as np
     except ImportError as exc:
-        raise AudioError('OPTIONAL_AUDIO_DEPENDENCY_MISSING:numpy (install 666TDI[audio])') from exc
+        raise AudioError('OPTIONAL_AUDIO_DEPENDENCY_MISSING:numpy (pip install numpy soundfile)') from exc
     return np
 
 SCHEMA='666TDI_CAUSAL_AUDIO_FEEDBACK_V1'
@@ -26,7 +26,7 @@ def _read_audio(path):
     try:
         import soundfile as sf
     except ImportError as exc:
-        raise AudioError('OPTIONAL_AUDIO_DEPENDENCY_MISSING:soundfile (install 666TDI[audio])') from exc
+        raise AudioError('OPTIONAL_AUDIO_DEPENDENCY_MISSING:soundfile (pip install numpy soundfile)') from exc
     try:
         info=sf.info(str(path))
         if not 1<=info.channels<=2 or not 8000<=info.samplerate<=192000:raise AudioError('UNSUPPORTED_CHANNELS_OR_SAMPLE_RATE')

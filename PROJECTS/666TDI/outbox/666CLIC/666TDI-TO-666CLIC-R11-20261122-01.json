@@ -1,0 +1,84 @@
+{
+  "schema": "666TDI_NATIVE_RETURN_RECEIPT_R11_V1",
+  "receipt_id": "666TDI-TO-666CLIC-R11-20261122-01",
+  "producer": "666TDI-001",
+  "recipient": "666CLIC",
+  "source_repo": "xfraggelpower666x/666CLICPRO",
+  "source_branch": "clic-migration-rev79-staging",
+  "source_commit": "0d955834f58181cf1b0cb94c8c81dc299c07dbfe",
+  "source_tree": "f39f2dd42562d0d171346335f905a3ca8b22c615",
+  "source_handoff_blob": "b9dfe4a3e153dc494f3966e216787cbf8918c529",
+  "handoff_id": "CLIC-TO-666TDI-R11-20261122-01",
+  "native_repo": "xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM",
+  "native_branch": "666MAIN_BRAIN",
+  "native_root": "PROJECTS/666TDI",
+  "native_integration_commit_verified": "0fe9dd81570aaaee2251072d0a2111d68a0f0196",
+  "native_integration_tree_verified": "bb9886c2ab31ff67844bad6a36c992ed436c11c2",
+  "native_tdi_tree_verified": "05e459598d8fd79b421c8d59ba3db665d7e08293",
+  "source_readback": "71_OF_71_BLOBS_MATCH_MANIFEST_AT_INTEGRATION_COMMIT",
+  "decision_status": "NATIVE_ADOPTED_SOURCE_SCOPE_ONLY",
+  "decisions": [
+    {
+      "id": "TDI-01",
+      "decision": "ACCEPTED_INVENTORY_VERIFIED"
+    },
+    {
+      "id": "TDI-02",
+      "decision": "ACCEPTED_NO_ROLLBACK"
+    },
+    {
+      "id": "TDI-03",
+      "decision": "REPAIRED_OPTIONAL_AUDIO_DEPENDENCY"
+    },
+    {
+      "id": "TDI-04",
+      "decision": "PRESERVED_SCOPED_LEARNING_NO_GLOBAL_PROMOTION"
+    },
+    {
+      "id": "TDI-05",
+      "decision": "OPTIONAL_REAL_AUDIO_GATE_OPEN"
+    },
+    {
+      "id": "TDI-06",
+      "decision": "VISUAL_HOST_PARITY_NOT_VERIFIED"
+    }
+  ],
+  "tests": {
+    "local_existing": "84/84 PASS",
+    "local_native": "8/8 PASS",
+    "github_ci": "NOT_EXECUTED",
+    "real_audio": "NOT_EXECUTED",
+    "host_gui": "NOT_EXECUTED"
+  },
+  "preserved": [
+    "666TDI-001",
+    "v2.5/R0.8",
+    "LiveCircle",
+    "Causal Audio Feedback Engine",
+    "Renderer adapters",
+    "Relational Music Intelligence",
+    "4C candidate facet",
+    "existing local learning"
+  ],
+  "changes": [
+    "native read-only CLIC R11 consumer",
+    "explicit local write scope governance",
+    "optional audio dependency import fix",
+    "source manifest update"
+  ],
+  "open_gates": [
+    "FULL_REMOTE_READBACK_OF_FINAL_COMMIT",
+    "FINAL_ROOT_POINTER_READBACK",
+    "CLIC_NATIVE_RECEIPT_ACK_NOT_RECEIVED",
+    "REAL_AUDIO_OPTIONAL",
+    "HOST_VISUAL_OPTIONAL"
+  ],
+  "return_anchor_commit": "0fe9dd81570aaaee2251072d0a2111d68a0f0196",
+  "root_pointer_last_required": true,
+  "final_pointer_publication_at_receipt_creation": "PENDING",
+  "recipient_delivery_verified": false,
+  "recipient_adoption_verified": false,
+  "foreign_repo_write": false,
+  "no_foreign_activation": true,
+  "no_cross_system_merge": true
+}
