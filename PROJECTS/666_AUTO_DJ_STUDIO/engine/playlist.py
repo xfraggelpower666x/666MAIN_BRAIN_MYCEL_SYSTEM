@@ -22,7 +22,8 @@ def export_m3u(root: Path, tracks, name: str = "AUTO_DJ_EXPORT") -> Path:
     resolved = [Path(p).resolve() for p in tracks]
     if any(p.parent != root or not p.is_file() or p.suffix.lower() != ".mp3" for p in resolved):
         raise ValueError("Playlist entries must be exported MP3 files in output directory")
-    dest = safe_playlist_path(root, name)
+    dest = None
+    created = False
     fd, temp_path = tempfile.mkstemp(prefix=".autodj_m3u_", suffix=".tmp", dir=root)
     try:
         with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as out:
@@ -31,15 +32,27 @@ def export_m3u(root: Path, tracks, name: str = "AUTO_DJ_EXPORT") -> Path:
                 out.write(track.name.replace("\n", " ").replace("\r", " ") + "\n")
             out.flush()
             os.fsync(out.fileno())
-        # Exclusive creation prevents overwriting existing exports on races.
-        with open(temp_path, "rb") as source, open(dest, "xb") as target:
-            while chunk := source.read(65536):
-                target.write(chunk)
-        return dest
+        # Reserve a unique path exclusively; a concurrent writer's playlist is never deleted.
+        for _ in range(10000):
+            dest = safe_playlist_path(root, name)
+            try:
+                with dest.open("xb") as target:
+                    created = True
+                    with open(temp_path, "rb") as source:
+                        while chunk := source.read(65536):
+                            target.write(chunk)
+                    target.flush()
+                    os.fsync(target.fileno())
+                return dest
+            except FileExistsError:
+                if created:
+                    raise
+                continue
+        raise RuntimeError("Playlist filename collision limit")
     except BaseException:
-        # Incomplete playlists are not left as legitimate outputs.
-        if dest.exists():
-            dest.unlink()
+        # Remove only a file that this invocation created.
+        if created and dest is not None:
+            dest.unlink(missing_ok=True)
         raise
     finally:
         Path(temp_path).unlink(missing_ok=True)
