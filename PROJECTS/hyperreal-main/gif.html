@@ -1,0 +1,1117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' blob:; worker-src blob:; style-src 'unsafe-inline'; img-src blob: data:; media-src blob:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>GIF Studio</title>
+<meta name="description" content="Change skin and hair colours in a GIF or a video, every frame at once, right in your browser.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23be123c'/%3E%3Crect x='14' y='18' width='36' height='28' rx='4' fill='none' stroke='%23fff' stroke-width='5'/%3E%3Cpath d='M28 26l10 6-10 6z' fill='%23fff'/%3E%3C/svg%3E">
+<!--
+  GIF Studio, part of Hyperreal Studio. One page, two homes: /hyperreal/gif on the SBS site and gif.html on
+  GitHub Pages. Everything happens in the browser: nothing is uploaded and no AI is used, so it is instant and free.
+    * reads GIFs (its own decoder), animated WebP/PNG (ImageDecoder) and videos (seeking a <video>)
+    * colour changes: click a colour in the picture, choose the new one; matching is by colour (YCbCr) with a soft
+      edge, the change keeps each pixel's shading, and an optional painted area limits where it may happen
+    * exports GIFs with a worker per core (median-cut palette per frame, only the changed part of each frame is
+      stored) or a video through MediaRecorder
+-->
+<style>
+  :root {
+    --bg: #f7f2f6; --panel: #ffffff; --panel2: #fbf6fa; --ink: #1d1220; --muted: #6b5a70; --line: #e7d6e3;
+    --pink: #d6337f; --pink-ink: #ffffff; --soft: #fdeef5; --err-bg: #fdecec; --err: #9f1d1d; --stage: #ece2ea;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f0914; --panel: #1a1020; --panel2: #160d1c; --ink: #f8eef6; --muted: #b9a5bf; --line: #34203b;
+      --pink: #ff4fa8; --pink-ink: #050505; --soft: rgba(255,79,168,0.10); --err-bg: rgba(220,38,38,0.16); --err: #fecaca; --stage: #0a0610;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f0914; --panel: #1a1020; --panel2: #160d1c; --ink: #f8eef6; --muted: #b9a5bf; --line: #34203b;
+    --pink: #ff4fa8; --pink-ink: #050505; --soft: rgba(255,79,168,0.10); --err-bg: rgba(220,38,38,0.16); --err: #fecaca; --stage: #0a0610;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); }
+  body { font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; }
+  [hidden] { display: none !important; }
+  button, select, input { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; }
+  a { color: var(--pink); }
+  svg { width: 18px; height: 18px; flex: none; }
+  .muted { color: var(--muted); }
+  .small { font-size: 12px; }
+
+  .top { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  .top h1 { margin: 0; font-size: 16px; letter-spacing: -0.01em; white-space: nowrap; }
+  .top .info { margin-left: auto; color: var(--muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .iconbtn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 34px; height: 34px; padding: 0 9px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; white-space: nowrap; text-decoration: none; color: var(--ink); font-size: 13px; }
+  .iconbtn:hover { border-color: var(--pink); }
+  .iconbtn[aria-pressed="true"] { background: var(--pink); border-color: var(--pink); color: var(--pink-ink); }
+  .iconbtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .app { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 372px; }
+  .work { display: flex; flex-direction: column; min-width: 0; min-height: 0; border-right: 1px solid var(--line); }
+  .stage { position: relative; flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 14px; background: var(--stage); overflow: hidden; }
+  .canvaswrap { position: relative; display: inline-block; line-height: 0; touch-action: none; user-select: none; -webkit-user-select: none; box-shadow: 0 6px 30px rgba(0,0,0,0.25); border-radius: 6px; overflow: hidden;
+    background-color: #fff; background-image: linear-gradient(45deg, #ddd 25%, transparent 25%, transparent 75%, #ddd 75%), linear-gradient(45deg, #ddd 25%, transparent 25%, transparent 75%, #ddd 75%); background-size: 16px 16px; background-position: 0 0, 8px 8px; }
+  #view { display: block; }
+  #ov { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .drop { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; width: min(560px, 100%); min-height: 260px; padding: 20px; border: 2px dashed var(--pink); border-radius: 16px; text-align: center; color: var(--muted); cursor: pointer; background: var(--panel); }
+  .drop strong { color: var(--ink); font-size: 18px; }
+  .drop svg { width: 40px; height: 40px; color: var(--pink); }
+  .stage.over .drop, .drop:hover { background: var(--soft); }
+  .busy { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 10px; align-items: center; justify-content: center; background: rgba(0,0,0,0.45); color: #fff; font-size: 13px; z-index: 2; }
+  .hint { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); background: rgba(0,0,0,0.75); color: #fff; font-size: 12px; padding: 5px 11px; border-radius: 999px; white-space: nowrap; pointer-events: none; max-width: calc(100% - 24px); overflow: hidden; text-overflow: ellipsis; z-index: 3; }
+  .spin { width: 22px; height: 22px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); border-top-color: #fff; animation: spin 0.9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .spin { animation-duration: 3s; } }
+
+  .transport { display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: var(--panel2); border-top: 1px solid var(--line); flex-wrap: wrap; }
+  .transport input[type=range] { flex: 1; min-width: 120px; accent-color: var(--pink); }
+  .transport .fr { font-size: 12px; color: var(--muted); min-width: 64px; text-align: center; font-variant-numeric: tabular-nums; }
+  .transport .sep { width: 1px; height: 22px; background: var(--line); margin: 0 2px; }
+
+  .panel { background: var(--panel); overflow-y: auto; min-height: 0; }
+  .sec { padding: 14px 16px; border-bottom: 1px solid var(--line); }
+  .sec h2 { margin: 0 0 4px; font-size: 15px; }
+  .sec > p { margin: 0 0 10px; font-size: 12.5px; }
+  .layer { border: 1px solid var(--line); border-radius: 12px; padding: 10px 11px; margin-bottom: 10px; background: var(--panel2); }
+  .layer.active { border-color: var(--pink); box-shadow: 0 0 0 1px var(--pink) inset; }
+  .layer.off { opacity: 0.6; }
+  .lhead { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .lhead b { font-size: 14px; }
+  .lhead .sp { flex: 1; }
+  .lhead input { accent-color: var(--pink); width: 16px; height: 16px; }
+  .x { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 18px; line-height: 1; padding: 0 2px; }
+  .x:hover { color: var(--pink); }
+  .lrow { display: flex; align-items: center; gap: 6px; margin: 6px 0; flex-wrap: wrap; }
+  .lab { width: 40px; flex: none; font-size: 12px; color: var(--muted); }
+  .sws { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; flex: 1; min-width: 0; }
+  .sw { width: 22px; height: 22px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.25); cursor: pointer; padding: 0; flex: none; }
+  .sw[aria-pressed="true"] { outline: 2px solid var(--pink); outline-offset: 1px; }
+  .sw.sample { width: 26px; height: 26px; border-radius: 50%; position: relative; }
+  .sw.sample:hover::after { content: "\00d7"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; text-shadow: 0 0 3px #000; font-size: 15px; }
+  .lrow input[type=color] { width: 34px; height: 26px; padding: 0; border: 1px solid var(--line); border-radius: 6px; background: none; cursor: pointer; flex: none; }
+  .presets { display: flex; gap: 4px; flex-wrap: wrap; margin: 2px 0 6px 46px; }
+  .sl { display: grid; grid-template-columns: 74px 1fr; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin: 3px 0; }
+  .sl input { width: 100%; accent-color: var(--pink); }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+  .seg button { border: 0; background: transparent; padding: 0 10px; height: 30px; cursor: pointer; font-size: 12.5px; white-space: nowrap; }
+  .seg button[aria-pressed="true"] { background: var(--pink); color: var(--pink-ink); }
+  .field { margin: 10px 0; }
+  .field > label, .field > .flabel { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .field select { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 7px 9px; }
+  .row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .btn { border: 1px solid var(--pink); background: transparent; border-radius: 10px; padding: 8px 14px; cursor: pointer; text-decoration: none; color: var(--ink); display: inline-flex; gap: 6px; align-items: center; justify-content: center; }
+  .btn.main { background: var(--pink); color: var(--pink-ink); font-weight: 650; }
+  .btn.wide { width: 100%; margin-top: 10px; }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .prog { height: 6px; border-radius: 99px; background: var(--line); overflow: hidden; margin-top: 10px; }
+  .prog i { display: block; height: 100%; width: 0; background: var(--pink); transition: width .15s; }
+  .result { margin-top: 12px; border: 1px solid var(--line); border-radius: 12px; padding: 10px; background: var(--panel2); }
+  .result img, .result video { display: block; max-width: 100%; max-height: 260px; margin: 0 auto 8px; border-radius: 8px; }
+  .warn { color: var(--err); background: var(--err-bg); border-radius: 8px; padding: 6px 9px; font-size: 12px; margin-top: 6px; }
+
+  @media (max-width: 860px) {
+    body { height: auto; min-height: 100%; }
+    .app { grid-template-columns: minmax(0, 1fr); }
+    .work { border-right: 0; border-bottom: 1px solid var(--line); }
+    .stage { min-height: 320px; height: 56vh; flex: none; }
+    .panel { overflow: visible; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>GIF Studio</h1>
+  <a class="iconbtn" id="backLink" href="./" title="Back to Hyperreal Studio">Hyperreal</a>
+  <span class="info" id="info"></span>
+  <button class="iconbtn" id="themeBtn" type="button" title="Light or dark" aria-label="Switch light or dark">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>
+  </button>
+</header>
+
+<main class="app">
+  <section class="work" aria-label="Animation">
+    <div class="stage" id="stage">
+      <label class="drop" id="drop">
+        <input type="file" id="file" accept="image/gif,image/webp,image/png,image/apng,image/jpeg,video/*,.gif,.mp4,.webm,.mov,.m4v" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9.5l5 2.5-5 2.5z"/></svg>
+        <strong>Drop a GIF or a video</strong>
+        <span>Or click to choose one, or paste with Ctrl+V. GIF, MP4, WebM, MOV or animated WebP.</span>
+        <span class="small">It all happens on this device: nothing is uploaded, nothing costs anything.</span>
+      </label>
+      <div class="canvaswrap" id="wrap" hidden><canvas id="view"></canvas><canvas id="ov"></canvas></div>
+      <div class="busy" id="busy" hidden><div class="spin"></div><span id="busyText">Reading…</span></div>
+      <div class="hint" id="hint" hidden></div>
+    </div>
+    <div class="transport" id="transport" hidden>
+      <button class="iconbtn" id="playBtn" type="button" title="Play or pause (Space)" aria-label="Play">
+        <svg viewBox="0 0 24 24" fill="currentColor" id="playIcon"><path d="M8 5v14l11-7z"/></svg></button>
+      <button class="iconbtn" id="prevBtn" type="button" title="Previous frame (Left arrow)" aria-label="Previous frame">&lsaquo;</button>
+      <input type="range" id="scrub" min="0" max="0" value="0" aria-label="Frame">
+      <button class="iconbtn" id="nextBtn" type="button" title="Next frame (Right arrow)" aria-label="Next frame">&rsaquo;</button>
+      <span class="fr" id="frameNo">1 / 1</span>
+      <span class="sep"></span>
+      <button class="iconbtn" id="beforeBtn" type="button" title="Hold to see the original (hold B)">Before</button>
+      <button class="iconbtn" id="maskBtn" type="button" aria-pressed="false" title="Show what the colour changes touch (M)">Show changes</button>
+      <button class="iconbtn" id="frameBtn" type="button" title="Save this frame as a PNG">PNG</button>
+      <button class="iconbtn" id="newBtn" type="button" title="Open another GIF or video">New</button>
+    </div>
+  </section>
+
+  <aside class="panel" aria-label="Controls">
+    <section class="sec">
+      <h2>Colour changes</h2>
+      <p class="muted">Click <b>Pick</b>, click the skin or hair in the picture, then choose the new colour. Every frame changes, shading and all.</p>
+      <div id="layers"></div>
+      <button class="btn" id="addLayer" type="button">+ Another colour</button>
+    </section>
+    <section class="sec">
+      <h2>Timing and size</h2>
+      <div class="field"><label for="speed">Speed</label>
+        <select id="speed"><option value="0.25">0.25× (slow motion)</option><option value="0.5">0.5×</option><option value="0.75">0.75×</option><option value="1" selected>Normal</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2">2×</option><option value="3">3×</option><option value="4">4×</option></select></div>
+      <div class="field"><span class="flabel">Play</span>
+        <div class="seg" id="orderSeg" role="group" aria-label="Play order"><button type="button" data-order="fwd" aria-pressed="true">Forward</button><button type="button" data-order="rev" aria-pressed="false">Reverse</button><button type="button" data-order="ping" aria-pressed="false">Back and forth</button></div></div>
+      <div class="field"><span class="flabel">Trim</span>
+        <div class="row"><button class="iconbtn" id="trimA" type="button" title="Start at the frame on screen">Start here</button><button class="iconbtn" id="trimB" type="button" title="End at the frame on screen">End here</button><button class="iconbtn" id="trimAll" type="button">All frames</button></div>
+        <div class="muted small" id="trimText" style="margin-top:4px"></div></div>
+      <div class="field"><label for="width">Width</label><select id="width"></select></div>
+      <div class="field" id="vfpsField" hidden><label for="vfps">Frames a second (videos)</label>
+        <div class="row"><select id="vfps" style="width:auto;flex:1"><option value="10">10</option><option value="15" selected>15</option><option value="20">20</option><option value="25">25</option><option value="30">30</option></select><button class="iconbtn" id="reread" type="button">Read again</button></div>
+        <div class="muted small" style="margin-top:4px">More frames are smoother and make bigger GIFs. A video is read up to 360 frames.</div></div>
+    </section>
+    <section class="sec">
+      <h2>Export</h2>
+      <div class="seg" id="fmtSeg" role="group" aria-label="Format"><button type="button" data-fmt="gif" aria-pressed="true">GIF</button><button type="button" data-fmt="video" aria-pressed="false">Video</button></div>
+      <button class="btn main wide" id="exportBtn" type="button" disabled>Export GIF</button>
+      <div class="prog" id="prog" hidden><i id="progBar"></i></div>
+      <div class="muted small" id="progText" style="margin-top:4px"></div>
+      <div class="result" id="result" hidden></div>
+    </section>
+  </aside>
+</main>
+
+<script>
+(function () {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) { /* private mode */ } },
+  };
+  const qsTheme = new URLSearchParams(location.search).get('theme');
+  function applyTheme(t) { t ? document.documentElement.setAttribute('data-theme', t) : document.documentElement.removeAttribute('data-theme'); }
+  applyTheme(store.get('hr_theme') || (qsTheme === 'dark' || qsTheme === 'light' ? qsTheme : null));
+  $('themeBtn').onclick = () => {
+    const t = document.documentElement.getAttribute('data-theme');
+    const dark = t ? t === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(dark ? 'light' : 'dark'); store.set('hr_theme', dark ? 'light' : 'dark');
+  };
+  const onSite = location.pathname.indexOf('/hyperreal/gif') === 0;
+  $('backLink').href = (onSite ? '/hyperreal' : './') + (qsTheme ? '?theme=' + encodeURIComponent(qsTheme) : '');
+
+  // ==== codec start (no DOM in here: the export workers run these, and tests/test_gif_studio.py runs them in node)
+  // A colour change, on a region of a frame. L: prepared layers (prepLayers). Each layer's picked shades make a ramp
+  // from dark to light; a pixel matches by how far its colour is from the ramp at its own brightness (brightness past
+  // either end counts too). Each pixel goes to the one layer that matches it best, and moves by the offset from the
+  // layer's first pick to the new colour, so its shading and texture stay. mask (optional) gets how much it moved.
+  function kernel(src, W, rx, ry, rw, rh, dst, L, mask) {
+    const n = L.length;
+    for (let y = 0; y < rh; y++) {
+      let si = ((ry + y) * W + rx) << 2, di = (y * rw) << 2, ai = (ry + y) * W + rx, mi = y * rw;
+      for (let x = 0; x < rw; x++, si += 4, di += 4, ai++, mi++) {
+        const r = src[si], g = src[si + 1], b = src[si + 2], a = src[si + 3];
+        let R = r, G = g, B = b, bw = 0, bl = null;
+        if (a && n) {
+          const Y = 0.299 * r + 0.587 * g + 0.114 * b, Cb = -0.168736 * r - 0.331264 * g + 0.5 * b, Cr = 0.5 * r - 0.418688 * g - 0.081312 * b;
+          for (let k = 0; k < n; k++) {
+            const l = L[k];
+            let w = l.area ? l.area[ai] / 255 : 1;
+            if (w <= 0) continue;
+            const ys = l.ry, m = l.m;
+            let cb, cr, out;
+            if (Y <= ys[0]) { cb = l.rcb[0]; cr = l.rcr[0]; out = ys[0] - Y; }
+            else if (Y >= ys[m - 1]) { cb = l.rcb[m - 1]; cr = l.rcr[m - 1]; out = Y - ys[m - 1]; }
+            else {
+              let j = 1; while (ys[j] < Y) j++;
+              const f = (Y - ys[j - 1]) / ((ys[j] - ys[j - 1]) || 1);
+              cb = l.rcb[j - 1] + (l.rcb[j] - l.rcb[j - 1]) * f; cr = l.rcr[j - 1] + (l.rcr[j] - l.rcr[j - 1]) * f; out = 0;
+            }
+            const dy = out * l.lw, db = Cb - cb, dr = Cr - cr, d2 = dy * dy + db * db + dr * dr;
+            if (d2 >= l.out2) continue;
+            if (d2 > l.in2) { const t = (l.outR - Math.sqrt(d2)) / l.soft; w *= t * t * (3 - 2 * t); }
+            w *= l.str;
+            if (w > bw) { bw = w; bl = l; }
+          }
+          if (bl) {
+            const nY = bl.tY + (Y - bl.refY) * bl.k, nCb = Cb + bl.tCb - bl.refCb, nCr = Cr + bl.tCr - bl.refCr;
+            R += (nY + 1.402 * nCr - R) * bw;
+            G += (nY - 0.344136 * nCb - 0.714136 * nCr - G) * bw;
+            B += (nY + 1.772 * nCb - B) * bw;
+          }
+        }
+        dst[di] = R; dst[di + 1] = G; dst[di + 2] = B; dst[di + 3] = a;
+        if (mask) mask[mi] = bw * 255;
+      }
+    }
+  }
+  // the layers as the kernel wants them: the ramp of picked shades and the new colour in YCbCr, thresholds squared,
+  // the area at the frame's size. A sample is [r, g, b] or [r, g, b, darkest, lightest] (the spread around a click).
+  function prepLayers(layers, areaOf) {
+    const ycc = c => [0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2], -0.168736 * c[0] - 0.331264 * c[1] + 0.5 * c[2], 0.5 * c[0] - 0.418688 * c[1] - 0.081312 * c[2]];
+    const out = [];
+    for (const l of layers) {
+      if (!l.on || !l.samples.length) continue;
+      const to = l.to ? [parseInt(l.to.slice(1, 3), 16), parseInt(l.to.slice(3, 5), 16), parseInt(l.to.slice(5, 7), 16)] : l.samples[0];
+      const t = ycc(to), ref = ycc(l.samples[0]), pts = [];
+      l.samples.forEach(c => {
+        const q = ycc(c); pts.push(q);
+        if (c.length >= 5) { if (c[3] < q[0] - 1) pts.push([c[3], q[1], q[2]]); if (c[4] > q[0] + 1) pts.push([c[4], q[1], q[2]]); }
+      });
+      pts.sort((p, q) => p[0] - q[0]);
+      const tol = l.tol, soft = Math.max(0.5, l.soft);
+      out.push({ m: pts.length, ry: Float32Array.from(pts, p => p[0]), rcb: Float32Array.from(pts, p => p[1]), rcr: Float32Array.from(pts, p => p[2]),
+        lw: pts.length > 1 ? 0.8 : 0.45,                // past the picked shades, brightness counts for more
+        refY: ref[0], refCb: ref[1], refCr: ref[2], k: Math.min(1.9, Math.max(0.55, Math.sqrt((t[0] + 20) / (ref[0] + 20)))),
+        tY: t[0], tCb: t[1], tCr: t[2], in2: tol * tol, out2: (tol + soft) * (tol + soft), outR: tol + soft, soft,
+        str: l.str / 100, area: areaOf ? areaOf(l) : null });
+    }
+    return out;
+  }
+  // a palette of at most 256 colours (255 and a transparent one when tr marks any pixel): every exact colour when
+  // there are few enough (most GIFs), else median cut over a 5-6-5 histogram
+  function quantize(px, tr, anyT) {
+    const n = tr.length, max = anyT ? 255 : 256;
+    const cnt = new Uint32Array(65536), sr = new Float64Array(65536), sg = new Float64Array(65536), sb = new Float64Array(65536);
+    const key = new Uint16Array(n), idx = new Uint8Array(n);
+    const exact = new Map();
+    let uniq = 0, few = true;
+    for (let i = 0, j = 0; i < n; i++, j += 4) {
+      if (tr[i]) continue;
+      const r = px[j], g = px[j + 1], b = px[j + 2], k = ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
+      key[i] = k;
+      if (!cnt[k]++) uniq++;
+      sr[k] += r; sg[k] += g; sb[k] += b;
+      if (few) {
+        const c = (r << 16) | (g << 8) | b;
+        if (!exact.has(c)) { if (exact.size >= max) { few = false; exact.clear(); } else exact.set(c, exact.size); }
+      }
+    }
+    if (few) {                                          // few colours: keep them all, exactly
+      const pal = new Uint8Array(exact.size * 3);
+      for (const [c, p] of exact) { pal[p * 3] = c >> 16; pal[p * 3 + 1] = (c >> 8) & 255; pal[p * 3 + 2] = c & 255; }
+      for (let i = 0, j = 0; i < n; i++, j += 4) idx[i] = tr[i] ? exact.size : exact.get((px[j] << 16) | (px[j + 1] << 8) | px[j + 2]);
+      return { pal, count: exact.size, idx, t: exact.size };
+    }
+    const bins = new Int32Array(uniq), vr = new Float32Array(65536), vg = new Float32Array(65536), vb = new Float32Array(65536);
+    let u = 0;
+    for (let k = 0; k < 65536; k++) if (cnt[k]) { bins[u++] = k; vr[k] = sr[k] / cnt[k]; vg[k] = sg[k] / cnt[k]; vb[k] = sb[k] / cnt[k]; }
+    const stat = (lo, hi) => {
+      let c = 0, r0 = 255, r1 = 0, g0 = 255, g1 = 0, b0 = 255, b1 = 0;
+      for (let p = lo; p < hi; p++) {
+        const k = bins[p]; c += cnt[k];
+        if (vr[k] < r0) r0 = vr[k]; if (vr[k] > r1) r1 = vr[k];
+        if (vg[k] < g0) g0 = vg[k]; if (vg[k] > g1) g1 = vg[k];
+        if (vb[k] < b0) b0 = vb[k]; if (vb[k] > b1) b1 = vb[k];
+      }
+      const rr = (r1 - r0) * 1.0, gr = (g1 - g0) * 1.2, br = (b1 - b0) * 0.8, m = Math.max(rr, gr, br);
+      return { lo, hi, c, ch: m === gr ? 1 : m === rr ? 0 : 2, score: hi - lo > 1 ? m * Math.sqrt(c) : -1 };
+    };
+    const boxes = [stat(0, uniq)];
+    while (boxes.length < max) {
+      let bi = -1, bs = 0;
+      for (let b = 0; b < boxes.length; b++) if (boxes[b].score > bs) { bs = boxes[b].score; bi = b; }
+      if (bi < 0) break;
+      const bx = boxes[bi], v = bx.ch === 0 ? vr : bx.ch === 1 ? vg : vb;
+      bins.subarray(bx.lo, bx.hi).sort((a, b) => v[a] - v[b]);
+      let acc = 0, s = bx.lo;
+      while (s < bx.hi - 1 && acc + cnt[bins[s]] <= bx.c / 2) acc += cnt[bins[s++]];
+      if (s === bx.lo) s++;
+      boxes.splice(bi, 1, stat(bx.lo, s), stat(s, bx.hi));
+    }
+    const lut = new Uint8Array(65536), pal = new Uint8Array(boxes.length * 3);
+    boxes.forEach((bx, p) => {
+      let c = 0, r = 0, g = 0, b = 0;
+      for (let q = bx.lo; q < bx.hi; q++) { const k = bins[q]; c += cnt[k]; r += sr[k]; g += sg[k]; b += sb[k]; lut[k] = p; }
+      pal[p * 3] = r / c; pal[p * 3 + 1] = g / c; pal[p * 3 + 2] = b / c;
+    });
+    for (let i = 0; i < n; i++) idx[i] = tr[i] ? boxes.length : lut[key[i]];
+    return { pal, count: boxes.length, idx, t: boxes.length };
+  }
+  // GIF LZW, as sub-blocks with the block terminator (the hashing compressor every GIF encoder descends from)
+  function lzwEncode(pix, minCode) {
+    const BITS = 12, HSIZE = 5003, MAXMAX = 1 << BITS;
+    const htab = new Int32Array(HSIZE).fill(-1), codetab = new Int32Array(HSIZE);
+    let out = new Uint8Array(Math.max(1024, pix.length + (pix.length >> 1))), op = 0;
+    const acc = new Uint8Array(256); let ac = 0;
+    const flush = () => { if (ac) { if (op + ac + 1 > out.length) { const b = new Uint8Array((out.length + ac + 1) * 2); b.set(out); out = b; } out[op++] = ac; out.set(acc.subarray(0, ac), op); op += ac; ac = 0; } };
+    const initBits = minCode + 1, Clear = 1 << minCode, EOF = Clear + 1;
+    let nBits = initBits, maxcode = (1 << nBits) - 1, clearFlg = false, free = Clear + 2, cur = 0, curBits = 0;
+    const output = code => {
+      cur &= (1 << curBits) - 1;
+      cur = curBits > 0 ? cur | (code << curBits) : code;
+      curBits += nBits;
+      while (curBits >= 8) { acc[ac++] = cur & 255; if (ac >= 254) flush(); cur >>= 8; curBits -= 8; }
+      if (free > maxcode || clearFlg) {
+        if (clearFlg) { nBits = initBits; maxcode = (1 << nBits) - 1; clearFlg = false; }
+        else { nBits++; maxcode = nBits === BITS ? MAXMAX : (1 << nBits) - 1; }
+      }
+      if (code === EOF) { while (curBits > 0) { acc[ac++] = cur & 255; if (ac >= 254) flush(); cur >>= 8; curBits -= 8; } flush(); }
+    };
+    let hshift = 0; for (let f = HSIZE; f < 65536; f *= 2) hshift++; hshift = 8 - hshift;
+    output(Clear);
+    let ent = pix[0];
+    outer: for (let p = 1; p < pix.length; p++) {
+      const c = pix[p], fcode = (c << BITS) + ent;
+      let i = (c << hshift) ^ ent;
+      if (htab[i] === fcode) { ent = codetab[i]; continue; }
+      if (htab[i] >= 0) {
+        const disp = i === 0 ? 1 : HSIZE - i;
+        do { if ((i -= disp) < 0) i += HSIZE; if (htab[i] === fcode) { ent = codetab[i]; continue outer; } } while (htab[i] >= 0);
+      }
+      output(ent); ent = c;
+      if (free < MAXMAX) { codetab[i] = free++; htab[i] = fcode; }
+      else { htab.fill(-1); free = Clear + 2; clearFlg = true; output(Clear); }
+    }
+    output(ent); output(EOF);
+    if (op + 1 > out.length) { const b = new Uint8Array(op + 1); b.set(out); out = b; }
+    out[op++] = 0;
+    return out.slice(0, op);
+  }
+  function lzwDecode(minCode, data, npix) {
+    const out = new Uint8Array(npix), clear = 1 << minCode, eoi = clear + 1;
+    const prefix = new Uint16Array(4096), suffix = new Uint8Array(4096), stack = new Uint8Array(4097);
+    for (let c = 0; c < clear; c++) suffix[c] = c;
+    let size = minCode + 1, mask = (1 << size) - 1, avail = clear + 2, old = -1, first = 0, datum = 0, bits = 0, pi = 0, op = 0, top = 0;
+    while (op < npix) {
+      if (top === 0) {
+        if (bits < size) { if (pi >= data.length) break; datum |= data[pi++] << bits; bits += 8; continue; }
+        let code = datum & mask; datum >>>= size; bits -= size;
+        if (code === clear) { size = minCode + 1; mask = (1 << size) - 1; avail = clear + 2; old = -1; continue; }
+        if (code === eoi || code > avail) break;
+        if (old === -1) { stack[top++] = suffix[code]; old = code; first = code; continue; }
+        const inCode = code;
+        if (code === avail) { stack[top++] = first; code = old; }
+        while (code > clear) { stack[top++] = suffix[code]; code = prefix[code]; }
+        first = suffix[code];
+        stack[top++] = first;
+        if (avail < 4096) { prefix[avail] = old; suffix[avail] = first; avail++; if ((avail & mask) === 0 && avail < 4096) { size++; mask += avail; } }
+        old = inCode;
+      }
+      out[op++] = stack[--top];
+    }
+    return out;
+  }
+  // every frame of a GIF, composited the way browsers show them (disposal, transparency), with delays in ms
+  function decodeGif(buf) {
+    const d = new Uint8Array(buf);
+    if (d.length < 13 || d[0] !== 0x47 || d[1] !== 0x49 || d[2] !== 0x46) throw new Error("That isn't a GIF.");
+    let p = 6;
+    const u16 = () => { const v = d[p] | (d[p + 1] << 8); p += 2; return v; };
+    const W = u16(), H = u16(), pk = d[p]; p += 3;
+    let gct = null;
+    if (pk & 0x80) { const n = 2 << (pk & 7); gct = d.subarray(p, p + 3 * n); p += 3 * n; }
+    const canvas = new Uint8ClampedArray(W * H * 4), frames = [], delays = [];
+    let gce = { disp: 0, delay: 0, trans: -1 }, prevDisp = 0, prevRect = null, saved = null;
+    while (p < d.length) {
+      const b = d[p++];
+      if (b === 0x3B) break;
+      if (b === 0x21) {
+        const label = d[p++];
+        if (label === 0xF9 && d[p] >= 4) { const q = d[p + 1]; gce = { disp: (q >> 2) & 7, delay: d[p + 2] | (d[p + 3] << 8), trans: (q & 1) ? d[p + 4] : -1 }; }
+        while (p < d.length && d[p]) p += d[p] + 1;
+        p++;
+        continue;
+      }
+      if (b !== 0x2C) break;
+      const fx = u16(), fy = u16(), fw = u16(), fh = u16(), q = d[p++];
+      let ct = gct;
+      if (q & 0x80) { const n = 2 << (q & 7); ct = d.subarray(p, p + 3 * n); p += 3 * n; }
+      const minCode = d[p++];
+      let len = 0;
+      for (let s = p; s < d.length && d[s]; s += d[s] + 1) len += d[s];
+      const data = new Uint8Array(len);
+      for (let o = 0; p < d.length && d[p];) { const n = d[p++]; data.set(d.subarray(p, p + n), o); o += n; p += n; }
+      p++;
+      const idx = lzwDecode(minCode, data, fw * fh);
+      if (prevDisp === 2 && prevRect) {
+        for (let y = prevRect[1]; y < Math.min(H, prevRect[1] + prevRect[3]); y++) canvas.fill(0, (y * W + prevRect[0]) * 4, (y * W + Math.min(W, prevRect[0] + prevRect[2])) * 4);
+      } else if (prevDisp === 3 && saved) canvas.set(saved);
+      saved = gce.disp === 3 ? canvas.slice() : null;
+      if (ct) {
+        const rows = [];
+        if (q & 0x40) { for (const [s0, st] of [[0, 8], [4, 8], [2, 4], [1, 2]]) for (let y = s0; y < fh; y += st) rows.push(y); }
+        for (let r = 0; r < fh; r++) {
+          const y = (q & 0x40) ? rows[r] : r, cy = fy + y;
+          if (cy >= H) continue;
+          for (let x = 0; x < fw; x++) {
+            const cx = fx + x, ci = idx[r * fw + x];
+            if (cx >= W || ci === gce.trans || ci * 3 + 2 >= ct.length) continue;
+            const o = (cy * W + cx) * 4;
+            canvas[o] = ct[ci * 3]; canvas[o + 1] = ct[ci * 3 + 1]; canvas[o + 2] = ct[ci * 3 + 2]; canvas[o + 3] = 255;
+          }
+        }
+      }
+      frames.push(canvas.slice());
+      delays.push(gce.delay < 2 ? 100 : gce.delay * 10);            // what browsers do with 0 and 1
+      prevDisp = gce.disp; prevRect = [fx, fy, fw, fh];
+      gce = { disp: 0, delay: 0, trans: -1 };
+    }
+    if (!frames.length) throw new Error('That GIF has no frames.');
+    return { W, H, frames, delays };
+  }
+  // the part of a frame that changed since the last one (null: nothing did), and which of its pixels stayed the same
+  function diffFrame(px, prev, W, H) {
+    const a = new Uint32Array(px.buffer, px.byteOffset, W * H), b = new Uint32Array(prev.buffer, prev.byteOffset, W * H);
+    let x0 = W, y0 = H, x1 = -1, y1 = -1;
+    for (let y = 0; y < H; y++) {
+      const row = y * W;
+      for (let x = 0; x < W; x++) if (a[row + x] !== b[row + x]) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; y1 = y; }
+    }
+    if (x1 < 0) return null;
+    const w = x1 - x0 + 1, h = y1 - y0 + 1, keep = new Uint8Array(w * h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = (y0 + y) * W + x0 + x; keep[y * w + x] = a[i] === b[i] ? 1 : 0; }
+    return { rect: [x0, y0, w, h], keep };
+  }
+  // one frame of the GIF: the colour change, a palette, LZW. Unchanged pixels (keep) and see-through ones go transparent.
+  function encodeJob(m, L) {
+    const src = new Uint8ClampedArray(m.px), rx = m.rect[0], ry = m.rect[1], rw = m.rect[2], rh = m.rect[3];
+    const reg = new Uint8ClampedArray(rw * rh * 4);
+    kernel(src, m.W, rx, ry, rw, rh, reg, L, null);
+    const n = rw * rh, tr = new Uint8Array(n);
+    let anyT = false;
+    for (let i = 0; i < n; i++) if ((m.keep && m.keep[i]) || reg[i * 4 + 3] < 128) { tr[i] = 1; anyT = true; }
+    const q = quantize(reg, tr, anyT);
+    let bits = 1;
+    while ((1 << bits) < q.count + (anyT ? 1 : 0)) bits++;
+    const pal = new Uint8Array(3 << bits); pal.set(q.pal);
+    const minCode = Math.max(2, bits);
+    return { k: m.k, rect: m.rect, pal, bits, t: anyT ? q.t : -1, minCode, lzw: lzwEncode(q.idx, minCode) };
+  }
+  // the whole file. frames: [{ cs (delay in 1/100 s), res (an encodeJob result) }]; see-through GIFs clear each frame
+  function gifBytes(W, H, frames, transparent) {
+    const parts = [], name = [78, 69, 84, 83, 67, 65, 80, 69, 50, 46, 48];        // NETSCAPE2.0: loop forever
+    parts.push(new Uint8Array([71, 73, 70, 56, 57, 97, W & 255, W >> 8, H & 255, H >> 8, 0x70, 0, 0, 0x21, 0xFF, 11].concat(name, [3, 1, 0, 0, 0])));
+    for (const f of frames) {
+      const r = f.res, x = r.rect[0], y = r.rect[1], w = r.rect[2], h = r.rect[3], t = r.t, cs = Math.min(65535, f.cs);
+      parts.push(new Uint8Array([0x21, 0xF9, 4, ((transparent ? 2 : 1) << 2) | (t >= 0 ? 1 : 0), cs & 255, cs >> 8, t >= 0 ? t : 0, 0,
+        0x2C, x & 255, x >> 8, y & 255, y >> 8, w & 255, w >> 8, h & 255, h >> 8, 0x80 | (r.bits - 1)]));
+      parts.push(r.pal, new Uint8Array([r.minCode]), r.lzw);
+    }
+    parts.push(new Uint8Array([0x3B]));
+    let len = 0; for (const p of parts) len += p.length;
+    const out = new Uint8Array(len); let o = 0;
+    for (const p of parts) { out.set(p, o); o += p.length; }
+    return out;
+  }
+  // ==== codec end
+
+  const WORK_MAX = 800, VIDEO_MAX = 640, MAX_FRAMES = 360;
+  const SKIN = [['Porcelain', '#f3d9c6'], ['Fair', '#eec1a0'], ['Light', '#e0a982'], ['Medium', '#c4875a'], ['Tan', '#a46a42'], ['Brown', '#835231'],
+    ['Deep', '#5a3722'], ['Ebony', '#3a2418'], ['Blue', '#5f86d0'], ['Green', '#5f9d62'], ['Lilac', '#a68ad0'], ['Red', '#c2543f']];
+  const HAIR = [['Black', '#16110e'], ['Dark brown', '#3a2517'], ['Brown', '#674026'], ['Auburn', '#86381c'], ['Copper', '#b2552b'], ['Ginger', '#c76a2d'],
+    ['Honey', '#b98a3e'], ['Blonde', '#d8b25a'], ['Platinum', '#e9dfc8'], ['Grey', '#9b9b9b'], ['White', '#efefef'], ['Pink', '#e0659f'],
+    ['Red', '#b01d2d'], ['Blue', '#2e5db0'], ['Purple', '#6a3e9f'], ['Green', '#2e8c58']];
+  const ANY = [['Black', '#151515'], ['White', '#f2f2f2'], ['Grey', '#8c8c8c'], ['Red', '#c0272d'], ['Orange', '#e07b28'], ['Gold', '#d4a13a'],
+    ['Green', '#2f8f4e'], ['Teal', '#1f8a8a'], ['Blue', '#2d5fb8'], ['Navy', '#1d2b5a'], ['Purple', '#6c3fa3'], ['Pink', '#e0619c'], ['Brown', '#6b4226'], ['Beige', '#d9c2a0']];
+
+  const S = { file: null, kind: '', name: 'animation', W: 0, H: 0, frames: [], delays: [], alpha: false, i: 0, playing: false,
+    layers: [], active: 0, tool: null, brush: 40, cursor: null, showMask: false, flash: 0, before: false,
+    speed: 1, order: 'fwd', a: 0, b: 0, outW: 0, fmt: 'gif', vfps: 15, busy: false, exporting: false, cancel: false, result: null };
+  let nextId = 1;
+  function newLayer(name, kind) {
+    return { id: nextId++, name, kind, on: true, samples: [], to: '', tol: 10, soft: 8, str: 100, area: null, areaMask: null, areaHas: false, areaDirty: false };
+  }
+  S.layers = [newLayer('Skin', 'skin'), newLayer('Hair', 'hair')];
+
+  const view = $('view'), ov = $('ov'), stage = $('stage');
+  const vctx = view.getContext('2d', { willReadFrequently: true }), octx = ov.getContext('2d');
+  let outImg = null, maskBuf = null, maskImg = null, prep = null, raf = 0;
+
+  function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function canvasOf(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+  function hex(c) { return '#' + c.slice(0, 3).map(v => (v | 0).toString(16).padStart(2, '0')).join(''); }
+  function sleep(ms) { return new Promise(ok => setTimeout(ok, ms)); }
+  function fmtSize(n) { return n >= 1048576 ? (n / 1048576).toFixed(n >= 10485760 ? 0 : 1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB'; }
+  let hintTimer = 0;
+  function hint(t, ms) {
+    clearTimeout(hintTimer); const h = $('hint');
+    if (!t) { h.hidden = true; return; }
+    h.textContent = t; h.hidden = false;
+    if (ms) hintTimer = setTimeout(() => { h.hidden = true; toolHint(); }, ms);
+  }
+  function busy(t) { $('busy').hidden = !t; if (t) $('busyText').textContent = t; S.busy = !!t; }
+
+  // ---------------------------------------------------------------- reading
+  async function readImage(file) {
+    if ('ImageDecoder' in window && /^image\/(webp|png|apng|avif)$/.test(file.type)) {
+      try {
+        const dec = new ImageDecoder({ data: await file.arrayBuffer(), type: file.type });
+        await dec.tracks.ready;
+        const n = Math.min(MAX_FRAMES, dec.tracks.selectedTrack ? dec.tracks.selectedTrack.frameCount : 1);
+        if (n > 1) {
+          const first = (await dec.decode({ frameIndex: 0 })).image, W = first.displayWidth, H = first.displayHeight;
+          const c = canvasOf(W, H), x = c.getContext('2d', { willReadFrequently: true }), frames = [], delays = [];
+          for (let i = 0; i < n; i++) {
+            const im = i ? (await dec.decode({ frameIndex: i })).image : first;
+            x.clearRect(0, 0, W, H); x.drawImage(im, 0, 0);
+            frames.push(x.getImageData(0, 0, W, H).data); delays.push(Math.max(20, (im.duration || 100000) / 1000)); im.close();
+            if (i % 10 === 0) busy('Reading frames… ' + (i + 1) + ' of ' + n);
+          }
+          dec.close();
+          return { W, H, frames, delays };
+        }
+        dec.close();
+      } catch (e) { /* fall through to a still picture */ }
+    }
+    const bmp = await createImageBitmap(file);
+    const c = canvasOf(bmp.width, bmp.height), x = c.getContext('2d', { willReadFrequently: true });
+    x.drawImage(bmp, 0, 0);
+    return { W: bmp.width, H: bmp.height, frames: [x.getImageData(0, 0, bmp.width, bmp.height).data], delays: [100] };
+  }
+  async function readVideo(file) {
+    const v = document.createElement('video');
+    v.muted = true; v.playsInline = true; v.preload = 'auto';
+    const url = URL.createObjectURL(file);
+    v.src = url;
+    try {
+      await new Promise((ok, no) => { v.onloadeddata = ok; v.onerror = () => no(new Error("This browser can't play that video. Try an MP4 or WebM.")); });
+      const fps = S.vfps, dur = isFinite(v.duration) ? v.duration : 10;
+      const n = Math.max(1, Math.min(MAX_FRAMES, Math.floor(dur * fps)));
+      const sc = Math.min(1, VIDEO_MAX / Math.max(v.videoWidth, v.videoHeight));
+      const W = Math.max(2, Math.round(v.videoWidth * sc)), H = Math.max(2, Math.round(v.videoHeight * sc));
+      const c = canvasOf(W, H), x = c.getContext('2d', { willReadFrequently: true }), frames = [], delays = [];
+      x.imageSmoothingQuality = 'high';
+      for (let i = 0; i < n; i++) {
+        await new Promise(ok => { const h = () => { v.removeEventListener('seeked', h); ok(); }; v.addEventListener('seeked', h); v.currentTime = Math.min(dur - 0.001, i / fps + 0.0005); });
+        x.drawImage(v, 0, 0, W, H);
+        frames.push(x.getImageData(0, 0, W, H).data); delays.push(1000 / fps);
+        if (i % 5 === 0) busy('Reading the video… ' + (i + 1) + ' of ' + n + ' frames');
+      }
+      return { W, H, frames, delays, cut: dur * fps > MAX_FRAMES ? MAX_FRAMES / fps : 0 };
+    } finally { URL.revokeObjectURL(url); v.removeAttribute('src'); }
+  }
+  function fitWork(r, max) {                             // big pictures are worked on smaller: everything stays quick
+    const sc = Math.min(1, max / Math.max(r.W, r.H));
+    if (sc >= 1) return r;
+    const W = Math.max(1, Math.round(r.W * sc)), H = Math.max(1, Math.round(r.H * sc));
+    const a = canvasOf(r.W, r.H), ax = a.getContext('2d'), img = ax.createImageData(r.W, r.H);
+    const b = canvasOf(W, H), bx = b.getContext('2d', { willReadFrequently: true });
+    bx.imageSmoothingQuality = 'high';
+    r.frames = r.frames.map(f => { img.data.set(f); ax.putImageData(img, 0, 0); bx.clearRect(0, 0, W, H); bx.drawImage(a, 0, 0, W, H); return bx.getImageData(0, 0, W, H).data; });
+    r.W = W; r.H = H;
+    return r;
+  }
+  async function take(file, again) {
+    if (!file || S.busy || S.exporting) return;
+    const isGif = file.type === 'image/gif' || /\.gif$/i.test(file.name || '');
+    const isVideo = !isGif && (/^video\//.test(file.type) || /\.(mp4|webm|mov|m4v|mkv|ogv)$/i.test(file.name || ''));
+    if (!isGif && !isVideo && !/^image\//.test(file.type)) { hint("That isn't a GIF, a video or a picture.", 3500); return; }
+    play(false);
+    busy('Reading…');
+    await sleep(20);
+    let r;
+    try {
+      if (isGif) r = decodeGif(await file.arrayBuffer());
+      else if (isVideo) r = await readVideo(file);
+      else r = await readImage(file);
+      if (r.frames.length > MAX_FRAMES) { r.frames.length = MAX_FRAMES; r.delays.length = MAX_FRAMES; r.cut = 1; }
+      r = fitWork(r, isVideo ? VIDEO_MAX : WORK_MAX);
+    } catch (e) {
+      busy(null); hint((e && e.message) || "Couldn't read that file.", 5000); return;
+    }
+    busy(null);
+    S.file = file; S.kind = isVideo ? 'video' : 'gif';
+    S.name = (file.name || 'animation').replace(/\.[a-z0-9]+$/i, '').replace(/[^\w\- ]+/g, '').trim().slice(0, 60) || 'animation';
+    S.W = r.W; S.H = r.H; S.frames = r.frames; S.delays = r.delays; S.i = 0; S.a = 0; S.b = r.frames.length - 1;
+    S.alpha = false;
+    if (!isVideo) outer: for (const f of S.frames) for (let j = 3; j < f.length; j += 4) if (f[j] < 255) { S.alpha = true; break outer; }
+    S.layers.forEach(l => { l.area = null; l.areaMask = null; l.areaHas = false; });   // the colours carry over, areas don't
+    view.width = ov.width = S.W; view.height = ov.height = S.H;
+    outImg = vctx.createImageData(S.W, S.H); maskBuf = new Uint8Array(S.W * S.H); maskImg = null; prep = null;
+    $('drop').hidden = true; $('wrap').hidden = false; $('transport').hidden = false; $('exportBtn').disabled = false;
+    $('scrub').max = String(S.frames.length - 1); $('scrub').value = '0';
+    $('vfpsField').hidden = S.kind !== 'video';
+    buildWidths(again);
+    fitView(); renderLayers(); trimText(); render(); info();
+    if (r.cut) hint('Long one: it was read up to ' + MAX_FRAMES + ' frames. Lower the frames a second to fit more in.', 6000);
+    else if (!again) hint(S.frames.length > 1 ? 'Click Pick, then the skin or hair you want to change' : 'A still picture: colour changes work here too', 4000);
+    if (S.frames.length > 1 && !again) play(true);
+  }
+  function info() {
+    const ms = S.delays.reduce((a, b) => a + b, 0);
+    $('info').textContent = S.frames.length ? S.W + '×' + S.H + ' · ' + S.frames.length + (S.frames.length === 1 ? ' frame' : ' frames') + (S.frames.length > 1 ? ' · ' + (ms / 1000).toFixed(1) + ' s' : '') : '';
+  }
+  function buildWidths(keep) {
+    const sel = $('width'), opts = [S.W].concat([720, 640, 560, 480, 400, 320, 240, 160].filter(w => w < S.W));
+    const want = keep && S.outW && S.outW <= S.W ? S.outW : S.kind === 'video' ? Math.min(480, S.W) : (S.W <= 640 ? S.W : 480);
+    sel.innerHTML = '';
+    opts.forEach(w => { const o = el('option', '', w + ' px' + (w === S.W ? ' (as it is)' : '') + ' · ' + w + '×' + Math.max(1, Math.round(S.H * w / S.W))); o.value = String(w); sel.appendChild(o); });
+    const best = opts.reduce((a, b) => Math.abs(b - want) < Math.abs(a - want) ? b : a, opts[0]);
+    sel.value = String(best); S.outW = best;
+  }
+  function fitView() {
+    if (!S.W) return;
+    const r = stage.getBoundingClientRect(), pad = 28;
+    const s = Math.min((r.width - pad) / S.W, (r.height - pad) / S.H, S.W < 500 ? 3 : 2);
+    view.style.width = Math.max(40, Math.floor(S.W * s)) + 'px'; view.style.height = Math.max(40, Math.floor(S.H * s)) + 'px';
+  }
+  window.addEventListener('resize', fitView);
+
+  // ---------------------------------------------------------------- the preview
+  function areaAt(l, w, h) {
+    if (!l.areaHas || !l.area) return null;
+    if (w === S.W && h === S.H) { if (!l.areaMask || l.areaDirty) readArea(l); return l.areaMask; }
+    const c = canvasOf(w, h), x = c.getContext('2d', { willReadFrequently: true });
+    x.drawImage(l.area, 0, 0, w, h);
+    const d = x.getImageData(0, 0, w, h).data, m = new Uint8Array(w * h);
+    for (let i = 0; i < m.length; i++) m[i] = d[i * 4 + 3];
+    return m;
+  }
+  function readArea(l) {
+    const d = l.area.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, S.W, S.H).data;
+    const m = l.areaMask && l.areaMask.length === S.W * S.H ? l.areaMask : new Uint8Array(S.W * S.H);
+    let any = false;
+    for (let i = 0; i < m.length; i++) { m[i] = d[i * 4 + 3]; if (m[i]) any = true; }
+    l.areaMask = m; l.areaHas = any; l.areaDirty = false;
+  }
+  function changed() { prep = null; schedule(); }
+  function schedule() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); }
+  function render() {
+    if (!S.frames.length) return;
+    const src = S.frames[S.i];
+    S.layers.forEach(l => { if (l.areaDirty) { readArea(l); prep = null; } });
+    if (!prep) prep = prepLayers(S.layers, l => areaAt(l, S.W, S.H));
+    const showMask = (S.showMask || performance.now() < S.flash) && !S.before && prep.length;
+    if (S.before || !prep.length) outImg.data.set(src);
+    else kernel(src, S.W, 0, 0, S.W, S.H, outImg.data, prep, showMask ? maskBuf : null);
+    vctx.putImageData(outImg, 0, 0);
+    drawOverlay(showMask);
+  }
+  function drawOverlay(showMask) {
+    octx.clearRect(0, 0, S.W, S.H);
+    if (showMask) {
+      if (!maskImg) maskImg = octx.createImageData(S.W, S.H);
+      const d = maskImg.data;
+      for (let i = 0, j = 0; i < maskBuf.length; i++, j += 4) { d[j] = 255; d[j + 1] = 30; d[j + 2] = 150; d[j + 3] = maskBuf[i] * 0.75; }
+      octx.putImageData(maskImg, 0, 0);
+    }
+    const l = S.layers[S.active];
+    if ((S.tool === 'paint' || S.tool === 'erase') && l) {
+      if (l.area) { octx.globalAlpha = 0.4; octx.drawImage(l.area, 0, 0); octx.globalAlpha = 1; }
+      if (S.cursor) {
+        octx.beginPath(); octx.arc(S.cursor.x, S.cursor.y, brushR(), 0, Math.PI * 2);
+        octx.lineWidth = Math.max(1, 1.5 / scale()); octx.strokeStyle = '#fff'; octx.stroke();
+        octx.setLineDash([4 / scale(), 4 / scale()]); octx.strokeStyle = '#000'; octx.stroke(); octx.setLineDash([]);
+      }
+    }
+  }
+  function scale() { const r = ov.getBoundingClientRect(); return (r.width / S.W) || 1; }
+  function brushR() { return Math.max(1, S.brush / 2 / scale()); }
+  function pt(e) { const r = ov.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * S.W, y: (e.clientY - r.top) / r.height * S.H }; }
+  function goTo(i) { S.i = Math.max(0, Math.min(S.frames.length - 1, i)); $('scrub').value = String(S.i); $('frameNo').textContent = (S.i + 1) + ' / ' + S.frames.length; schedule(); }
+
+  // ---------------------------------------------------------------- playing
+  let SEQ = [], seqPos = 0, lastT = 0, acc = 0;
+  function seq() {
+    const base = []; for (let k = S.a; k <= S.b; k++) base.push(k);
+    if (S.order === 'rev') return base.reverse();
+    if (S.order === 'ping' && base.length > 2) return base.concat(base.slice(1, -1).reverse());
+    return base;
+  }
+  function play(on) {
+    S.playing = !!on && S.frames.length > 1;
+    $('playIcon').innerHTML = S.playing ? '<path d="M7 5h4v14H7zM13 5h4v14h-4z"/>' : '<path d="M8 5v14l11-7z"/>';
+    $('playBtn').setAttribute('aria-label', S.playing ? 'Pause' : 'Play');
+    if (!S.playing) return;
+    SEQ = seq(); seqPos = Math.max(0, SEQ.indexOf(S.i)); if (SEQ.indexOf(S.i) < 0) goTo(SEQ[0]);
+    lastT = performance.now(); acc = 0;
+    requestAnimationFrame(tick);
+  }
+  function tick(t) {
+    if (!S.playing) return;
+    acc = Math.min(acc + t - lastT, 1000); lastT = t;
+    let d = S.delays[SEQ[seqPos]] / S.speed, moved = false;
+    while (acc >= d) { acc -= d; seqPos = (seqPos + 1) % SEQ.length; d = S.delays[SEQ[seqPos]] / S.speed; moved = true; }
+    if (moved) goTo(SEQ[seqPos]);
+    requestAnimationFrame(tick);
+  }
+  function reseq() { if (S.playing) { SEQ = seq(); seqPos = Math.max(0, SEQ.indexOf(S.i)); } }
+  function trimText() {
+    const n = S.b - S.a + 1, ms = S.delays.slice(S.a, S.b + 1).reduce((a, b) => a + b, 0) * (S.order === 'ping' ? 2 : 1) / S.speed;
+    $('trimText').textContent = 'Frames ' + (S.a + 1) + ' to ' + (S.b + 1) + ' of ' + S.frames.length + ' · ' + n + (n === 1 ? ' frame' : ' frames') + ' · ' + (ms / 1000).toFixed(1) + ' s';
+  }
+
+  // ---------------------------------------------------------------- colour change cards
+  function setActive(i) { if (S.active === i) return; S.active = i; document.querySelectorAll('.layer').forEach((c, k) => c.classList.toggle('active', k === i)); if (S.tool) setTool(S.tool); }
+  function setTool(t) {
+    S.tool = t;
+    ov.style.cursor = t === 'pick' ? 'crosshair' : (t === 'paint' || t === 'erase') ? 'none' : 'default';
+    if (t) play(false);
+    document.querySelectorAll('[data-tool]').forEach(b => b.setAttribute('aria-pressed', (b.dataset.tool === t && +b.dataset.layer === S.active) ? 'true' : 'false'));
+    toolHint(); schedule();
+  }
+  function toolHint() {
+    const l = S.layers[S.active];
+    if (!l || !S.tool) { hint(null); return; }
+    const what = l.kind === 'skin' ? 'the skin' : l.kind === 'hair' ? 'the hair' : 'the colour to change';
+    hint(S.tool === 'pick' ? 'Click ' + what + ' · Shift-click adds more shades · Esc to stop'
+      : S.tool === 'paint' ? 'Paint where ' + l.name.toLowerCase() + ' may change · Esc to stop' : 'Erase from the area · Esc to stop');
+  }
+  function renderLayers() {
+    const box = $('layers'); box.innerHTML = '';
+    S.layers.forEach((l, i) => box.appendChild(layerCard(l, i)));
+    $('addLayer').hidden = S.layers.length >= 6;
+  }
+  function layerCard(l, i) {
+    const c = el('div', 'layer' + (i === S.active ? ' active' : '') + (l.on ? '' : ' off'));
+    c.addEventListener('pointerdown', () => setActive(i), true);
+    c.addEventListener('focusin', () => setActive(i));
+    const head = el('div', 'lhead');
+    const on = el('input'); on.type = 'checkbox'; on.checked = l.on; on.title = 'On or off'; on.setAttribute('aria-label', l.name + ' on');
+    on.onchange = () => { l.on = on.checked; c.classList.toggle('off', !l.on); changed(); };
+    head.append(on, el('b', '', l.name), el('span', 'sp'));
+    if (i >= 2) { const x = el('button', 'x', '×'); x.type = 'button'; x.title = 'Remove this colour change'; x.onclick = () => { S.layers.splice(i, 1); S.active = Math.min(S.active, S.layers.length - 1); setTool(null); renderLayers(); changed(); }; head.appendChild(x); }
+    c.appendChild(head);
+    // from
+    const from = el('div', 'lrow'); from.appendChild(el('span', 'lab', 'From'));
+    const sws = el('div', 'sws');
+    if (!l.samples.length) sws.appendChild(el('span', 'muted small', 'Nothing picked yet'));
+    l.samples.forEach((s, k) => {
+      const b = el('button', 'sw sample'); b.type = 'button'; b.style.background = hex(s); b.title = 'Remove this shade';
+      b.onclick = () => { l.samples.splice(k, 1); renderLayers(); changed(); };
+      sws.appendChild(b);
+    });
+    from.appendChild(sws);
+    const pick = el('button', 'iconbtn', l.samples.length ? '+ Shade' : 'Pick'); pick.type = 'button'; pick.dataset.tool = 'pick'; pick.dataset.layer = String(i);
+    pick.title = l.samples.length ? 'Pick another shade of it, like a shadow or a highlight (P)' : 'Then click it in the picture (P)';
+    pick.setAttribute('aria-pressed', S.tool === 'pick' && S.active === i ? 'true' : 'false');
+    pick.onclick = () => { setActive(i); setTool(S.tool === 'pick' ? null : 'pick'); };
+    from.appendChild(pick);
+    c.appendChild(from);
+    // to
+    const to = el('div', 'lrow'); to.appendChild(el('span', 'lab', 'To'));
+    const col = el('input'); col.type = 'color'; col.value = l.to || (l.samples[0] ? hex(l.samples[0]) : '#888888'); col.title = 'Any colour';
+    const presets = el('div', 'presets');
+    const mark = () => [].forEach.call(presets.children, b => b.setAttribute('aria-pressed', b.dataset.hex === l.to ? 'true' : 'false'));
+    col.oninput = () => { l.to = col.value; mark(); changed(); };
+    to.append(col, el('span', 'muted small', l.to ? '' : 'choose below, or any colour'));
+    c.appendChild(to);
+    (l.kind === 'skin' ? SKIN : l.kind === 'hair' ? HAIR : ANY).forEach(p => {
+      const b = el('button', 'sw'); b.type = 'button'; b.style.background = p[1]; b.title = p[0]; b.dataset.hex = p[1]; b.setAttribute('aria-label', p[0]);
+      b.onclick = () => { l.to = p[1]; col.value = p[1]; mark(); to.lastChild.textContent = ''; changed(); };
+      presets.appendChild(b);
+    });
+    mark();
+    c.appendChild(presets);
+    // sliders
+    [['Range', 'tol', 2, 50, 'How different a colour can be and still change'], ['Soft edge', 'soft', 0, 40, 'How gently the change fades out at the edges'],
+      ['Strength', 'str', 0, 100, 'How far the colours move']].forEach(x => {
+      const lab = el('label', 'sl'); lab.title = x[4];
+      const r = el('input'); r.type = 'range'; r.min = String(x[2]); r.max = String(x[3]); r.value = String(l[x[1]]);
+      r.oninput = () => { l[x[1]] = +r.value; changed(); };
+      lab.append(el('span', '', x[0]), r);
+      c.appendChild(lab);
+    });
+    // area
+    const ar = el('div', 'lrow'); ar.appendChild(el('span', 'lab', 'Area'));
+    const seg = el('div', 'seg');
+    [['paint', 'Paint'], ['erase', 'Erase']].forEach(x => {
+      const b = el('button', '', x[1]); b.type = 'button'; b.dataset.tool = x[0]; b.dataset.layer = String(i);
+      b.title = x[0] === 'paint' ? 'Paint where this may change: nothing outside it will' : 'Take away from the painted area';
+      b.setAttribute('aria-pressed', S.tool === x[0] && S.active === i ? 'true' : 'false');
+      b.onclick = () => { setActive(i); setTool(S.tool === x[0] ? null : x[0]); };
+      seg.appendChild(b);
+    });
+    const clr = el('button', 'iconbtn', 'Clear'); clr.type = 'button'; clr.title = 'Back to the whole picture';
+    clr.onclick = () => { if (l.area) l.area.getContext('2d').clearRect(0, 0, S.W, S.H); l.areaHas = false; l.areaMask = null; areaNote.textContent = 'whole picture'; changed(); };
+    const areaNote = el('span', 'muted small', l.areaHas ? 'painted part only' : 'whole picture');
+    ar.append(seg, clr, areaNote);
+    c.appendChild(ar);
+    c._areaNote = areaNote;
+    return c;
+  }
+  $('addLayer').onclick = () => {
+    if (S.layers.length >= 6) return;
+    S.layers.push(newLayer('Colour ' + (S.layers.length + 1), 'any'));
+    S.active = S.layers.length - 1; renderLayers();
+  };
+  function pickAt(p, add) {
+    const src = S.frames[S.i], l = S.layers[S.active];
+    if (!src || !l) return;
+    const cx = Math.round(p.x), cy = Math.round(p.y);
+    let r = 0, g = 0, b = 0, n = 0;
+    for (let y = cy - 1; y <= cy + 1; y++) for (let x = cx - 1; x <= cx + 1; x++) {
+      if (x < 0 || y < 0 || x >= S.W || y >= S.H) continue;
+      const o = (y * S.W + x) * 4; if (src[o + 3] < 128) continue;
+      r += src[o]; g += src[o + 1]; b += src[o + 2]; n++;
+    }
+    if (!n) { hint('That spot is see-through. Click a colour.', 2500); return; }
+    const c = [Math.round(r / n), Math.round(g / n), Math.round(b / n)];
+    // the spread of shades around the click (hair strands, shaded skin): similar colours within 6 px, darkest to lightest
+    const yc = q => [0.299 * q[0] + 0.587 * q[1] + 0.114 * q[2], -0.168736 * q[0] - 0.331264 * q[1] + 0.5 * q[2], 0.5 * q[0] - 0.418688 * q[1] - 0.081312 * q[2]];
+    const c0 = yc(c), ys = [];
+    for (let y = cy - 6; y <= cy + 6; y++) for (let x = cx - 6; x <= cx + 6; x++) {
+      if (x < 0 || y < 0 || x >= S.W || y >= S.H) continue;
+      const o = (y * S.W + x) * 4; if (src[o + 3] < 128) continue;
+      const q = yc([src[o], src[o + 1], src[o + 2]]);
+      if (Math.hypot(q[1] - c0[1], q[2] - c0[2]) < 8 && Math.abs(q[0] - c0[0]) < 60) ys.push(q[0]);
+    }
+    ys.sort((p, q) => p - q);
+    if (ys.length > 8) c.push(Math.round(Math.min(c0[0], ys[Math.floor(ys.length * 0.1)])), Math.round(Math.max(c0[0], ys[Math.floor(ys.length * 0.9)])));
+    if (l.samples.length < 10) l.samples.push(c);       // the first pick, or another shade of it (take one away by clicking it)
+    if (!add) setTool(null);
+    S.flash = performance.now() + 1400; setTimeout(schedule, 1450);
+    renderLayers(); changed();
+    if (!l.to) hint('Picked. Now choose its new colour on the right.', 3000);
+  }
+
+  // ---------------------------------------------------------------- pointer: pick and paint
+  let painting = false, last = null;
+  function stamp(l, p, erase) {
+    if (!l.area) { l.area = canvasOf(S.W, S.H); }
+    const x = l.area.getContext('2d'), r = brushR();
+    x.globalCompositeOperation = erase ? 'destination-out' : 'source-over';
+    const g = x.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+    g.addColorStop(0, 'rgba(59,130,246,1)'); g.addColorStop(0.65, 'rgba(59,130,246,1)'); g.addColorStop(1, 'rgba(59,130,246,0)');
+    x.fillStyle = g; x.beginPath(); x.arc(p.x, p.y, r, 0, Math.PI * 2); x.fill();
+    x.globalCompositeOperation = 'source-over';
+    l.areaDirty = true; l.areaHas = true;
+  }
+  ov.addEventListener('pointerdown', e => {
+    if (!S.frames.length || !S.tool) return;
+    const p = pt(e), l = S.layers[S.active];
+    if (S.tool === 'pick') { pickAt(p, e.shiftKey); return; }
+    ov.setPointerCapture(e.pointerId); painting = true; last = p; stamp(l, p, S.tool === 'erase'); schedule();
+  });
+  ov.addEventListener('pointermove', e => {
+    if (!S.frames.length) return;
+    const p = pt(e); S.cursor = p;
+    if (painting) {
+      const l = S.layers[S.active], dx = p.x - last.x, dy = p.y - last.y, dist = Math.hypot(dx, dy), step = Math.max(1, brushR() / 3);
+      for (let t = step; t <= dist; t += step) stamp(l, { x: last.x + dx * t / dist, y: last.y + dy * t / dist }, S.tool === 'erase');
+      last = p;
+    }
+    if (S.tool === 'paint' || S.tool === 'erase') schedule();
+  });
+  const endPaint = () => {
+    if (!painting) return; painting = false;
+    const l = S.layers[S.active]; readArea(l); prep = null;
+    const card = $('layers').children[S.active]; if (card && card._areaNote) card._areaNote.textContent = l.areaHas ? 'painted part only' : 'whole picture';
+    schedule();
+  };
+  ov.addEventListener('pointerup', endPaint); ov.addEventListener('pointercancel', endPaint);
+  ov.addEventListener('pointerleave', () => { S.cursor = null; if (S.tool === 'paint' || S.tool === 'erase') schedule(); });
+  ov.addEventListener('wheel', e => {
+    if (S.tool !== 'paint' && S.tool !== 'erase') return;
+    e.preventDefault(); S.brush = Math.max(6, Math.min(240, S.brush * (e.deltaY < 0 ? 1.12 : 0.89))); schedule();
+  }, { passive: false });
+
+  // ---------------------------------------------------------------- transport and keys
+  $('playBtn').onclick = () => play(!S.playing);
+  $('prevBtn').onclick = () => { play(false); goTo(S.i - 1); };
+  $('nextBtn').onclick = () => { play(false); goTo(S.i + 1); };
+  $('scrub').oninput = () => { play(false); goTo(+$('scrub').value); };
+  const before = on => { S.before = on; $('beforeBtn').setAttribute('aria-pressed', on ? 'true' : 'false'); schedule(); };
+  $('beforeBtn').addEventListener('pointerdown', () => before(true));
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach(t => $('beforeBtn').addEventListener(t, () => before(false)));
+  $('maskBtn').onclick = () => { S.showMask = !S.showMask; $('maskBtn').setAttribute('aria-pressed', S.showMask ? 'true' : 'false'); schedule(); };
+  $('frameBtn').onclick = () => view.toBlob(b => { if (b) save(b, S.name + '-frame-' + (S.i + 1) + '.png'); }, 'image/png');
+  $('newBtn').onclick = () => $('file').click();
+  $('file').onchange = () => { const f = $('file').files[0]; $('file').value = ''; take(f); };
+  $('reread').onclick = () => { if (S.file && S.kind === 'video') take(S.file, true); };
+  $('vfps').onchange = () => { S.vfps = +$('vfps').value; };
+  $('speed').onchange = () => { S.speed = +$('speed').value; trimText(); };
+  $('width').onchange = () => { S.outW = +$('width').value; };
+  document.querySelectorAll('#orderSeg [data-order]').forEach(b => b.onclick = () => {
+    S.order = b.dataset.order; document.querySelectorAll('#orderSeg [data-order]').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+    reseq(); trimText();
+  });
+  $('trimA').onclick = () => { S.a = S.i; if (S.b < S.a) S.b = S.a; reseq(); trimText(); };
+  $('trimB').onclick = () => { S.b = S.i; if (S.a > S.b) S.a = S.b; reseq(); trimText(); };
+  $('trimAll').onclick = () => { S.a = 0; S.b = S.frames.length - 1; reseq(); trimText(); };
+  document.querySelectorAll('#fmtSeg [data-fmt]').forEach(b => b.onclick = () => {
+    S.fmt = b.dataset.fmt; document.querySelectorAll('#fmtSeg [data-fmt]').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+    if (!S.exporting) $('exportBtn').textContent = S.fmt === 'gif' ? 'Export GIF' : 'Export video';
+  });
+  document.addEventListener('keydown', e => {
+    const t = e.target, typing = t && (t.tagName === 'INPUT' && t.type !== 'range' && t.type !== 'checkbox' || t.tagName === 'SELECT' || t.tagName === 'TEXTAREA');
+    if (typing || !S.frames.length || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key === ' ') { e.preventDefault(); play(!S.playing); }
+    else if (e.key === 'ArrowLeft' && t.type !== 'range') { e.preventDefault(); play(false); goTo(S.i - 1); }
+    else if (e.key === 'ArrowRight' && t.type !== 'range') { e.preventDefault(); play(false); goTo(S.i + 1); }
+    else if (e.key === 'Escape') setTool(null);
+    else if (e.key === 'b' || e.key === 'B') { if (!e.repeat) before(true); }
+    else if (e.key === 'm' || e.key === 'M') $('maskBtn').click();
+    else if (e.key === 'p' || e.key === 'P') setTool(S.tool === 'pick' ? null : 'pick');
+  });
+  document.addEventListener('keyup', e => { if (e.key === 'b' || e.key === 'B') before(false); });
+  stage.addEventListener('dragover', e => { e.preventDefault(); stage.classList.add('over'); });
+  stage.addEventListener('dragleave', () => stage.classList.remove('over'));
+  stage.addEventListener('drop', e => { e.preventDefault(); stage.classList.remove('over'); const f = e.dataTransfer.files[0]; if (f) take(f); });
+  document.addEventListener('paste', e => {
+    const f = [...(e.clipboardData ? e.clipboardData.files : [])].find(x => /^(image|video)\//.test(x.type));
+    if (f) { e.preventDefault(); take(f); }
+  });
+
+  // ---------------------------------------------------------------- export
+  function save(blob, name) {
+    const a = el('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+  }
+  function progress(done, total, text) {
+    $('prog').hidden = total == null; $('progBar').style.width = total ? Math.round(done / total * 100) + '%' : '0';
+    $('progText').textContent = text || '';
+  }
+  let POOL = null, PENDING = new Map();
+  function pool() {
+    if (POOL) return POOL;
+    const src = [kernel, quantize, lzwEncode, encodeJob].map(f => f.toString()).join('\n') +
+      '\nlet L = [];\nonmessage = e => { const m = e.data; if (m.type === "init") { L = m.L; return; } ' +
+      'try { const r = encodeJob(m, L); postMessage(r, [r.pal.buffer, r.lzw.buffer]); } catch (err) { postMessage({ k: m.k, error: String(err && err.message || err) }); } };';
+    const url = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
+    const n = Math.max(1, Math.min(8, (navigator.hardwareConcurrency || 4) - 1));
+    const ws = [];
+    for (let i = 0; i < n; i++) {
+      const w = new Worker(url);
+      w.onmessage = e => { const r = e.data, h = PENDING.get(r.k); if (!h) return; PENDING.delete(r.k); r.error ? h[1](new Error(r.error)) : h[0](r); };
+      w.onerror = e => { e.preventDefault(); PENDING.forEach(h => h[1](new Error('A worker failed'))); PENDING.clear(); };
+      ws.push(w);
+    }
+    POOL = ws;
+    return ws;
+  }
+  // frames of the export at the chosen size, in play order, each with its delay in ms
+  function* outFrames(W2, H2) {
+    const order = seq();
+    const same = W2 === S.W && H2 === S.H;
+    const a = canvasOf(S.W, S.H), ax = a.getContext('2d'), img = ax.createImageData(S.W, S.H);
+    const b = canvasOf(W2, H2), bx = b.getContext('2d', { willReadFrequently: true });
+    bx.imageSmoothingQuality = 'high';
+    for (let k = 0; k < order.length; k++) {
+      const fi = order[k];
+      let px;
+      if (same) px = new Uint8ClampedArray(S.frames[fi]);
+      else { img.data.set(S.frames[fi]); ax.putImageData(img, 0, 0); bx.clearRect(0, 0, W2, H2); bx.drawImage(a, 0, 0, W2, H2); px = bx.getImageData(0, 0, W2, H2).data; }
+      yield { k, n: order.length, px, ms: S.delays[fi] / S.speed };
+    }
+  }
+  async function exportGif() {
+    const W2 = S.outW, H2 = Math.max(1, Math.round(S.H * W2 / S.W)), t0 = performance.now();
+    const L = prepLayers(S.layers, l => areaAt(l, W2, H2));
+    let ws = null;
+    try { ws = pool(); ws.forEach(w => w.postMessage({ type: 'init', L })); } catch (e) { ws = null; }
+    const run = (job, wi) => ws
+      ? new Promise((ok, no) => { PENDING.set(job.k, [ok, no]); ws[wi % ws.length].postMessage(job, job.keep ? [job.px, job.keep.buffer] : [job.px]); })
+      : new Promise(ok => setTimeout(() => ok(encodeJob(job, L)), 0));
+    const frames = [], inflight = [], limit = (ws ? ws.length : 1) * 3;
+    let prev = null, done = 0, sent = 0, total = 0;
+    for (const f of outFrames(W2, H2)) {
+      if (S.cancel) break;
+      total = f.n;
+      const cs = Math.max(2, Math.round(f.ms / 10));
+      let rect = [0, 0, W2, H2], keep = null;
+      if (prev && !S.alpha) {
+        const d = diffFrame(f.px, prev, W2, H2);
+        if (!d) { frames[frames.length - 1].cs += cs; done++; progress(done, total, 'Making the GIF… ' + done + ' of ' + total + ' frames'); continue; }   // the same again: just show the last one longer
+        rect = d.rect; keep = d.keep;
+      }
+      prev = f.px;
+      const slot = { cs, res: null }; frames.push(slot);
+      const p = run({ k: f.k, px: f.px.slice().buffer, W: W2, H: H2, rect, keep }, sent++).then(r => { slot.res = r; done++; progress(done, total, 'Making the GIF… ' + done + ' of ' + total + ' frames'); });
+      inflight.push(p);
+      if (inflight.length >= limit) await inflight.shift();
+    }
+    await Promise.all(inflight);
+    if (S.cancel) return null;
+    const bytes = gifBytes(W2, H2, frames, S.alpha);
+    return { blob: new Blob([bytes], { type: 'image/gif' }), W: W2, H: H2, frames: frames.length, secs: (performance.now() - t0) / 1000, ext: 'gif' };
+  }
+  // a video through MediaRecorder, in real time: MP4 where the browser records it (plays everywhere), else WebM.
+  // Frames go in only once the recorder says it has started: fed sooner, the first recording on a page came out
+  // empty (11-18). An empty recording still falls through to the next format.
+  async function exportVideo() {
+    const types = ['video/mp4', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm']
+      .filter(t => { try { return !!window.MediaRecorder && MediaRecorder.isTypeSupported(t); } catch (e) { return false; } });
+    if (!types.length) throw new Error("This browser can't make videos. Export a GIF instead.");
+    S.vtries = [];
+    for (const mime of types) {
+      const r = await recordVideo(mime);
+      S.vtries.push(mime + ': ' + (r ? r.blob.size : 'stopped'));
+      if (!r || r.blob.size) return r;
+    }
+    throw new Error("This browser couldn't record a video. Export a GIF instead.");
+  }
+  async function recordVideo(mime) {
+    let W2 = S.outW, H2 = Math.max(2, Math.round(S.H * W2 / S.W)); W2 -= W2 % 2; H2 -= H2 % 2;
+    const c = canvasOf(W2, H2), x = c.getContext('2d'), stream = c.captureStream(0), track = stream.getVideoTracks()[0];
+    const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: Math.round(Math.min(12e6, Math.max(2e6, W2 * H2 * 30 * 0.12))) });
+    const chunks = [], stopped = new Promise(ok => { rec.onstop = ok; });
+    rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+    const L = prepLayers(S.layers, l => areaAt(l, W2, H2));
+    const tmp = canvasOf(W2, H2), tx = tmp.getContext('2d'), img = tx.createImageData(W2, H2);
+    x.fillStyle = '#000'; x.fillRect(0, 0, W2, H2);
+    const started = new Promise(ok => { rec.onstart = ok; setTimeout(ok, 3000); });
+    rec.start(250);
+    await started;
+    if (track.requestFrame) track.requestFrame();
+    const t0 = performance.now();
+    let due = 0, n = 0, total = 0;
+    for (const f of outFrames(W2, H2)) {
+      if (S.cancel) break;
+      total = f.n;
+      kernel(f.px, W2, 0, 0, W2, H2, img.data, L, null);
+      tx.putImageData(img, 0, 0);
+      x.fillRect(0, 0, W2, H2); x.drawImage(tmp, 0, 0);               // see-through parts on black
+      if (track.requestFrame) track.requestFrame();
+      due += f.ms; n++;
+      progress(n, total, 'Recording the video (it plays through once)… ' + n + ' of ' + total);
+      const wait = t0 + due - performance.now();
+      if (wait > 0) await sleep(wait);
+    }
+    rec.stop(); await stopped;
+    track.stop();
+    if (S.cancel) return null;
+    const type = mime.split(';')[0];
+    return { blob: new Blob(chunks, { type }), W: W2, H: H2, frames: n, secs: (performance.now() - t0) / 1000, ext: type === 'video/mp4' ? 'mp4' : 'webm' };
+  }
+  $('exportBtn').onclick = async () => {
+    if (S.exporting) { S.cancel = true; return; }
+    if (!S.frames.length || S.busy) return;
+    play(false); setTool(null);
+    S.exporting = true; S.cancel = false;
+    const btn = $('exportBtn'); btn.textContent = 'Stop';
+    progress(0, 1, S.fmt === 'gif' ? 'Making the GIF…' : 'Getting the video ready…');
+    $('result').hidden = true;
+    try {
+      const r = S.fmt === 'gif' ? await exportGif() : await exportVideo();
+      if (r) showResult(r); else progress(null, null, 'Stopped.');
+    } catch (e) {
+      progress(null, null, ''); $('result').hidden = false; $('result').innerHTML = '';
+      $('result').appendChild(el('div', 'warn', (e && e.message) || "Couldn't export that."));
+    } finally {
+      S.exporting = false; S.cancel = false; btn.textContent = S.fmt === 'gif' ? 'Export GIF' : 'Export video';
+    }
+  };
+  function showResult(r) {
+    if (S.result) URL.revokeObjectURL(S.result);
+    const url = URL.createObjectURL(r.blob); S.result = url; S.out = r;
+    const box = $('result'); box.innerHTML = ''; box.hidden = false;
+    if (r.ext === 'gif') { const im = el('img'); im.src = url; im.alt = 'The exported GIF'; box.appendChild(im); }
+    else { const v = el('video'); v.src = url; v.controls = true; v.loop = true; v.muted = true; v.autoplay = true; v.playsInline = true; box.appendChild(v); }
+    box.appendChild(el('div', 'small muted', fmtSize(r.blob.size) + ' · ' + r.W + '×' + r.H + ' · ' + r.frames + (r.frames === 1 ? ' frame' : ' frames') + ' · made in ' + r.secs.toFixed(1) + ' s'));
+    if (r.blob.size > 10 * 1048576) box.appendChild(el('div', 'warn', 'Over 10 MB: Discord takes it only with Nitro. A smaller width or fewer frames brings it down.'));
+    const a = el('a', 'btn main wide', 'Download ' + (r.ext === 'gif' ? 'GIF' : r.ext.toUpperCase())); a.href = url; a.download = S.name + '-studio.' + r.ext;
+    box.appendChild(a);
+    progress(null, null, '');
+  }
+
+  renderLayers();
+  window.__gs = { S, take, render, prepLayers, exportGif, pickAt, setTool, goTo };
+})();
+</script>
+</body>
+</html>
