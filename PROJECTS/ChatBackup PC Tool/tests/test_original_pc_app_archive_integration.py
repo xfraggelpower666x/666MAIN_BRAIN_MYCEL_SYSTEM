@@ -21,7 +21,7 @@ def test_original_main_application_identity_and_archive_entry():
     launcher=ast.get_source_segment(text,methods['open_archive_intelligence'])
     assert 'ArchiveWindow(master=self)' in launcher
     assert 'ARCHIVE_INTELLIGENCE_IN_PROCESS_WINDOW' in launcher
-    assert '666_CHATBACKUP_ARCHIVE_INTELLIGENCE.exe' in launcher  # Legacy-Fallback erhalten
+    assert '666_CHATBACKUP_ARCHIVE_INTELLIGENCE.exe' not in launcher  # keine zweite EXE
     assert '666 ChatBackup PC Tool v' in text
 
 
