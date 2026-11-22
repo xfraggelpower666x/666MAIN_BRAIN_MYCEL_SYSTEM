@@ -60,7 +60,11 @@
       "perMachine": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "deleteAppDataOnUninstall": false
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "666-Cyber-Drive-Control-${version}-${arch}-SETUP.exe"
+    },
+    "portable": {
+      "artifactName": "666-Cyber-Drive-Control-${version}-${arch}-PORTABLE.exe"
     }
   }
 }

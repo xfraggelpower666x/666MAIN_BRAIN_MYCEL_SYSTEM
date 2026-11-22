@@ -89,6 +89,7 @@ function Build-Engine {
   if (-not $script:BuildPython) { Ensure-Dependencies }
   $dest=Join-Path $App 'build\engine'
   New-Item -Force -ItemType Directory $dest | Out-Null
+  New-Item -Force -ItemType Directory (Join-Path $Root 'BUILD\work') | Out-Null
   # Build from real R18 source; dynamic import must be collected into the frozen sidecar.
   Run $script:BuildPython @('-m','PyInstaller','--noconfirm','--clean','--onefile',
      '--name','666CyberMetrics','--distpath',$dest,
@@ -106,6 +107,9 @@ function Check-Release {
   Ensure-Source
 }
 function Build-Target([string]$target) {
+  Ensure-Source
+  Ensure-Dependencies
+  Build-Engine
   Check-Release
   Push-Location $App
   try {
@@ -114,6 +118,7 @@ function Build-Target([string]$target) {
   } finally { Pop-Location }
 }
 function Open-Dev {
+  Ensure-Source
   Ensure-Dependencies
   $env:KLRW_PYTHON=$script:BuildPython
   $env:KLRW_R18_SRC=(Join-Path $Legacy 'src')
@@ -123,7 +128,7 @@ function Open-Dev {
 function Test-Compiled {
   Check-Release
   $candidates=Get-ChildItem -LiteralPath (Join-Path $App 'dist') -File -Filter '*.exe' -ErrorAction SilentlyContinue |
-    Where-Object { $_.Name -notmatch 'Setup' -and $_.Name -notmatch 'installer' } | Sort-Object LastWriteTime -Descending
+    Where-Object { $_.Name -match 'PORTABLE' } | Sort-Object LastWriteTime -Descending
   if (-not $candidates) { throw 'Portable EXE missing. Build portable before test.' }
   Log "Testing compiled portable executable: $($candidates[0].FullName)"
   Start-Process -FilePath $candidates[0].FullName -Wait

@@ -26,3 +26,6 @@ Electron bundles Chromium/Node and renderer resources. The frozen `666CyberMetri
 
 ## No destructive changes
 No scripts in shipped application; no global system installation for end users; no silent replacement of R18, no hardware LED write, and no paid services. Build outputs and node_modules/venv excluded from git.
+
+## Build automation final adjustment
+Menu items 4/5/6 automatically verify R18 source, install/update isolated build dependencies, freeze the backend and build the requested binary in one action. Distinct PORTABLE and SETUP artifact filenames prevent collision. Menu 7 runs the compiled portable binary directly. Builder/report files are never shipped inside the EXE/installer.
