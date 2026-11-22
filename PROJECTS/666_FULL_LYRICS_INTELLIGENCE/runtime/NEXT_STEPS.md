@@ -1,6 +1,6 @@
 # Open development tracks — evidence-bound
 
-1. **P0 SOURCE_TRANSFER:** Publish actual R03 Python and Electron source files under this project with original relative path structure. Compare each readback SHA/contents with the local candidate. Do not publish legacy lyrics databases, exports, conversation content, or archives.
+1. **P0 SOURCE_TRANSFER — VERIFIED_PUBLIC_CORE:** Original R03 Electron/Python runtime, renderer, source starter, regression tests, architecture documentation, and independent Git-blob checks are published. Private R02 SQLite, lyrics and backup archives remain offline by design. GitHub CI and Windows host remain pending.
 2. **P0 SECURITY:** Ensure Electron contextIsolation, sandbox, IPC allowlist, file limits and import path safety retain R03 behavior. Validate source file dependencies.
 3. **P1 CI:** Add scoped tests only after exact source transfer. Python unit tests (10/10 local baseline) and Electron JS syntax checks. Workflows under .github require separate repository governance review; do not publish automatically.
 4. **P1 WINDOWS:** One developer starter, dependency checks and explicit repair/install. Direct GUI test, then portable EXE and selectable-directory Windows installer built on Windows. Production binaries must bundle required runtimes; record validation.
