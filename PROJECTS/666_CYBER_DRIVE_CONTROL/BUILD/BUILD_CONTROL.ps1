@@ -144,7 +144,7 @@ function Show-Menu {
   Write-Host '6  Portable + Setup bauen'
   Write-Host '7  Kompilierte portable EXE sofort starten/testen'
   Write-Host '8  Build- und Quellstatus anzeigen'
-  Write-Host '9  Original-R18-ZIP validieren, 288 Tests, als Git-Quelldateien importieren'
+  Write-Host '9  R18 importieren + GitHub-Readback + Portable und Setup bauen'
   Write-Host '0  Beenden'
 }
 Log "Build host started; project $Root"
@@ -167,7 +167,12 @@ while ($true) {
         Ensure-Dependencies
         $importer = Join-Path $Root 'scripts\R18_IMPORT_AND_VERIFY.py'
         Run $script:BuildPython @($importer, $zip)
-        Log 'R18 SOURCE IMPORTED LOCALLY. git commit/push + readback are still required.'
+        $repoRoot = (Resolve-Path (Join-Path $Root '..\..')).Path
+        $publisher = Join-Path $Root 'scripts\PUBLISH_R18_GIT.py'
+        Run $script:BuildPython @($publisher, $zip, '--checkout', $repoRoot)
+        Log 'R18 source published and GitHub HEAD readback verified.'
+        Build-Target 'both'
+        Log 'R18 migration + Portable EXE + Setup completed. Verify artifacts and host behavior.'
       }
       '0' { Log 'Exit'; exit 0 }
       default { Write-Host 'Unknown option.' }
