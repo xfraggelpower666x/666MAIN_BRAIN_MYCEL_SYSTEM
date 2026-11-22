@@ -13,7 +13,7 @@ function processReply(data) {
   r.resolve({ok:data.ok===true,error:typeof data.error==='string'?data.error:null});
 }
 function workspaceCommand(action,payload) {
-  if(!['set-drive-visibility','set-overlay-layout'].includes(action))
+  if(!['set-drive-visibility','set-overlay-layout','set-visual-binding'].includes(action))
     return Promise.resolve({ok:false,error:'Unsupported action'});
   if(!worker||!worker.stdin?.writable)
     return Promise.resolve({ok:false,error:'Metrics bridge not running'});
@@ -94,6 +94,13 @@ ipcMain.handle('set-drive-visibility',(_e,id,target,enabled)=>{
 ipcMain.handle('set-overlay-layout',(_e,layout)=>{
   if(!['minimal','horizontal','vertical'].includes(layout))return {ok:false,error:'Invalid layout'};
   return workspaceCommand('set-overlay-layout',{layout});
+});
+ipcMain.handle('set-visual-binding',(_event,led,device,mode,threshold_kib)=>{
+  if(!['caps','num','scroll'].includes(led)||typeof device!=='string'||!device||device.length>256||
+     !['off','read','write','either'].includes(mode)||typeof threshold_kib!=='number'||
+     !Number.isFinite(threshold_kib)||threshold_kib<0||threshold_kib>1048576)
+    return {ok:false,error:'Invalid visual LED binding'};
+  return workspaceCommand('set-visual-binding',{led,device,mode,threshold_kib});
 });
 ipcMain.handle('overlay-toggle',()=>{toggleOverlay();return Boolean(overlay);});
 ipcMain.handle('show-main',()=>{if(mainWindow)mainWindow.show();});

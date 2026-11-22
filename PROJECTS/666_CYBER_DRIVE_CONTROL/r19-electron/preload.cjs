@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('cyber',{
   },
   toggleOverlay:()=>ipcRenderer.invoke('overlay-toggle'),
   setDriveVisibility:(id,target,enabled)=>ipcRenderer.invoke('set-drive-visibility',id,target,enabled),
+  setVisualBinding:(led,device,mode,threshold)=>ipcRenderer.invoke('set-visual-binding',led,device,mode,threshold),
   setOverlayLayout:layout=>ipcRenderer.invoke('set-overlay-layout',layout),
   showMain:()=>ipcRenderer.invoke('show-main')
 });
