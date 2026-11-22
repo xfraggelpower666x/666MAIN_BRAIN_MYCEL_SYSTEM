@@ -1,0 +1,113 @@
+{
+  "schema": "666TDH_CLIC_R10_NATIVE_READONLY_INTAKE_AUDIT_V1",
+  "audit_id": "666TDH-CLIC-R10-NATIVE-AUDIT-20261122-01",
+  "date": "2026-11-22",
+  "scope": "TDH_NATIVE_REPOSITORY_ONLY",
+  "source": {
+    "handoff_id": "CLIC-TO-666TDH-R10-20261122-01",
+    "repo": "xfraggelpower666x/666CLICPRO",
+    "branch": "clic-migration-rev79-staging",
+    "handoff_path": "666CLIC_NATIVE_RUNTIME/outbox/666TDH/CLIC-TO-666TDH-R10-20261122-01.json",
+    "blob": "ae8de1cb6280a6fe602f9d4cb0f7be914ff7046b",
+    "creation_commit": "d5dcc2acdc304db4a7af70a3e4391c1419637450",
+    "creation_tree": "65639b59922dcd4b5472eef140304dae0d708352",
+    "consumed_commit": "de02b5afa85a04015fed70b64eb54ba48fb933c1",
+    "consumed_tree": "d30e0a2428ae1dffd0f58bcf0622fdd62bab8339",
+    "historical_observed_head": "a7cd81179797682764bf8dbfc828d598b0d3b3ec",
+    "historical_observed_tree": "412b66497b21bbe733a1a85e7746438ce2efb245",
+    "historical_observed_head_predates_handoff_file": true,
+    "classification_on_source": "PREPARED_REPO_SOURCE_ONLY_NOT_DELIVERED"
+  },
+  "target": {
+    "system_id": "666TRACKHUB-001",
+    "repo": "xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM",
+    "branch": "666MAIN_BRAIN",
+    "root": "PROJECTS/666TDH",
+    "prechange_commit": "a1e3aad4ff3d38315429a7f1cfb1746c6418b204",
+    "prechange_tree": "6aa07628404ff2649fe94167dbe573740250c6fa",
+    "pointer_blob": "56aeda7c3a87d1f0054a5909b26f8b17136f2d81",
+    "native_release": "v1.15.0",
+    "repo_policy": "R1",
+    "capability_revision": "R3",
+    "manifest_bindings": 303,
+    "registry_child_tokens": [
+      "TD",
+      "LCTS",
+      "DTSTE",
+      "FSE",
+      "SHACHIVITI"
+    ]
+  },
+  "findings": [
+    {
+      "id": "TDH-01",
+      "decision": "PRESERVE_NO_RUNTIME_DEFECT",
+      "evidence": "runtime/hub/CURRENT_POINTER.md records historical v1.13.0; authoritative root CURRENT_POINTER.json and HUB/LIVE_STATE.md record v1.15.0",
+      "action": "Retain historical file and native pointer precedence; no rollback or version relabel."
+    },
+    {
+      "id": "TDH-02",
+      "decision": "PRESERVE_HOLDS",
+      "evidence": "runtime/REGISTRY.json and five native child pointers read at target prechange commit; FSE and SHACHIVITI source_identity UNRESOLVED_HOLD",
+      "action": "Keep identity and SOURCE_VAULT_ONLY restrictions until original source provenance is independently resolved."
+    },
+    {
+      "id": "TDH-03",
+      "decision": "OPEN_HOST_ACCEPTANCE",
+      "evidence": "R3 source has local Chromium six-surface PASS and native 28/28 Python real checkout PASS, but root pointer and visual contract say OPEN_NOT_VERIFIED",
+      "action": "Require direct fresh ChatGPT host interaction and independent render readback; do not mark host PASS."
+    },
+    {
+      "id": "TDH-04",
+      "decision": "PARTIAL_NEWER_WINDOWS_EVIDENCE",
+      "evidence": "User-supplied ABNAHME_ERGEBNIS.json and ABNAHME_LAUF.log record 28/28 Python PASS, 294 native hashes, 365 Git-tracked TDH files and verified ZIP SHA256 at Git commit 5e63099ec8b90f40042b01c52d4bee7f6eeced11; current pointer now binds 303 files after nine additive integration documents",
+      "action": "Recognize completed 2026-11-20 Windows R3 real-checkout backup, but keep new exact 303-binding checkout/backup and external FSE vault as separate pending gates; preserve existing Git backup."
+    },
+    {
+      "id": "TDH-05",
+      "decision": "PRESERVE_STARBRIDGE_EVIDENCE",
+      "evidence": "TDH native original provenance/v1.15.0-provider/NATIVE_STARBRIDGE_RECEIPT.json Git blob 0e56795bd909dbefa2ee9e07e9e0429fdbf15289; CLIC reconciliation inbox/666TDH/receipts/CLIC-STARBRIDGE-WHOLE-NET-666TDH-20261018-R01-DELIVERY-READBACK.json Git blob 288b64b81c019f1164edcc91406bc04e38cb2cf0",
+      "action": "Retain original and newer CLIC reconciled readback as independent evidence; no fabricated host or full-adoption PASS."
+    }
+  ],
+  "summary": {
+    "confirmed_runtime_defects": 0,
+    "required_runtime_repair": false,
+    "findings_reviewed": 5,
+    "source_commit_tree_blob": "VERIFIED",
+    "native_child_readback": "5_OF_5_PASS",
+    "r3_native_ui_and_daemon": "PRESERVED",
+    "visual_intelligence": "PRESERVED",
+    "source_holds": "PRESERVED",
+    "starbridge_receipts": "PRESERVED",
+    "real_windows_checkout_old_revision": "28_OF_28_PASS_LOCAL_USER_HOST_EVIDENCE",
+    "new_exact_revision_full_checkout": "OPEN",
+    "chatgpt_host_render": "OPEN_NOT_VERIFIED",
+    "external_fse_vault": "SOURCE_VAULT_ONLY_NOT_INCLUDED",
+    "cross_system_writes": false
+  },
+  "regression": {
+    "test_kind": "TARGETED_READ_ONLY_EVIDENCE_AND_SCHEMA_GATES",
+    "asserted_ids": [
+      "TDH-01",
+      "TDH-02",
+      "TDH-03",
+      "TDH-04",
+      "TDH-05"
+    ],
+    "child_pointer_comparison": "PASS_ALL_FIVE_AT_PRECHANGE_COMMIT",
+    "source_blob_and_tree": "PASS",
+    "window_snapshot_newer_than_r3_audit": true,
+    "original_full_suite_rerun_in_this_update": false,
+    "pointer_before_update_mutation": false
+  },
+  "limitations": [
+    "No new Windows execution at the 303-binding commit.",
+    "No independent current host UI acceptance.",
+    "No external FSE source-vault recovery readback.",
+    "CLIC source handoff is informational and confers no TDH execution authority."
+  ],
+  "prechange_recovery_ref": "backup/666TDH/pre-CLIC-R10-20261122-a1e3aad4",
+  "native_receipt": "outbox/666CLIC/666TDH-TO-666CLIC-R10-20261122-01.json",
+  "mutation_policy": "ONLY_NATIVE_R10_AUDIT_AND_RECEIPT_ADDED_POINTER_LAST"
+}

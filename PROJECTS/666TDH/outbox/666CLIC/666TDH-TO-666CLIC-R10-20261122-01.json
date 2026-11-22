@@ -1,0 +1,86 @@
+{
+  "schema": "666TDH_TO_666CLIC_NATIVE_R10_RETURN_RECEIPT_V1",
+  "receipt_id": "666TDH-TO-666CLIC-R10-20261122-01",
+  "date": "2026-11-22",
+  "issuer_system": "666TRACKHUB-001",
+  "issuer_namespace": "666TDH",
+  "recipient_system": "666CLIC",
+  "authority": "TDH_NATIVE_ONLY",
+  "source_handoff_id": "CLIC-TO-666TDH-R10-20261122-01",
+  "source_repo": "xfraggelpower666x/666CLICPRO",
+  "source_path": "666CLIC_NATIVE_RUNTIME/outbox/666TDH/CLIC-TO-666TDH-R10-20261122-01.json",
+  "source_blob": "ae8de1cb6280a6fe602f9d4cb0f7be914ff7046b",
+  "source_creation_commit": "d5dcc2acdc304db4a7af70a3e4391c1419637450",
+  "source_creation_tree": "65639b59922dcd4b5472eef140304dae0d708352",
+  "source_readback_commit": "de02b5afa85a04015fed70b64eb54ba48fb933c1",
+  "source_readback_tree": "d30e0a2428ae1dffd0f58bcf0622fdd62bab8339",
+  "source_historical_observation_not_handoff_birth": true,
+  "target_repository": "xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM",
+  "target_branch": "666MAIN_BRAIN",
+  "target_project_root": "PROJECTS/666TDH",
+  "prechange_target_commit": "a1e3aad4ff3d38315429a7f1cfb1746c6418b204",
+  "native_release": "v1.15.0",
+  "capability_revision": "R3",
+  "child_identities_preserved": [
+    "666TRACKDESIGN-001",
+    "666LCTS-001",
+    "666DTSTE-001",
+    "666FSE-001",
+    "666SHACHIVITI-001"
+  ],
+  "findings": [
+    {
+      "id": "TDH-01",
+      "decision": "PRESERVE_NO_RUNTIME_DEFECT"
+    },
+    {
+      "id": "TDH-02",
+      "decision": "PRESERVE_HOLDS"
+    },
+    {
+      "id": "TDH-03",
+      "decision": "OPEN_HOST_ACCEPTANCE"
+    },
+    {
+      "id": "TDH-04",
+      "decision": "PARTIAL_NEWER_WINDOWS_EVIDENCE"
+    },
+    {
+      "id": "TDH-05",
+      "decision": "PRESERVE_STARBRIDGE_EVIDENCE"
+    }
+  ],
+  "native_decision": "R10_INFORMATIONAL_REVIEW_CONSUMED_NO_RUNTIME_DEFECT_CONFIRMED",
+  "accepted_as_runtime_authority": false,
+  "verified_source_commit_tree_blob": true,
+  "starbridge_existing_native_receipt_blob": "0e56795bd909dbefa2ee9e07e9e0429fdbf15289",
+  "starbridge_clic_delivery_receipt_blob": "288b64b81c019f1164edcc91406bc04e38cb2cf0",
+  "r3_real_checkout_user_evidence": {
+    "commit": "5e63099ec8b90f40042b01c52d4bee7f6eeced11",
+    "python_tests_passed": 28,
+    "python_tests_total": 28,
+    "manifest_hashes": 294,
+    "archived_git_files": 365,
+    "zip_sha256": "f7f1a15d3054cb4a2c3a968e3418e2e4d9e066755213a66dfe35d677a1a6cafd",
+    "scope": "PRIOR_R3_CORE_AT_TESTED_COMMIT_NOT_CURRENT_303_BINDINGS"
+  },
+  "open_gates": [
+    "FRESH_CHATGPT_NATIVE_HOST_RENDER",
+    "CURRENT_303_BINDINGS_EXACT_WINDOWS_CHECKOUT_AND_OFFLINE_BACKUP",
+    "EXTERNAL_FSE_SOURCE_VAULT_PROVIDER_RECOVERY"
+  ],
+  "source_id_holds": [
+    "FSE_UNRESOLVED_HOLD",
+    "SHACHIVITI_UNRESOLVED_HOLD"
+  ],
+  "no_foreign_autoactivation": true,
+  "no_cross_system_merge": true,
+  "no_clic_repository_write": true,
+  "no_paid_actions": true,
+  "prechange_backup_ref": "backup/666TDH/pre-CLIC-R10-20261122-a1e3aad4",
+  "linked_native_audit": "integrations/clic-r10/TDH_R10_NATIVE_REVIEW.json",
+  "native_return_path": "PROJECTS/666TDH/outbox/666CLIC/666TDH-TO-666CLIC-R10-20261122-01.json",
+  "recipient_must_independently_readback": true,
+  "source_handoff_unchanged": true,
+  "host_accepted": false
+}
