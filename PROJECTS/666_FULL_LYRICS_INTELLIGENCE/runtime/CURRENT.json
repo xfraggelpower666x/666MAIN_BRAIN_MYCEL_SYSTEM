@@ -5,9 +5,9 @@
   "branch": "666MAIN_BRAIN",
   "scope": "PROJECTS/666_FULL_LYRICS_INTELLIGENCE/",
   "state": "PARTIAL",
-  "source_migration_status": "READBACK_PENDING",
+  "source_migration_status": "VERIFIED_PUBLIC_CORE",
   "workspace_status": "VERIFIED",
-  "local_r03_tests": "10/10_PASS_LOCAL_ONLY",
+  "local_r03_tests": "10/10_PASS_WITH_PRIVATE_LEGACY_FIXTURE",
   "github_ci": "NOT_CONFIGURED",
   "windows_electron_host": "OPEN",
   "windows_portable_and_setup": "OPEN",
@@ -18,5 +18,11 @@
   "workspace_body_readback": "6/6_PASS",
   "global_main_brain_pointer_unchanged": true,
   "foreign_system_writes": false,
-  "next": "Transfer and independently verify original R03 source files; protect all local user databases/lyrics and build on Windows."
+  "next": "Conduct repository-sourced Python/JS regression, security review and independent Windows Electron host; prepare guarded CI without cross-project workflow writes; build portable EXE/setup in Windows.",
+  "source_migration_scope": "10 original R03 source/blob pairs matched; private R02 assets deliberately excluded",
+  "source_readback_manifest": "evidence/R03_SOURCE_READBACK.json",
+  "public_fixture_free_regression": "9/9_PASS_LOCAL",
+  "public_test_runner": "tests/run_portable_regression.py",
+  "current_body_commit": "b7b6f490bec178488587f6d331ac010ed846c703",
+  "current_body_readback": "VERIFIED"
 }
