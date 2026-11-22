@@ -41,7 +41,7 @@ def main():
         if args.dry_run:
             print("DRY_RUN VERIFIED: 186 files / 288 tests.")
             return
-        repo=Path(__file__).resolve().parents[2]
+        repo=Path(__file__).resolve().parents[3]
         destination=Path(__file__).resolve().parents[1]/"r18-legacy"
         if destination.exists(): raise RuntimeError("Destination exists: will not overwrite")
         if not (repo/".git").exists(): raise RuntimeError("Not a Git checkout at expected repository root: "+str(repo))
