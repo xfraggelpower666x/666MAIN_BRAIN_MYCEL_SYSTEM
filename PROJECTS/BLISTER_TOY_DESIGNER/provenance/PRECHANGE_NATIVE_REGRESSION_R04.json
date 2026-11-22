@@ -1,0 +1,11 @@
+{
+  "schema": "blister-toy/prechange-update/v1",
+  "date": "2026-11-22",
+  "scope": "PROJECTS/BLISTER_TOY_DESIGNER",
+  "base_commit": "ac3f04d89f9ac303176e19b542bc7fd10382bc67",
+  "base_pointer_blob": "1a1893f8930fbed040eef8ba87a1cd900d59ab23",
+  "purpose": "add executable project-local regression",
+  "recovery": "Git immutable baseline commit; no original files modified",
+  "foreign_scope": "NONE",
+  "host_acceptance": "OPEN"
+}
