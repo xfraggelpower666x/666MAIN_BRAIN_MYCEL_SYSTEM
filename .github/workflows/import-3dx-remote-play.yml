@@ -1,0 +1,40 @@
+name: Import verified 3DX Remote Play source
+on:
+  push:
+    paths:
+      - .github/workflows/import-3dx-remote-play.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  import-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout target repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 1
+          ref: 666MAIN_BRAIN
+      - name: Fetch immutable matching upstream source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test ! -e PROJECTS/3dx-remote-play-main
+          mkdir -p /tmp/3dx-source
+          git clone -q --no-checkout https://github.com/Deaeath/3dx-remote-play.git /tmp/3dx-source
+          git -C /tmp/3dx-source checkout -q 19b7a2ec2284b9568d3f49be03bdcb261f9983c7
+          actual="$(git -C /tmp/3dx-source rev-parse HEAD^{tree})"
+          test "$actual" = "999b62fd876a84057747f5fd62bfc350af762b3b"
+          mkdir -p PROJECTS/3dx-remote-play-main
+          tar --exclude=.git -C /tmp/3dx-source -cf - . | tar -C PROJECTS/3dx-remote-play-main -xf -
+          test -f PROJECTS/3dx-remote-play-main/src-tauri/src/remote_play.rs
+          test -f PROJECTS/3dx-remote-play-main/phone/web/main.ts
+          test -f PROJECTS/3dx-remote-play-main/tests/host.test.ts
+          test -f PROJECTS/3dx-remote-play-main/src-tauri/icons/icon.ico
+          git add -- PROJECTS/3dx-remote-play-main
+          test "$(git ls-files PROJECTS/3dx-remote-play-main | wc -l)" -eq 64
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Import 3DX Remote Play editable source (64 files, pinned upstream)"
+          git push origin HEAD:666MAIN_BRAIN
