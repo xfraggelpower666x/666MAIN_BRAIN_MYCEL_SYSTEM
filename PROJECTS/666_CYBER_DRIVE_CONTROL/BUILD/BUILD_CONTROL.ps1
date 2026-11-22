@@ -125,6 +125,14 @@ function Build-Target([string]$target) {
   Ensure-Source
   Ensure-Dependencies
   Verify-R18
+  # Run R19 D/E integration unit tests against the same R18 sources.
+  $savedPythonPath = $env:PYTHONPATH
+  try {
+    $env:PYTHONPATH = (Join-Path $Legacy 'src') + ';' + (Join-Path $App 'bridge')
+    Run $script:BuildPython @('-m','pytest','-q',(Join-Path $Root 'tests\test_r19_features.py'))
+  } finally {
+    $env:PYTHONPATH = $savedPythonPath
+  }
   Build-Engine
   Check-Release
   Push-Location $App
