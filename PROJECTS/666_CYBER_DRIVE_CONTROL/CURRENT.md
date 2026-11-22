@@ -1,24 +1,27 @@
 # 666 CYBER DRIVE CONTROL — Native Current
 
 SYSTEM_ID: 666_CYBER_DRIVE_CONTROL
-PROJECT_ROOT: PROJECTS/666_CYBER_DRIVE_CONTROL
+NATIVE_ROOT: PROJECTS/666_CYBER_DRIVE_CONTROL
 REPOSITORY: xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM
 BRANCH: 666MAIN_BRAIN
 STATUS: PARTIAL
-CURRENT_CANDIDATE: R19 Electron + Python R18 metrics bridge + Windows build and packaging toolchain
-IMPLEMENTATION_COMMIT: ef21abd55651c17c2b53d68e8e480ac7e1ce4473
-IMPLEMENTATION_TREE: 0c7da2b6d70dbb71c41fd2eed8d5300411cc91cf
-BUILD_STARTER: START_BUILD_WINDOWS.bat (one top-level batch)
-BUILD_CONTROL: BUILD/BUILD_CONTROL.ps1 (developer-side only)
-PACKAGING: electron-builder 25.1.8 (portable / NSIS), PyInstaller Python frozen sidecar
-INSTALLER_MODE: oneClick=false, allowToChangeInstallationDirectory=true
-RUNTIME: Electron bundled Chromium/Node; Python sidecar frozen and included via extraResources; system dependencies subject to clean-Windows verification
-BUILD_ACTIONS: prerequisite check/repair, development start, engine freeze, portable EXE, setup EXE, both, direct portable test
-RELEASE_GATE: source original full R18 under r18-legacy/ MISSING => BUILD_BLOCKED
-APP_SCOPE: BUILD tools not included in shipped app
-CODE_READBACK: HEAD + BAT + PowerShell + package.json + Electron main + Python bridge read back; JS syntax parsed
-TESTS: R18 prior 288/288 local; R19 Windows portable/setup execution NOT RUN; PowerShell runtime syntax NOT RUN; no binaries claimed
-OPEN: migrate full R18 files; publish verified package-lock; test compiled app in clean Windows VM; test installer selected path and bundled dependencies; E/A/B/C parity
+REASON: Full 186-file R18 source imported and tested locally only; not yet present in this GitHub folder. Windows portable and setup executables not compiled.
+R18_ORIGINAL_ARCHIVE_SHA256: 0364d38d1fe41492bad821e636d0c089be13ac0304a9fcf01761c79d4d2fce8b
+LOCAL_SOURCE_VERIFY: 186/186 original ZIP entries matched extracted bytes
+LOCAL_REGRESSION: 288/288 pytest PASS on extracted R18 source (Linux environment, not Windows host)
+GITHUB_MIGRATION_TOOL: scripts/R18_IMPORT_AND_VERIFY.py
+GITHUB_SCOPED_PUBLISHER: scripts/PUBLISH_R18_GIT.py
+GITHUB_MIGRATION_EVIDENCE: docs/R18_HOST_MIGRATION_GATE.md
+GITHUB_BUILD_HOST: START_BUILD_WINDOWS.bat -> BUILD/BUILD_CONTROL.ps1
+MENU_9: verify exact original ZIP; run 288 regression; import source; scoped Git commit/push; remote HEAD readback; compile portable EXE and NSIS setup
+RELEASE_GATE: exact full R18 sources missing in GitHub r18-legacy/ => BUILD_BLOCKED
+PREVIOUS_IMPL: R19 Electron + R18 Windows LogicalDisk metrics bridge, read-only
+R19_DASHBOARD: D main; E/A/B/C navigation scaffold — full parity open
+ENDUSER_RUNTIME: Electron resources plus PyInstaller frozen Python sidecar configured; actual clean-Windows runtime unverified
+BUILD_TOOLCHAIN: Electron-builder portable + NSIS directory choice, PyInstaller isolated Windows build venv
+HOST_TESTS: Windows build not executed; EXE installation/uninstallation and first launch READBACK_PENDING
+GITHUB_READBACK: migration importer, scoped publisher, Build menu and evidence document read directly at commit 5acb69598b170ea85cad13e780863636b9212b57
+PRESERVE: original R18 project; no existing code deleted
+NO_FOREIGN_ACTIVATION: TRUE
 NO_CROSS_SYSTEM_MERGE: TRUE
-NO_FOREIGN_WRITES: TRUE
-NEXT: import R18 complete source as Git files with SHA-256, run baseline tests on imported tree, then Windows compile and host acceptance
+NEXT_EXECUTABLE: from a clean Windows Git checkout on branch 666MAIN_BRAIN, run START_BUILD_WINDOWS.bat -> option 9 with the original verified R18 ZIP; inspect the remote SHA, Windows build logs, portable EXE and setup installation tests.
