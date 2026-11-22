@@ -1,0 +1,1471 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src blob: data:; connect-src 'self' https://sbsbot.my.pebble.host https://api.venice.ai; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Hyperreal Studio</title>
+<meta name="description" content="Turn a 3DXChat screenshot into a real-looking photo, or select anything and tell it what to change. Venice AI.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23be123c'/%3E%3Ccircle cx='32' cy='35' r='13' fill='none' stroke='%23fff' stroke-width='5'/%3E%3Crect x='22' y='12' width='20' height='8' rx='3' fill='%23fff'/%3E%3C/svg%3E">
+<!--
+  Hyperreal Studio. One page, two homes:
+    * on the SBS site (/hyperreal) it edits through /api/sbs/enhance with the member's login and the server's key;
+      visitors who aren't SBS members get the public free allowance there instead of a login wall
+    * on GitHub Pages it edits free through the SBS server's public route (the key never leaves the server)
+    * if that can't be reached, it asks for the visitor's own Venice key and calls Venice directly
+  Selections never go to Venice as a mask (its edit API has none): the area around the selection is
+  cropped out, edited, and blended back through a feathered mask, so nothing outside it changes.
+-->
+<style>
+  :root {
+    --bg: #f7f2f6; --panel: #ffffff; --panel2: #fbf6fa; --ink: #1d1220; --muted: #6b5a70; --line: #e7d6e3;
+    --pink: #d6337f; --pink-ink: #ffffff; --soft: #fdeef5; --err-bg: #fdecec; --err: #9f1d1d; --stage: #ece2ea;
+    --me: #d6337f; --me-ink: #ffffff; --bot: #f3eaf1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f0914; --panel: #1a1020; --panel2: #160d1c; --ink: #f8eef6; --muted: #b9a5bf; --line: #34203b;
+      --pink: #ff4fa8; --pink-ink: #050505; --soft: rgba(255,79,168,0.10); --err-bg: rgba(220,38,38,0.16); --err: #fecaca; --stage: #0a0610;
+      --me: #ff4fa8; --me-ink: #050505; --bot: #241629;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f0914; --panel: #1a1020; --panel2: #160d1c; --ink: #f8eef6; --muted: #b9a5bf; --line: #34203b;
+    --pink: #ff4fa8; --pink-ink: #050505; --soft: rgba(255,79,168,0.10); --err-bg: rgba(220,38,38,0.16); --err: #fecaca; --stage: #0a0610;
+    --me: #ff4fa8; --me-ink: #050505; --bot: #241629;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); }
+  body { font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; }
+  [hidden] { display: none !important; }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; }
+  a { color: var(--pink); }
+  svg { width: 18px; height: 18px; flex: none; }
+
+  .top { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  .top h1 { margin: 0; font-size: 16px; letter-spacing: -0.01em; white-space: nowrap; }
+  .top .left { margin-left: auto; color: var(--muted); font-size: 13px; white-space: nowrap; }
+  a.iconbtn { text-decoration: none; color: var(--ink); font-size: 13px; }
+  @media (max-width: 560px) { #memberLink { display: none; } #gifLink span { display: none; } }
+  .iconbtn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 34px; height: 34px; padding: 0 9px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; white-space: nowrap; }
+  .iconbtn:hover { border-color: var(--pink); }
+  .iconbtn[aria-pressed="true"] { background: var(--pink); border-color: var(--pink); color: var(--pink-ink); }
+  .iconbtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .app { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 380px; }
+  .work { display: flex; flex-direction: column; min-width: 0; min-height: 0; border-right: 1px solid var(--line); }
+  .tools { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 8px 12px; background: var(--panel2); border-bottom: 1px solid var(--line); }
+  .tools .sep { width: 1px; height: 22px; background: var(--line); margin: 0 4px; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+  .seg button { border: 0; background: transparent; padding: 0 10px; height: 32px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+  .seg button[aria-pressed="true"] { background: var(--pink); color: var(--pink-ink); }
+  .size { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+  .size input { width: 96px; accent-color: var(--pink); }
+
+  .stage { position: relative; flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 14px; background: var(--stage); overflow: hidden; }
+  .canvaswrap { position: relative; display: inline-block; line-height: 0; transform-origin: 0 0; will-change: transform; touch-action: none; user-select: none; -webkit-user-select: none; box-shadow: 0 6px 30px rgba(0,0,0,0.25); border-radius: 6px; overflow: hidden; }
+  #view { display: block; max-width: 100%; max-height: calc(100vh - 210px); }
+  #ov { position: absolute; inset: 0; width: 100%; height: 100%; cursor: crosshair; }
+  .drop { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; width: min(560px, 100%); min-height: 260px; padding: 20px; border: 2px dashed var(--pink); border-radius: 16px; text-align: center; color: var(--muted); cursor: pointer; background: var(--panel); }
+  .drop strong { color: var(--ink); font-size: 18px; }
+  .drop svg { width: 40px; height: 40px; color: var(--pink); }
+  .stage.over .drop, .drop:hover { background: var(--soft); }
+  .stagebusy { position: absolute; inset: 0; background: rgba(0,0,0,0.25); pointer-events: none; }
+  .hint { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); background: rgba(0,0,0,0.72); color: #fff; font-size: 12px; padding: 5px 10px; border-radius: 999px; white-space: nowrap; pointer-events: none; max-width: calc(100% - 24px); overflow: hidden; text-overflow: ellipsis; }
+
+  .frames { display: flex; gap: 6px; padding: 6px 12px; overflow-x: auto; background: var(--panel2); border-top: 1px solid var(--line); align-items: center; }
+  .frames .fr { position: relative; flex: none; padding: 0; border: 2px solid transparent; border-radius: 6px; background: none; cursor: pointer; line-height: 0; }
+  .frames .fr img { height: 38px; border-radius: 4px; display: block; }
+  .frames .fr[aria-pressed="true"] { border-color: var(--pink); }
+  .frames .fr span { position: absolute; left: 2px; bottom: 2px; font-size: 9px; line-height: 1; padding: 1px 3px; border-radius: 3px; background: rgba(0,0,0,0.7); color: #fff; }
+  .frames .all { flex: none; height: 42px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); padding: 0 10px; cursor: pointer; font-size: 12px; white-space: nowrap; }
+  .frames .all[aria-pressed="true"] { background: var(--pink); color: var(--pink-ink); border-color: var(--pink); }
+  .versions { display: flex; gap: 8px; padding: 8px 12px; overflow-x: auto; background: var(--panel2); border-top: 1px solid var(--line); min-height: 64px; align-items: center; }
+  .versions:empty::before { content: "Versions show up here."; color: var(--muted); font-size: 12px; }
+  .ver { position: relative; flex: none; padding: 0; border: 2px solid transparent; border-radius: 8px; background: none; cursor: pointer; line-height: 0; }
+  .ver img { height: 46px; border-radius: 6px; display: block; }
+  .ver[aria-current="true"] { border-color: var(--pink); }
+  .ver span { position: absolute; left: 3px; bottom: 3px; font-size: 10px; line-height: 1; padding: 2px 4px; border-radius: 4px; background: rgba(0,0,0,0.7); color: #fff; }
+
+  .chat { display: flex; flex-direction: column; min-height: 0; background: var(--panel); }
+  .thread { flex: 1; min-height: 0; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .msg { display: flex; }
+  .msg.me { justify-content: flex-end; }
+  .bubble { max-width: 88%; padding: 8px 11px; border-radius: 14px; background: var(--bot); white-space: pre-wrap; word-break: break-word; }
+  .me .bubble { background: var(--me); color: var(--me-ink); border-bottom-right-radius: 4px; }
+  .bot .bubble { border-bottom-left-radius: 4px; }
+  .bubble.err { background: var(--err-bg); color: var(--err); }
+  .bubble .tag { display: inline-block; margin-top: 4px; font-size: 11px; padding: 1px 7px; border-radius: 999px; background: rgba(0,0,0,0.18); }
+  .bubble img.thumb { display: block; max-width: 100%; max-height: 180px; border-radius: 8px; margin-top: 6px; cursor: pointer; }
+  .bubble .acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .bubble .acts button { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 3px 8px; font-size: 12px; cursor: pointer; }
+  .typing { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); }
+  .spin { width: 16px; height: 16px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--pink); animation: spin 0.9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .spin { animation-duration: 3s; } }
+
+  .chips { display: flex; gap: 6px; padding: 8px 12px 0; overflow-x: auto; }
+  .chip { flex: none; border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 5px 11px; font-size: 12.5px; cursor: pointer; white-space: nowrap; }
+  .chip:hover { border-color: var(--pink); }
+  .chip:disabled { opacity: 0.45; cursor: not-allowed; }
+  .scope { display: flex; align-items: center; gap: 6px; padding: 8px 12px 0; font-size: 12px; color: var(--muted); }
+  .scope b { color: var(--ink); font-weight: 600; }
+  .scope .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+  .scope.sel .dot { background: var(--pink); }
+  .scope button { border: 0; background: none; color: var(--pink); cursor: pointer; padding: 0; font-size: 12px; text-decoration: underline; }
+  .composer { display: flex; gap: 8px; align-items: flex-end; padding: 10px 12px 12px; }
+  .composer textarea { flex: 1; resize: none; min-height: 40px; max-height: 140px; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 9px 11px; }
+  .send { height: 40px; min-width: 40px; border-radius: 12px; border: 0; background: var(--pink); color: var(--pink-ink); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+  .send:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .sheet { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 10; }
+  .card { width: min(460px, 100%); background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px; box-shadow: 0 20px 60px rgba(0,0,0,0.35); }
+  .card h2 { margin: 0 0 6px; font-size: 17px; }
+  .card p { margin: 0 0 12px; color: var(--muted); }
+  .card label.f { display: block; font-size: 12.5px; color: var(--muted); margin: 10px 0 4px; }
+  .card input[type=password], .card select { width: 100%; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+  .card .check { display: flex; gap: 8px; align-items: center; margin-top: 10px; font-size: 13px; }
+  .card .row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+  .btn { border: 1px solid var(--pink); background: transparent; border-radius: 10px; padding: 8px 14px; cursor: pointer; text-decoration: none; color: var(--ink); display: inline-flex; gap: 6px; align-items: center; }
+  .btn.main { background: var(--pink); color: var(--pink-ink); font-weight: 650; }
+
+  @media (max-width: 860px) {
+    body { height: auto; min-height: 100%; }
+    .app { grid-template-columns: minmax(0, 1fr); }
+    .chat, .work { min-width: 0; }
+    .work { border-right: 0; border-bottom: 1px solid var(--line); }
+    .stage { min-height: 300px; }
+    #view { max-height: 58vh; }
+    .thread { min-height: 260px; max-height: 60vh; }
+    .tools .label { display: none; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Hyperreal Studio</h1>
+  <span class="left" id="left"></span>
+  <a class="iconbtn" id="gifLink" href="gif.html" title="GIF Studio: change skin and hair colours in a GIF or a video, every frame at once">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9.5l5 2.5-5 2.5z"/></svg><span>GIF Studio</span></a>
+  <a class="iconbtn" id="memberLink" href="https://sbsbot.my.pebble.host/desktop" target="_top" rel="noopener" title="Hyperreal is free on the SBS site: no key, no account" hidden>Free on the SBS site, no key</a>
+  <button class="iconbtn" id="settingsBtn" type="button" title="Venice key and model" hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3M15 8l2 2"/></svg><span>Key</span>
+  </button>
+  <button class="iconbtn" id="themeBtn" type="button" title="Light or dark" aria-label="Switch light or dark">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z"/></svg>
+  </button>
+</header>
+
+<main class="app">
+  <section class="work" aria-label="Picture">
+    <div class="tools" role="toolbar" aria-label="Selection tools">
+      <div class="seg" role="group" aria-label="Tool">
+        <button type="button" data-tool="brush" aria-pressed="true" title="Brush (B): paint over what you want to change">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 3l3 3-9 9-3-3zM9 12c-3 0-5 2-5 5 0 2-1 3-2 3 4 1 9 0 9-5"/></svg><span class="label">Brush</span></button>
+        <button type="button" data-tool="box" aria-pressed="false" title="Box (X): drag a rectangle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3 2"><rect x="4" y="5" width="16" height="14" rx="1"/></svg><span class="label">Box</span></button>
+        <button type="button" data-tool="pan" aria-pressed="false" title="Pan (H, or hold Space): drag to move around when zoomed in">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v18M3 12h18M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/></svg><span class="label">Pan</span></button>
+      </div>
+      <div class="seg" role="group" aria-label="Add or remove">
+        <button type="button" data-mode="add" aria-pressed="true" title="Add to the selection">+ <span class="label">Add</span></button>
+        <button type="button" data-mode="sub" aria-pressed="false" title="Take away from the selection (or hold Alt)">&minus; <span class="label">Remove</span></button>
+      </div>
+      <label class="size"><span id="sizeLabel">Brush</span><input type="range" id="size" min="4" max="160" value="40"></label>
+      <span class="sep"></span>
+      <button class="iconbtn" id="growBtn" type="button" title="Grow the selection a little">Grow</button>
+      <button class="iconbtn" id="invertBtn" type="button" title="Invert (I): select everything else">Invert</button>
+      <button class="iconbtn" id="undoBtn" type="button" title="Undo selection (Ctrl+Z)" aria-label="Undo selection">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 010 12h-3"/></svg></button>
+      <button class="iconbtn" id="clearBtn" type="button" title="Clear selection (Esc)">Clear</button>
+      <span class="sep"></span>
+      <div class="seg" role="group" aria-label="Zoom">
+        <button type="button" id="zoomOut" title="Zoom out (-)" aria-label="Zoom out">&minus;</button>
+        <button type="button" id="zoomFit" title="Fit the picture (0)"><span id="zoomPct">Fit</span></button>
+        <button type="button" id="zoomIn" title="Zoom in (+). Mouse wheel or pinch zooms where you point." aria-label="Zoom in">+</button>
+      </div>
+      <span class="sep"></span>
+      <button class="iconbtn" id="compareBtn" type="button" title="Hold to see the version this came from">Before</button>
+      <button class="iconbtn" id="downloadBtn" type="button" title="Download this version" aria-label="Download">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button>
+      <button class="iconbtn" id="newBtn" type="button" title="Start over with a new screenshot">New</button>
+    </div>
+    <div class="stage" id="stage">
+      <label class="drop" id="drop">
+        <input type="file" id="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/></svg>
+        <strong>Drop a 3DXChat screenshot or a GIF</strong>
+        <span>Or click to choose one, or paste with Ctrl+V. The game keeps them in its Screenshots folder.</span>
+        <span style="font-size:12px">"Make it real" paints out the game's menus, chat and name tags. They still go to Venice AI, so hide them first if you'd rather they didn't.</span>
+      </label>
+      <div class="canvaswrap" id="wrap" hidden><canvas id="view"></canvas><canvas id="ov"></canvas></div>
+      <div class="stagebusy" id="stageBusy" hidden></div>
+      <div class="hint" id="hint" hidden></div>
+    </div>
+    <div class="frames" id="frames" aria-label="GIF frames" hidden></div>
+    <div class="versions" id="versions" aria-label="Versions"></div>
+  </section>
+
+  <section class="chat" aria-label="Chat">
+    <div class="thread" id="thread" aria-live="polite"></div>
+    <div class="chips" id="chips" role="group" aria-label="Quick edits"></div>
+    <div class="scope" id="scope"><span class="dot"></span><span id="scopeText">Edits apply to the <b>whole picture</b></span></div>
+    <form class="composer" id="composer">
+      <textarea id="input" rows="1" maxlength="1000" placeholder="Tell it what to change. For example: make my dress emerald green" aria-label="Message"></textarea>
+      <button class="send" id="sendBtn" type="submit" aria-label="Send" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    </form>
+  </section>
+</main>
+
+<div class="sheet" id="gate" hidden>
+  <div class="card">
+    <h2>Log in to use Hyperreal</h2>
+    <p>Hyperreal on the SBS site is for members. Log in with Discord and come back.</p>
+    <div class="row"><a class="btn main" id="loginLink" href="/login?return_to=/desktop" target="_top">Log in with Discord</a></div>
+  </div>
+</div>
+
+<div class="sheet" id="ageGate" hidden>
+  <div class="card">
+    <h2>Adults only</h2>
+    <p>Hyperreal can make realistic adult pictures. Confirm you are 18 or older to use it. Everyone in your pictures must be an adult too.</p>
+    <div class="row"><button class="btn main" id="ageYes" type="button">I am 18 or older</button></div>
+  </div>
+</div>
+
+<div class="sheet" id="settings" hidden>
+  <form class="card" id="settingsForm">
+    <h2>Your Venice key</h2>
+    <p>Edits run on your own Venice AI account. Get a key at <a href="https://venice.ai/settings/api" target="_blank" rel="noopener noreferrer">venice.ai/settings/api</a>. An inference-only key is enough. Your key goes only to api.venice.ai.</p>
+    <label class="f" for="key">API key</label>
+    <input type="password" id="key" autocomplete="off" spellcheck="false" placeholder="Paste your Venice API key">
+    <label class="check"><input type="checkbox" id="remember"> Remember it on this device</label>
+    <label class="f" for="model">Model</label>
+    <select id="model">
+      <option value="seedream-v5-pro-edit">Seedream 5 Pro: most realistic ($0.06 an edit)</option>
+      <option value="qwen-image-3-edit">Qwen Image 3: sharp, may reframe ($0.04)</option>
+      <option value="qwen-edit-uncensored">Qwen Uncensored: adult scenes ($0.04)</option>
+    </select>
+    <label class="check"><input type="checkbox" id="safe"> Safe mode: Venice blurs adult results</label>
+    <div class="row"><button class="btn main" type="submit">Done</button></div>
+  </form>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const MAX_SIDE = 2048;
+  const PUBLIC_API = 'https://sbsbot.my.pebble.host';
+  const UNDO_DEPTH = 12;
+
+  // ---------------------------------------------------------------- prompts (the server builds its own copy)
+  const MEN = "Every man in this picture is a Black man with dark brown skin: keep him Black, with the same dark skin. Everyone else keeps their own skin tone exactly as it is. Do not add any people.";
+  const MEN_EDIT = "Make every man in this picture a Black man with dark brown skin. Everyone else keeps their own skin tone exactly as it is. Do not add any people. Change nothing else: keep the faces' shapes and features, hair, poses, bodies, clothing, camera angle, framing, lighting and background exactly the same.";
+  const SKIN = "Most important rule: keep every person's skin tone, complexion, ethnicity and facial features exactly as they are in the picture. Dark-skinned and Black people must stay exactly as dark, with the same deep brown or black skin: never lighten, whiten or change anyone's skin color, and never make a Black person look white.";
+  const KEEP = 'Keep exactly the same people, faces, poses, expressions, body shapes, clothing, hair styles and colors, camera angle, framing and background layout. Do not add or remove any people or real objects in the scene. ' + SKIN;
+  const CLEAN = "The finished photo has no on-screen overlays of any kind: no text, windows, panels, buttons, icons or labels. If the screenshot has any, paint the scene back in where they were; if it has none, add none.";
+  const STYLES = {
+    photo: ['Make it real', 'Turn this 3D video game screenshot into a real photograph. ' + SKIN + ' ' + KEEP + ' ' + CLEAN + ' Replace the game rendering with real-world detail: natural skin with pores and fine texture, real fabric weave, individual hair strands, physically accurate light and shadow, true-to-life materials. Shot on a full-frame camera with a 35mm lens, natural color, no CGI or video game look.'],
+    cinematic: ['Cinematic', 'Turn this 3D video game screenshot into a still from a live-action film. ' + SKIN + ' ' + KEEP + ' ' + CLEAN + ' Real people, real skin texture and real materials, shot on an anamorphic cinema camera, motivated film lighting, shallow depth of field, subtle film grain, professional color grade, no CGI or video game look.'],
+    portrait: ['Portrait', 'Turn this 3D video game screenshot into a professional photo shoot. ' + SKIN + ' ' + KEEP + ' ' + CLEAN + ' Real people with natural skin texture, soft key light with gentle fill and rim light, 85mm lens, crisp focus on the faces, magazine-quality retouching that still looks real, no CGI or video game look.'],
+    candid: ['Candid', 'Turn this 3D video game screenshot into a candid smartphone photo. ' + SKIN + ' ' + KEEP + ' ' + CLEAN + ' Real people, natural skin, real clothing and surroundings, available light, slightly imperfect everyday framing, true phone-camera color and detail, no CGI or video game look.'],
+  };
+  const ADULTS = 'Everyone shown is an adult.';
+  const KEEP_WHOLE = 'Change only what this asks for. Keep everything else exactly the same: the people, faces, poses, body shapes, clothing, hair, camera angle, framing, lighting and background. ' + SKIN + ' No text, no watermark.';
+  const KEEP_AREA = 'This is a close-up crop of a larger picture. Change only what this asks for, and keep everything else in the crop exactly the same, including the edges, lighting and perspective, so it blends back in seamlessly. ' + SKIN + ' No text, no watermark.';
+  function clean(t, n) { return String(t || '').replace(/[\x00-\x1f\x7f]+/g, ' ').trim().slice(0, n); }
+  function buildPrompt(o) {
+    let p;
+    if (!o.style && String(o.text || '').startsWith(MEN_EDIT.slice(0, 45))) return MEN_EDIT + ' ' + ADULTS;
+    if (o.style && STYLES[o.style]) p = STYLES[o.style][1] + (o.text ? ' Also: ' + clean(o.text, 200) : '');
+    else p = SKIN + ' ' + clean(o.text, 1000).replace(/[.!\s]+$/, '') + '. ' + (o.scope === 'area' ? KEEP_AREA : KEEP_WHOLE);
+    return p + ' ' + ADULTS;   // skin colour only changes with the Make men Black button
+  }
+
+  const QUICK = [
+    { label: 'Make it real', style: 'photo' },
+    { label: 'Cinematic', style: 'cinematic' },
+    { label: 'Portrait', style: 'portrait' },
+    { label: 'Candid', style: 'candid' },
+    { label: 'Remove game UI', text: "Remove any on-screen game overlays (text, windows, panels, buttons, icons or labels) and paint the scene back in where they were. If there are none, leave the picture exactly as it is. Add nothing. Do not change the people at all: same faces, skin tone, bodies and clothes" },
+    { label: 'Make men Black', text: MEN_EDIT },
+    { label: 'Change color…', fill: 'Change the color to ' },
+    { label: 'Golden hour', text: 'Relight the scene with warm golden hour sunlight' },
+    { label: 'Clean background', text: 'Tidy the background: remove clutter and distractions' },
+    { label: 'Sharpen details', text: 'Add fine realistic detail and sharpen textures' },
+  ];
+
+  // ---------------------------------------------------------------- state
+  const S = {
+    mode: null,             // 'server' (SBS site, member login) | 'public' (free, via the SBS server) | 'byok'
+    status: null,
+    versions: [],           // {canvas, thumb, label, from}
+    cur: -1,
+    W: 0, H: 0,
+    mask: null,             // Uint8Array W*H, 255 = selected
+    count: 0,
+    tool: 'brush', sub: false,
+    brush: 40, z: 1, px: 0, py: 0, space: false,
+    undo: [],
+    busy: false,
+    hover: null, box: null, painting: false, lastPt: null,
+    peek: false,
+  };
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} },
+  };
+
+  // ---------------------------------------------------------------- theme
+  const qsTheme = new URLSearchParams(location.search).get('theme');
+  // GIF Studio sits beside this page: /hyperreal/gif on the SBS site, gif.html on GitHub Pages
+  $('gifLink').href = (location.pathname.indexOf('/hyperreal') === 0 && !/github\.io$/.test(location.hostname) ? '/hyperreal/gif' : 'gif.html') +
+    (qsTheme ? '?theme=' + encodeURIComponent(qsTheme) : '');
+  function applyTheme(t) { t ? document.documentElement.setAttribute('data-theme', t) : document.documentElement.removeAttribute('data-theme'); }
+  applyTheme(store.get('hr_theme') || (qsTheme === 'dark' || qsTheme === 'light' ? qsTheme : null));
+  $('themeBtn').onclick = () => {
+    const t = document.documentElement.getAttribute('data-theme');
+    const dark = t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches);
+    applyTheme(dark ? 'light' : 'dark'); store.set('hr_theme', dark ? 'light' : 'dark');
+  };
+
+  // ---------------------------------------------------------------- chat
+  const thread = $('thread');
+  function scrollDown() { thread.scrollTop = thread.scrollHeight; }
+  function say(who, text, opts) {
+    opts = opts || {};
+    const row = document.createElement('div'); row.className = 'msg ' + who;
+    const b = document.createElement('div'); b.className = 'bubble' + (opts.err ? ' err' : '');
+    if (text) b.appendChild(document.createTextNode(text));
+    if (opts.tag) { b.appendChild(document.createElement('br')); const t = document.createElement('span'); t.className = 'tag'; t.textContent = opts.tag; b.appendChild(t); }
+    row.appendChild(b); thread.appendChild(row); scrollDown();
+    return b;
+  }
+  function sayResult(vi, note) {
+    const v = S.versions[vi];
+    const b = say('bot', note || 'Here you go.');
+    const img = document.createElement('img'); img.className = 'thumb'; img.src = v.thumb; img.alt = v.label;
+    img.onclick = () => pick(vi);
+    b.appendChild(img);
+    const acts = document.createElement('div'); acts.className = 'acts';
+    const back = document.createElement('button'); back.type = 'button'; back.textContent = 'Edit from this one'; back.onclick = () => pick(vi);
+    const dl = document.createElement('button'); dl.type = 'button'; dl.textContent = 'Download'; dl.onclick = () => download(vi);
+    acts.append(back, dl); b.appendChild(acts);
+    scrollDown();
+  }
+  function typing() {
+    const b = say('bot', '');
+    const t = document.createElement('span'); t.className = 'typing';
+    const s = document.createElement('span'); s.className = 'spin';
+    const l = document.createElement('span'); l.textContent = 'Working on it';
+    t.append(s, l); b.appendChild(t);
+    const started = Date.now();
+    const timer = setInterval(() => { l.textContent = 'Working on it · ' + Math.round((Date.now() - started) / 1000) + 's'; }, 1000);
+    return () => { clearInterval(timer); b.parentNode.remove(); };
+  }
+  function greet() {
+    thread.innerHTML = '';
+    say('bot', 'Hi! Drop in a 3DXChat screenshot to start.\n\nThen tell me what to change, like "make my dress emerald green", or tap "Make it real". To change just one thing, paint over it with the brush first. Zoom in with the mouse wheel or a pinch for fine detail, and hold Space to move around. The selection can be rough: I only change what you ask for, and nothing outside the selection changes at all.\n\nEach edit builds on the picture showing, which is normally your latest version. To go back, tap an older version in the strip under the picture; the line above this box always says what your next edit starts from.');
+  }
+
+  // ---------------------------------------------------------------- chips + composer
+  function renderChips() {
+    const box = $('chips'); box.innerHTML = '';
+    QUICK.forEach(q => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = q.label;
+      b.disabled = S.busy || S.cur < 0;
+      b.onclick = () => {
+        if (q.fill) { const i = $('input'); i.value = q.fill; i.focus(); i.setSelectionRange(i.value.length, i.value.length); autosize(); refresh(); return; }
+        send({ style: q.style, text: q.text, label: q.label });
+      };
+      box.appendChild(b);
+    });
+  }
+  function autosize() { const i = $('input'); i.style.height = 'auto'; i.style.height = Math.min(140, i.scrollHeight) + 'px'; }
+  $('input').addEventListener('input', () => { autosize(); refresh(); });
+  $('input').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('composer').requestSubmit(); } });
+  $('composer').addEventListener('submit', e => {
+    e.preventDefault();
+    const text = $('input').value.trim();
+    if (!text) return;
+    if (send({ text })) { $('input').value = ''; autosize(); refresh(); }
+  });
+
+  function versionName(i) {
+    if (i <= 0) return 'the original';
+    return i === S.versions.length - 1 ? 'the latest version (#' + i + ')' : 'version #' + i;
+  }
+  function viaServer() { return S.mode === 'server' || S.mode === 'public'; }
+  function refresh() {
+    $('sendBtn').disabled = S.busy || S.cur < 0 || !$('input').value.trim();
+    renderChips();
+    const has = S.cur >= 0;
+    ['growBtn', 'invertBtn', 'undoBtn', 'clearBtn', 'compareBtn', 'downloadBtn', 'newBtn'].forEach(id => { $(id).disabled = !has || S.busy; });
+    $('undoBtn').disabled = !has || S.busy || !S.undo.length;
+    $('clearBtn').disabled = !has || S.busy || !S.count;
+    $('growBtn').disabled = !has || S.busy || !S.count;
+    $('compareBtn').disabled = !has || S.busy || !(S.versions[S.cur] && S.versions[S.cur].from >= 0);
+    const scope = $('scope');
+    scope.classList.toggle('sel', S.count > 0);
+    const st = $('scopeText'); st.innerHTML = '';
+    const bold = t => Object.assign(document.createElement('b'), { textContent: t });
+    if (has) st.append('Next edit starts from ', bold(versionName(S.cur)), ' · ');
+    const v0 = S.versions[S.cur], fr = v0 && v0.gif ? (S.frame == null ? ' on every frame' : ' on frame ' + (S.frame + 1) + ' only') : '';
+    if (S.count > 0) {
+      st.append(bold('selected area'), ' only' + fr + ' · ');
+      const c = document.createElement('button'); c.type = 'button'; c.textContent = 'clear'; c.onclick = () => { pushUndo(); clearMask(); };
+      st.appendChild(c);
+    } else if (has) {
+      st.append(bold('whole picture'), fr + '. Paint over something to change just that.');
+    } else {
+      st.append('Drop in a screenshot to start.');
+    }
+    const left = $('left');
+    if (S.mode === 'server' && S.status && S.status.signed_in) left.textContent = S.status.owner ? 'No daily limit' : (typeof S.status.left === 'number' ? S.status.left + ' edits left today' : '');
+    else if ((S.mode === 'public' || S.guest) && S.status) left.textContent = typeof S.status.left === 'number' ? S.status.left + ' free edits left today' : 'Free';
+    else left.textContent = '';
+  }
+
+  // ---------------------------------------------------------------- backends
+  function key() { return ($('key').value || '').trim(); }
+  function ageCheck() { if ((S.mode !== 'server' || S.guest) && store.get('hr_adult') !== 'yes') $('ageGate').hidden = false; }
+  function guestMode() { ageCheck(); }   // no account needed: guests just confirm they're 18+
+  $('ageYes').onclick = () => { store.set('hr_adult', 'yes'); $('ageGate').hidden = true; };
+  async function tryPublic() {
+    try {
+      const r = await fetch(PUBLIC_API + '/api/sbs/enhance/public/status', { credentials: 'omit' });
+      if (!r.ok) throw new Error(r.status);
+      const st = await r.json();
+      if (!st.public || !st.configured) throw new Error('off');
+      S.status = st; S.mode = 'public';
+      refresh(); ageCheck();
+      return true;
+    } catch (e) { return false; }
+  }
+  async function detectMode() {
+    if (/\.github\.io$/i.test(location.hostname) || location.protocol === 'file:' || new URLSearchParams(location.search).has('public')) {
+      if (await tryPublic()) return;
+      return byok();
+    }
+    try {
+      const r = await fetch('/api/sbs/enhance/status', { credentials: 'same-origin' });
+      if (!r.ok) throw new Error(r.status);
+      S.status = await r.json();
+      S.mode = 'server';
+      if (!S.status.signed_in) {
+        if (S.status.guest) { S.guest = true; guestMode(); }   // not an SBS member: free edits, no login wall
+        else $('gate').hidden = false;
+      }
+      else if (!S.status.configured) say('bot', "Hyperreal isn't switched on yet. Try again later.", { err: true });
+    } catch (e) { return byok(); }
+    refresh();
+  }
+  function byok() {
+    S.mode = 'byok';
+    $('settingsBtn').hidden = false;
+    $('memberLink').hidden = false;
+    ageCheck();
+    const saved = store.get('hr_venice_key');
+    if (saved) { $('key').value = saved; $('remember').checked = true; }
+    const m = store.get('hr_model');
+    if (m && [...$('model').options].some(o => o.value === m)) $('model').value = m;
+    if (store.get('hr_safe') === 'on') $('safe').checked = true;
+    refresh();
+  }
+  $('settingsBtn').onclick = () => { $('settings').hidden = false; $('key').focus(); };
+  $('settingsForm').addEventListener('submit', e => {
+    e.preventDefault();
+    store.set('hr_venice_key', $('remember').checked && key() ? key() : null);
+    store.set('hr_model', $('model').value);
+    store.set('hr_safe', $('safe').checked ? 'on' : null);
+    $('settings').hidden = true; refresh();
+    if (pendingSend) { const p = pendingSend; pendingSend = null; if (key()) send(p); }
+  });
+  $('settings').addEventListener('click', e => { if (e.target === $('settings')) $('settings').hidden = true; });
+  let pendingSend = null;
+
+  const FALLBACK_MODEL = 'qwen-edit-uncensored';
+  const VENICE_FAIL = {
+    400: "Venice couldn't work with that picture. Try a different screenshot or selection.",
+    401: "Venice didn't accept that key. Check it and paste it again.",
+    402: 'Your Venice account is out of credit. Top it up at venice.ai.',
+    403: "Venice refused that key from here. Check the key's IP restrictions.",
+    415: "Venice couldn't read that picture.",
+    422: "Venice's content rules turned that one down.",
+    429: 'Venice is busy or your key hit its rate limit. Try again in a minute.',
+    503: 'Venice is busy right now. Try again in a minute.',
+  };
+  async function runEdit(blob, o) {
+    if (viaServer()) {
+      const fd = new FormData();
+      fd.append('image', blob, 'picture.jpg');
+      if (o.style) fd.append('style', o.style);
+      if (o.text) fd.append(o.style ? 'extra' : 'prompt', o.text);
+      fd.append('scope', o.scope);
+      if (o.fresh) fd.append('fresh', '1');   // the original screenshot: clean the game UI out first
+      if (o.model === 'fallback') fd.append('model', 'fallback');   // straight to the model that takes adult scenes
+      let r;
+      try {
+        r = S.mode === 'public'
+          ? await fetch(PUBLIC_API + '/api/sbs/enhance/public', { method: 'POST', body: fd, credentials: 'omit' })
+          : await fetch('/api/sbs/enhance', { method: 'POST', body: fd, credentials: 'same-origin' });
+      } catch (e) { throw new Error("Couldn't reach the server. Check your connection and try again."); }
+      const type = r.headers.get('Content-Type') || '';
+      if (!r.ok || !type.startsWith('image/')) {
+        let err = 'Something went wrong. Try again.';
+        try { const d = await r.json(); err = d.error || err; if (typeof d.left === 'number' && S.status) S.status.left = d.left; } catch (e) {}
+        if (r.status === 401 && S.mode === 'server' && !S.guest) $('gate').hidden = false;
+        throw new Error(err);
+      }
+      const left = r.headers.get('X-Enhance-Left');
+      if (S.status && left && left !== 'unlimited') S.status.left = parseInt(left, 10);
+      return { blob: await r.blob(), blurred: r.headers.get('X-Enhance-Blurred') === 'true', fallback: r.headers.get('X-Enhance-Fallback') === 'true' };
+    }
+    const b64 = await new Promise((ok, fail) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(',')[1]); fr.onerror = fail; fr.readAsDataURL(blob); });
+    const call = async model => {
+      try {
+        return await fetch('https://api.venice.ai/api/v1/image/edit', {
+          method: 'POST', referrerPolicy: 'no-referrer',
+          headers: { 'Authorization': 'Bearer ' + key(), 'Content-Type': 'application/json', 'Accept': 'image/*, application/json' },
+          body: JSON.stringify({ prompt: buildPrompt(o), image: b64, model, output_format: 'jpeg', safe_mode: $('safe').checked }),
+        });
+      } catch (e) { throw new Error("Couldn't reach Venice. Check your connection and try again."); }
+    };
+    const refused = r => r.status === 422 || (r.headers.get('x-venice-is-content-violation') || '').toLowerCase() === 'true';
+    let used = o.model === 'fallback' ? FALLBACK_MODEL : $('model').value;
+    let r = await call(used);
+    if (refused(r) && used !== FALLBACK_MODEL) r = await call(used = FALLBACK_MODEL);   // adult scenes
+    const type = (r.headers.get('Content-Type') || '').split(';')[0];
+    if (refused(r)) throw new Error(VENICE_FAIL[422]);
+    if (!r.ok || !type.startsWith('image/')) throw new Error(VENICE_FAIL[r.status] || ('Venice had a problem with that one (' + r.status + '). Try again.'));
+    return { blob: await r.blob(), blurred: (r.headers.get('x-venice-is-blurred') || '').toLowerCase() === 'true', fallback: used === FALLBACK_MODEL };
+  }
+
+  // ==== codec start (the same as in gif.html: GIFs in, GIFs out; tests/test_gif_studio.py checks the two match)
+  // A colour change, on a region of a frame. L: prepared layers (prepLayers). Each layer's picked shades make a ramp
+  // from dark to light; a pixel matches by how far its colour is from the ramp at its own brightness (brightness past
+  // either end counts too). Each pixel goes to the one layer that matches it best, and moves by the offset from the
+  // layer's first pick to the new colour, so its shading and texture stay. mask (optional) gets how much it moved.
+  function kernel(src, W, rx, ry, rw, rh, dst, L, mask) {
+    const n = L.length;
+    for (let y = 0; y < rh; y++) {
+      let si = ((ry + y) * W + rx) << 2, di = (y * rw) << 2, ai = (ry + y) * W + rx, mi = y * rw;
+      for (let x = 0; x < rw; x++, si += 4, di += 4, ai++, mi++) {
+        const r = src[si], g = src[si + 1], b = src[si + 2], a = src[si + 3];
+        let R = r, G = g, B = b, bw = 0, bl = null;
+        if (a && n) {
+          const Y = 0.299 * r + 0.587 * g + 0.114 * b, Cb = -0.168736 * r - 0.331264 * g + 0.5 * b, Cr = 0.5 * r - 0.418688 * g - 0.081312 * b;
+          for (let k = 0; k < n; k++) {
+            const l = L[k];
+            let w = l.area ? l.area[ai] / 255 : 1;
+            if (w <= 0) continue;
+            const ys = l.ry, m = l.m;
+            let cb, cr, out;
+            if (Y <= ys[0]) { cb = l.rcb[0]; cr = l.rcr[0]; out = ys[0] - Y; }
+            else if (Y >= ys[m - 1]) { cb = l.rcb[m - 1]; cr = l.rcr[m - 1]; out = Y - ys[m - 1]; }
+            else {
+              let j = 1; while (ys[j] < Y) j++;
+              const f = (Y - ys[j - 1]) / ((ys[j] - ys[j - 1]) || 1);
+              cb = l.rcb[j - 1] + (l.rcb[j] - l.rcb[j - 1]) * f; cr = l.rcr[j - 1] + (l.rcr[j] - l.rcr[j - 1]) * f; out = 0;
+            }
+            const dy = out * l.lw, db = Cb - cb, dr = Cr - cr, d2 = dy * dy + db * db + dr * dr;
+            if (d2 >= l.out2) continue;
+            if (d2 > l.in2) { const t = (l.outR - Math.sqrt(d2)) / l.soft; w *= t * t * (3 - 2 * t); }
+            w *= l.str;
+            if (w > bw) { bw = w; bl = l; }
+          }
+          if (bl) {
+            const nY = bl.tY + (Y - bl.refY) * bl.k, nCb = Cb + bl.tCb - bl.refCb, nCr = Cr + bl.tCr - bl.refCr;
+            R += (nY + 1.402 * nCr - R) * bw;
+            G += (nY - 0.344136 * nCb - 0.714136 * nCr - G) * bw;
+            B += (nY + 1.772 * nCb - B) * bw;
+          }
+        }
+        dst[di] = R; dst[di + 1] = G; dst[di + 2] = B; dst[di + 3] = a;
+        if (mask) mask[mi] = bw * 255;
+      }
+    }
+  }
+  // the layers as the kernel wants them: the ramp of picked shades and the new colour in YCbCr, thresholds squared,
+  // the area at the frame's size. A sample is [r, g, b] or [r, g, b, darkest, lightest] (the spread around a click).
+  function prepLayers(layers, areaOf) {
+    const ycc = c => [0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2], -0.168736 * c[0] - 0.331264 * c[1] + 0.5 * c[2], 0.5 * c[0] - 0.418688 * c[1] - 0.081312 * c[2]];
+    const out = [];
+    for (const l of layers) {
+      if (!l.on || !l.samples.length) continue;
+      const to = l.to ? [parseInt(l.to.slice(1, 3), 16), parseInt(l.to.slice(3, 5), 16), parseInt(l.to.slice(5, 7), 16)] : l.samples[0];
+      const t = ycc(to), ref = ycc(l.samples[0]), pts = [];
+      l.samples.forEach(c => {
+        const q = ycc(c); pts.push(q);
+        if (c.length >= 5) { if (c[3] < q[0] - 1) pts.push([c[3], q[1], q[2]]); if (c[4] > q[0] + 1) pts.push([c[4], q[1], q[2]]); }
+      });
+      pts.sort((p, q) => p[0] - q[0]);
+      const tol = l.tol, soft = Math.max(0.5, l.soft);
+      out.push({ m: pts.length, ry: Float32Array.from(pts, p => p[0]), rcb: Float32Array.from(pts, p => p[1]), rcr: Float32Array.from(pts, p => p[2]),
+        lw: pts.length > 1 ? 0.8 : 0.45,                // past the picked shades, brightness counts for more
+        refY: ref[0], refCb: ref[1], refCr: ref[2], k: Math.min(1.9, Math.max(0.55, Math.sqrt((t[0] + 20) / (ref[0] + 20)))),
+        tY: t[0], tCb: t[1], tCr: t[2], in2: tol * tol, out2: (tol + soft) * (tol + soft), outR: tol + soft, soft,
+        str: l.str / 100, area: areaOf ? areaOf(l) : null });
+    }
+    return out;
+  }
+  // a palette of at most 256 colours (255 and a transparent one when tr marks any pixel): every exact colour when
+  // there are few enough (most GIFs), else median cut over a 5-6-5 histogram
+  function quantize(px, tr, anyT) {
+    const n = tr.length, max = anyT ? 255 : 256;
+    const cnt = new Uint32Array(65536), sr = new Float64Array(65536), sg = new Float64Array(65536), sb = new Float64Array(65536);
+    const key = new Uint16Array(n), idx = new Uint8Array(n);
+    const exact = new Map();
+    let uniq = 0, few = true;
+    for (let i = 0, j = 0; i < n; i++, j += 4) {
+      if (tr[i]) continue;
+      const r = px[j], g = px[j + 1], b = px[j + 2], k = ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
+      key[i] = k;
+      if (!cnt[k]++) uniq++;
+      sr[k] += r; sg[k] += g; sb[k] += b;
+      if (few) {
+        const c = (r << 16) | (g << 8) | b;
+        if (!exact.has(c)) { if (exact.size >= max) { few = false; exact.clear(); } else exact.set(c, exact.size); }
+      }
+    }
+    if (few) {                                          // few colours: keep them all, exactly
+      const pal = new Uint8Array(exact.size * 3);
+      for (const [c, p] of exact) { pal[p * 3] = c >> 16; pal[p * 3 + 1] = (c >> 8) & 255; pal[p * 3 + 2] = c & 255; }
+      for (let i = 0, j = 0; i < n; i++, j += 4) idx[i] = tr[i] ? exact.size : exact.get((px[j] << 16) | (px[j + 1] << 8) | px[j + 2]);
+      return { pal, count: exact.size, idx, t: exact.size };
+    }
+    const bins = new Int32Array(uniq), vr = new Float32Array(65536), vg = new Float32Array(65536), vb = new Float32Array(65536);
+    let u = 0;
+    for (let k = 0; k < 65536; k++) if (cnt[k]) { bins[u++] = k; vr[k] = sr[k] / cnt[k]; vg[k] = sg[k] / cnt[k]; vb[k] = sb[k] / cnt[k]; }
+    const stat = (lo, hi) => {
+      let c = 0, r0 = 255, r1 = 0, g0 = 255, g1 = 0, b0 = 255, b1 = 0;
+      for (let p = lo; p < hi; p++) {
+        const k = bins[p]; c += cnt[k];
+        if (vr[k] < r0) r0 = vr[k]; if (vr[k] > r1) r1 = vr[k];
+        if (vg[k] < g0) g0 = vg[k]; if (vg[k] > g1) g1 = vg[k];
+        if (vb[k] < b0) b0 = vb[k]; if (vb[k] > b1) b1 = vb[k];
+      }
+      const rr = (r1 - r0) * 1.0, gr = (g1 - g0) * 1.2, br = (b1 - b0) * 0.8, m = Math.max(rr, gr, br);
+      return { lo, hi, c, ch: m === gr ? 1 : m === rr ? 0 : 2, score: hi - lo > 1 ? m * Math.sqrt(c) : -1 };
+    };
+    const boxes = [stat(0, uniq)];
+    while (boxes.length < max) {
+      let bi = -1, bs = 0;
+      for (let b = 0; b < boxes.length; b++) if (boxes[b].score > bs) { bs = boxes[b].score; bi = b; }
+      if (bi < 0) break;
+      const bx = boxes[bi], v = bx.ch === 0 ? vr : bx.ch === 1 ? vg : vb;
+      bins.subarray(bx.lo, bx.hi).sort((a, b) => v[a] - v[b]);
+      let acc = 0, s = bx.lo;
+      while (s < bx.hi - 1 && acc + cnt[bins[s]] <= bx.c / 2) acc += cnt[bins[s++]];
+      if (s === bx.lo) s++;
+      boxes.splice(bi, 1, stat(bx.lo, s), stat(s, bx.hi));
+    }
+    const lut = new Uint8Array(65536), pal = new Uint8Array(boxes.length * 3);
+    boxes.forEach((bx, p) => {
+      let c = 0, r = 0, g = 0, b = 0;
+      for (let q = bx.lo; q < bx.hi; q++) { const k = bins[q]; c += cnt[k]; r += sr[k]; g += sg[k]; b += sb[k]; lut[k] = p; }
+      pal[p * 3] = r / c; pal[p * 3 + 1] = g / c; pal[p * 3 + 2] = b / c;
+    });
+    for (let i = 0; i < n; i++) idx[i] = tr[i] ? boxes.length : lut[key[i]];
+    return { pal, count: boxes.length, idx, t: boxes.length };
+  }
+  // GIF LZW, as sub-blocks with the block terminator (the hashing compressor every GIF encoder descends from)
+  function lzwEncode(pix, minCode) {
+    const BITS = 12, HSIZE = 5003, MAXMAX = 1 << BITS;
+    const htab = new Int32Array(HSIZE).fill(-1), codetab = new Int32Array(HSIZE);
+    let out = new Uint8Array(Math.max(1024, pix.length + (pix.length >> 1))), op = 0;
+    const acc = new Uint8Array(256); let ac = 0;
+    const flush = () => { if (ac) { if (op + ac + 1 > out.length) { const b = new Uint8Array((out.length + ac + 1) * 2); b.set(out); out = b; } out[op++] = ac; out.set(acc.subarray(0, ac), op); op += ac; ac = 0; } };
+    const initBits = minCode + 1, Clear = 1 << minCode, EOF = Clear + 1;
+    let nBits = initBits, maxcode = (1 << nBits) - 1, clearFlg = false, free = Clear + 2, cur = 0, curBits = 0;
+    const output = code => {
+      cur &= (1 << curBits) - 1;
+      cur = curBits > 0 ? cur | (code << curBits) : code;
+      curBits += nBits;
+      while (curBits >= 8) { acc[ac++] = cur & 255; if (ac >= 254) flush(); cur >>= 8; curBits -= 8; }
+      if (free > maxcode || clearFlg) {
+        if (clearFlg) { nBits = initBits; maxcode = (1 << nBits) - 1; clearFlg = false; }
+        else { nBits++; maxcode = nBits === BITS ? MAXMAX : (1 << nBits) - 1; }
+      }
+      if (code === EOF) { while (curBits > 0) { acc[ac++] = cur & 255; if (ac >= 254) flush(); cur >>= 8; curBits -= 8; } flush(); }
+    };
+    let hshift = 0; for (let f = HSIZE; f < 65536; f *= 2) hshift++; hshift = 8 - hshift;
+    output(Clear);
+    let ent = pix[0];
+    outer: for (let p = 1; p < pix.length; p++) {
+      const c = pix[p], fcode = (c << BITS) + ent;
+      let i = (c << hshift) ^ ent;
+      if (htab[i] === fcode) { ent = codetab[i]; continue; }
+      if (htab[i] >= 0) {
+        const disp = i === 0 ? 1 : HSIZE - i;
+        do { if ((i -= disp) < 0) i += HSIZE; if (htab[i] === fcode) { ent = codetab[i]; continue outer; } } while (htab[i] >= 0);
+      }
+      output(ent); ent = c;
+      if (free < MAXMAX) { codetab[i] = free++; htab[i] = fcode; }
+      else { htab.fill(-1); free = Clear + 2; clearFlg = true; output(Clear); }
+    }
+    output(ent); output(EOF);
+    if (op + 1 > out.length) { const b = new Uint8Array(op + 1); b.set(out); out = b; }
+    out[op++] = 0;
+    return out.slice(0, op);
+  }
+  function lzwDecode(minCode, data, npix) {
+    const out = new Uint8Array(npix), clear = 1 << minCode, eoi = clear + 1;
+    const prefix = new Uint16Array(4096), suffix = new Uint8Array(4096), stack = new Uint8Array(4097);
+    for (let c = 0; c < clear; c++) suffix[c] = c;
+    let size = minCode + 1, mask = (1 << size) - 1, avail = clear + 2, old = -1, first = 0, datum = 0, bits = 0, pi = 0, op = 0, top = 0;
+    while (op < npix) {
+      if (top === 0) {
+        if (bits < size) { if (pi >= data.length) break; datum |= data[pi++] << bits; bits += 8; continue; }
+        let code = datum & mask; datum >>>= size; bits -= size;
+        if (code === clear) { size = minCode + 1; mask = (1 << size) - 1; avail = clear + 2; old = -1; continue; }
+        if (code === eoi || code > avail) break;
+        if (old === -1) { stack[top++] = suffix[code]; old = code; first = code; continue; }
+        const inCode = code;
+        if (code === avail) { stack[top++] = first; code = old; }
+        while (code > clear) { stack[top++] = suffix[code]; code = prefix[code]; }
+        first = suffix[code];
+        stack[top++] = first;
+        if (avail < 4096) { prefix[avail] = old; suffix[avail] = first; avail++; if ((avail & mask) === 0 && avail < 4096) { size++; mask += avail; } }
+        old = inCode;
+      }
+      out[op++] = stack[--top];
+    }
+    return out;
+  }
+  // every frame of a GIF, composited the way browsers show them (disposal, transparency), with delays in ms
+  function decodeGif(buf) {
+    const d = new Uint8Array(buf);
+    if (d.length < 13 || d[0] !== 0x47 || d[1] !== 0x49 || d[2] !== 0x46) throw new Error("That isn't a GIF.");
+    let p = 6;
+    const u16 = () => { const v = d[p] | (d[p + 1] << 8); p += 2; return v; };
+    const W = u16(), H = u16(), pk = d[p]; p += 3;
+    let gct = null;
+    if (pk & 0x80) { const n = 2 << (pk & 7); gct = d.subarray(p, p + 3 * n); p += 3 * n; }
+    const canvas = new Uint8ClampedArray(W * H * 4), frames = [], delays = [];
+    let gce = { disp: 0, delay: 0, trans: -1 }, prevDisp = 0, prevRect = null, saved = null;
+    while (p < d.length) {
+      const b = d[p++];
+      if (b === 0x3B) break;
+      if (b === 0x21) {
+        const label = d[p++];
+        if (label === 0xF9 && d[p] >= 4) { const q = d[p + 1]; gce = { disp: (q >> 2) & 7, delay: d[p + 2] | (d[p + 3] << 8), trans: (q & 1) ? d[p + 4] : -1 }; }
+        while (p < d.length && d[p]) p += d[p] + 1;
+        p++;
+        continue;
+      }
+      if (b !== 0x2C) break;
+      const fx = u16(), fy = u16(), fw = u16(), fh = u16(), q = d[p++];
+      let ct = gct;
+      if (q & 0x80) { const n = 2 << (q & 7); ct = d.subarray(p, p + 3 * n); p += 3 * n; }
+      const minCode = d[p++];
+      let len = 0;
+      for (let s = p; s < d.length && d[s]; s += d[s] + 1) len += d[s];
+      const data = new Uint8Array(len);
+      for (let o = 0; p < d.length && d[p];) { const n = d[p++]; data.set(d.subarray(p, p + n), o); o += n; p += n; }
+      p++;
+      const idx = lzwDecode(minCode, data, fw * fh);
+      if (prevDisp === 2 && prevRect) {
+        for (let y = prevRect[1]; y < Math.min(H, prevRect[1] + prevRect[3]); y++) canvas.fill(0, (y * W + prevRect[0]) * 4, (y * W + Math.min(W, prevRect[0] + prevRect[2])) * 4);
+      } else if (prevDisp === 3 && saved) canvas.set(saved);
+      saved = gce.disp === 3 ? canvas.slice() : null;
+      if (ct) {
+        const rows = [];
+        if (q & 0x40) { for (const [s0, st] of [[0, 8], [4, 8], [2, 4], [1, 2]]) for (let y = s0; y < fh; y += st) rows.push(y); }
+        for (let r = 0; r < fh; r++) {
+          const y = (q & 0x40) ? rows[r] : r, cy = fy + y;
+          if (cy >= H) continue;
+          for (let x = 0; x < fw; x++) {
+            const cx = fx + x, ci = idx[r * fw + x];
+            if (cx >= W || ci === gce.trans || ci * 3 + 2 >= ct.length) continue;
+            const o = (cy * W + cx) * 4;
+            canvas[o] = ct[ci * 3]; canvas[o + 1] = ct[ci * 3 + 1]; canvas[o + 2] = ct[ci * 3 + 2]; canvas[o + 3] = 255;
+          }
+        }
+      }
+      frames.push(canvas.slice());
+      delays.push(gce.delay < 2 ? 100 : gce.delay * 10);            // what browsers do with 0 and 1
+      prevDisp = gce.disp; prevRect = [fx, fy, fw, fh];
+      gce = { disp: 0, delay: 0, trans: -1 };
+    }
+    if (!frames.length) throw new Error('That GIF has no frames.');
+    return { W, H, frames, delays };
+  }
+  // the part of a frame that changed since the last one (null: nothing did), and which of its pixels stayed the same
+  function diffFrame(px, prev, W, H) {
+    const a = new Uint32Array(px.buffer, px.byteOffset, W * H), b = new Uint32Array(prev.buffer, prev.byteOffset, W * H);
+    let x0 = W, y0 = H, x1 = -1, y1 = -1;
+    for (let y = 0; y < H; y++) {
+      const row = y * W;
+      for (let x = 0; x < W; x++) if (a[row + x] !== b[row + x]) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; y1 = y; }
+    }
+    if (x1 < 0) return null;
+    const w = x1 - x0 + 1, h = y1 - y0 + 1, keep = new Uint8Array(w * h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = (y0 + y) * W + x0 + x; keep[y * w + x] = a[i] === b[i] ? 1 : 0; }
+    return { rect: [x0, y0, w, h], keep };
+  }
+  // one frame of the GIF: the colour change, a palette, LZW. Unchanged pixels (keep) and see-through ones go transparent.
+  function encodeJob(m, L) {
+    const src = new Uint8ClampedArray(m.px), rx = m.rect[0], ry = m.rect[1], rw = m.rect[2], rh = m.rect[3];
+    const reg = new Uint8ClampedArray(rw * rh * 4);
+    kernel(src, m.W, rx, ry, rw, rh, reg, L, null);
+    const n = rw * rh, tr = new Uint8Array(n);
+    let anyT = false;
+    for (let i = 0; i < n; i++) if ((m.keep && m.keep[i]) || reg[i * 4 + 3] < 128) { tr[i] = 1; anyT = true; }
+    const q = quantize(reg, tr, anyT);
+    let bits = 1;
+    while ((1 << bits) < q.count + (anyT ? 1 : 0)) bits++;
+    const pal = new Uint8Array(3 << bits); pal.set(q.pal);
+    const minCode = Math.max(2, bits);
+    return { k: m.k, rect: m.rect, pal, bits, t: anyT ? q.t : -1, minCode, lzw: lzwEncode(q.idx, minCode) };
+  }
+  // the whole file. frames: [{ cs (delay in 1/100 s), res (an encodeJob result) }]; see-through GIFs clear each frame
+  function gifBytes(W, H, frames, transparent) {
+    const parts = [], name = [78, 69, 84, 83, 67, 65, 80, 69, 50, 46, 48];        // NETSCAPE2.0: loop forever
+    parts.push(new Uint8Array([71, 73, 70, 56, 57, 97, W & 255, W >> 8, H & 255, H >> 8, 0x70, 0, 0, 0x21, 0xFF, 11].concat(name, [3, 1, 0, 0, 0])));
+    for (const f of frames) {
+      const r = f.res, x = r.rect[0], y = r.rect[1], w = r.rect[2], h = r.rect[3], t = r.t, cs = Math.min(65535, f.cs);
+      parts.push(new Uint8Array([0x21, 0xF9, 4, ((transparent ? 2 : 1) << 2) | (t >= 0 ? 1 : 0), cs & 255, cs >> 8, t >= 0 ? t : 0, 0,
+        0x2C, x & 255, x >> 8, y & 255, y >> 8, w & 255, w >> 8, h & 255, h >> 8, 0x80 | (r.bits - 1)]));
+      parts.push(r.pal, new Uint8Array([r.minCode]), r.lzw);
+    }
+    parts.push(new Uint8Array([0x3B]));
+    let len = 0; for (const p of parts) len += p.length;
+    const out = new Uint8Array(len); let o = 0;
+    for (const p of parts) { out.set(p, o); o += p.length; }
+    return out;
+  }
+  // ==== codec end
+
+  // ---------------------------------------------------------------- images
+  function loadImage(blob) {
+    return new Promise((ok, fail) => {
+      const url = URL.createObjectURL(blob); const img = new Image();
+      img.onload = () => { URL.revokeObjectURL(url); ok(img); };
+      img.onerror = () => { URL.revokeObjectURL(url); fail(new Error('decode')); };
+      img.src = url;
+    });
+  }
+  function canvasOf(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+  function fit(img, max) {
+    const k = Math.min(1, max / Math.max(img.naturalWidth || img.width, img.naturalHeight || img.height));
+    const c = canvasOf(Math.round((img.naturalWidth || img.width) * k), Math.round((img.naturalHeight || img.height) * k));
+    const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(img, 0, 0, c.width, c.height);
+    return c;
+  }
+  function thumbOf(c) { const t = fit(c, 240); return t.toDataURL('image/jpeg', 0.8); }
+  function toJpeg(c) { return new Promise((ok, fail) => c.toBlob(b => b ? ok(b) : fail(new Error('encode')), 'image/jpeg', 0.92)); }
+
+  // a GIF: every frame at a size Venice edits well (long side 512 to 1024), at most GIF_MAX frames (more are thinned
+  // out evenly, their time going to the frames kept). Each edit runs on every frame: one Venice edit a frame.
+  const GIF_MAX = 30;
+  async function takeGif(file) {
+    let g;
+    try { g = decodeGif(await file.arrayBuffer()); } catch (e) { say('bot', "That GIF couldn't be opened.", { err: true }); return; }
+    let frames = g.frames, delays = g.delays;
+    if (frames.length > GIF_MAX) {
+      const keep = [], d = [];
+      for (let k = 0; k < GIF_MAX; k++) {
+        const a = Math.floor(k * frames.length / GIF_MAX), b = Math.floor((k + 1) * frames.length / GIF_MAX);
+        keep.push(frames[a]); d.push(delays.slice(a, b).reduce((x, y) => x + y, 0));
+      }
+      frames = keep; delays = d;
+    }
+    const long = Math.max(g.W, g.H), k = Math.max(Math.min(1024, Math.max(512, long)) / long, Math.sqrt(70000 / (g.W * g.H)));   // Venice needs 256x256 worth
+    const W = Math.round(g.W * k), H = Math.round(g.H * k);
+    const src = canvasOf(g.W, g.H), sg = src.getContext('2d'), img = sg.createImageData(g.W, g.H);
+    const canvases = frames.map(f => {
+      img.data.set(f); sg.putImageData(img, 0, 0);
+      const c = canvasOf(W, H), cg = c.getContext('2d'); cg.imageSmoothingQuality = 'high';
+      cg.fillStyle = '#ffffff'; cg.fillRect(0, 0, W, H); cg.drawImage(src, 0, 0, W, H);
+      return c;
+    });
+    // repeats: a frame the same as an earlier one (at most 0.02% of its pixels off by more than a shade) takes that
+    // one's edit instead of paying for its own
+    const twin = frames.map((f, k) => {
+      const most = Math.max(2, Math.floor(f.length / 4 * 0.0002));
+      for (let j = 0; j < k; j++) {
+        const h = frames[j]; let off = 0;
+        for (let i = 0; i < f.length && off <= most; i += 4) if (Math.abs(f[i] - h[i]) > 24 || Math.abs(f[i + 1] - h[i + 1]) > 24 || Math.abs(f[i + 2] - h[i + 2]) > 24 || Math.abs(f[i + 3] - h[i + 3]) > 24) off++;
+        if (off <= most) return j;
+      }
+      return k;
+    }).map((j, k, a) => a[j]);
+    const distinct = twin.filter((j, k) => j === k).length;
+    const offer = stash();
+    greet();
+    S.frame = null;
+    S.versions = [{ canvas: canvases[0], thumb: thumbOf(canvases[0]), label: 'Original', from: -1, gif: { frames: canvases, delays, W: g.W, H: g.H, twin } }];
+    S.undo = [];
+    setCurrent(0);
+    say('bot', 'A GIF with ' + canvases.length + ' frames' + (g.frames.length > GIF_MAX ? ' (thinned from ' + g.frames.length + ')' : '') +
+      (distinct < canvases.length ? ', ' + distinct + ' of them different' : '') +
+      '. Tell me what to change, like "make her hair platinum blonde". Each change is ' + distinct + ' Venice edits, one a frame. ' +
+      "The first frame goes alone, so if Venice says no it costs one. If one fails, send it again: frames already done aren't paid for twice.");
+    offer();
+  }
+  // the GIF on screen plays on its own
+  let anim = 0;
+  function animate(v) {
+    clearTimeout(anim);
+    if (!v || !v.gif) { renderFrames(null); return; }
+    renderFrames(v);
+    if (S.frame != null) { $('view').getContext('2d').drawImage(v.gif.frames[S.frame], 0, 0, S.W, S.H); return; }
+    let i = 0;
+    const step = () => {
+      if (S.versions[S.cur] !== v || S.frame != null) return;
+      if (!S.peek) $('view').getContext('2d').drawImage(v.gif.frames[i], 0, 0, S.W, S.H);
+      anim = setTimeout(() => { i = (i + 1) % v.gif.frames.length; step(); }, v.gif.delays[i]);
+    };
+    step();
+  }
+  // the frames of a GIF version: tap one to stop on it (edits then change that frame only), or All frames
+  function renderFrames(v) {
+    const box = $('frames');
+    if (!v || !v.gif) { box.hidden = true; box.innerHTML = ''; box._v = null; return; }
+    box.hidden = false;
+    if (box._v !== v) {
+      box._v = v; box.innerHTML = '';
+      const all = document.createElement('button'); all.type = 'button'; all.className = 'all'; all.textContent = '\u25b6 All frames';
+      all.title = 'Play, and edit every frame'; all.onclick = () => pickFrame(null);
+      box.appendChild(all);
+      v.gif.thumbs = v.gif.thumbs || v.gif.frames.map(c => fit(c, 76).toDataURL('image/jpeg', 0.7));
+      v.gif.thumbs.forEach((t, k) => {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'fr'; b.title = 'Frame ' + (k + 1) + ': show it, and edit this one only';
+        const im = document.createElement('img'); im.src = t; im.alt = 'Frame ' + (k + 1);
+        const n = document.createElement('span'); n.textContent = String(k + 1);
+        b.append(im, n); b.onclick = () => pickFrame(k); box.appendChild(b);
+      });
+    }
+    [].forEach.call(box.children, (b, i) => b.setAttribute('aria-pressed', (i === 0 ? S.frame == null : S.frame === i - 1) ? 'true' : 'false'));
+  }
+  function pickFrame(k) {
+    const v = S.versions[S.cur]; if (!v || !v.gif || S.busy) return;
+    S.frame = k == null ? null : Math.max(0, Math.min(v.gif.frames.length - 1, k));
+    animate(v); refresh();
+    if (S.frame != null) { const b = $('frames').children[S.frame + 1]; if (b) b.scrollIntoView({ block: 'nearest', inline: 'nearest' }); }
+  }
+  function gifBlob(v) {
+    const W = v.gif.W, H = v.gif.H, c = canvasOf(W, H), g = c.getContext('2d', { willReadFrequently: true }), out = [];
+    g.imageSmoothingQuality = 'high';
+    let prev = null;
+    v.gif.frames.forEach((f, k) => {
+      g.drawImage(f, 0, 0, W, H);
+      const px = g.getImageData(0, 0, W, H).data, cs = Math.max(2, Math.round(v.gif.delays[k] / 10));
+      let rect = [0, 0, W, H], keep = null;
+      if (prev) { const d = diffFrame(px, prev, W, H); if (!d) { out[out.length - 1].cs += cs; return; } rect = d.rect; keep = d.keep; }
+      prev = px;
+      out.push({ cs, res: encodeJob({ k, px: px.slice().buffer, W, H, rect, keep }, []) });
+    });
+    return new Blob([gifBytes(W, H, out, false)], { type: 'image/gif' });
+  }
+
+  // Edited work that something would replace (a new picture, a paste, New) is kept, and the chat offers it back:
+  // a Ctrl+V once threw away an edited GIF that had cost real Venice edits (11-18). Call before replacing; the
+  // returned function posts the button (after greet(), which clears the chat).
+  function stash() {
+    if (S.versions.length < 2) return () => {};
+    const kept = { versions: S.versions, cur: S.cur, frame: S.frame };
+    return () => {
+      const b = say('bot', 'Your previous ' + (kept.versions[0].gif ? 'GIF' : 'picture') + ' and its ' + (kept.versions.length - 1) +
+        (kept.versions.length === 2 ? ' edit are' : ' edits are') + ' kept here in case you want them back.');
+      const acts = document.createElement('div'); acts.className = 'acts';
+      const btn = document.createElement('button'); btn.type = 'button'; btn.textContent = 'Bring it back';
+      btn.onclick = () => {
+        if (S.busy) return;
+        const offer = stash();
+        S.versions = kept.versions; S.frame = kept.frame; S.mask = null;
+        setCurrent(Math.min(kept.cur, kept.versions.length - 1));
+        acts.remove();
+        say('bot', "It's back, with every version in the strip under the picture.");
+        offer();
+      };
+      acts.appendChild(btn); b.appendChild(acts); scrollDown();
+    };
+  }
+  async function take(file) {
+    if (!file || S.busy) return;
+    if (file.type === 'image/gif') { takeGif(file); return; }
+    if (!/^image\/(png|jpeg|webp)$/.test(file.type)) { say('bot', 'That needs to be a PNG, JPEG, WebP or GIF.', { err: true }); return; }
+    let img;
+    try { img = await loadImage(file); } catch (e) { say('bot', "That picture couldn't be opened.", { err: true }); return; }
+    if (img.naturalWidth * img.naturalHeight < 65536) { say('bot', 'That picture is too small. It needs to be at least 256 by 256.', { err: true }); return; }
+    const c = fit(img, MAX_SIDE);
+    const offer = stash();
+    greet();
+    S.frame = null;
+    S.versions = [{ canvas: c, thumb: thumbOf(c), label: 'Original', from: -1 }];
+    S.undo = [];
+    setCurrent(0);
+    say('bot', 'Got it. Tap "Make it real" for the full photo treatment, or select something and tell me what to change.');
+    offer();
+  }
+  $('file').addEventListener('change', e => { take(e.target.files[0]); e.target.value = ''; });
+  const stage = $('stage');
+  stage.addEventListener('dragover', e => { e.preventDefault(); stage.classList.add('over'); });
+  stage.addEventListener('dragleave', () => stage.classList.remove('over'));
+  stage.addEventListener('drop', e => { e.preventDefault(); stage.classList.remove('over'); take(e.dataTransfer.files[0]); });
+  document.addEventListener('paste', e => {
+    const items = [...(e.clipboardData ? e.clipboardData.items : [])];
+    const item = items.find(i => i.kind === 'file' && i.type.startsWith('image/'));
+    if (!item) return;
+    // pasting into the chat box with any text on the clipboard is pasting text, never a new picture (copying from a
+    // web page or Discord puts a picture on the clipboard as well, and that once replaced an edited GIF)
+    const t = e.target, typing = t && (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && t.type !== 'file'));
+    if (typing && items.some(i => i.kind === 'string' && i.type === 'text/plain')) return;
+    if (S.busy) return;
+    e.preventDefault(); take(item.getAsFile());
+  });
+  $('newBtn').onclick = () => {
+    if (S.busy) return;
+    const offer = stash();
+    S.versions = []; S.cur = -1; S.mask = null; S.count = 0; S.undo = []; S.frame = null; renderFrames(null); animate(null);
+    $('wrap').hidden = true; $('drop').hidden = false; $('versions').innerHTML = ''; greet(); refresh(); offer();
+  };
+
+  // ---------------------------------------------------------------- versions
+  function setCurrent(i) {
+    const v = S.versions[i]; if (!v) return;
+    const sameSize = v.canvas.width === S.W && v.canvas.height === S.H;
+    S.cur = i; S.W = v.canvas.width; S.H = v.canvas.height;
+    if (!sameSize || !S.mask) { S.mask = new Uint8Array(S.W * S.H); S.count = 0; S.undo = []; zoomReset(); }
+    const view = $('view'), ov = $('ov');
+    view.width = ov.width = S.W; view.height = ov.height = S.H;
+    view.getContext('2d').drawImage(v.canvas, 0, 0);
+    $('drop').hidden = true; $('wrap').hidden = false;
+    if (!v.gif || (S.frame != null && S.frame >= v.gif.frames.length)) S.frame = null;
+    renderVersions(); drawOverlay(); refresh(); animate(v);
+  }
+  function pick(i) {                 // a version the member chose (not the one an edit just made)
+    if (i === S.cur || !S.versions[i]) { setCurrent(i); return; }
+    setCurrent(i);
+    say('bot', i === S.versions.length - 1
+      ? 'Back on the latest version (#' + i + '). Your next edit builds on it.'
+      : 'Next edits start from ' + versionName(i) + '. Nothing later is lost: every version stays in the strip under the picture.');
+  }
+  function renderVersions() {
+    const box = $('versions'); box.innerHTML = '';
+    S.versions.forEach((v, i) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'ver'; b.title = v.label;
+      b.setAttribute('aria-current', i === S.cur ? 'true' : 'false');
+      const img = document.createElement('img'); img.src = v.thumb; img.alt = v.label;
+      const s = document.createElement('span'); s.textContent = i === 0 ? 'Original' : '#' + i;
+      b.append(img, s); b.onclick = () => pick(i); box.appendChild(b);
+    });
+    const cur = box.children[S.cur]; if (cur) cur.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }
+  async function download(i) {
+    const v = S.versions[i == null ? S.cur : i]; if (!v) return;
+    const blob = v.gif ? gifBlob(v) : await toJpeg(v.canvas);
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'hyperreal-' + (i == null ? S.cur : i) + '-' + Date.now() + (v.gif ? '.gif' : '.jpg');
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  }
+  $('downloadBtn').onclick = () => download();
+  function peek(on) {
+    const v = S.versions[S.cur]; if (!v || v.from < 0) return;
+    S.peek = on;
+    const at = (x) => x.gif && S.frame != null ? x.gif.frames[S.frame] : x.canvas;
+    const src = on ? at(S.versions[v.from]) : at(v);
+    $('view').getContext('2d').drawImage(src, 0, 0, S.W, S.H);
+    showHint(on ? 'Before' : '');
+    drawOverlay();
+  }
+  const cmpBtn = $('compareBtn');
+  cmpBtn.addEventListener('pointerdown', e => { e.preventDefault(); peek(true); });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach(t => cmpBtn.addEventListener(t, () => { if (S.peek) peek(false); }));
+  cmpBtn.addEventListener('keydown', e => { if ((e.key === ' ' || e.key === 'Enter') && !S.peek) { e.preventDefault(); peek(true); } });
+  cmpBtn.addEventListener('keyup', e => { if (e.key === ' ' || e.key === 'Enter') peek(false); });
+
+  let hintTimer = null;
+  function showHint(t, ms) {
+    const h = $('hint'); clearTimeout(hintTimer);
+    if (!t) { h.hidden = true; return; }
+    h.textContent = t; h.hidden = false;
+    if (ms) hintTimer = setTimeout(() => { h.hidden = true; }, ms);
+  }
+
+  // ---------------------------------------------------------------- selection
+  function pushUndo() { if (!S.mask) return; S.undo.push(S.mask.slice()); if (S.undo.length > UNDO_DEPTH) S.undo.shift(); }
+  function recount() { let n = 0; const m = S.mask; for (let i = 0; i < m.length; i++) if (m[i]) n++; S.count = n; }
+  function clearMask() { S.mask.fill(0); S.count = 0; drawOverlay(); refresh(); }
+  function changed() { S.dim = false; recount(); drawOverlay(); refresh(); }
+
+  function setTool(t) {
+    S.tool = t;
+    document.querySelectorAll('[data-tool]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tool === t ? 'true' : 'false'));
+    const size = $('size');
+    size.value = S.brush;
+    size.parentElement.style.visibility = t === 'brush' ? 'visible' : 'hidden';
+    $('ov').style.cursor = t === 'pan' ? 'grab' : '';
+    drawOverlay();
+  }
+  function setSub(on) { S.sub = on; document.querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed', (b.dataset.mode === 'sub') === on ? 'true' : 'false')); }
+  document.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => setTool(b.dataset.tool));
+  document.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => setSub(b.dataset.mode === 'sub'));
+  $('size').addEventListener('input', e => { S.brush = +e.target.value; drawOverlay(); });
+
+  // Square dilation by r (separable running max)
+  function dilate(m, W, H, r) {
+    const tmp = new Uint8Array(W * H), out = new Uint8Array(W * H);
+    for (let y = 0; y < H; y++) {
+      let last = -1e9; const row = y * W;
+      for (let x = 0; x < W; x++) if (m[row + x]) last = x; else if (x - last <= r) tmp[row + x] = 255;
+      last = 1e9;
+      for (let x = W - 1; x >= 0; x--) { if (m[row + x]) { last = x; tmp[row + x] = 255; } else if (last - x <= r) tmp[row + x] = 255; }
+    }
+    for (let x = 0; x < W; x++) {
+      let last = -1e9;
+      for (let y = 0; y < H; y++) if (tmp[y * W + x]) last = y; else if (y - last <= r) out[y * W + x] = 255;
+      last = 1e9;
+      for (let y = H - 1; y >= 0; y--) { if (tmp[y * W + x]) { last = y; out[y * W + x] = 255; } else if (last - y <= r) out[y * W + x] = 255; }
+    }
+    return out;
+  }
+  // Box blur, three passes ~ Gaussian, on a single channel
+  function blur(a, W, H, r) {
+    if (r < 1) return a;
+    let src = Float32Array.from(a), dst = new Float32Array(W * H);
+    for (let pass = 0; pass < 3; pass++) {
+      for (let y = 0; y < H; y++) {
+        let acc = 0; const row = y * W;
+        for (let x = -r; x <= r; x++) acc += src[row + Math.min(W - 1, Math.max(0, x))];
+        for (let x = 0; x < W; x++) {
+          dst[row + x] = acc / (2 * r + 1);
+          acc += src[row + Math.min(W - 1, x + r + 1)] - src[row + Math.max(0, x - r)];
+        }
+      }
+      [src, dst] = [dst, src];
+      for (let x = 0; x < W; x++) {
+        let acc = 0;
+        for (let y = -r; y <= r; y++) acc += src[Math.min(H - 1, Math.max(0, y)) * W + x];
+        for (let y = 0; y < H; y++) {
+          dst[y * W + x] = acc / (2 * r + 1);
+          acc += src[Math.min(H - 1, y + r + 1) * W + x] - src[Math.max(0, y - r) * W + x];
+        }
+      }
+      [src, dst] = [dst, src];
+    }
+    return src;
+  }
+  function stamp(cx, cy, r, v) {
+    const W = S.W, H = S.H, m = S.mask;
+    for (let dy = -r; dy <= r; dy++) {
+      const y = cy + dy; if (y < 0 || y >= H) continue;
+      const span = Math.floor(Math.sqrt(r * r - dy * dy));
+      const x0 = Math.max(0, cx - span), x1 = Math.min(W - 1, cx + span);
+      m.fill(v, y * W + x0, y * W + x1 + 1);
+    }
+  }
+  function brushLine(a, b, sub) {
+    const r = Math.max(1, Math.round(brushR()));
+    const dist = Math.hypot(b.x - a.x, b.y - a.y), steps = Math.max(1, Math.ceil(dist / Math.max(1, r / 3)));
+    for (let i = 0; i <= steps; i++) stamp(Math.round(a.x + (b.x - a.x) * i / steps), Math.round(a.y + (b.y - a.y) * i / steps), r, sub ? 0 : 255);
+  }
+  function fillRect(b, sub) {
+    const x0 = Math.max(0, Math.min(b.x0, b.x1)), x1 = Math.min(S.W - 1, Math.max(b.x0, b.x1));
+    const y0 = Math.max(0, Math.min(b.y0, b.y1)), y1 = Math.min(S.H - 1, Math.max(b.y0, b.y1));
+    for (let y = y0; y <= y1; y++) S.mask.fill(sub ? 0 : 255, y * S.W + x0, y * S.W + x1 + 1);
+  }
+
+  // overlay: pink tint, white edge, brush cursor, box preview
+  let drawQueued = false;
+  function drawOverlay() {
+    if (drawQueued) return; drawQueued = true;
+    requestAnimationFrame(() => {
+      drawQueued = false;
+      const ov = $('ov'); if (!S.mask || !ov.width) return;
+      const g = ov.getContext('2d'), W = S.W, H = S.H, m = S.mask;
+      g.clearRect(0, 0, W, H);
+      if (S.count && !S.peek) {
+        const img = g.createImageData(W, H), d = img.data;
+        for (let k = 0; k < m.length; k++) {
+          if (!m[k]) continue;
+          const x = k % W;
+          const edge = (x === 0 || !m[k - 1]) || (x === W - 1 || !m[k + 1]) || (k < W || !m[k - W]) || (k >= W * (H - 1) || !m[k + W]);
+          const j = k * 4;
+          if (edge) { d[j] = 255; d[j + 1] = 255; d[j + 2] = 255; d[j + 3] = 255; }
+          else if (!S.dim) { d[j] = 255; d[j + 1] = 79; d[j + 2] = 168; d[j + 3] = 105; }
+        }
+        g.putImageData(img, 0, 0);
+      }
+      const lw = Math.max(0.5, 1.5 / scale());
+      if (S.box) {
+        g.save(); g.setLineDash([lw * 5, lw * 4]); g.lineWidth = lw * 2; g.strokeStyle = '#fff';
+        g.strokeRect(Math.min(S.box.x0, S.box.x1), Math.min(S.box.y0, S.box.y1), Math.abs(S.box.x1 - S.box.x0), Math.abs(S.box.y1 - S.box.y0));
+        g.restore();
+      }
+      if (S.hover && S.tool === 'brush' && !S.busy) {
+        const r = brushR();
+        g.beginPath(); g.arc(S.hover.x, S.hover.y, r, 0, Math.PI * 2);
+        g.lineWidth = lw * 2; g.strokeStyle = 'rgba(0,0,0,0.6)'; g.stroke();
+        g.lineWidth = lw; g.strokeStyle = '#fff'; g.stroke();
+      }
+    });
+  }
+
+  const ov = $('ov'), wrap = $('wrap');
+  function scale() { const r = ov.getBoundingClientRect(); return (r.width / S.W) || 1; }   // screen px per picture px
+  function brushR() { return Math.max(1, S.brush / 2 / scale()); }
+  function pt(e) {
+    const r = ov.getBoundingClientRect();
+    return { x: Math.max(0, Math.min(S.W - 1, Math.floor((e.clientX - r.left) / r.width * S.W))), y: Math.max(0, Math.min(S.H - 1, Math.floor((e.clientY - r.top) / r.height * S.H))) };
+  }
+
+  // zoom and pan: the picture's wrapper is translated and scaled from its top-left corner
+  function applyZoom() {
+    wrap.style.transform = S.z === 1 ? '' : 'translate(' + S.px + 'px,' + S.py + 'px) scale(' + S.z + ')';
+    $('zoomPct').textContent = S.z === 1 ? 'Fit' : Math.round(S.z * 100) + '%';
+    drawOverlay();
+  }
+  function zoomAt(cx, cy, z2) {
+    z2 = Math.max(1, Math.min(16, z2));
+    const r = wrap.getBoundingClientRect();
+    const ox = r.left - S.px, oy = r.top - S.py;               // where it sits untransformed
+    const lx = (cx - r.left) / S.z, ly = (cy - r.top) / S.z;   // the point under the cursor, unscaled
+    S.z = z2;
+    if (z2 === 1) { S.px = 0; S.py = 0; } else { S.px = cx - ox - lx * z2; S.py = cy - oy - ly * z2; }
+    applyZoom();
+  }
+  function zoomBy(f) { const r = stage.getBoundingClientRect(); zoomAt(r.left + r.width / 2, r.top + r.height / 2, S.z * f); }
+  function zoomReset() { S.z = 1; S.px = 0; S.py = 0; applyZoom(); }
+  $('zoomIn').onclick = () => zoomBy(1.4);
+  $('zoomOut').onclick = () => zoomBy(1 / 1.4);
+  $('zoomFit').onclick = zoomReset;
+  stage.addEventListener('wheel', e => {
+    if (S.cur < 0) return;
+    e.preventDefault();
+    zoomAt(e.clientX, e.clientY, S.z * Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0015)));   // ctrl+wheel = trackpad pinch
+  }, { passive: false });
+
+  const pointers = new Map();
+  let pinch = null, panning = null;
+  ov.addEventListener('pointerdown', e => {
+    if (S.cur < 0) return;
+    e.preventDefault(); ov.setPointerCapture(e.pointerId);
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 2) {                 // a second finger: pinch and pan, and drop the stroke the first one began
+      if (S.painting || S.box) { S.painting = false; S.box = null; if (S.undo.length) S.mask = S.undo.pop(); changed(); }
+      const [a, b] = [...pointers.values()];
+      pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 };
+      return;
+    }
+    if (pointers.size > 2) return;
+    if (S.tool === 'pan' || S.space || e.button === 1) { panning = { x: e.clientX, y: e.clientY }; ov.style.cursor = 'grabbing'; return; }
+    if (S.busy || e.button > 0) return;
+    const p = pt(e), sub = S.sub || e.altKey;
+    pushUndo();
+    if (S.tool === 'brush') { S.painting = sub ? 'sub' : 'add'; S.lastPt = p; S.dim = false; brushLine(p, p, sub); drawOverlay(); }
+    else { S.box = { x0: p.x, y0: p.y, x1: p.x, y1: p.y, sub }; drawOverlay(); }
+  });
+  ov.addEventListener('pointermove', e => {
+    if (S.cur < 0) return;
+    if (pointers.has(e.pointerId)) pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinch && pointers.size === 2) {
+      const [a, b] = [...pointers.values()];
+      const d = Math.hypot(a.x - b.x, a.y - b.y) || 1, mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+      if (S.z > 1) { S.px += mx - pinch.mx; S.py += my - pinch.my; applyZoom(); }
+      zoomAt(mx, my, S.z * d / pinch.d);
+      pinch = { d, mx, my };
+      return;
+    }
+    if (panning) {
+      if (S.z > 1) { S.px += e.clientX - panning.x; S.py += e.clientY - panning.y; applyZoom(); }
+      panning = { x: e.clientX, y: e.clientY };
+      return;
+    }
+    const p = pt(e); S.hover = p;
+    if (S.painting) { brushLine(S.lastPt, p, S.painting === 'sub'); S.lastPt = p; }
+    if (S.box) { S.box.x1 = p.x; S.box.y1 = p.y; }
+    drawOverlay();
+  });
+  function endPointer(e) {
+    pointers.delete(e.pointerId);
+    if (pointers.size < 2) pinch = null;
+    if (panning) { panning = null; ov.style.cursor = S.tool === 'pan' || S.space ? 'grab' : ''; }
+    if (S.painting) { S.painting = false; changed(); }
+    if (S.box) {
+      const b = S.box; S.box = null;
+      if (Math.abs(b.x1 - b.x0) > 2 && Math.abs(b.y1 - b.y0) > 2) fillRect(b, b.sub); else S.undo.pop();
+      changed();
+    }
+  }
+  ov.addEventListener('pointerup', endPointer);
+  ov.addEventListener('pointercancel', endPointer);
+  ov.addEventListener('pointerleave', () => { S.hover = null; drawOverlay(); });
+
+  $('clearBtn').onclick = () => { pushUndo(); clearMask(); };
+  $('invertBtn').onclick = () => { pushUndo(); for (let k = 0; k < S.mask.length; k++) S.mask[k] = S.mask[k] ? 0 : 255; changed(); };
+  $('growBtn').onclick = () => { pushUndo(); S.mask = dilate(S.mask, S.W, S.H, Math.max(2, Math.round(Math.max(S.W, S.H) / 300))); changed(); };
+  $('undoBtn').onclick = () => { if (!S.undo.length) return; S.mask = S.undo.pop(); changed(); };
+
+  document.addEventListener('keyup', e => { if (e.key === ' ' && S.space) { S.space = false; ov.style.cursor = S.tool === 'pan' ? 'grab' : ''; } });
+  document.addEventListener('keydown', e => {
+    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement && document.activeElement.tagName);
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !typing) { e.preventDefault(); $('undoBtn').click(); return; }
+    if (typing || e.ctrlKey || e.metaKey || e.altKey || S.cur < 0) return;
+    if (e.key === ' ') { e.preventDefault(); if (!S.space) { S.space = true; ov.style.cursor = 'grab'; } return; }
+    const k = e.key.toLowerCase();
+    if (k === 'b') setTool('brush'); else if (k === 'x') setTool('box'); else if (k === 'h') setTool('pan');
+    else if (k === '+' || k === '=') zoomBy(1.4); else if (k === '-') zoomBy(1 / 1.4); else if (k === '0') zoomReset();
+    else if (k === 'i') $('invertBtn').click();
+    else if (e.key === 'Escape' && S.count) $('clearBtn').click();
+  });
+
+  // ---------------------------------------------------------------- sending an edit
+  function maskKey() {                // which pixels are selected, as a short fingerprint (FNV-1a)
+    let h = 2166136261;
+    for (let i = 0; i < S.mask.length; i++) if (S.mask[i]) h = Math.imul(h ^ i, 16777619) >>> 0;
+    return S.count + ':' + h.toString(36);
+  }
+  function regionOfMask() {
+    const W = S.W, H = S.H, m = S.mask;
+    let x0 = W, y0 = H, x1 = -1, y1 = -1;
+    for (let y = 0; y < H; y++) {
+      const row = y * W;
+      for (let x = 0; x < W; x++) if (m[row + x]) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    }
+    let bw = x1 - x0 + 1, bh = y1 - y0 + 1;
+    const pad = Math.round(Math.max(bw, bh) * 0.15) + 16;
+    let cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+    let w = bw + pad * 2, h = bh + pad * 2;
+    const minSide = Math.min(512, W, H);
+    w = Math.max(w, minSide); h = Math.max(h, minSide);
+    if (w / h > 2.4) h = w / 2.4; if (h / w > 2.4) w = h / 2.4;
+    w = Math.min(W, Math.round(w)); h = Math.min(H, Math.round(h));
+    let x = Math.round(cx - w / 2), y = Math.round(cy - h / 2);
+    x = Math.max(0, Math.min(W - w, x)); y = Math.max(0, Math.min(H - h, y));
+    return { x, y, w, h };
+  }
+  function composite(base, result, reg) {
+    const W = S.W, m = S.mask, feather = Math.max(2, Math.round(Math.max(reg.w, reg.h) / 160));
+    const sub = new Uint8Array(reg.w * reg.h);
+    for (let y = 0; y < reg.h; y++) for (let x = 0; x < reg.w; x++) sub[y * reg.w + x] = m[(reg.y + y) * W + reg.x + x];
+    const soft = blur(dilate(sub, reg.w, reg.h, feather), reg.w, reg.h, Math.ceil(feather / 2));
+    const piece = canvasOf(reg.w, reg.h), pg = piece.getContext('2d');
+    pg.imageSmoothingQuality = 'high';
+    pg.drawImage(result, 0, 0, reg.w, reg.h);
+    const id = pg.getImageData(0, 0, reg.w, reg.h), d = id.data;
+    for (let k = 0; k < sub.length; k++) d[k * 4 + 3] = Math.round(soft[k]);
+    pg.putImageData(id, 0, 0);
+    const out = canvasOf(base.width, base.height), og = out.getContext('2d');
+    og.drawImage(base, 0, 0); og.drawImage(piece, reg.x, reg.y);
+    return out;
+  }
+
+  function send(o) {
+    if (S.busy) return false;
+    if (S.cur < 0) { say('bot', 'Drop in a screenshot first.', { err: true }); return false; }
+    if (S.mode === 'byok' && !key()) { pendingSend = o; $('settings').hidden = false; $('key').focus(); return false; }
+    if (S.mode === 'server' && S.status && !S.status.signed_in && !S.guest) { $('gate').hidden = false; return false; }
+    if (viaServer() && S.status && S.status.left === 0) { say('bot', "That's all for today. Your edits reset at midnight UTC.", { err: true }); return false; }
+    if ((S.mode !== 'server' || S.guest) && store.get('hr_adult') !== 'yes') { $('ageGate').hidden = false; return false; }
+    go(o);
+    return true;
+  }
+  async function go(o) {
+    const area = S.count > 0;
+    const base = S.versions[S.cur], baseIndex = S.cur;
+    say('me', o.label ? o.label + (o.text && !o.style ? '' : '') : o.text, { tag: area ? 'Selected area' : '' });
+    S.busy = true; refresh(); $('stageBusy').hidden = false;
+    const stop = typing();
+    try {
+      const reg = area ? regionOfMask() : { x: 0, y: 0, w: S.W, h: S.H };
+      // one picture, or every frame of a GIF (four at a time); a GIF's frames all keep its size
+      const editOne = async (canvas, forceSize, model) => {
+        let crop = canvasOf(reg.w, reg.h);
+        crop.getContext('2d').drawImage(canvas, reg.x, reg.y, reg.w, reg.h, 0, 0, reg.w, reg.h);
+        if (Math.max(reg.w, reg.h) > MAX_SIDE) crop = fit(crop, MAX_SIDE);
+        const jpeg = await toJpeg(crop), opts = { style: o.style, text: o.text, scope: area ? 'area' : 'whole', fresh: baseIndex === 0 && !base.gif, model };
+        let res;
+        // a GIF frame tries again only on answers that cost nothing: the server already running this member's
+        // edits (3 at once), Venice busy, or no connection. Anything else stops, so nothing is paid twice.
+        for (let tries = 0; ; tries++) {
+          try { res = await runEdit(jpeg, opts); break; }
+          catch (e) {
+            const m = (e && e.message) || '';
+            if (!forceSize || tries > 60 || !/edits working|Venice is busy|Couldn't reach/.test(m)) throw e;
+            await new Promise(ok => setTimeout(ok, /edits working/.test(m) ? 1500 : 4000));
+          }
+        }
+        const img = await loadImage(res.blob);
+        let out;
+        if (area) out = composite(canvas, img, reg);
+        else {
+          const sameShape = forceSize || Math.abs(img.naturalWidth / img.naturalHeight - S.W / S.H) < 0.02;
+          out = sameShape ? canvasOf(S.W, S.H) : fit(img, MAX_SIDE);
+          if (sameShape) { const g = out.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(img, 0, 0, S.W, S.H); }
+        }
+        return { out, blurred: res.blurred, fallback: res.fallback };
+      };
+      let out, res, gif = null;
+      if (base.gif && S.frame != null) {
+        // one frame: one edit. Frames that were repeats of it keep the old picture (the first of them leads them now).
+        const k = S.frame, old = base.gif.twin, root = old[k];
+        const r = await editOne(base.gif.frames[k], true, base.gif.fallback ? 'fallback' : undefined);
+        const frames = base.gif.frames.slice(), twin = old.slice();
+        frames[k] = r.out; twin[k] = k;
+        if (root === k) { let lead = -1; for (let j = 0; j < twin.length; j++) if (j !== k && old[j] === k) { if (lead < 0) lead = j; twin[j] = lead; } }
+        out = frames[0]; res = r;
+        gif = { frames, delays: base.gif.delays, W: base.gif.W, H: base.gif.H, twin, fallback: base.gif.fallback || r.fallback, one: k };
+      } else if (base.gif) {
+        // Credits: only distinct frames are edited (a repeat takes its twin's result); the first one goes alone, so
+        // a refusal or a bad prompt costs one edit, not thirty, and when it needed the adult-scene model the rest go
+        // straight there instead of paying for a refusal each. Finished frames are kept under the request, so
+        // sending the same thing again after a failure only edits what's missing.
+        const n = base.gif.frames.length, twin = base.gif.twin, outs = new Array(n);
+        const key = (o.style || '') + '|' + (o.text || '') + '|' + (area ? maskKey() : '');
+        const kept = (base.gifDone = base.gifDone || {})[key] = base.gifDone[key] || { outs: [], fallback: !!base.gif.fallback, blurred: false };
+        const todo = [];
+        for (let k = 0; k < n; k++) if (twin[k] === k && !kept.outs[k]) todo.push(k);
+        const total = todo.length;
+        let done = 0;
+        const edit = async k => {
+          const r = await editOne(base.gif.frames[k], true, kept.fallback ? 'fallback' : undefined);
+          kept.outs[k] = r.out; kept.blurred = kept.blurred || r.blurred; if (r.fallback) kept.fallback = true;
+          showHint('Editing the GIF: ' + (++done) + ' of ' + total + ' frames');
+        };
+        showHint(total ? 'Editing the GIF: 0 of ' + total + ' frames' : '');
+        if (todo.length && !kept.outs.some(Boolean)) await edit(todo.shift());       // the first one alone
+        await Promise.all([0, 1, 2].map(async () => {                    // the server runs 3 edits at once per member
+          while (todo.length) await edit(todo.shift());
+        }));
+        showHint('');
+        for (let k = 0; k < n; k++) outs[k] = kept.outs[twin[k]];
+        out = outs[0]; res = { blurred: kept.blurred }; gif = { frames: outs, delays: base.gif.delays, W: base.gif.W, H: base.gif.H, twin: base.gif.twin, fallback: kept.fallback };
+      } else {
+        const r = await editOne(base.canvas, false);
+        out = r.out; res = r;
+      }
+      S.versions.push({ canvas: out, thumb: thumbOf(out), label: (o.label || o.text || 'Edit').slice(0, 60), from: baseIndex, gif });
+      stop();
+      S.dim = true;   // outline only, so the result shows; any selection change brings the tint back
+      setCurrent(S.versions.length - 1);
+      let note = area ? 'Done. Only the selected area changed. Hold "Before" to compare.' : 'Done. Hold "Before" to compare.';
+      if (gif && gif.one != null) note = 'Done. Only frame ' + (gif.one + 1) + (area ? "'s selected area" : '') + ' changed. Hold "Before" to compare, or tap "All frames" to watch it play.';
+      if (res.blurred) note += S.mode === 'byok' ? '\n\nVenice blurred this one because it counts as adult content. Turn off safe mode under Key to get it unblurred.' : "\n\nVenice blurred this one because it counts as adult content, and the site has Venice's safe mode on.";
+      sayResult(S.versions.length - 1, note);
+    } catch (e) {
+      stop();
+      say('bot', (e && e.message && e.message !== 'decode') ? e.message : "That didn't work. Try again.", { err: true });
+    } finally {
+      S.busy = false; $('stageBusy').hidden = true; refresh();
+    }
+  }
+
+  // ---------------------------------------------------------------- start
+  greet();
+  setTool('brush');
+  refresh();
+  detectMode();
+  window.__hr = S;   // for tests
+  window.__hrGif = () => gifBlob(S.versions[S.cur]);
+})();
+</script>
+</body>
+</html>
