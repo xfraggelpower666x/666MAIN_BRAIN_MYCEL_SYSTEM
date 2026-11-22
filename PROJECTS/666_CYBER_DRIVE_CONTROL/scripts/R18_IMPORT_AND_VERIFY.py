@@ -46,7 +46,7 @@ def main():
         if destination.exists(): raise RuntimeError("Destination exists: will not overwrite")
         if not (repo/".git").exists(): raise RuntimeError("Not a Git checkout")
         import shutil
-        shutil.copytree(temp,destination)
+        shutil.copytree(temp,destination,ignore=shutil.ignore_patterns('__pycache__','.pytest_cache','*.pyc'))
         for rel,data in entries:
             if hashlib.sha256(destination.joinpath(*rel.parts).read_bytes()).digest()!=hashlib.sha256(data).digest():
                 raise RuntimeError("Copy hash mismatch")
