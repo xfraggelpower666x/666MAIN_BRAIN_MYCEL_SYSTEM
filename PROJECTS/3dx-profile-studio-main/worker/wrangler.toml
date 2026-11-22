@@ -1,0 +1,47 @@
+# Free built-in AI for 3DX Profile Studio (Cloudflare Worker)
+#
+#   cd worker && npm install
+#   npx wrangler login
+#   npx wrangler deploy
+#
+# It runs on Workers AI, Cloudflare's own models: no AI key to keep. NEURON_DAILY keeps it inside the free
+# daily allowance (10,000 neurons, reset at 00:00 UTC), so it never bills past it.
+
+name = "3dx-profile-studio-ai"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+[vars]
+# DeepSeek V4.1 Flash with its reasoning off: clean rich-text tags, ~2-3 s and ~25-40 neurons a write
+# (tested 2026-11-22 against GPT-OSS 120B, Gemma 4 26B and GLM 4.7 Flash). PRICE_IN/OUT are its price in
+# dollars per million tokens, used to count neurons when Workers AI doesn't report them.
+MODEL = "@cf/deepseek-ai/deepseek-v4.1-flash-1017"
+REASONING = "none"
+MAX_TOKENS = "4000"
+PRICE_IN = "0.3"
+PRICE_OUT = "1.2"
+# The published page (GitHub Pages) and the downloaded file opened from disk ("null")
+ALLOWED_ORIGINS = "https://deaeath.github.io,null"
+# Exact limits, counted by the Limiter Durable Object: requests per minute per visitor, requests per day
+# for the whole site (0 = no daily cap), and neurons per day (under the free 10,000, with room to spare)
+PER_MINUTE = "10"
+DAILY_LIMIT = "0"
+NEURON_DAILY = "9500"
+# Feedback becomes issues here (needs the GITHUB_TOKEN secret: fine-grained, Issues read/write on this repo)
+FEEDBACK_REPO = "Deaeath/3dx-profile-studio"
+
+[ai]
+binding = "AI"
+
+[[durable_objects.bindings]]
+name = "LIMITS"
+class_name = "Limiter"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Limiter"]
+
+[observability]
+enabled = false

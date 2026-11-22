@@ -1,0 +1,13 @@
+{
+  "name": "3dx-profile-studio-ai",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "wrangler": "^4.148.0"
+  }
+}
