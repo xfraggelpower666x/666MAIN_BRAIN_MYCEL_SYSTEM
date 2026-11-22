@@ -331,7 +331,11 @@
     "skills/tdh-integration-v1/shachiviti/SKILL.md": "a2157b754a111a3a83b685ff453f812752cc02a94b0532d0b1cfe5538d61c492",
     "skills/tdh-integration-v1/td/SKILL.md": "8d5fb11d5c0be5ade84a59890a2c6d33922ed79290edf138a3615e19290619ce",
     "integrations/clic-r10/TDH_R10_NATIVE_REVIEW.json": "36c100ae64b742bcd2ecef8c5cb8efe09b58f178b2b3d79abd4bddcad53a3026",
-    "outbox/666CLIC/666TDH-TO-666CLIC-R10-20261122-01.json": "981e1cf8ea784fa179023c52cd7e4a996ed2a8ba7ca92a3fec394af8b67b4c3a"
+    "outbox/666CLIC/666TDH-TO-666CLIC-R10-20261122-01.json": "981e1cf8ea784fa179023c52cd7e4a996ed2a8ba7ca92a3fec394af8b67b4c3a",
+    "tools/ci_validate.py": "7e0c5e5e0512b38b01269cd138cb3bfeb8ead72f77b47830f94a3d25ec9d1e7d",
+    "tests/test_ci_validate.py": "a37ce548b284c4cd3824980750b29f68fd9b356568014bc4f3d8c5dd46d60fad",
+    "integrations/tdh-native-ci/666tdh-native-regression.workflow-template.yml": "0531abb934143386cdea3d3e537918a7c20fa9a52cb857d6c6463fe68564ac36",
+    "integrations/tdh-native-ci/README.md": "acf10ea7669ab5e9bca4742fba0de3cff41b0c99846ed57554638d6c5f529ab1"
   },
   "source_snapshot": {
     "release": "v1.15.0",
@@ -429,5 +433,32 @@
     "prior_starbridge_receipts_unchanged": true,
     "no_foreign_writes": true,
     "native_source_release_preserved": "v1.15.0"
+  },
+  "ci_native_r01": {
+    "revision": "CI-R01",
+    "date": "2026-11-22",
+    "system_id": "666TRACKHUB-001",
+    "source_native_release_preserved": "v1.15.0",
+    "repo_policy_revision": "R1",
+    "r3_ui_daemon_preserved": true,
+    "scope": "PROJECTS/666TDH_ONLY",
+    "source_git_commit": "3621cb245e7f28db190c2bd462b3e70e4cabe215",
+    "data_commit": "a5ca6f915edd052cbf5ab94d773ea7c140ebe82a",
+    "prechange_recovery_ref": "backup/666TDH/pre-CI-R01-20261122-3621cb24",
+    "entrypoint": "tools/ci_validate.py",
+    "negative_tests": "tests/test_ci_validate.py",
+    "workflow_template": "integrations/tdh-native-ci/666tdh-native-regression.workflow-template.yml",
+    "workflow_intended_external_path": ".github/workflows/666tdh-native-regression.yml",
+    "workflow_activation": "WRITE_BLOCKED_OUTSIDE_NATIVE_UPDATE_AUTHORITY",
+    "workflow_currently_active": false,
+    "local_source_negative_regression": "4_OF_4_PASS",
+    "native_full_suite_at_this_new_revision": "NOT_RUN",
+    "host_render": "OPEN_NOT_VERIFIED",
+    "fse_source_vault": "SOURCE_VAULT_ONLY",
+    "shachiviti_source_identity": "UNRESOLVED_HOLD",
+    "clic_r10_receipt_preserved": true,
+    "child_versions_unchanged": true,
+    "no_foreign_writes": true,
+    "no_paid_actions": true
   }
 }
