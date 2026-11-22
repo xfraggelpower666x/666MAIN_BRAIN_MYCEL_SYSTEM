@@ -38,8 +38,18 @@ def get_json(url:str)->dict:
 
 def verify_remote()->dict:
     base='https://api.github.com/repos/'+SOURCE_REPO
+    # Historischer R11-Anker bleibt fest, der CLIC-Branch darf unabhängig fortschreiten.
     head=get_json(base+'/git/ref/heads/'+SOURCE_BRANCH)
-    if head['object']['sha']!=SOURCE_HEAD:raise ValueError('SOURCE_HEAD_CHANGED_REVALIDATE')
+    current_head=head.get('object',{}).get('sha')
+    if not isinstance(current_head,str) or len(current_head)!=40:
+        raise ValueError('CURRENT_SOURCE_HEAD_INVALID')
+    current_commit=get_json(base+'/git/commits/'+current_head)
+    if current_commit.get('sha')!=current_head:
+        raise ValueError('CURRENT_SOURCE_COMMIT_MISMATCH')
+    current_tree=get_json(base+'/git/trees/'+current_commit['tree']['sha']+'?recursive=1')
+    current_matches=[x for x in current_tree.get('tree',[]) if x.get('path')==PATH and x.get('type')=='blob']
+    if current_tree.get('truncated') or len(current_matches)!=1 or current_matches[0].get('sha')!=SOURCE_BLOB:
+        raise ValueError('CURRENT_SOURCE_HANDOFF_CHANGED_OR_MISSING')
     commit=get_json(base+'/git/commits/'+SOURCE_HEAD)
     if commit['sha']!=SOURCE_HEAD or commit['tree']['sha']!=SOURCE_TREE:raise ValueError('SOURCE_COMMIT_TREE_MISMATCH')
     tree=get_json(base+'/git/trees/'+SOURCE_TREE+'?recursive=1')
@@ -50,7 +60,9 @@ def verify_remote()->dict:
     if data.get('encoding')!='base64':raise ValueError('SOURCE_BLOB_ENCODING')
     blob=base64.b64decode(data['content'])
     validate_handoff(blob)
-    return {'source_commit':SOURCE_HEAD,'source_tree':SOURCE_TREE,'handoff_blob':SOURCE_BLOB,'readback':'VERIFIED'}
+    return {'source_commit':SOURCE_HEAD,'source_tree':SOURCE_TREE,'handoff_blob':SOURCE_BLOB,
+            'current_source_head':current_head,'current_handoff_blob':current_matches[0]['sha'],
+            'readback':'VERIFIED'}
 
 def inspect(root:pathlib.Path,payload:bytes, remote:bool=False)->dict:
     h=validate_handoff(payload)

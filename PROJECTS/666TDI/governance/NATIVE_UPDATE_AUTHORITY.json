@@ -1,5 +1,5 @@
 {
-  "schema": "666TDI_NATIVE_UPDATE_AUTHORITY_V1",
+  "schema": "666TDI_NATIVE_UPDATE_AUTHORITY_V2",
   "system_id": "666TDI-001",
   "namespace": "666TDI",
   "authorized_by": "DIRECT_USER_MESSAGE_2026-11-22",
@@ -19,5 +19,19 @@
   "host_pass_claimed": false,
   "scope": "ONLY_666TDI",
   "consumer": "native/handoff_consumer.py",
-  "approved_action": "R11_NATIVE_ADOPTION_AND_TDI03_OPTIONAL_AUDIO_FIX"
+  "approved_action": "R11_NATIVE_ADOPTION_AND_TDI03_OPTIONAL_AUDIO_FIX;FORCE_REPAIR_R11_HEAD_DRIFT_ONLY",
+  "additional_authorization": {
+    "source": "DIRECT_USER_FORCE_REPAIR_2026-11-22",
+    "scope": "PROJECTS/666TDI/native/handoff_consumer.py;PROJECTS/666TDI/native/tests/test_handoff_consumer.py;PROJECTS/666TDI/governance/NATIVE_UPDATE_AUTHORITY.json;PROJECTS/666TDI/CURRENT_POINTER.json",
+    "permitted_operations": [
+      "VALIDATE_HISTORICAL_R11_COMMIT_TREE_BLOB",
+      "VALIDATE_UNCHANGED_R11_BLOB_AT_LATEST_CLIC_HEAD",
+      "TARGETED_REGRESSION",
+      "NATIVE_POINTER_LAST"
+    ],
+    "forbid_new_update_trigger": true,
+    "forbid_foreign_write": true,
+    "requires_pre_change_backup": true,
+    "requires_readback": true
+  }
 }
