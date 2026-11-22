@@ -1,0 +1,15 @@
+{
+  "system_id": "666CLS-CORE-001",
+  "version": "1.24.11",
+  "status": "FROZEN_LOCAL",
+  "base_version": "1.24.10",
+  "base_git_head": "7b53625b72c6f0457f06c6df17dc84cdbb5e7e89",
+  "scope": "P1_CURES_SUBFACET_READBACK_REFERENCE",
+  "record_role": "PRE_PUBLICATION_FREEZE",
+  "active_provider_version_at_freeze": "1.24.10",
+  "provider_readback_at_freeze": "READBACK_PENDING",
+  "archive_content_changed": false,
+  "foreign_native_write": false,
+  "facet_mode": "READ_ONLY",
+  "pointer_last_required": true
+}

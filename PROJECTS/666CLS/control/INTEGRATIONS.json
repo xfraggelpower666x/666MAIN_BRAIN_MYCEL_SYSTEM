@@ -111,7 +111,7 @@
         "facets/README.md": "e63092e60575d0a41b60f5d3ab6e4a93844f0b3c3ea5af37c48d07e4fae4f285",
         "runtime/cls_facet_runtime.py": "0f94c04a94cb88f3fa681347b8812a1c374ead1b8d34910c7c5353f389e9a3e6",
         "tests/test_cls_facet_runtime.py": "8fb3c6dba4fe2ff6642c1ccff63558c080c8e2470eda72f96ffa9fe3fecb8012",
-        "facets/cures/LIVECIRCLE.json": "866811fd2fed249bc57a681f732270ed682df471a48b43c73aba368b066e3e2b",
+        "facets/cures/LIVECIRCLE.json": "a067ef9670b4dea398fb497139c068bda17ad02ef8c8bb8ce37185c9f5736eb2",
         "facets/cures/UI.json": "ae310359c32675985d5bda911ea1028243c050e22826ebddf918a2f898a48a33",
         "facets/lyrics-fulltext/LIVECIRCLE.json": "099fcaa4a373fc5c264e6969f19185966b15e62392c0497bc7b7f644791f948b",
         "facets/lyrics-fulltext/UI.json": "8e4b20d536d7c051d7cb6aac900f1e5ceb6300d79cc735593946952d751f40c9",
