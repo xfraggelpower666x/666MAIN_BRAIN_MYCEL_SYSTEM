@@ -1,10 +1,11 @@
-name: ChatBackup R5.5 full source Windows build package
+name: ChatBackup R5.5 single EXE complete Windows source package
 on:
   push:
     branches:
       - feature/chatbackup-r55-source-relocation-20261121
     paths:
       - '.github/workflows/chatbackup-r55-full-source-package.yml'
+      - 'PROJECTS/ChatBackup PC Tool/**'
   workflow_dispatch:
 permissions:
   contents: read
@@ -21,13 +22,14 @@ jobs:
           set -euo pipefail
           git init -q .
           git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          git -c protocol.version=2 fetch --depth=1 --no-tags --no-recurse-submodules origin fb6f620d2f85b17f3f7e82dc0a1ad6e465e9d96e
+          git -c protocol.version=2 fetch --depth=1 --no-tags --no-recurse-submodules origin ${GITHUB_SHA}
           git sparse-checkout init --no-cone
           git sparse-checkout set 'PROJECTS/ChatBackup PC Tool/**'
           git -c core.autocrlf=false checkout --force FETCH_HEAD
           git remote set-url origin "https://github.com/${GITHUB_REPOSITORY}.git"
-          test "$(git rev-parse HEAD)" = "fb6f620d2f85b17f3f7e82dc0a1ad6e465e9d96e"
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
           test -f 'PROJECTS/ChatBackup PC Tool/BUILD_EXE.bat'
+          test -f 'PROJECTS/ChatBackup PC Tool/666_CHATBACKUP_MENUE.bat'
           test -f 'PROJECTS/ChatBackup PC Tool/app/chatbackup_gui.pyw'
           test -f 'PROJECTS/ChatBackup PC Tool/tools/archive_branch_tree_ui.py'
           echo 'FROZEN_SOURCE_READBACK_PASS'
@@ -39,41 +41,26 @@ jobs:
           root=pathlib.Path('PROJECTS/ChatBackup PC Tool')
           dest=pathlib.Path('output')
           dest.mkdir()
-          basename='666_CHATBACKUP_PC_TOOL_R55_FULL_SOURCE'
+          basename='666_CHATBACKUP_PC_TOOL_R55_SINGLE_EXE_FULL_SOURCE'
           filename=dest/(basename+'.zip')
           source_files=[p for p in root.rglob('*') if p.is_file()]
-          assert len(source_files)>100, 'Incomplete source inventory'
+          assert len(source_files)>150, 'Incomplete source inventory'
+          build_text=(root/'BUILD_EXE.bat').read_text('utf-8')
+          assert '666_CHATBACKUP_ARCHIVE_INTELLIGENCE.spec' not in build_text
+          assert '666_CHATBACKUP_PC_TOOL.spec' in (root/'666_CHATBACKUP_MENUE.bat').read_text('utf-8')
           extra = {
-            'BUILD_NUR_HAUPTPROGRAMM.cmd': r'''@echo off
-          setlocal EnableExtensions
-          cd /d "%~dp0"
-          title 666 ChatBackup PC Tool - Originales Hauptprogramm selbst kompilieren
-          powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0bootstrap\bootstrap.ps1" -Mode Build
-          if errorlevel 1 goto error
-          if not exist ".venv-build\Scripts\python.exe" goto error
-          ".venv-build\Scripts\python.exe" -m PyInstaller --noconfirm --clean "666_CHATBACKUP_PC_TOOL.spec"
-          if errorlevel 1 goto error
-          if not exist "dist\666_CHATBACKUP_PC_TOOL.exe" goto error
-          echo [PASS] dist\666_CHATBACKUP_PC_TOOL.exe erstellt.
-          pause
-          exit /b 0
-          :error
-          echo [FAIL] Build konnte nicht abgeschlossen werden.
-          pause
-          exit /b 1
-          '''.replace('\n          ','\n'),
             'ANLEITUNG_SELBST_KOMPILIEREN.md': '''# 666 CHATBACKUP PC TOOL - R5.5 VOLLSTAENDIGES QUELLPAKET
 
           **Originalprogramm:** 666 CHATBACKUP PC TOOL v1.10.5, additiv mit R5.5 erweitert.
-          **Verifizierter Freeze-Commit:** fb6f620d2f85b17f3f7e82dc0a1ad6e465e9d96e
+          **Verifizierter Freeze-Commit:** ${GITHUB_SHA}
           **Produktiver Branch:** Nicht veraendert. Entwicklungs-/Buildkandidat.
 
           ## Windows: Selber kompilieren
           1. Dieses ZIP in einen eigenen Ordner vollstaendig entpacken.
           2. Erst bei Bedarf bestehende Python-/Windows-Umgebung sichern, da der Bootstrap Abhaengigkeiten installieren/aktualisieren kann.
-          3. `BUILD_NUR_HAUPTPROGRAMM.cmd` per Doppelklick ausfuehren.
+          3. `666_CHATBACKUP_MENUE.bat` per Doppelklick starten und Option 2 auswaehlen.
           4. Fertige Datei: `dist/666_CHATBACKUP_PC_TOOL.exe`.
-          5. Alternativ den erhaltenen Originalstarter `BUILD_EXE.bat` ausfuehren: baut das Hauptprogramm und anschliessend den optionalen Archive-Companion.
+          5. Der bestehende Originalstarter `BUILD_EXE.bat` baut jetzt ebenfalls nur die eine Haupt-EXE. Die alte zweite EXE wird nicht mehr gebaut.
           6. `VERIFY_WINDOWS_HOST_ACCEPTANCE.bat` ist der urspruengliche Windows-Hosttest mit optionalem oeffentlichem Share-Link. Echte Daten nur freiwillig und mit eigener Freigabe verwenden.
           7. Vor produktivem Einsatz GUI und Exportfunktionen auf dem eigenen Windows-System pruefen.
 
@@ -108,7 +95,7 @@ jobs:
           PY
       - uses: actions/upload-artifact@v4
         with:
-          name: 666_CHATBACKUP_PC_TOOL_R55_FULL_SOURCE
-          path: output/666_CHATBACKUP_PC_TOOL_R55_FULL_SOURCE.zip
+          name: 666_CHATBACKUP_PC_TOOL_R55_SINGLE_EXE_FULL_SOURCE
+          path: output/666_CHATBACKUP_PC_TOOL_R55_SINGLE_EXE_FULL_SOURCE.zip
           if-no-files-found: error
           retention-days: 7
