@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Double Take</title>
+<meta name="description" content="Make a PNG that shows one picture as the thumbnail and a different one when someone clicks it.">
+<meta property="og:title" content="Double Take">
+<meta property="og:description" content="One picture in the thumbnail. Another when they click.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d0d10'/%3E%3Crect x='10' y='14' width='26' height='26' rx='5' fill='%23e8bc5c'/%3E%3Crect x='28' y='24' width='26' height='26' rx='5' fill='%23ff46aa' fill-opacity='.9'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #0b0b0f; --panel: #14141b; --panel-2: #1b1b24; --line: #2a2a36; --text: #f1efe9; --muted: #a29fae;
+    --gold: #e8bc5c; --gold-deep: #9a7428; --pink: #ff46aa; --violet: #7a4cf0; --ok: #34d399; --warn: #fbbf24; --bad: #f87171;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: -1;
+    background: radial-gradient(60rem 30rem at 15% -10%, rgba(232,188,92,.12), transparent 60%),
+                radial-gradient(50rem 30rem at 100% 0%, rgba(255,70,170,.10), transparent 60%); }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+  header { padding: 44px 0 20px; }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .mark { width: 46px; height: 46px; position: relative; flex: none; }
+  .mark i { position: absolute; width: 28px; height: 28px; border-radius: 7px; }
+  .mark i:first-child { left: 0; top: 2px; background: var(--gold); }
+  .mark i:last-child { right: 0; bottom: 2px; background: var(--pink); opacity: .9; mix-blend-mode: screen; }
+  h1 { margin: 0; font: 800 clamp(30px, 6vw, 44px)/1.05 Georgia, "Times New Roman", serif; letter-spacing: .5px; }
+  .tag { margin: 10px 0 0; color: var(--muted); font-size: 18px; }
+  .tag b { color: var(--gold); font-weight: 600; } .tag em { color: var(--pink); font-style: normal; font-weight: 600; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: linear-gradient(var(--panel), var(--panel)) padding-box; border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; }
+  .card h2 { margin: 0 0 4px; font-size: 15px; letter-spacing: 1.2px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+  .card h2 .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .card p.sub { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
+  .thumb h2 .dot { background: var(--gold); } .click h2 .dot { background: var(--pink); }
+
+  .drop { position: relative; display: grid; place-items: center; aspect-ratio: 4 / 3; border: 2px dashed var(--line); border-radius: 12px;
+    background: var(--panel-2); cursor: pointer; overflow: hidden; transition: border-color .15s, background .15s; }
+  .drop:hover, .drop:focus-visible, .drop.over { border-color: var(--gold); outline: none; }
+  .click .drop:hover, .click .drop:focus-visible, .click .drop.over { border-color: var(--pink); }
+  .drop img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .drop .hint { text-align: center; color: var(--muted); font-size: 14px; padding: 12px; }
+  .drop .hint strong { display: block; color: var(--text); font-size: 16px; margin-bottom: 2px; }
+  .drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+  .bar { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0 0; }
+  button, .btn { appearance: none; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font: 600 15px system-ui, sans-serif;
+    padding: 10px 16px; border-radius: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+  button:hover, .btn:hover { border-color: var(--muted); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .b-swap { border-color: rgba(122,76,240,.6); } .b-swap:hover { border-color: var(--violet); }
+  .b-sample { border-color: rgba(232,188,92,.5); } .b-sample:hover { border-color: var(--gold); }
+  .b-dl { background: linear-gradient(135deg, var(--gold), #f3d08a); color: #1a1406; border: 0; padding: 12px 20px; font-size: 16px; }
+  .b-dl:hover { filter: brightness(1.06); }
+
+  section.result { margin-top: 28px; }
+  .result h2.big, .how h2 { font: 700 22px Georgia, serif; margin: 0 0 12px; }
+  .pv { background: var(--panel-2); border-radius: 12px; overflow: hidden; aspect-ratio: 4 / 3; display: grid; place-items: center; }
+  .pv canvas { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .pv .empty { color: var(--muted); font-size: 14px; padding: 16px; text-align: center; }
+  .meta { color: var(--muted); font-size: 13px; margin-top: 8px; }
+  .dlrow { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 16px; }
+
+  .how { margin-top: 36px; }
+  .how .grid { gap: 16px; }
+  .how p, .how li { color: #d9d6e0; font-size: 15px; }
+  .how ul { padding-left: 0; list-style: none; margin: 0; }
+  .how li { display: flex; gap: 10px; margin: 0 0 10px; }
+  .how li i { flex: none; width: 10px; height: 10px; border-radius: 50%; margin-top: 7px; }
+  .i-ok { background: var(--ok); } .i-warn { background: var(--warn); } .i-bad { background: var(--bad); }
+  .note { margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: rgba(232,188,92,.08); border: 1px solid rgba(232,188,92,.25); color: #eadcb8; font-size: 14px; }
+  footer { margin: 44px 0 36px; color: var(--muted); font-size: 14px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  footer b { color: var(--gold); font-family: Georgia, serif; letter-spacing: .4px; }
+  .err { color: var(--bad); font-size: 14px; margin-top: 10px; min-height: 1em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><div class="mark" aria-hidden="true"><i></i><i></i></div><h1>Double Take</h1></div>
+    <p class="tag">One picture in the <b>thumbnail</b>. Another when they <em>click</em>.</p>
+  </header>
+
+  <main>
+    <div class="grid">
+      <div class="card thumb">
+        <h2><span class="dot"></span>Thumbnail</h2>
+        <p class="sub">What people see in the small preview.</p>
+        <label class="drop" id="drop-thumb" tabindex="0">
+          <span class="hint"><strong>Choose a picture</strong>or drop one here</span>
+          <input type="file" accept="image/*" id="file-thumb" aria-label="Thumbnail picture">
+        </label>
+      </div>
+      <div class="card click">
+        <h2><span class="dot"></span>On click</h2>
+        <p class="sub">What opens when they click it.</p>
+        <label class="drop" id="drop-click" tabindex="0">
+          <span class="hint"><strong>Choose a picture</strong>or drop one here</span>
+          <input type="file" accept="image/*" id="file-click" aria-label="Click picture">
+        </label>
+      </div>
+    </div>
+    <div class="bar">
+      <button class="b-swap" id="swap" type="button" disabled>⇄ Swap pictures</button>
+      <button class="b-sample" id="sample" type="button">♠ Try the samples</button>
+    </div>
+    <div class="err" id="err" role="alert"></div>
+
+    <section class="result" aria-live="polite">
+      <h2 class="big">Your Double Take</h2>
+      <div class="grid">
+        <div class="card thumb">
+          <h2><span class="dot"></span>As the thumbnail</h2>
+          <p class="sub">Where the picture's gamma setting is applied.</p>
+          <div class="pv" id="pv-thumb"><span class="empty">Pick both pictures to see it.</span></div>
+        </div>
+        <div class="card click">
+          <h2><span class="dot"></span>When they click</h2>
+          <p class="sub">Where it's ignored, like the 3DXChat client.</p>
+          <div class="pv" id="pv-click"><span class="empty">Pick both pictures to see it.</span></div>
+        </div>
+      </div>
+      <div class="dlrow">
+        <button class="b-dl" id="dl" type="button" disabled>⬇ Download PNG</button>
+        <span class="meta" id="meta"></span>
+      </div>
+    </section>
+
+    <section class="how">
+      <h2>How it works</h2>
+      <div class="grid">
+        <div class="card">
+          <p>A PNG can carry a gamma setting. Browsers and many thumbnail makers apply it. Some apps, like the 3DXChat client, ignore it.</p>
+          <p>Double Take hides your thumbnail picture in near-white pixels that only that setting brings out, and puts your click picture in the pixels between them. Apply the setting and the click picture goes black; ignore it and the hidden picture just fades into a light wash.</p>
+          <p style="margin-bottom:0">Everything happens in your browser. Your pictures never leave your device.</p>
+        </div>
+        <div class="card">
+          <p style="margin-top:0"><strong>Will it work where you post it?</strong> Upload it and look:</p>
+          <ul>
+            <li><i class="i-ok"></i><span>The thumbnail shows your thumbnail picture: it works.</span></li>
+            <li><i class="i-warn"></i><span>Both show the click picture: that site strips the gamma setting, so the trick can't work there.</span></li>
+            <li><i class="i-bad"></i><span>The thumbnail is black: that site shrinks pictures before applying gamma.</span></li>
+          </ul>
+          <div class="note">The click picture comes out a little washed out, and the thumbnail a little dim. Bold, bright pictures with strong shapes work best.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer><span>Double Take</span><span>By <b>KingColossus</b></span></footer>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  // The trick (see "How it works"): a tiny gAMA value means "apply gamma" raises every value to a huge power.
+  const FILE_GAMMA = 0.015;                       // stored in the gAMA chunk as 1500
+  const EXP = 1 / (FILE_GAMMA * 2.2);             // what a gamma-applying viewer raises each value to (about 30)
+  const CAP = 0.8;                                // no click-picture pixel above this: 0.8^30 is black once applied
+  const T_MIN = 0.05;                             // the thumbnail's darkest value: its raw pixels stay near white
+  const T_RAW_MIN = Math.pow(T_MIN, 1 / EXP);
+  const F_MAX = CAP - (1 - T_RAW_MIN);            // the click picture's range, leaving room to cancel the ghost
+  const MAX_SIDE = 1200;                          // the output's longest side (plenty for a profile picture, and small)
+
+  const $ = id => document.getElementById(id);
+  const pics = { thumb: null, click: null };      // each: a canvas holding the chosen picture
+  let outBlob = null, outUrl = '';
+
+  function showErr(t) { $('err').textContent = t || ''; }
+
+  function loadFile(file) {
+    return new Promise((resolve, reject) => {
+      if (!file || !/^image\//.test(file.type || 'image/')) { reject(new Error('That file isn\'t a picture.')); return; }
+      const url = URL.createObjectURL(file), img = new Image();
+      img.onload = () => { URL.revokeObjectURL(url); resolve(toCanvas(img, img.naturalWidth, img.naturalHeight)); };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('That picture couldn\'t be opened. Try a PNG or JPEG.')); };
+      img.src = url;
+    });
+  }
+  function toCanvas(src, w, h) {
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const g = c.getContext('2d'); g.fillStyle = '#000'; g.fillRect(0, 0, w, h); g.drawImage(src, 0, 0, w, h);
+    return c;
+  }
+  function showPick(which) {
+    const drop = $('drop-' + which), c = pics[which];
+    let img = drop.querySelector('img');
+    if (!img) { img = document.createElement('img'); img.alt = ''; drop.insertBefore(img, drop.firstChild); }
+    img.src = c.toDataURL('image/jpeg', 0.85);
+    drop.querySelector('.hint').style.visibility = 'hidden';
+  }
+
+  // a picture drawn to cover w x h, centred (the thumbnail picture takes the click picture's shape)
+  function pixelsCover(c, w, h) {
+    const out = document.createElement('canvas'); out.width = w; out.height = h;
+    const g = out.getContext('2d'); g.fillStyle = '#000'; g.fillRect(0, 0, w, h);
+    const s = Math.max(w / c.width, h / c.height), dw = c.width * s, dh = c.height * s;
+    g.imageSmoothingQuality = 'high';
+    g.drawImage(c, (w - dw) / 2, (h - dh) / 2, dw, dh);
+    return g.getImageData(0, 0, w, h).data;
+  }
+
+  const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+
+  function build() {
+    const k = Math.min(1, MAX_SIDE / Math.max(pics.click.width, pics.click.height));
+    const w = Math.max(2, Math.round(pics.click.width * k)), h = Math.max(2, Math.round(pics.click.height * k));
+    const A = pixelsCover(pics.click, w, h), B = pixelsCover(pics.thumb, w, h);
+    const sbLut = new Float32Array(256);
+    for (let v = 0; v < 256; v++) sbLut[v] = Math.pow(Math.max(v / 255, T_MIN), 1 / EXP);
+    const sb = new Float32Array(w * h * 3);
+    for (let i = 0, j = 0; i < w * h; i++, j += 4) { sb[i * 3] = sbLut[B[j]]; sb[i * 3 + 1] = sbLut[B[j + 1]]; sb[i * 3 + 2] = sbLut[B[j + 2]]; }
+    // The thumbnail's pixels, rounded to whole values through a 4x4 ordered dither: one step near white is ~22 steps once
+    // gamma is applied, so plain rounding bands smooth gradients. The dither blends the bands away when it's shrunk, and
+    // being a repeating pattern (not noise) it keeps the PNG small. Thumbnail pixels sit on a checkerboard, so the
+    // pattern runs over (x/2, y), where they're evenly spread.
+    const qb = new Float32Array(w * h * 3);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 3, t = (BAYER[((y & 3) << 2) | ((x >> 1) & 3)] + 0.5) / 16;
+      for (let c = 0; c < 3; c++) qb[i + c] = Math.min(255, Math.floor(sb[i + c] * 255 + t)) / 255;
+    }
+    const raw = new Uint8ClampedArray(w * h * 4);
+    for (let y = 0; y < h; y++) {
+      const yu = y > 0 ? y - 1 : y, yd = y < h - 1 ? y + 1 : y;
+      for (let x = 0; x < w; x++) {
+        const i = y * w + x, o = i * 4;
+        if ((x + y) & 1) {                                   // a thumbnail pixel: near white
+          raw[o] = Math.round(qb[i * 3] * 255); raw[o + 1] = Math.round(qb[i * 3 + 1] * 255); raw[o + 2] = Math.round(qb[i * 3 + 2] * 255);
+        } else {                                             // a click pixel, paying back what its neighbours lack of white
+          const xl = x > 0 ? x - 1 : x, xr = x < w - 1 ? x + 1 : x;
+          const n1 = (yu * w + x) * 3, n2 = (yd * w + x) * 3, n3 = (y * w + xl) * 3, n4 = (y * w + xr) * 3;
+          for (let c = 0; c < 3; c++) {
+            const nbr = (qb[n1 + c] + qb[n2 + c] + qb[n3 + c] + qb[n4 + c]) / 4;
+            const v = Math.min(CAP, Math.max(0, (A[o + c] / 255) * F_MAX + (1 - nbr)));
+            raw[o + c] = Math.round(v * 255);
+          }
+        }
+        raw[o + 3] = 255;
+      }
+    }
+    return { w, h, raw };
+  }
+
+  // Both previews at half size, each 2x2 block averaged the way the eye blends it. The thumbnail side has gamma applied
+  // first, rounded to whole values as a real renderer outputs them; the click side is the raw pixels.
+  function half(w, h, raw, lut) {
+    const tw = w >> 1, th = h >> 1, t = new Uint8ClampedArray(tw * th * 4);
+    for (let y = 0; y < th; y++) for (let x = 0; x < tw; x++) {
+      const o = (y * tw + x) * 4, a = ((2 * y) * w + 2 * x) * 4, b = a + 4, c = a + w * 4, d = c + 4;
+      for (let ch = 0; ch < 3; ch++) t[o + ch] = (lut[raw[a + ch]] + lut[raw[b + ch]] + lut[raw[c + ch]] + lut[raw[d + ch]]) / 4;
+      t[o + 3] = 255;
+    }
+    const cv = document.createElement('canvas'); cv.width = tw; cv.height = th;
+    cv.getContext('2d').putImageData(new ImageData(t, tw, th), 0, 0);
+    return cv;
+  }
+  function drawPreviews(w, h, raw) {
+    const full = document.createElement('canvas'); full.width = w; full.height = h;
+    full.getContext('2d').putImageData(new ImageData(raw, w, h), 0, 0);
+    const gLut = new Uint8Array(256), ident = new Uint8Array(256);
+    for (let v = 0; v < 256; v++) { gLut[v] = Math.round(Math.pow(v / 255, EXP) * 255); ident[v] = v; }
+    $('pv-thumb').replaceChildren(half(w, h, raw, gLut));
+    $('pv-click').replaceChildren(half(w, h, raw, ident));
+    return full;                                       // (the full-size pixels: the PNG is made from these)
+  }
+
+  // ---- the PNG: the canvas's own, with every colour chunk taken out and our gAMA put in after IHDR
+  const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+  function crc32(bytes) { let c = 0xffffffff; for (let i = 0; i < bytes.length; i++) c = CRC[(c ^ bytes[i]) & 0xff] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; }
+  function chunk(type, data) {
+    const out = new Uint8Array(12 + data.length), dv = new DataView(out.buffer);
+    dv.setUint32(0, data.length);
+    for (let i = 0; i < 4; i++) out[4 + i] = type.charCodeAt(i);
+    out.set(data, 8);
+    dv.setUint32(8 + data.length, crc32(out.subarray(4, 8 + data.length)));
+    return out;
+  }
+  function withGamma(png) {
+    const dv = new DataView(png.buffer, png.byteOffset, png.byteLength), parts = [png.subarray(0, 8)];
+    const DROP = new Set(['gAMA', 'sRGB', 'iCCP', 'cHRM']);
+    let p = 8;
+    while (p < png.length) {
+      const len = dv.getUint32(p), type = String.fromCharCode(png[p + 4], png[p + 5], png[p + 6], png[p + 7]);
+      const whole = png.subarray(p, p + 12 + len);
+      if (!DROP.has(type)) parts.push(whole);
+      if (type === 'IHDR') { const g = new Uint8Array(4); new DataView(g.buffer).setUint32(0, Math.round(FILE_GAMMA * 100000)); parts.push(chunk('gAMA', g)); }
+      p += 12 + len;
+    }
+    return new Blob(parts, { type: 'image/png' });
+  }
+
+  async function render() {
+    showErr('');
+    $('swap').disabled = !(pics.thumb || pics.click);
+    if (!pics.thumb || !pics.click) return;
+    try {
+      const { w, h, raw } = build();
+      const click = drawPreviews(w, h, raw);
+      const png = await new Promise((res, rej) => click.toBlob(b => (b ? res(b) : rej(new Error('Your browser couldn\'t make the PNG.'))), 'image/png'));
+      outBlob = withGamma(new Uint8Array(await png.arrayBuffer()));
+      if (outUrl) URL.revokeObjectURL(outUrl);
+      outUrl = URL.createObjectURL(outBlob);
+      $('dl').disabled = false;
+      $('meta').textContent = `${w} × ${h} px · ${(outBlob.size / 1024).toFixed(0)} KB`;
+    } catch (e) { showErr(e.message || String(e)); }
+  }
+
+  async function pick(which, file) {
+    try { pics[which] = await loadFile(file); showPick(which); render(); }
+    catch (e) { showErr(e.message); }
+  }
+  for (const which of ['thumb', 'click']) {
+    const drop = $('drop-' + which), input = $('file-' + which);
+    input.addEventListener('change', () => { if (input.files[0]) pick(which, input.files[0]); input.value = ''; });
+    drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); } });
+    drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+    drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); const f = e.dataTransfer.files[0]; if (f) pick(which, f); });
+  }
+  $('swap').addEventListener('click', () => {
+    [pics.thumb, pics.click] = [pics.click, pics.thumb];
+    for (const which of ['thumb', 'click']) {
+      const drop = $('drop-' + which);
+      if (pics[which]) showPick(which);
+      else { drop.querySelector('img')?.remove(); drop.querySelector('.hint').style.visibility = ''; }
+    }
+    render();
+  });
+  $('dl').addEventListener('click', () => {
+    if (!outUrl) return;
+    const a = document.createElement('a'); a.href = outUrl; a.download = 'double-take.png';
+    document.body.append(a); a.click(); a.remove();
+  });
+
+  // ---- the samples: drawn here, nothing downloaded
+  function sampleThumb() {
+    const c = document.createElement('canvas'); c.width = 800; c.height = 600; const g = c.getContext('2d');
+    g.fillStyle = '#0c0c0e'; g.fillRect(0, 0, 800, 600);
+    g.strokeStyle = '#e8bc5c'; g.lineWidth = 6; g.strokeRect(21, 21, 758, 558);
+    g.strokeStyle = '#96702a'; g.lineWidth = 2; g.strokeRect(36, 36, 728, 528);
+    g.fillStyle = '#e8bc5c'; g.textAlign = 'center'; g.textBaseline = 'alphabetic';
+    g.font = '200px Georgia, "Times New Roman", serif'; g.fillText('♠', 400, 270);
+    g.font = 'bold 64px Georgia, "Times New Roman", serif'; g.fillText('HOUSE OF SPADE', 400, 400);
+    g.fillStyle = '#96702a'; g.fillRect(240, 440, 320, 3);
+    g.fillStyle = '#f5ebd2'; g.font = '600 52px system-ui, "Segoe UI", sans-serif'; g.fillText('MEMBER', 400, 515);
+    return c;
+  }
+  function sampleClick() {
+    const c = document.createElement('canvas'); c.width = 800; c.height = 600; const g = c.getContext('2d');
+    const grad = g.createLinearGradient(0, 0, 160, 600); grad.addColorStop(0, '#ff46aa'); grad.addColorStop(1, '#5a28dc');
+    g.fillStyle = grad; g.fillRect(0, 0, 800, 600);
+    g.fillStyle = '#ffec96'; g.textAlign = 'center'; g.font = '190px Georgia, "Times New Roman", serif'; g.fillText('♛', 400, 250);
+    g.fillStyle = '#ffffff'; g.font = '900 96px system-ui, "Segoe UI", sans-serif';
+    g.fillText('KING', 400, 400); g.fillText('COLOSSUS', 400, 510);
+    return c;
+  }
+  $('sample').addEventListener('click', () => {
+    pics.thumb = sampleThumb(); pics.click = sampleClick();
+    showPick('thumb'); showPick('click'); render();
+  });
+})();
+</script>
+</body>
+</html>
