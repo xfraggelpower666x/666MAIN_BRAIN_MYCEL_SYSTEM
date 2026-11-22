@@ -1,0 +1,14 @@
+{
+  "name": "666-cyber-drive-control",
+  "version": "0.19.0-dev",
+  "private": true,
+  "description": "Independent Cyber Drive Control R19 Electron candidate",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "check": "node --check main.cjs && node --check preload.cjs && node --check renderer.js"
+  },
+  "devDependencies": {
+    "electron": "^33.4.11"
+  }
+}
