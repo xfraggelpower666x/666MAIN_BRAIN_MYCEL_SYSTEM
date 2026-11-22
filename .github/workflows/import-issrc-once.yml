@@ -56,7 +56,9 @@ jobs:
                   path.write_bytes(src.read_bytes())
           print('All 1456 files written as independent files; PROJECT_CONTEXT.md preserved.')
           PY
-          git add -- PROJECTS/issrc-main PROJECTS/issrc-is-7_1_1
-          test "$(git diff --cached --name-only | wc -l)" -eq 1456
+          git add -f -- PROJECTS/issrc-main PROJECTS/issrc-is-7_1_1
+          staged_count="$(git diff --cached --name-only | wc -l)"
+          echo "Staged independent source files: $staged_count"
+          test "$staged_count" -eq 1456
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "Import original ISSRC main and 7.1.1 source trees for 3DX Dream"
           git push origin HEAD:666MAIN_BRAIN
