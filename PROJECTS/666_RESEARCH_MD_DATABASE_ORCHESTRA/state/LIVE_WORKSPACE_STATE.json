@@ -19,5 +19,37 @@
     "Rehydrate original bootstrap, core, prompt registry, tests, audio tools and verify dependencies.",
     "Execute JS build and Python audio regression on the fully recovered tree.",
     "Run full source audit, freeze only after all tests and verified readback; keep system-only exclusions."
-  ]
+  ],
+  "reimplementation_candidate": {
+    "id": "R02",
+    "version": "0.2.0",
+    "type": "NEW_SEPARATE_IMPLEMENTATION",
+    "status": "SOURCE_AND_LOCAL_REGRESSION_VERIFIED",
+    "source_commit": "efaadda9642220660a4e7109231938f1b870608d",
+    "folder": "reimplementation/r02",
+    "files_verified": 7,
+    "local_regression": {
+      "r01_pass": 20,
+      "r02_pass": 23,
+      "node_version": "22.16.0"
+    },
+    "features": [
+      "R01_SHA_VERIFIED_BOOTSTRAP",
+      "IN_MEMORY_BLIND_AB",
+      "FINITE_SCORE_VALIDATION",
+      "FULL_COVERAGE_LOCK",
+      "LOCK_BEFORE_REVEAL",
+      "NEUTRAL_EVALUATOR_PACKET",
+      "OWNER_ONLY_MAPPING",
+      "STRICT_IMPORT_SCHEMA"
+    ],
+    "operator_audio_anonymization": "NOT_IMPLEMENTED",
+    "full_original_runtime": "READBACK_PENDING",
+    "production_freeze": "BLOCKED",
+    "next_steps": [
+      "Verify actual neutral-audio delivery and access separation independently before production blind A/B.",
+      "Reimplement original stem-masking/audio-analysis contract as separately versioned R03, with bounded memory and negative tests.",
+      "Keep searching historically original v1.7.1 source bytes; never promote newly written code as recovered originals."
+    ]
+  }
 }
