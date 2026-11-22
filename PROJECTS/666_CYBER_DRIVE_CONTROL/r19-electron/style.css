@@ -6,3 +6,5 @@ body.overlay{background:transparent}body.overlay #shell{min-height:0;background:
 #controls{display:grid;gap:12px;margin:14px 0}#controls:empty{display:none}.control-card{border:1px solid var(--border);border-radius:10px;padding:12px;background:var(--card)}.control-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.control-card h2{margin:0 0 8px;color:var(--violet);font-size:15px}select{min-width:130px;max-width:100%;padding:7px;margin:5px;border:1px solid var(--violet);background:#202535;color:var(--text);border-radius:6px}.drive-meta{color:var(--muted);font-size:12px;margin-top:8px;overflow-wrap:anywhere}.state-line{color:var(--pink);font-size:12px}body.overlay #controls{display:none}
 
 .target-options{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px}.target-options label{display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--text)}.target-options input{accent-color:var(--cyan)}
+
+.control-card input[type=number]{width:100px;max-width:100%;padding:7px;background:#202535;color:var(--text);border:1px solid var(--violet);border-radius:6px}

@@ -23,13 +23,29 @@ function drawD(root){
   p.append(create('p','state-line','Nur optische Vorschau. Keine Tastatur- oder HID-Steuerung.'));
   const grid=create('div','control-grid');
   for(const key of ['caps','num','scroll']){
-    const conf=bindings[key], ids=dev.map(d=>d.id);
+    const conf=last.bindings?.[key]||bindings[key], ids=dev.map(d=>d.id);
     if(!ids.includes(conf.device))conf.device=ids.includes('_total')?'_total':(ids[0]||'');
     const d=dev.find(v=>v.id===conf.device),threshold=last.settings?.activity_threshold_bps??4096;
     const on=Boolean(d&&conf.mode!=='off'&&(conf.mode==='read'?d.read_bps>threshold:conf.mode==='write'?d.write_bps>threshold:d.read_bps>threshold||d.write_bps>threshold));
     const card=create('div','control-card');card.append(create('h2',null,key.toUpperCase()+' · '+(on?'VORSCHAU AN':'AUS')));
-    card.append(dropdown(dev.map(x=>[x.id,x.id]),conf.device,v=>{conf.device=v;draw();}));
-    card.append(dropdown(modes.map(x=>[x,x]),conf.mode,v=>{conf.mode=v;draw();}));grid.append(card);
+    const save=async(device,mode,threshold)=>{
+      const result=await window.cyber.setVisualBinding(key,device,mode,threshold);
+      if(result?.ok){
+        if(!last.bindings)last.bindings={};
+        last.bindings[key]={device,mode,threshold_kib:threshold};
+        $('notice').textContent=key.toUpperCase()+' Mapping gespeichert';
+      }else{
+        $('notice').textContent=result?.error||'Mapping konnte nicht gespeichert werden';
+      }
+      if(!grid.contains(document.activeElement))draw();
+    };
+    card.append(dropdown(dev.map(x=>[x.id,x.id]),conf.device,v=>save(v,conf.mode,Number(conf.threshold_kib??4))));
+    card.append(dropdown(modes.map(x=>[x,x]),conf.mode,v=>save(conf.device,v,Number(conf.threshold_kib??4))));
+    const t=create('input');t.type='number';t.min='0';t.max='1048576';t.step='0.5';t.value=String(conf.threshold_kib??4);
+    t.setAttribute('aria-label',key+' Schwellwert KiB/s');
+    t.addEventListener('change',()=>save(conf.device,conf.mode,Number(t.value)));
+    card.append(create('span',null,'Schwelle KiB/s: '),t);
+    grid.append(card);
   }
   p.append(grid);$('controls').append(p);
   for(const d of dev){const card=create('article','drive');card.append(create('h2',null,d.id));
@@ -75,12 +91,18 @@ function drawE(root){
   }
 }
 function drawOverlay(root){
-  const threshold=last.settings?.activity_threshold_bps??4096;
   for(const d of last.volumes||[]){if(!d.targets?.overlay)continue;
     const item=create('div','mini');item.title=[d.letter,d.label,d.id,'R '+fmt(d.read_bps),'W '+fmt(d.write_bps),d.filesystem].join(' · ');
     item.append(create('span',null,d.letter||'?'));
-    const color=d.write_bps!==null&&d.write_bps>threshold?'write':d.read_bps!==null&&d.read_bps>threshold?'read':'';
-    item.append(create('span','led '+color));root.append(item);}
+    // R18 BicolorActivity determines pulse color, not a naive rate threshold.
+    const color=d.led_color==='#FF4FD8'?'write':d.led_color==='#35E0FF'?'read':'';
+    const led=create('span','led '+color);item.append(led);root.append(item);
+    if(color){
+      // R18 sampled pulse is 180ms by default; visual expiry is independent
+      // of the 500ms telemetry interval. The backend remains authoritative.
+      const hold=Math.max(40,Math.min(2000,Number(last.settings?.led_hold_ms)||180));
+      setTimeout(()=>{if(led.isConnected)led.className='led';},hold);
+    }}
 }
 function draw(){
   const root=$('drives'),controls=$('controls');
@@ -92,7 +114,7 @@ function draw(){
   if(overlay){drawOverlay(root);return;}
   const headings={d:'D · PHYSICAL DRIVE LED MAPPING',e:'E · DRIVE WORKSPACE',a:'A · STORAGE · OFFEN',b:'B · CLASSIC · OFFEN',c:'C · TOOLS · OFFEN',status:'SYSTEM STATUS'};
   $('heading').textContent=headings[tab];
-  $('details').textContent=tab==='d'?'D verwendet ausschliesslich den R18 DiskActivitySampler. LED-Mapping ist momentan Vorschau ohne Hardwarezugriff.':tab==='e'?'E zeigt R18 Volume-GUID, PDH und gespeicherte Auswahl.': 'Dieses R18-Funktionsmodul ist in Electron noch nicht uebernommen.';
+  $('details').textContent=tab==='d'?'D verwendet den R18 DiskActivitySampler; sichere Mapping-Einstellungen werden separat dauerhaft gespeichert, ohne Hardwarezugriff.':tab==='e'?'E zeigt R18 Volume-GUID, PDH und gespeicherte Auswahl.': 'Dieses R18-Funktionsmodul ist in Electron noch nicht uebernommen.';
   if(tab==='d')drawD(root);else if(tab==='e')drawE(root);
   else if(tab==='status')$('controls').append(create('div','control-card','Quelle: '+String(last.source||'?')+' · PDH-Volumes: '+(last.volumes||[]).length+' · Physische Datentraeger: '+(last.physical||[]).length));
 }
