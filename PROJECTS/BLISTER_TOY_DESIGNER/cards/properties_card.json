@@ -1,0 +1,178 @@
+{
+  "schema": "blister-toy-framework/properties-card/v1",
+  "id": "BLISTER_PROPERTIES_R01",
+  "reference_id": "BLISTER_REFERENCE_ORIGINAL_R01",
+  "properties": {
+    "Background": {
+      "group": "Verpackung",
+      "label": "Kartonhintergrund",
+      "value": "Neon-Lila mit subtiler Retro-Textur",
+      "required": true
+    },
+    "Farbe 1": {
+      "group": "Branding",
+      "label": "Rahmenverlauf Start",
+      "value": "Neon-Pink",
+      "required": true
+    },
+    "Farbe 2": {
+      "group": "Branding",
+      "label": "Rahmenverlauf Mitte",
+      "value": "Neon-Violett",
+      "required": true
+    },
+    "Farbe 3": {
+      "group": "Branding",
+      "label": "Rahmenverlauf Ende",
+      "value": "Cyan",
+      "required": true
+    },
+    "RahmenFarbe": {
+      "group": "Branding",
+      "label": "Randfarbe",
+      "value": "Chrom-Silber",
+      "required": true
+    },
+    "Rahmen Art": {
+      "group": "Branding",
+      "label": "Rahmenstil",
+      "value": "leuchtender 3D-Metallrahmen",
+      "required": true
+    },
+    "Marke": {
+      "group": "Branding",
+      "label": "Markenname",
+      "value": "666SOUNDsDESIGn",
+      "required": true
+    },
+    "Name": {
+      "group": "Branding",
+      "label": "Figurenname",
+      "value": "FRAGGLEPOWER666",
+      "required": true
+    },
+    "NAMENFARBE": {
+      "group": "Branding",
+      "label": "Namensfarbe",
+      "value": "Neon-Cyan",
+      "required": true
+    },
+    "Slogan": {
+      "group": "Branding",
+      "label": "Badge-Aufschrift",
+      "value": "COLLECTOR EDITION",
+      "required": true
+    },
+    "age": {
+      "group": "Branding",
+      "label": "Alterslabel",
+      "value": "14+",
+      "required": true
+    },
+    "Age Color": {
+      "group": "Branding",
+      "label": "Alterslabel-Farbe",
+      "value": "Dunkelblau",
+      "required": true
+    },
+    "detaillierte Beschreibung oder \"wie auf dem Foto\"": {
+      "group": "Figur",
+      "label": "Gesicht / Fotoreferenz",
+      "value": "freundlich, prägnante Gesichtszüge, cartoon-realistisch",
+      "required": true
+    },
+    "Pose": {
+      "group": "Figur",
+      "label": "Körperhaltung",
+      "value": "selbstbewusst aufrecht, ein Arm leicht angewinkelt",
+      "required": true
+    },
+    "Kleidung": {
+      "group": "Figur",
+      "label": "Outfit",
+      "value": "schwarze Cyberpunk-Jacke und dunkle Hose",
+      "required": true
+    },
+    "Logo": {
+      "group": "Figur",
+      "label": "Outfit-Logo",
+      "value": "stilisiertes Neon-666-Emblem",
+      "required": true
+    },
+    "Gegenstand 1": {
+      "group": "Accessoires",
+      "label": "Accessoire 1",
+      "value": "DJ-Kopfhörer",
+      "required": true
+    },
+    "Gegenstand 2": {
+      "group": "Accessoires",
+      "label": "Accessoire 2",
+      "value": "Mini-Synthesizer",
+      "required": true
+    },
+    "Gegenstand 3": {
+      "group": "Accessoires",
+      "label": "Accessoire 3",
+      "value": "USB-Musikstick",
+      "required": true
+    }
+  },
+  "render_options": {
+    "transparent_background": true,
+    "format": "PNG",
+    "style": "high-end cartoon photorealistic toy product render",
+    "lighting": "soft studio lighting"
+  },
+  "presets": {
+    "CYBER NEON": {
+      "Background": "Neon-Lila mit subtiler Retro-Textur",
+      "Farbe 1": "Neon-Pink",
+      "Farbe 2": "Neon-Violett",
+      "Farbe 3": "Cyan",
+      "RahmenFarbe": "Chrom-Silber",
+      "Rahmen Art": "leuchtender 3D-Metallrahmen",
+      "Marke": "666SOUNDsDESIGn",
+      "Name": "FRAGGLEPOWER666",
+      "NAMENFARBE": "Neon-Cyan",
+      "Slogan": "COLLECTOR EDITION",
+      "age": "14+",
+      "Age Color": "Dunkelblau",
+      "detaillierte Beschreibung oder \"wie auf dem Foto\"": "freundlich, prägnante Gesichtszüge, cartoon-realistisch",
+      "Pose": "selbstbewusst aufrecht, ein Arm leicht angewinkelt",
+      "Kleidung": "schwarze Cyberpunk-Jacke und dunkle Hose",
+      "Logo": "stilisiertes Neon-666-Emblem",
+      "Gegenstand 1": "DJ-Kopfhörer",
+      "Gegenstand 2": "Mini-Synthesizer",
+      "Gegenstand 3": "USB-Musikstick"
+    },
+    "RETRO ARCADE": {
+      "Background": "retro-oranger Karton mit 80er-Jahre Raster",
+      "Farbe 1": "Orange",
+      "Farbe 2": "Magenta",
+      "Farbe 3": "Türkis",
+      "RahmenFarbe": "Gelb",
+      "Rahmen Art": "pixelartiger Reliefrahmen",
+      "Marke": "RETRO HEROES",
+      "Name": "ARCADE ACE",
+      "NAMENFARBE": "Sonnengelb",
+      "Slogan": "LIMITED EDITION",
+      "age": "12+",
+      "Age Color": "Rot"
+    },
+    "MINIMAL STUDIO": {
+      "Background": "hellgrauer Karton mit dezentem Raster",
+      "Farbe 1": "Silber",
+      "Farbe 2": "Weiß",
+      "Farbe 3": "Anthrazit",
+      "RahmenFarbe": "Schwarz",
+      "Rahmen Art": "schmaler matter Metallrahmen",
+      "Marke": "STUDIO SERIES",
+      "Name": "COLLECTOR 01",
+      "NAMENFARBE": "Schwarz",
+      "Slogan": "PREMIUM",
+      "age": "14+",
+      "Age Color": "Dunkelgrau"
+    }
+  }
+}

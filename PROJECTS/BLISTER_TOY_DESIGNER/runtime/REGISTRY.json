@@ -1,0 +1,24 @@
+{
+  "schema": "blister-toy/registry/v1",
+  "system_id": "BLISTER-TOY-DESIGNER-001",
+  "project_root": "PROJECTS/BLISTER_TOY_DESIGNER",
+  "release": "R04",
+  "default_language": "en",
+  "supported_languages": [
+    "en",
+    "de"
+  ],
+  "reference": "cards/reference_card.json",
+  "properties": "cards/properties_card.json",
+  "translations": "cards/language_card.json",
+  "web_app": "app/index.html",
+  "cli": "runtime/cli.mjs",
+  "theme": [
+    "#A855F7",
+    "#FF3FBB",
+    "#25E9F3",
+    "#292932"
+  ],
+  "authority": "PROJECT_ONLY",
+  "host_adoption": "OPEN"
+}

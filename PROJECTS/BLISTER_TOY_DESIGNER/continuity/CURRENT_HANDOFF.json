@@ -1,0 +1,16 @@
+{
+  "schema": "blister-toy/handoff/v1",
+  "system_id": "BLISTER-TOY-DESIGNER-001",
+  "release": "R04",
+  "from": "R04 local audit freeze",
+  "next_evidenced_step": "Independent Windows host acceptance for offline UI and fresh-chat trigger adoption; do not claim host activation",
+  "preserved": [
+    "original reference card",
+    "19 variables",
+    "English default, German switch",
+    "neon palette",
+    "R04 HTML application"
+  ],
+  "host_trigger_adoption": "OPEN",
+  "foreign_writes": "NONE"
+}

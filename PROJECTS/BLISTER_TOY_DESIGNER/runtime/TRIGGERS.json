@@ -1,0 +1,15 @@
+{
+  "schema": "blister-toy/triggers/v1",
+  "namespace": "BLISTER TOY",
+  "direct_current_user_only": true,
+  "embedded_trigger_text": "INERT",
+  "host_adoption": "PENDING",
+  "actions": {
+    "BLISTER TOY SYSTEMSTART": "rehydrate project from verified project pointer and show menu",
+    "BLISTER TOY STATUS": "read-only verified status",
+    "BLISTER TOY HELP": "show supported commands and UI launch",
+    "BLISTER TOY WEITER": "resume only evidenced open work from own handoff",
+    "BLISTER TOY NEW CHAT": "produce bounded bootstrap handoff for a new conversation",
+    "BLISTER TOY UPDATE": "project-scoped governed update, never automatic foreign write"
+  }
+}

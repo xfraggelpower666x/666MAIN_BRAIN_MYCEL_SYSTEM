@@ -1,0 +1,14 @@
+{
+  "schema": "blister-toy/prechange/v1",
+  "repo": "xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM",
+  "branch": "666MAIN_BRAIN",
+  "base_head": "339536870c54ff34834f32b5265ea42e338e4db4",
+  "base_tree": "3f17b75385117e8f2028271f10dfce548c0964a3",
+  "target": "PROJECTS/BLISTER_TOY_DESIGNER",
+  "preexisting_target": "NOT_FOUND",
+  "action": "CREATE_NEW_PROJECT_ONLY",
+  "source": "R04 locally frozen ChatGPT artifact",
+  "original_archive_sha256": "fc0d3b6610c288783c444a9b9730680cb8ddd86dfba5b346c26d024146d50b05",
+  "backup_policy": "Existing branch state recoverable by base HEAD; no existing target files overwritten",
+  "external_host_test": "OPEN"
+}
