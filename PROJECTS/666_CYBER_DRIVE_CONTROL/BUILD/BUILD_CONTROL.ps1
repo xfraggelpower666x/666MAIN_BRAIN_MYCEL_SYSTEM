@@ -73,7 +73,7 @@ function Ensure-Dependencies {
   }
   $script:BuildPython=Join-Path $Venv 'Scripts\python.exe'
   Run $script:BuildPython @('-m','pip','install','--upgrade','pip','setuptools','wheel')
-  Run $script:BuildPython @('-m','pip','install','--upgrade','pyinstaller','psutil')
+  Run $script:BuildPython @('-m','pip','install','--upgrade','pyinstaller','psutil','pytest')
   # A lockfile is mandatory for reproducible Node release builds; create in build phase only.
   if (-not (Test-Path (Join-Path $App 'package-lock.json'))) {
     Push-Location $App
@@ -144,6 +144,7 @@ function Show-Menu {
   Write-Host '6  Portable + Setup bauen'
   Write-Host '7  Kompilierte portable EXE sofort starten/testen'
   Write-Host '8  Build- und Quellstatus anzeigen'
+  Write-Host '9  Original-R18-ZIP validieren, 288 Tests, als Git-Quelldateien importieren'
   Write-Host '0  Beenden'
 }
 Log "Build host started; project $Root"
@@ -160,6 +161,14 @@ while ($true) {
       '6' { Build-Target 'both' }
       '7' { Test-Compiled }
       '8' { Log "R18 original source present: $(Test-Path (Join-Path $Legacy 'src\klrw\drive_workspace.py'))"; Log "Frozen engine present: $(Test-Path $Metrics)"; Log "Node: $(Find-Command 'node')"; Log "Build report: $Report" }
+      '9' {
+        $zip = Read-Host 'Vollstaendiger Pfad zum unveraenderten R18-Original-ZIP'
+        if (-not (Test-Path -LiteralPath $zip -PathType Leaf)) { throw 'R18 ZIP not found' }
+        Ensure-Dependencies
+        $importer = Join-Path $Root 'scripts\R18_IMPORT_AND_VERIFY.py'
+        Run $script:BuildPython @($importer, $zip)
+        Log 'R18 SOURCE IMPORTED LOCALLY. git commit/push + readback are still required.'
+      }
       '0' { Log 'Exit'; exit 0 }
       default { Write-Host 'Unknown option.' }
     }
