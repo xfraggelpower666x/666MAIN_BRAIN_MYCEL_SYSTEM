@@ -38,18 +38,40 @@ function drawD(root){
 }
 function drawE(root){
   const panel=create('div','control-card');
-  panel.append(create('h2',null,'LOGISCHE VOLUMES · USB-HOTPLUG · TRAY / OVERLAY STATUS'));
-  panel.append(create('p','state-line','R18-Auswahl wird gelesen. Aenderungen am gespeicherten Workspace folgen als gesonderter, gepruefter Schritt.'));
-  const settings=last.settings||{},o=settings.overlay||{};
-  panel.append(create('p',null,'Overlay-Layout: '+(o.layout||'?')+' · Impuls: '+(settings.led_hold_ms??'?')+' ms · Ruhe: '+(settings.led_quiet_ms??'?')+' ms · Schwelle: '+(settings.activity_threshold_bps??'?')+' B/s'));
+  panel.append(create('h2',null,'E · LOGISCHE VOLUMES / USB / TRAY / OVERLAY'));
+  const settings=last.settings||{},over=settings.overlay||{};
+  panel.append(create('p',null,'Overlay: '));
+  const layout=dropdown([['vertical','Untereinander'],['horizontal','Nebeneinander'],['minimal','Minimal: Buchstabe + LED']],over.layout||'vertical',async value=>{
+    const result=await window.cyber.setOverlayLayout(value);
+    $('notice').textContent=result.ok?'Layout gespeichert; naechstes Messbild abwarten':(result.error||'Fehler');
+  });
+  panel.append(layout);
+  panel.append(create('p','state-line','LED '+(settings.led_hold_ms??'?')+' ms · Ruhe '+(settings.led_quiet_ms??'?')+' ms · Schwellwert '+(settings.activity_threshold_bps??'?')+' B/s'));
   $('controls').append(panel);
   for(const d of last.volumes||[]){
-    const card=create('article','drive');card.append(create('h2',null,(d.letter||'?')+' · '+(d.label||'Unbenannt')));
-    const m=create('div','meters');m.append(meter('READ',d.read_bps,'read'),meter('WRITE',d.write_bps,'write'));
-    card.append(m);
-    card.append(create('div','drive-meta','Volume-ID: '+String(d.id||'?')));
-    card.append(create('div','drive-meta','Dateisystem: '+(d.filesystem||'?')+' · '+(d.measurement||'nicht messbar')+' · Tray '+(d.targets?.tray?'AN':'AUS')+' · Overlay '+(d.targets?.overlay?'AN':'AUS')));
-    root.append(card);
+    const card=create('article','drive');
+    card.append(create('h2',null,(d.letter||'?')+' · '+(d.label||'Unbenannt')));
+    const meters=create('div','meters');meters.append(meter('READ',d.read_bps,'read'),meter('WRITE',d.write_bps,'write'));card.append(meters);
+    card.append(create('div','drive-meta','Volume: '+String(d.id||'?')));
+    card.append(create('div','drive-meta','Dateisystem: '+(d.filesystem||'?')+' · '+(d.measurement||'nicht messbar')));
+    const settingsRow=create('div','target-options');
+    for(const target of ['tray','overlay']){
+      const lbl=create('label');
+      const checkbox=create('input');checkbox.type='checkbox';checkbox.checked=Boolean(d.targets?.[target]);
+      checkbox.addEventListener('change',async ()=>{
+        const enabled=checkbox.checked;checkbox.disabled=true;
+        try{
+          const result=await window.cyber.setDriveVisibility(String(d.id),target,enabled);
+          if(!result.ok)checkbox.checked=!enabled;
+          $('notice').textContent=result.ok?'Gespeichert: '+d.letter+' '+target:(result.error||'Speichern fehlgeschlagen');
+        }catch(err){
+          checkbox.checked=!enabled;
+          $('notice').textContent='IPC nicht verfuegbar';
+        }finally{checkbox.disabled=false;}
+      });
+      lbl.append(checkbox,create('span',null,target==='tray'?'Tray':'Overlay'));settingsRow.append(lbl);
+    }
+    card.append(settingsRow);root.append(card);
   }
 }
 function drawOverlay(root){
