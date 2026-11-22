@@ -1,10 +1,13 @@
 """Single-request Python bridge: SQLite authority, incremental JSON indexes and safe import."""
 from __future__ import annotations
-import sys,os,json,sqlite3,hashlib,re,zipfile,io,datetime,collections,pathlib,mimetypes,shutil,tempfile
+import sys,os,json,sqlite3,hashlib,re,zipfile,io,datetime,collections,pathlib,mimetypes,shutil,tempfile,stat
 from pathlib import Path
 MAX_FILE=25*1024*1024
 MAX_ZIP_TOTAL=150*1024*1024
 MAX_ZIP_ENTRIES=2000
+MAX_IMPORT_RECORD_BYTES=200*1024*1024
+MAX_INPUT_FILES=200
+MAX_ARCHIVE_IDS=10000
 ALLOWED_TEXT={'.txt','.md','.markdown','.json','.jsonl','.csv','.log','.py','.js','.ts','.jsx','.tsx','.html','.css','.xml','.yml','.yaml','.toml','.ini','.cfg','.bat','.cmd','.ps1','.sh','.sql','.java','.c','.cpp','.h','.php','.rtf'}
 KNOWN_BINARY={'.pdf','.docx','.pages'}
 PROJECT_PATTERNS=[('LYVRA',r'\blyvra\b|\bl\.y\.v\.r\.a\b'),('666CLIC',r'\b666clic\b|\bclicpro\b'),('666TDH',r'\b666tdh\b|trackdesignhub'),('666PFS',r'\b666pfs\b'),('666CLS',r'\b666cls\b'),('666MAIN_BRAIN',r'\b666main.brain\b|\bpsyllo\b'),('666SOUNDsDESIGn',r'666soundsdesign|webradio|radiobot'),('FULL_LYRICS_TOOL',r'full.lyrics.tool|lyrics.library')]
@@ -116,13 +119,16 @@ def read_source(path):
   if len(files)>MAX_ZIP_ENTRIES:raise ValueError('Mehr als 2.000 ZIP-Einträge')
   for m in files:
    name=m.filename.replace('\\','/')
-   if name.startswith('/') or '..' in Path(name).parts or (m.external_attr >> 16)&0o170000==0o120000:
+   if name.startswith('/') or re.match(r'^[a-zA-Z]:',name) or '..' in Path(name).parts or stat.S_IFMT(m.external_attr >> 16)==stat.S_IFLNK:
     warnings.append('Unsicherer ZIP-Pfad/Link verworfen');continue
    if m.file_size>MAX_FILE or (m.compress_size>0 and m.file_size/m.compress_size>250):warnings.append('ZIP-Limit: '+name[:100]);continue
    total+=m.file_size
    if total>MAX_ZIP_TOTAL:raise ValueError('ZIP entpackt mehr als 150 MiB')
    try:
-    contents=extract_bytes(name,z.read(m))
+    with z.open(m) as src:
+     raw=src.read(MAX_FILE+1)
+    if len(raw)>MAX_FILE:raise ValueError('Entpackung überschreitet 25 MiB')
+    contents=extract_bytes(name,raw)
     items.extend((name,title,body) for title,body in contents)
    except (ValueError,RuntimeError) as exc:warnings.append(name[:100]+': '+str(exc)[:140])
  return items,warnings
@@ -163,12 +169,21 @@ def stats(c):
  return {'total':c.execute('SELECT count(*) FROM records WHERE archived=0').fetchone()[0], 'archived':c.execute('SELECT count(*) FROM records WHERE archived=1').fetchone()[0], 'projects':projects,'import_total':c.execute('SELECT count(*) FROM imports').fetchone()[0], 'imports':[dict(r) for r in c.execute('SELECT * FROM imports ORDER BY id DESC LIMIT 12')]}
 def importer(c,base,data):
  files=data.get('paths',[])
- if not isinstance(files,list) or len(files)>200:raise ValueError('Maximal 200 Dateien pro Import')
+ if not isinstance(files,list) or len(files)>MAX_INPUT_FILES:raise ValueError('Maximal 200 Dateien pro Import')
  result={'inserted':0,'skipped':0,'sources':[],'warnings':[]}
  for filename in files:
-  path=Path(filename); source_hash=hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() and path.stat().st_size<=MAX_ZIP_TOTAL else ''
+  path=Path(filename)
+  source_hash=''
   try:
-   blocks,warnings=read_source(path);result['warnings'].extend(warnings[:100]);new=0;skip=0;new_ids=[]
+   if not path.is_file():raise ValueError('Keine reguläre Quelldatei')
+   if path.stat().st_size>MAX_ZIP_TOTAL:raise ValueError('Quelldatei größer als 150 MiB')
+   digest=hashlib.sha256()
+   with path.open('rb') as stream:
+    for chunk in iter(lambda:stream.read(1024*1024),b''):digest.update(chunk)
+   source_hash=digest.hexdigest()
+   blocks,warnings=read_source(path);
+   if sum(len(body.encode('utf-8')) for item in blocks for body in [item[-1]])>MAX_IMPORT_RECORD_BYTES:raise ValueError('Extrahierte Inhalte überschreiten 200 MiB')
+   result['warnings'].extend(warnings[:100]);new=0;skip=0;new_ids=[]result['warnings'].extend(warnings[:100]);new=0;skip=0;new_ids=[]
    with c:
     for item in blocks:
      if len(item)==3:src,title,body=item;src=f'{path.name}/{src}'
@@ -209,7 +224,10 @@ def export_records(c,base,data):
 def archive(c,base,data):
  # Controlled archive of explicitly selected records, not silent removal.
  ids=data.get('ids',[])
- if not ids:return {'error':'Keine Datensätze ausgewählt'}
+ if not isinstance(ids,list) or not ids or len(ids)>MAX_ARCHIVE_IDS or any(not isinstance(x,str) for x in ids):raise ValueError('Keine gültige Datensatzauswahl')
+ ids=list(dict.fromkeys(ids))
+ matched={r[0] for r in c.execute('SELECT id FROM records WHERE id IN ('+','.join('?'*len(ids))+')',ids)}
+ if matched!=set(ids):raise ValueError('Archiv enthält unbekannte IDs; keine Änderungen durchgeführt')
  result=export_records(c,base,{'ids':ids,'format':'zip'})
  dest=base/'old_archive';dest.mkdir(exist_ok=True)
  p=Path(result['path']); target=dest/p.name;shutil.move(str(p),str(target))
