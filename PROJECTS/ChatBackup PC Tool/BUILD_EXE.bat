@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableExtensions
 cd /d "%~dp0"
-title 666 ChatBackup PC Tool - Automatischer EXE Build
+title 666 ChatBackup PC Tool - EIN EXE Build
 
 powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0bootstrap\bootstrap.ps1" -Mode Build
 if errorlevel 1 goto :failed
@@ -12,16 +12,10 @@ if errorlevel 1 goto :failed
 
 if not exist "dist\666_CHATBACKUP_PC_TOOL.exe" goto :failed
 
-rem Build the optional archive companion beside the existing unchanged main EXE.
-".venv-build\Scripts\python.exe" -m PyInstaller --noconfirm --clean "666_CHATBACKUP_ARCHIVE_INTELLIGENCE.spec"
-if errorlevel 1 goto :failed
-if not exist "dist\666_CHATBACKUP_ARCHIVE_INTELLIGENCE.exe" goto :failed
-
 echo.
 echo ============================================================
 echo VERIFIZIERT: EXE wurde erzeugt:
 echo %CD%\dist\666_CHATBACKUP_PC_TOOL.exe
-echo %CD%\dist\666_CHATBACKUP_ARCHIVE_INTELLIGENCE.exe
 echo ============================================================
 echo.
 pause
