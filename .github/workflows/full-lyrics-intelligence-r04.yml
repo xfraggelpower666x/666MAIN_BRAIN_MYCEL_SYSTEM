@@ -20,7 +20,7 @@ jobs:
           node-version: '22'
       - name: Check Python syntax
         working-directory: PROJECTS/666_FULL_LYRICS_INTELLIGENCE
-        run: python -m py_compile engine/bridge.py tests/test_engine.py tests/test_security_r04.py tests/run_portable_regression.py
+        run: python -m py_compile engine/bridge.py engine/reconciliation.py tests/test_engine.py tests/test_security_r04.py tests/test_reconciliation_r04.py tests/run_portable_regression.py
       - name: Check Electron JavaScript syntax
         working-directory: PROJECTS/666_FULL_LYRICS_INTELLIGENCE
         run: |
