@@ -22,7 +22,7 @@
   "triggers": "PROJECTS/666TDI/triggers/TRIGGER_REGISTRY.json",
   "source_commit_sha": "efb84ada4fd97aaf552a82637e180549a99a3b6a",
   "audio_validation": "OPTIONAL_ON_DEMAND",
-  "next_action": "666TDI SYSTEMSTART verify R11 native readback; optional host CI and audio on demand; CLIC receipt acknowledgment pending",
+  "next_action": "CLIC native ACK pending; run native regression CI when available; audio analysis optional",
   "source_readback_commit_sha": "efb84ada4fd97aaf552a82637e180549a99a3b6a",
   "source_readback_result": "71_OF_71_GIT_BLOBS_MATCH_R11_MANIFEST",
   "audio_analysis_required": false,
@@ -40,5 +40,18 @@
   "r11_return_receipt_blob": "f37865eb6984a9b1cffd5e98422b986f12f2de28",
   "r11_recipient_delivery_verified": false,
   "r11_host_ci_pass_claimed": false,
-  "r11_real_audio_validation": "OPTIONAL_NOT_EXECUTED"
+  "r11_real_audio_validation": "OPTIONAL_NOT_EXECUTED",
+  "r11_consumer_head_drift_repair": {
+    "status": "SOURCE_FIX_PUBLISHED_DIRECT_BLOB_READBACK",
+    "repair_commit": "a299a72f238984db585a6aed39e2c50883a37124",
+    "audit_commit": "cc3e20368f5734a98499bef093a095e971df9fcb",
+    "audit_path": "PROJECTS/666TDI/native/R11_HEAD_DRIFT_FORCE_REPAIR_20261122.md",
+    "historical_r11_source_immutable": true,
+    "latest_clic_head_can_advance_if_r11_blob_unchanged": true,
+    "local_isolated_mock_regression": "4_OF_4_PASS",
+    "native_suite_host_execution": "NOT_EXECUTED",
+    "clic_ack": "PENDING",
+    "no_new_update_trigger": true,
+    "audio_optional": true
+  }
 }
