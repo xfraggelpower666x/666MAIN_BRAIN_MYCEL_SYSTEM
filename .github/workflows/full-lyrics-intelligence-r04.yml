@@ -1,0 +1,45 @@
+name: 666 Full Lyrics Intelligence R04 — Manual Regression
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: lyrics-intelligence-r04-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  source-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check Python syntax
+        working-directory: PROJECTS/666_FULL_LYRICS_INTELLIGENCE
+        run: python -m py_compile engine/bridge.py tests/test_engine.py tests/test_security_r04.py tests/run_portable_regression.py
+      - name: Check Electron JavaScript syntax
+        working-directory: PROJECTS/666_FULL_LYRICS_INTELLIGENCE
+        run: |
+          node --check electron/main.cjs
+          node --check electron/preload.cjs
+          node --check renderer/app.js
+      - name: Run public-safe regression without private legacy database
+        working-directory: PROJECTS/666_FULL_LYRICS_INTELLIGENCE
+        run: python tests/run_portable_regression.py
+      - name: Confirm no private runtime data was committed
+        working-directory: PROJECTS/666_FULL_LYRICS_INTELLIGENCE
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          banned=[]
+          for p in Path('.').rglob('*'):
+              if not p.is_file(): continue
+              if 'legacy_r02' in p.parts or 'catalog-data' in p.parts or p.suffix.lower() in {'.db','.sqlite','.sqlite3','.zip','.exe','.pem','.key'}:
+                  banned.append(str(p))
+          assert not banned, 'Unexpected private/binary files: '+repr(banned)
+          print('Public source boundary: PASS')
+          PY
