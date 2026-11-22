@@ -30,4 +30,12 @@ Local source: `666_FULL_LYRICS_INTELLIGENCE_ELECTRON_R03_COMPLETE.zip` from this
 
 ## Public-source regression (no private R02 database)
 
-Run `python tests/run_portable_regression.py` after cloning the project. It runs all 9 public-only cases; if the original legacy R02 SQLite file is supplied locally at `legacy_r02/app/lyrics_library.db`, it also executes the 10th read-only migration case. **Never commit that database to this public repo.** The original 10-case test suite remains unchanged.
+Run `python tests/run_portable_regression.py` after cloning the project. With the R04 security and reconciliation cases it runs 20 public tests; if the original legacy R02 SQLite file is supplied locally at `legacy_r02/app/lyrics_library.db`, it also executes the 21st read-only migration case. **Never commit that database to this public repo.** The original 10-case test suite remains unchanged.
+
+## R04 active development (source only)
+
+- Security fixes: bounded ZIP entry extraction, drive/path and symlink rejection, streaming SHA-256, archived-ID validation; Electron IPC gated to the main frame, new-window/navigation prevention, bridge runtime limit.
+- Tests: 21/21 PASS in local checkout including private legacy fixture; 20/20 PASS in local fixture-free checkout. **GitHub CI has not been run.** Manual-only workflow: `.github/workflows/full-lyrics-intelligence-r04.yml`.
+- Windows build source: `BUILD.cmd` and `build/BUILD_WINDOWS.ps1`. Checks tools; user explicitly installs missing project/tool packages. Builds standalone Python bridge plus separate portable and NSIS installer with directory selection. **Build and host acceptance not executed.**
+- Nonexecuting reconciliation: `engine/reconciliation.py`, docs `docs/R04_RECONCILIATION.md`; reference hashes are candidates and do not grant native authority.
+- Never commit real personal catalog data. Legacy migration in packaged Electron uses a local database picker.
