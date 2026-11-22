@@ -1,0 +1,56 @@
+.profilefont {
+    font-family: 'Arial', 'MS UI Gothic' !important;
+}
+
+.pe-warning {
+    color: red;
+}
+
+.pe-hidden {
+    display: none;
+}
+
+.pe-block {
+    display: block !important;
+}
+
+.color-save-button {
+    margin-left: 10px;
+}
+
+.saved-colors-header {
+    margin-top: 10px;
+}
+
+.saved-color-item {
+    display: list-item;
+}
+
+.saved-color-item-inner-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    color: var(--color);
+    width: 100%;
+}
+
+.saved-color-text {
+    cursor: pointer;
+    flex-grow: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.delete-button {
+    cursor: pointer;
+    color: red;
+    margin-right: 50%;
+    flex-shrink: 0;
+}
+
+.no-colors-message {
+    font-style: italic;
+}

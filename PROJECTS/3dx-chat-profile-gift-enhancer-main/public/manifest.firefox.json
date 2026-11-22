@@ -1,0 +1,26 @@
+{
+    "name": "%NAME%",
+    "description": "%DESCRIPTION%",
+    "version": "%VERSION%",
+    "manifest_version": 2,
+    "permissions": ["storage"],
+    "browser_action": {
+        "default_icon": {
+            "48": "icon48.png"
+        }
+    },
+    "content_scripts": [
+        {
+            "matches": ["https://status.3dxchat.net/profile-editor"],
+            "css": ["profile-editor.css"],
+            "run_at": "document_idle",
+            "js": ["profile-editor.js", "storage-helper.js"]
+        }
+    ],
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "pixelnini.anon",
+            "strict_min_version": "91.0"
+        }
+    }
+}
