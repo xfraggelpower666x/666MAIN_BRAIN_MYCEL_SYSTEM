@@ -52,3 +52,18 @@ Der private Account-Release 0.2.2 / `pluginrel_6af80d93c58c8191a833888a3a53ff49`
 Für den privaten Account-Release 0.2.2 / `pluginrel_6af80d93c58c8191a833888a3a53ff49` sind in dieser Host-Sitzung **109/109 Skill-IDs sichtbar** und **109/109 Skill-Dateien direkt lesbar und bytegleich zur Paketquelle**. `sceeri-projektsprachen` ist darunter. Die R13-Beobachtung der fehlenden Sprachfacette ist für den jetzigen Host-Stand abgelöst. Die Ausführung der nativen und Coding-Trigger in frischen Chats sowie Provider-Verhalten sind weiterhin offen.
 
 [Abgleich](../AUDIT/MAIN_BRAIN_SKILL_DISCOVERY_R14_2026-11-14.md)
+
+
+## 2026-11-22 · CLIC R07 MB-03 live release observation
+
+CLIC_HANDOFF_ID=CLIC-TO-666MAIN-BRAIN-R07-20261122-01
+ACCOUNT_PLUGIN_ID=plugins_6aeecd97365081918f3813165617c17c
+ACCOUNT_PLUGIN_VERSION_OBSERVED=0.3.2
+ACCOUNT_PLUGIN_RELEASE_OBSERVED=pluginrel_6b022ac2cc108191b8eb774cac39c172
+ACCOUNT_PLUGIN_PROVIDER_READBACK=VERIFIED_THIS_SESSION
+OLDER_RELEASE_OBSERVATIONS=HISTORICAL_NOT_CURRENT
+SOURCE_EQ_PLUGIN_FUNCTIONAL_PARITY=PARTIAL
+RELEASE_NE_FRESH_CHAT_HOST_ACCEPTANCE=TRUE
+NATIVE_AUTHORITY=CURRENT_POINTER.md
+
+The immutable earlier 0.1.x/0.2.x observations are retained as history; the live private plugin metadata now resolves to 0.3.2. An installed release and directly readable skills do not establish a ten-trigger fresh-chat E2E PASS. No new plugin publication was performed by this CLIC intake.
