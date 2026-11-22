@@ -1,0 +1,29 @@
+# Application private runtime data
+catalog-data/
+userData/
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+*.sqlite-shm
+*.sqlite-wal
+*.zip
+*.7z
+*.rar
+node_modules/
+dist/
+out/
+build/
+*.exe
+*.msi
+*.log
+__pycache__/
+.pytest_cache/
+.venv/
+.env
+.env.*
+*.key
+*.pem
+runtime_readback/
+# Source package is transferred as reviewed text files, not bundled archives
