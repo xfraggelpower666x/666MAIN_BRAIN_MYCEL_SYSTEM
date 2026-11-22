@@ -5,6 +5,11 @@ NATIVE_ROOT: PROJECTS/666_CYBER_DRIVE_CONTROL
 REPOSITORY: xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM
 BRANCH: 666MAIN_BRAIN
 STATUS: PARTIAL
+OPTION9_IMPORT_PATH_FIX: VERIFIED_GITHUB_SOURCE
+OPTION9_FIX_COMMIT: 37ead5ae5121e49686b5fe8ce2276d43c6b61403
+OPTION9_FIX_TREE: 54720d211105fa66a87463b7481b8bd8d9982d40
+OPTION9_FIX_DETAIL: scripts/R18_IMPORT_AND_VERIFY.py uses parents[2] for Git worktree root instead of parents[3]
+OPTION9_WINDOWS_RUN: READBACK_PENDING
 REASON: Full 186-file R18 source imported and tested locally only; not yet present in this GitHub folder. Windows portable and setup executables not compiled.
 R18_ORIGINAL_ARCHIVE_SHA256: 0364d38d1fe41492bad821e636d0c089be13ac0304a9fcf01761c79d4d2fce8b
 LOCAL_SOURCE_VERIFY: 186/186 original ZIP entries matched extracted bytes
@@ -24,4 +29,4 @@ GITHUB_READBACK: migration importer, scoped publisher, Build menu and evidence d
 PRESERVE: original R18 project; no existing code deleted
 NO_FOREIGN_ACTIVATION: TRUE
 NO_CROSS_SYSTEM_MERGE: TRUE
-NEXT_EXECUTABLE: from a clean Windows Git checkout on branch 666MAIN_BRAIN, run START_BUILD_WINDOWS.bat -> option 9 with the original verified R18 ZIP; inspect the remote SHA, Windows build logs, portable EXE and setup installation tests.
+NEXT_EXECUTABLE: after updating to the repaired GitHub HEAD, from a clean Windows Git checkout on branch 666MAIN_BRAIN, run START_BUILD_WINDOWS.bat -> option 9 with the original verified R18 ZIP; inspect the remote SHA, Windows build logs, portable EXE and setup installation tests.
