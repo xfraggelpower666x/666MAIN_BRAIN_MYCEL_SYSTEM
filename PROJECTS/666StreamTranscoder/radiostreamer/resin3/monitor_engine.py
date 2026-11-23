@@ -2,6 +2,8 @@
 import queue
 import threading
 import re
+import sys
+from . import windows_endpoints
 
 
 class LocalMonitor:
@@ -28,15 +30,36 @@ class LocalMonitor:
     def list_output_devices(cls):
         try:
             import sounddevice as sd
-            return [record[3] for record in cls._inventory(sd)]
+            records = cls._inventory(sd)
         except Exception:
             return []
+        labels = [record[3] for record in records]
+        if sys.platform == "win32":
+            try:
+                endpoints = windows_endpoints.render_endpoints()
+                for endpoint in endpoints:
+                    if windows_endpoints.unique_native_device_index(
+                            endpoints, endpoint.endpoint_id, records, name_index=1, api_index=2) is not None:
+                        labels.append(windows_endpoints.stable_label(endpoint))
+            except (OSError, RuntimeError):
+                pass  # Existing PA device enumeration stays available.
+        return labels
 
     @classmethod
     def resolve_output_device(cls, sd, selected, channels):
         if not selected or selected == "Default output":
             return None
         records = cls._inventory(sd)
+        stable_id = windows_endpoints.parse_stable_label(selected)
+        if stable_id is not None:
+            endpoints = windows_endpoints.render_endpoints()
+            index = windows_endpoints.unique_native_device_index(
+                endpoints, stable_id, records, name_index=1, api_index=2)
+            if index is None:
+                raise RuntimeError(
+                    "Windows endpoint is ambiguous or unavailable in WASAPI/PortAudio; "
+                    "select a different endpoint or refresh devices.")
+            return index
         match = cls.DEVICE_LABEL.fullmatch(str(selected))
         if match:
             index, host_name, name = int(match.group(1)), match.group(2), match.group(3)
