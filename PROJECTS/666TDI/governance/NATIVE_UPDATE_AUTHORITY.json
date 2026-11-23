@@ -164,6 +164,25 @@
       "python_host_acceptance": "PARTIAL",
       "native_browser_acceptance": "OPEN",
       "pointer_last": true
+    },
+    "r14_daemon_http_audit_repair": {
+      "source": "DIRECT_USER_AUDIT_REPAIR_2026-11-23T18:48:48Z",
+      "scope": "PROJECTS/666TDI_ONLY",
+      "operations": [
+        "HOST_ORIGIN_VALIDATION_HARDENING",
+        "TRUTHFUL_API_STATUS",
+        "LOCAL_HTTP_REGRESSION_TESTS",
+        "SOURCE_MANIFEST_REPAIR",
+        "CURRENT_POINTER_LAST"
+      ],
+      "pre_change_backup": "backup/666tdi-audit-repair-http-guard-20261123",
+      "preserve_existing": true,
+      "foreign_writes": false,
+      "no_suno_execution": true,
+      "no_global_learning": true,
+      "python_test_execution": "OPEN",
+      "browser_acceptance": "OPEN",
+      "pointer_last": true
     }
   }
 }

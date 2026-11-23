@@ -127,14 +127,41 @@ class Handler(BaseHTTPRequestHandler):
     def _json(self, status, obj):
         self._send(status, json.dumps(obj, ensure_ascii=False).encode("utf-8"))
 
+    def _safe_host(self):
+        # Localhost bind alone does not prevent DNS-rebinding requests.
+        hosts = self.headers.get_all("Host", [])
+        if len(hosts) != 1:
+            return False
+        raw = hosts[0].strip()
+        if not raw or any(ch in raw for ch in "/?#@\\"):
+            return False
+        try:
+            parsed = urlsplit("//" + raw)
+            return (parsed.hostname in ("localhost", "127.0.0.1")
+                    and parsed.port == self.server.server_port
+                    and not parsed.username and not parsed.password)
+        except ValueError:
+            return False
+
     def _safe_origin(self):
         origin = self.headers.get("Origin", "")
         if not origin:
+            # Non-browser clients may omit Origin but still must pass the Host gate.
             return True
-        parsed = urlsplit(origin)
-        return parsed.scheme == "http" and parsed.hostname in ("localhost", "127.0.0.1") and parsed.port == self.server.server_port
+        try:
+            parsed = urlsplit(origin)
+            return (parsed.scheme == "http"
+                    and parsed.hostname in ("localhost", "127.0.0.1")
+                    and parsed.port == self.server.server_port
+                    and not parsed.username and not parsed.password
+                    and not parsed.path and not parsed.query and not parsed.fragment)
+        except ValueError:
+            return False
 
     def do_GET(self):
+        if not self._safe_host():
+            self._json(403, {"error": "HOST_NOT_ALLOWED"})
+            return
         if self.path in ("/", "/index.html"):
             self._send(200, STATIC.read_bytes(), "text/html; charset=utf-8")
         elif self.path == "/api/status":
@@ -145,12 +172,19 @@ class Handler(BaseHTTPRequestHandler):
                 "engine": "R1.0_CREATIVE_CAUSAL",
                 "device_required": True,
                 "suno_connected": False,
-                "read_only": True
+                "read_only": False,
+                "preanalysis_read_only": True,
+                "feedback_requires_explicit_creator_confirmation": True,
+                "feedback_writes_local": True,
+                "global_learning": False
             })
         else:
             self._json(404, {"error": "NOT_FOUND"})
 
     def do_POST(self):
+        if not self._safe_host():
+            self._json(403, {"error": "HOST_NOT_ALLOWED"})
+            return
         if self.path not in ("/api/preanalysis", "/api/feedback", "/api/learning/read"):
             self._json(404, {"error": "NOT_FOUND"})
             return
