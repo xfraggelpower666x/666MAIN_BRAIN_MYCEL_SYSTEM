@@ -1,0 +1,89 @@
+{
+  "schema": "666CLS_P3_CURES_RECOVERY_EVIDENCE_V1",
+  "system_id": "666CLS-CORE-001",
+  "scope": "READ_ONLY_FOREIGN_SOURCE_REVIEW_CLS_METADATA_ONLY",
+  "base": {
+    "repository": "xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM",
+    "branch": "666MAIN_BRAIN",
+    "head": "26ed77554aa97e7619d872d596c44c466b1a2152",
+    "current_version": "1.24.11",
+    "pointer_sha": "afb3c09c7e966789c520459b6aa7bb5629e7cb9b",
+    "backup_branch": "backup/666cls-p3-cures-evidence-20261122-26ed775"
+  },
+  "pfs": {
+    "repository": "xfraggelpower666x/666PFS_CSM",
+    "branch": "main",
+    "head": "08989d5dc71259cbebf108c71d2e315aa9ac28a1",
+    "tree": "19fe33d2dd471030066c5e243aee0b5378d19307",
+    "tree_complete": true,
+    "entries": 940,
+    "child": "children/CURES-16001",
+    "child_documents": [
+      "DASHBOARD_CARD.md",
+      "REHYDRATION.md",
+      "SOURCE_BINDING.md",
+      "SYSTEM_IDENTITY.md"
+    ],
+    "native_state": "HOLD_FUNCTIONAL_PAYLOAD_SOURCE_NOT_FOUND",
+    "original_executable_source": "NOT_FOUND_IN_CURRENT_CHILD_TREE"
+  },
+  "historical_review": [
+    {
+      "branch": "backup/pre-cures-cursor-pack-update-20261006",
+      "commit": "fadde6dd3231efb4103e2de64ae0b8cdd75630c7",
+      "tree": "bd891b4bb9a8d371a9468b5fcbcf72ed7dab179e",
+      "entries": 384,
+      "assessment": "FOUR_METADATA_FILES_NO_EXECUTABLE_CURES_ENGINE_PROVEN"
+    },
+    {
+      "branch": "backup/pre-cures-rollback-20261006",
+      "commit": "f8cebcee3e6e7d4705bf2fe30e6df9007cc0ab6d",
+      "tree": "6bd6286adbd6f17505c140d6b5aae008d51ec8d8",
+      "entries": 394,
+      "assessment": "ARTIFACT_MANIFEST_REFERENCES_WINDOWS_CURSOR_PACK_NOT_CURES_ENGINE",
+      "false_binding_blob": "a9d8e6a9d675b994f5caf4a355a29b0a5d73ab3"
+    },
+    {
+      "path": "history/666PFS_CURES_16001_ROLLBACK_2026-10-06.md",
+      "blob": "cf9b5fa1c5ad4c7cacf51b3b0b3b5f9db973d860",
+      "assessment": "ERRONEOUS_CURSOR_PROJECT_REBIND_ROLLED_BACK"
+    }
+  ],
+  "interpretation": "HISTORICAL_ACTIVE_VERIFIED_V0.1.1_IS_SUPERSEDED_BY_CURRENT_HOLD; DO_NOT_PROMOTE_BACKUP",
+  "clic": {
+    "repository": "xfraggelpower666x/666CLICPRO",
+    "branch": "clic-migration-rev79-staging",
+    "observed_head": "0f8ce8b735d4b2dcbdbced2cadb296d20e90611e",
+    "observed_tree": "d0cc3fc720bc6c1cc7d7641c67515fadd0f6b11c",
+    "return_receipt_in_cls": "PROJECTS/666CLS/continuity/CLIC_R12_RETURN_RECEIPT.json",
+    "receipt_blob": "fe8efffef57114dd6ffc5a371eb8a2a0aa2a716a",
+    "receipt_in_clic_inbox": "NOT_FOUND",
+    "delivery": "NOT_VERIFIED",
+    "adoption": "NOT_VERIFIED",
+    "foreign_write": false
+  },
+  "preservation": {
+    "cls_release": "1.24.11",
+    "five_facets": true,
+    "db_menu_pairing": true,
+    "reconstruction_adapter": true,
+    "visual_integration": true,
+    "cures_pfs_hold": true,
+    "no_foreign_execution": true
+  },
+  "test_evidence": {
+    "cls_pointer_manifest_and_release_sha256": "PASS_17_OF_17_PREVIOUS_READ_ONLY_CHECK",
+    "database_menu_parity": "PASS_4_OF_4_PREVIOUS_READ_ONLY_CHECK",
+    "native_ci": "HISTORICAL_SUCCESS_RUN_44970676624",
+    "new_runtime_tests": "NOT_RUN_NO_RUNTIME_SOURCE_CHANGE",
+    "new_host_tests": "NOT_RUN"
+  },
+  "open_gates": [
+    "PFS_ORIGINAL_EXECUTABLE_BYTES_AND_PROVENANCE_NOT_VERIFIED",
+    "PFS_DRIVE_RECOVERY_PAYLOAD_NOT_REVERIFIED_IN_THIS_UPDATE",
+    "CLIC_INBOX_NATIVE_ADOPTION_NOT_VERIFIED",
+    "VISUAL_HOST_PARITY_OPEN"
+  ],
+  "decision": "NO_RUNTIME_REPAIR_NO_OWNER_PROMOTION; ADD_EVIDENCE_ONLY",
+  "return_anchor": "666CLS-CORE-001 v1.24.11; CURRENT_POINTER.json unchanged"
+}

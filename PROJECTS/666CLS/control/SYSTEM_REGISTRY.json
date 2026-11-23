@@ -1,0 +1,12 @@
+{
+  "system_id": "666CLS-CORE-001",
+  "schema_version": "1.12.0",
+  "domains": {
+    "LYRICS": "LYRIC",
+    "RAW_MATERIAL": "RAW_MATERIAL",
+    "STORIES": "STORY",
+    "TEXT": "TEXT"
+  },
+  "release_topology": "releases/<version>",
+  "framework": "control/FRAMEWORK.md"
+}

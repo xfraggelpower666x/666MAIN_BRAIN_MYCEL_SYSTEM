@@ -1,0 +1,148 @@
+{
+  "system_id": "666CLS-CORE-001",
+  "integrations": [
+    {
+      "name": "LYVRA Intelligent UI 0.85.1",
+      "role": "READ_ONLY_VISUALIZATION",
+      "source": {
+        "archive_sha256": "1f95cecb033e0e9f2f24e1365fc2bf21ec59afa0afa40da6ff2fcb000b719fc7",
+        "members": {
+          "lyvra-intelligent-ui-template/assets/charts.html": "673cecff5d640a93894ab8ed4b317bb6e569c60e789a375d4c3ca2010ee57b31",
+          "lyvra-intelligent-ui-template/assets/companion.js": "edd2dc8c1a689450977a36cce587e40e561b0b8ac9cfccce17194e33ba485e49",
+          "lyvra-intelligent-ui-template/assets/ui-template.html": "2a3adb23ac89f3080e6efb9fb27881f7b02d8f65dc36f05976091571118939f4",
+          "lyvra-intelligent-ui-template/assets/visual-daemon.html": "e915390ef6a1b22087ae9006c3e28787899cbfc83c6d9afefcd09437b751ec83",
+          "lyvra-intelligent-ui-template/assets/visualform-menu.html": "85598acde043608470a2d8aa07d500f7e212d25ef2eee38ee2b19634c7a6e516",
+          "lyvra-intelligent-ui-template/scripts/render_ui.py": "a83e2f7252f2016d5f1d7b1d301755e6b41826618ab55695e73a2b18be9baa14"
+        }
+      },
+      "sha256": {
+        "integrations/visual/assets/charts.html": "673cecff5d640a93894ab8ed4b317bb6e569c60e789a375d4c3ca2010ee57b31",
+        "integrations/visual/assets/companion.js": "edd2dc8c1a689450977a36cce587e40e561b0b8ac9cfccce17194e33ba485e49",
+        "integrations/visual/assets/ui-template.html": "2a3adb23ac89f3080e6efb9fb27881f7b02d8f65dc36f05976091571118939f4",
+        "integrations/visual/assets/visual-daemon.html": "e915390ef6a1b22087ae9006c3e28787899cbfc83c6d9afefcd09437b751ec83",
+        "integrations/visual/assets/visualform-menu.html": "85598acde043608470a2d8aa07d500f7e212d25ef2eee38ee2b19634c7a6e516",
+        "integrations/visual/scripts/render_ui.py": "a83e2f7252f2016d5f1d7b1d301755e6b41826618ab55695e73a2b18be9baa14",
+        "runtime/dashboard.py": "67dfaa81564ef06639ff9d1b28ab22f41e45bc156b1b78b7c71a1d255f4d36f0",
+        "skills/cls-visual/SKILL.md": "6b1af5e15797bc66c5c40b53c711fe4861682a74516d5be0bb5d9764c6f07836",
+        "tests/test_archive_dashboard.py": "934ab99b4875e512c039d6496a2a4684a2773b214a799e804a626e067daf860c"
+      }
+    },
+    {
+      "name": "System Build Control Kernel 6.7",
+      "role": "NATIVE_RELEASE_GATES",
+      "source": {
+        "archive_sha256": "76a9c90be940f6bd1f9b05cf38cc51bfbb6a3879c95b35b3e5a4024feb986379",
+        "members": {
+          "SYSTEM_BUILD_CONTROL_KERNEL_v6_7_FREEZE_SYSTEM_BACKUP/01_FROZEN_RELEASE/SYSTEM_BUILD_CONTROL_KERNEL_v6_7_INTEGRATION_AUDIT_REPAIR_FREEZE_MASTER.md": "c3dd799b11dad8bc747cdffdecf9675496fb246471fd34ee219567ec20df5a50",
+          "SYSTEM_BUILD_CONTROL_KERNEL_v6_7_FREEZE_SYSTEM_BACKUP/03_REGISTRY/MODULE_REGISTRY_v6_7.md": "75eb6b0f2001bd7535d75039950da29f250abed558c1f4ea404a9fc7cf9fc75f"
+        }
+      },
+      "sha256": {
+        "runtime/cls_livecircle.py": "a0559a0efee682b962bbaa813676d17a0e0d4c7afae5510cffe658a86f55321c",
+        "tests/test_livecircle.py": "fde66dd744115be0e0f4a2c4eb97409f3b8d910396c56c4d0da14e09b5fc0134",
+        "skills/cls-release/SKILL.md": "02a1fc4485f207d8ab2725b6de8c3e232c05a5f5410d4db6ffb04b1ddd473160",
+        "README.md": "2bb10ac984a4fbbf1c7dcc442bddb917b617735b3170a04c199e5cc2692891e8",
+        "START_HERE.md": "48b1187a845b10c1f85eabc8ceeca88a0c49d561c233cfbc3136c7acb162651d",
+        ".gitignore": "e469b1ce4110700c806e72a501c330e169f38d25026681c1ca29b81693d3d20d"
+      }
+    },
+    {
+      "name": "666SOUNDsDESIGn DE/EN",
+      "role": "ARCHIVE_EVIDENCE_RULES",
+      "source": {
+        "archive_sha256": "ad4f05a07f878dd5f0e78d7087acfc4c0c52cfb52c4e7254ef788d8b38731f31",
+        "members": {
+          "DEU/18_auswertungsregeln.json": "9a2a46904bcc9764e6b82c7c104decc5b76cecffcd68768bf4c90ebfae3a1121",
+          "ENG/18_auswertungsregeln.json": "e6cb400f40ae08981d5b342b10d92d49cb72c726bea3b100243d28c22037c082"
+        }
+      },
+      "sha256": {
+        "integrations/ARCHIVE_EVIDENCE.json": "6bb0ac16952025f577a0d54b0874d50f4dbcceb8e70a182dd5c12597fe7408ee",
+        "skills/cls-evidence/SKILL.md": "e51aea3865908247c8ef0aea320a2b9fbad1b28007acfafdb8083fd349f0fbc0"
+      }
+    },
+    {
+      "name": "666CLS gemeinsamer Archivzugang",
+      "role": "SCOPED_ARCHIVE_INTAKE",
+      "sha256": {
+        "runtime/shared_archive.py": "d8ea1fdd74cabc87fdd5bd21949ef665df00c9b78cc08190132d9abda0d1774e",
+        "shared_archive/README.md": "ae3fa6d4b9f25e0e23cfc75bbccf9b53b25ba67d49d85f38209c34b6260fc121",
+        "tests/test_shared_archive.py": "0e29f192a9ade3f5bac598c1f9df6d64a3af68ca24f8a08a7440058d2e105da1"
+      }
+    },
+    {
+      "name": "666CLS Framework- und Archivsteuerung",
+      "role": "LOCAL_OPERATOR_CONSOLE",
+      "sha256": {
+        "runtime/archive_console.py": "1b26700ed8beedd3aabdfcc66a4242659fb4c8e7c23dd570edc1885da23097c7",
+        "shared_archive/console.html": "03ddf2ca2ed338712bc5a9255de9feb23a2051d84b642d9b5287b3c61b5751e8",
+        "tests/test_archive_console.py": "a2de2c9bc250cca3929c7a74de1d955bed3dbca4e51769eabc253ed91df8701d"
+      }
+    },
+    {
+      "name": "666CLS Systemaufnahme",
+      "role": "FRAMEWORK_BOUNDARY_REVIEW",
+      "sha256": {
+        "runtime/framework_intake.py": "17136a173608ae0010c8b811c99570272cdfb110e5ba062728205ec2ded2c316",
+        "tests/test_framework_intake.py": "98956a58eb4740a409563c1577100afceb51480cfcc9e195e4dc10aef5d8bc7a"
+      }
+    },
+    {
+      "name": "666CLS Source Evidence Catalog v1",
+      "role": "READ_ONLY_SOURCE_EVIDENCE",
+      "sha256": {
+        "catalog/FRAMEWORK_SOURCE_INDEX.json": "569d263c9350a1f02f6468264e90e8fdfea8ca55cdca8007916b3efc47cec37a",
+        "runtime/framework_source_catalog.py": "0e524c315b24487b31d18f8d7ecd8918d86686ca79daf60bfde6ff25d29fd299",
+        "tests/test_framework_source_catalog.py": "2bf65f163e27ea5d3b3eb8f7c97a11eb7adf543c838536d3139bdf923c99df9a"
+      }
+    },
+    {
+      "name": "666CLS Main Sub-LiveCircle Intelligent UI V1",
+      "role": "NATIVE_READ_ONLY_FACET_ORCHESTRATION",
+      "source": {
+        "scope": "CLS_NATIVELY_SCOPED_NO_FOREIGN_EXECUTION",
+        "base_version": "1.24.4",
+        "candidate_version": "1.24.5",
+        "foreign_native_authority": "UNCHANGED"
+      },
+      "sha256": {
+        "facets/MAIN_LIVECIRCLE.json": "4b2b30d80c5b43945a99b004150207873d4175468e123c3ded14f52e07aff7af",
+        "facets/FACET_REGISTRY.json": "3c219ca9bcd664eca04804ed53705857cd605a282324f18aa2f1e1d49e11a74c",
+        "facets/README.md": "e63092e60575d0a41b60f5d3ab6e4a93844f0b3c3ea5af37c48d07e4fae4f285",
+        "runtime/cls_facet_runtime.py": "d1987237ba77f9c5695d8a5e280d4e6f4ba662ba230db2a809df2be932e3374a",
+        "tests/test_cls_facet_runtime.py": "8fb3c6dba4fe2ff6642c1ccff63558c080c8e2470eda72f96ffa9fe3fecb8012",
+        "facets/cures/LIVECIRCLE.json": "a067ef9670b4dea398fb497139c068bda17ad02ef8c8bb8ce37185c9f5736eb2",
+        "facets/cures/UI.json": "ae310359c32675985d5bda911ea1028243c050e22826ebddf918a2f898a48a33",
+        "facets/lyrics-fulltext/LIVECIRCLE.json": "099fcaa4a373fc5c264e6969f19185966b15e62392c0497bc7b7f644791f948b",
+        "facets/lyrics-fulltext/UI.json": "8e4b20d536d7c051d7cb6aac900f1e5ceb6300d79cc735593946952d751f40c9",
+        "facets/mantra-router/LIVECIRCLE.json": "1e6e442d3d1b289325d48e65860dec97d3bd20fc68b1f0032237459f114ad3a7",
+        "facets/mantra-router/UI.json": "6d476e2a6b51976c4007f2aa7e9d2ddc793db82e834d7be96ce948efd3bad08e",
+        "facets/cover-builder/LIVECIRCLE.json": "040c5af18fb71889aa28180a246948bb8bba75b3b7c0010fda1b6e52962f42a7",
+        "facets/cover-builder/UI.json": "3009d9e05da6028b83ad0378e05d3207a6facc2e8393f3bb057ecd1a40fe6b39",
+        "facets/character-auditor/LIVECIRCLE.json": "0085f43bbea7b937c37972f5b676c627d1e2582a7afaea15ea704402a4389029",
+        "facets/character-auditor/UI.json": "fea09d84741f224d0d7775b37aa737c2688026c1aac19953e49bf1f7d5efd64e"
+      }
+    },
+    {
+      "name": "666CLS Reconstruction Contract Adapter R02",
+      "role": "READ_ONLY_RECONSTRUCTION_CONTRACT_ROUTER",
+      "scope": "CLS_NATIVE_NO_FOREIGN_EXECUTION",
+      "source": {
+        "version": "R02",
+        "cls_source_commit": "030d66c5ff27cc62fcf70e6fc2fe73907ab8f629",
+        "original_systems_unmodified": true,
+        "semantic_regression": "NOT_EXECUTED",
+        "external_archive_readback": "PARTIAL",
+        "base_version": "R01",
+        "native_python_regression": "CANDIDATE_RUN_REQUIRED",
+        "unrelated_original_systems_unchanged": true
+      },
+      "sha256": {
+        "runtime/reconstruction_adapter.py": "1a36e7946f908257ca25f375aad9d2e2c6996ca771f1634e87665094ac7e56ae",
+        "contracts/RECONSTRUCTION_PROFILES_R01.json": "20dd8e2c931d5a8a95535a0424afe902bed83d3cd5adb6f06261ea3887190d86",
+        "contracts/RECONSTRUCTION_ADAPTER_R01.md": "743a40a52331537b19ab9ac2a6a30c79257803cc97a7ed1b5af5ba71a74bff8b",
+        "tests/test_reconstruction_adapter.py": "6199bac9ac2afdcee0f185d03e8dbe5cf02c58f8022b4e115c13c53a7bdd4183"
+      }
+    }
+  ]
+}

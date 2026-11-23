@@ -1,0 +1,19 @@
+{
+  "system_id": "666CLS-CORE-001",
+  "triggers": {
+    "666CLS SYSTEMSTART": "status",
+    "666CLS WEITER": "continue",
+    "666CLS UPDATE": "update"
+  },
+  "pointer": "CURRENT_POINTER.json",
+  "load_order": [
+    "CURRENT_POINTER",
+    "AUTHORITY",
+    "REGISTRY",
+    "LIVECIRCLE",
+    "INTEGRATIONS",
+    "RELEASE",
+    "AUDIT"
+  ],
+  "runtime": "runtime/cls_livecircle.py"
+}

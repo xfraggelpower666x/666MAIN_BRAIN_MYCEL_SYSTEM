@@ -1,0 +1,17 @@
+{
+  "system_id": "666CLS-CORE-001",
+  "version": "1.24.5",
+  "status": "FROZEN_LOCAL",
+  "base_version": "1.24.4",
+  "base_git_head": "b24bb8d0adf1e9472f28b058d7963712e9c59fc4",
+  "scope": "666CLS_SOURCE_CATALOG_MAIN_SUB_LIVECIRCLE_INTELLIGENT_UI_ADVISORY_DAEMON",
+  "record_role": "PRE_PUBLICATION_FREEZE",
+  "active_provider_version_at_freeze": "1.24.4",
+  "provider_readback_at_freeze": "READBACK_PENDING",
+  "native_child_authority": "666PFS-CORE-001",
+  "UMIP_RUNTIME_MUTATION": false,
+  "archive_content_changed": false,
+  "source_release": "1.24.4",
+  "foreign_native_write": false,
+  "facet_mode": "READ_ONLY"
+}

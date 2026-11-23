@@ -1,0 +1,26 @@
+{
+  "version": "1.24.10",
+  "status": "VERIFIZIERT",
+  "domains": {
+    "LYRICS": 0,
+    "RAW_MATERIAL": 0,
+    "STORIES": 0,
+    "TEXT": 0
+  },
+  "phase": "FACET_CONTINUITY_REFERENCE_REFRESH",
+  "checks": [
+    "PFS_CURES_METADATA_CURRENT_RECHECKED",
+    "CURES_HOLD_PRESERVED",
+    "README_STALE_VERSION_REMOVED",
+    "FOREIGN_AUTHORITY_UNCHANGED",
+    "ARCHIVE_BYTES_UNCHANGED"
+  ],
+  "notes": {
+    "pfs_ref": "xfraggelpower666x/666PFS_CSM/main",
+    "pfs_head": "08989d5dc71259cbebf108c71d2e315aa9ac28a1",
+    "scope": "CLS_REFERENCE_ONLY",
+    "full_native_regression": "CANDIDATE_CI_REQUIRED",
+    "source_origins": "NOT_PROMOTED",
+    "release_freeze": "LOCAL_ONLY_UNTIL_CANDIDATE_AND_PROVIDER_READBACK"
+  }
+}
