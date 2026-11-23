@@ -38,8 +38,8 @@ CURRENT_666TDI_GT_HISTORICAL_LYVRA. Änderungen erhalten bestehenden gültigen C
 ## Offene Entwicklung
 1. Native visuelle Host-Anbindung für das bestehende Semantic-Presentation-Modell einschließlich echter Copy-Aktionen und exakter UTF-16-Zähler.
 2. Renderer-Feldprüfung gegen das tatsächlich verwendete Suno-Konto und die bestätigte Geräteoberfläche; keine erfundenen Felder oder Limits.
-3. Kausale Graph- und Pattern-Disambiguierung einschließlich Negationen und Gegenbelegen.
+3. Vertiefung der kontextuellen Funktionsbeziehungen anhand creator-reviewed Trackbeispiele und kontrollierter Gegenbelege.
 4. Renderer-A/B-Feedback mit echten Ergebnissen nur bei Bedarf; Audioanalyse bleibt optional und ist kein Start-, Trackdesign- oder Rehydration-Gate.
 5. CLIC-R11-Annahme bleibt eine separate CLIC-Zuständigkeit; sie ist kein TDI-Host-PASS.
 
-**Nächster TDI-Entwicklungsschritt:** Die bestehende Semantic-Presentation-Facette an die vorhandene native Benutzeroberfläche anbinden, ohne einen neuen Composer, Router oder Musikcontroller einzuführen.
+**Nächster TDI-Entwicklungsschritt:** R0.9 auf repräsentativen Creator-Intents fachlich validieren, Negations-/Konfliktfälle erweitern und danach nur belegte semantische Lücken ergänzen. Die bestehende Engine bleibt erhalten.
