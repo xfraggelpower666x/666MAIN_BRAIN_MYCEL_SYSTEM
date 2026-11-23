@@ -390,12 +390,23 @@ $("device-main-copy").addEventListener("click",async()=>{
  try{await navigator.clipboard.writeText($("device-main-text").value);text($("device-main-count"),"Main Input exakt kopiert");}
  catch(e){text($("device-main-count"),"Clipboard nicht verfügbar");}
 });
+// Preserve manual creator edits; replace only prior automatic suggestions on new tracks.
+for(const id of ["learn-decision","learn-intent"])
+ $(id).addEventListener("input",()=>{delete $(id).dataset.autoSuggestion;});
 function suggestEvidenceChoices(data){
  const list=$("learn-decisions");list.replaceChildren();
- for(const item of data.causal.decisions||[]){const option=document.createElement("option");option.value=item.emergence;list.append(option);}
- if(data.causal.decisions&&data.causal.decisions.length&&!$("learn-decision").value)
-  $("learn-decision").value=data.causal.decisions[0].emergence;
- if(!$("learn-intent").value)$("learn-intent").value=(data.intent.story||data.intent.structure||data.intent.motor||"").slice(0,1600);
+ const suggestions=data.causal.decisions||[];
+ for(const item of suggestions){const option=document.createElement("option");option.value=item.emergence;list.append(option);}
+ const choice=$("learn-decision");
+ if(!choice.value.trim()||choice.dataset.autoSuggestion==="true"){
+  choice.value=suggestions.length?suggestions[0].emergence:"";
+  choice.dataset.autoSuggestion="true";
+ }
+ const intention=$("learn-intent");
+ if(!intention.value.trim()||intention.dataset.autoSuggestion==="true"){
+  intention.value=(data.intent.story||data.intent.structure||data.intent.motor||"").slice(0,1600);
+  intention.dataset.autoSuggestion="true";
+ }
 }
 function render(data){
  selected.result=data;selected.choices={};
@@ -446,8 +457,10 @@ function renderEvidenceReport(data){
  }
 }
 $("learn-save").addEventListener("click",async()=>{
- const status=$("learn-status");
+ const status=$("learn-status"),saveButton=$("learn-save");
+ if(saveButton.disabled)return;
  if(!$("learn-consent").checked){text(status,"CREATOR_CONFIRMATION_REQUIRED");return;}
+ saveButton.disabled=true;
  const route=selected.result?.device_output?.route||"UNKNOWN";
  const payload={track_id:$("learn-track").value.trim(),decision_id:$("learn-decision").value.trim(),
   category:$("learn-category").value,rating:$("learn-rating").value,
@@ -460,7 +473,8 @@ $("learn-save").addEventListener("click",async()=>{
   $("learn-consent").checked=false;
   const report=await evidenceRequest("/api/learning/read",{track_id:payload.track_id});
   renderEvidenceReport(report);
- }catch(e){text(status,"Fehler: "+e.message);}
+ }catch(e){text(status,"Feedback-Anfrage fehlgeschlagen oder Rücklesung nicht verfügbar: "+e.message);}
+ finally{saveButton.disabled=false;}
 });
 $("learn-read").addEventListener("click",async()=>{
  try{renderEvidenceReport(await evidenceRequest("/api/learning/read",{track_id:$("learn-track").value.trim()}));

@@ -34,7 +34,7 @@ def _validate_input(payload):
  track_id=_track(payload.get("track_id"))
  decision=_text(payload.get("decision_id"),"DECISION_ID",160)
  category=payload.get("category");rating=payload.get("rating")
- if category not in CATEGORY or rating not in RATING:raise ValueError("INVALID_CATEGORY_OR_RATING")
+ if not isinstance(category,str) or not isinstance(rating,str) or category not in CATEGORY or rating not in RATING:raise ValueError("INVALID_CATEGORY_OR_RATING")
  expected=_text(payload.get("intent_summary"),"INTENT_SUMMARY",1600)
  outcome=_text(payload.get("observed_outcome"),"OBSERVED_OUTCOME",1600)
  review=_text(payload.get("creator_note",""),"CREATOR_NOTE",1600,False)

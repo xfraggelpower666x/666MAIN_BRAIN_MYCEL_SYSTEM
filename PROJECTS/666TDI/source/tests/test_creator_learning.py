@@ -71,6 +71,16 @@ class CreatorLearningTests(unittest.TestCase):
  def test_empty_review_before_any_feedback(self):
   self.assertEqual(l.assess(self.root,"track-01")["status"],"NO_CREATOR_EVIDENCE")
 
+ def test_nonstring_enums_fail_closed(self):
+  for updates in ({"category":[]},{"category":{}},{"rating":[]},{"rating":{}},{"rating":None}):
+   with self.subTest(updates=updates),self.assertRaisesRegex(ValueError,"INVALID_CATEGORY_OR_RATING"):
+    l.prepare({**self.payload,**updates})
+
+ def test_valid_optional_creator_fields(self):
+  sample=l.prepare({**self.payload,"creator_note":"","artifact_sha256":""},now="2026-11-23T18:40:00+00:00")
+  self.assertEqual(sample["creator_note"],"")
+  self.assertEqual(sample["artifact_sha256"],"")
+
  def test_invalid_creator_fields(self):
   for updates in ({"category":"MADE_UP"},{"rating":"GOLD"},{"observed_outcome":""},
                   {"decision_id":""},{"device_route":"FORGED"},{"creator_confirmed":"true"}):
