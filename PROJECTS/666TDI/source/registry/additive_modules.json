@@ -133,6 +133,18 @@
       "no_renderer_override": true,
       "no_global_learning": true,
       "no_automatic_repair": true
+    },
+    "visual_daemon_r11": {
+      "status": "LOCAL_IMPLEMENTATION_HOST_ACCEPTANCE_OPEN",
+      "purpose": "Neon-Cyber guided visual preanalysis over existing R0.9/R1.0 intelligence",
+      "module": "engine/daemon_cli.py",
+      "ui": "engine/daemon_static/index.html",
+      "scope": "LOCALHOST_READ_ONLY_PREANALYSIS",
+      "required_device_preflight": true,
+      "no_suno_api_calls": true,
+      "no_automatic_audio": true,
+      "no_global_learning": true,
+      "no_foreign_authority": true
     }
   }
 }

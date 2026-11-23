@@ -84,6 +84,27 @@
       "pre_change_backup": "backup/666tdi-r1.0-prechange-20261123",
       "requires_direct_readback": true,
       "pointer_last": true
+    },
+    "r11_visual_daemon": {
+      "source": "DIRECT_USER_MESSAGE_2026-11-23T16:11:07Z",
+      "scope": "PROJECTS/666TDI_ONLY",
+      "operations": [
+        "LOCAL_VISUAL_DAEMON_IMPLEMENTATION",
+        "DEVICE_PREFLIGHT",
+        "R10_READ_ONLY_UI_CONSUMPTION",
+        "LOCAL_JSON_HANDOFF",
+        "SOURCE_MANIFEST_READBACK",
+        "POINTER_LAST"
+      ],
+      "pre_change_backup": "backup/666tdi-r1.1-daemon-prechange-20261123",
+      "preserve_existing": true,
+      "no_foreign_repository_writes": true,
+      "no_automatic_audio": true,
+      "no_global_learning": true,
+      "no_suno_execution": true,
+      "native_host_acceptance": "OPEN",
+      "requires_direct_readback": true,
+      "pointer_last": true
     }
   }
 }

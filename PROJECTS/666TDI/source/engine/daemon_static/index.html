@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>666TDI DAEMON · Musical Intelligence</title>
+<style>
+:root{--bg:#080a16;--surface:#111527;--panel:#151a31;--line:#343b5c;--text:#f4f5ff;--muted:#9aa7c5;--cyan:#58f4f6;--pink:#ff56bd;--purple:#b37aff;--lime:#8ef3b1;--amber:#ffcc83;--radius:17px}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 17% -10%,#2a174b 0,transparent 38%),radial-gradient(ellipse at 95% 0,#102a45 0,transparent 30%),var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Arial,sans-serif}
+button,input,textarea,select{font:inherit;color:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+a{color:var(--cyan)}.shell{max-width:1540px;min-height:100vh;display:grid;grid-template-columns:265px minmax(0,1fr);margin:auto}.sidebar{background:#0d1021e8;border-right:1px solid var(--line);padding:28px 17px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:28px}
+.logo{font-weight:900;font-size:24px;letter-spacing:.12em;color:var(--text);text-shadow:0 0 24px #d966ed90}.logo em{font-style:normal;color:var(--cyan)}.tiny{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}.sidebar nav{display:grid;gap:9px}.navitem{width:100%;border:1px solid transparent;background:transparent;border-radius:12px;text-align:left;padding:12px;color:var(--muted);display:flex;align-items:center;gap:12px}.navitem.active{border-color:#8867d7;background:#2b2149;color:#fff}.navitem.ready .dot{background:var(--lime)}.dot{width:8px;height:8px;border-radius:50%;background:#727993;flex:none}
+.sidebar .bottom{margin-top:auto;border:1px solid #334063;border-radius:13px;padding:13px;font-size:12px;color:var(--muted)}.live{color:var(--lime)}main{min-width:0;padding:32px clamp(16px,3vw,54px) 56px}
+.eyebrow{color:var(--cyan);font-size:11px;letter-spacing:.24em;font-weight:700}.header{display:flex;justify-content:space-between;gap:20px;align-items:start;flex-wrap:wrap}.header h1{font-size:clamp(30px,4vw,52px);line-height:1.1;letter-spacing:-.04em;margin:8px 0}.header p{color:var(--muted);max-width:720px;margin:0}.pill{border:1px solid #3f5272;border-radius:30px;padding:7px 12px;font-size:11px;color:var(--cyan);background:#142336}
+.card{background:linear-gradient(150deg,#171a31 0,#11152a 95%);border:1px solid var(--line);border-radius:var(--radius);padding:22px;min-width:0;box-shadow:0 17px 48px #0002}.card h2{font-size:19px;margin:0 0 10px}.card h3{font-size:14px;margin:0 0 7px}.card p{margin:7px 0;color:var(--muted)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.section{margin-top:22px}.subtle{font-size:12px;color:var(--muted)}.required{color:var(--pink)}.step{display:inline-flex;gap:7px;align-items:center;color:var(--cyan);font-size:12px;font-weight:700;margin-bottom:11px}.device-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.device{border:1px solid #38435c;background:#10192b;border-radius:14px;padding:18px;text-align:left;min-height:132px;transition:transform .15s,border .15s;display:flex;flex-direction:column;justify-content:space-between}
+.device:hover{transform:translateY(-2px);border-color:var(--cyan)}.device.selected{border:2px solid var(--cyan);background:#133042;box-shadow:0 0 22px #2adce735}
+.device strong{display:block;font-size:18px}.device small{color:var(--muted)}.device .emoji{font-size:29px}.notice{border-left:3px solid var(--amber);background:#32281e90;padding:11px 14px;border-radius:8px;color:#ffe6ba;font-size:12px;margin-top:13px}
+label{display:block;font-size:12px;color:#dce2f5;margin-bottom:6px;font-weight:650}.field{display:flex;flex-direction:column;gap:6px}.field input,.field textarea{background:#0b1022;border:1px solid #3c4565;border-radius:11px;padding:12px;outline:none;width:100%}.field textarea{resize:vertical;min-height:92px}.field input:focus,.field textarea:focus{border-color:var(--cyan)}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.wide{grid-column:1/-1}
+.primary{border:none;background:linear-gradient(90deg,#49e4ef,#b17dfb);color:#090d1c;padding:13px 20px;border-radius:12px;font-weight:900;box-shadow:0 8px 25px #42cbd52b}.primary:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}.ghost{border:1px solid #465174;background:#191e37;padding:10px 14px;border-radius:10px}.ghost:hover{border-color:var(--cyan)}.controls{display:flex;gap:11px;align-items:center;flex-wrap:wrap;margin-top:20px}.status{font-size:13px;color:var(--muted)}.status.err{color:#ff979e}.status.ok{color:var(--lime)}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.metric{border:1px solid #384365;border-radius:12px;padding:16px;background:#10192d}.metric b{font-size:30px;color:var(--cyan);display:block}.metric span{color:var(--muted);font-size:11px}.analysis-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:18px}
+.relation{background:#10182b;border:1px solid #374765;padding:13px;border-radius:12px;margin-top:9px}.relation strong{color:var(--cyan)}.relation p{font-size:12px;margin:6px 0}.meta{font-size:11px;color:var(--muted);word-wrap:break-word}.tag{font-size:10px;letter-spacing:.07em;border:1px solid #556c84;border-radius:20px;padding:4px 8px;color:var(--cyan);display:inline-block;margin:3px 4px 0 0}.tag.pink{color:var(--pink);border-color:#8c4d7b}.tag.amber{color:var(--amber);border-color:#9a7044}.tag.green{color:var(--lime);border-color:#427960}
+.musical-map{display:flex;flex-direction:column;align-items:center;gap:9px;margin:12px 0}.mapnode{width:90%;text-align:center;border:1px solid #577ba3;border-radius:12px;padding:10px;background:#12233b}.maprow{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:9px}.maprow .mapnode{width:100%;border-color:#744e9b}.arrow{color:var(--purple);font-size:18px}.bar{height:7px;border-radius:12px;background:#293552;overflow:hidden}.bar span{display:block;background:linear-gradient(90deg,var(--cyan),var(--pink));height:100%;border-radius:12px}
+.decisions{display:grid;gap:11px}.decision{background:#10182a;border:1px solid #3b4765;padding:15px;border-radius:13px}.decision .choices{display:flex;gap:7px;margin-top:12px;flex-wrap:wrap}.choice{font-size:12px;border:1px solid #455574;border-radius:8px;padding:7px 9px;background:#1b2741}.choice.active{border-color:var(--lime);color:var(--lime);background:#18372d}.divider{height:1px;background:var(--line);margin:18px 0}.empty{color:var(--muted);border:1px dashed #475274;padding:18px;border-radius:12px;text-align:center}.hide{display:none!important}.footer{padding:16px 0;color:var(--muted);font-size:11px}
+@media(max-width:1080px){.shell{grid-template-columns:1fr}.sidebar{position:static;height:auto;gap:12px;padding:14px 20px}.sidebar nav{display:flex;overflow:auto}.navitem{min-width:180px}.sidebar .bottom{display:none}.analysis-grid{grid-template-columns:1fr}}
+@media(max-width:700px){main{padding:22px 14px}.grid,.formgrid,.device-grid{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}.header h1{font-size:31px}.card{padding:16px}.grid3{grid-template-columns:1fr}.wide{grid-column:auto}}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+ <div><div class="logo">666<em>TDI</em></div><div class="tiny">Creative Intelligence / R1.1</div></div>
+ <nav id="nav" aria-label="Daemon Menü">
+  <button class="navitem active" type="button" data-target="device-section"><span class="dot"></span>01 · Device Preflight</button>
+  <button class="navitem" type="button" data-target="intent-section"><span class="dot"></span>02 · Creator Intent</button>
+  <button class="navitem" type="button" data-target="results-section"><span class="dot"></span>03 · Musical Analysis</button>
+  <button class="navitem" type="button" data-target="decisions-section"><span class="dot"></span>04 · Decision Support</button>
+  <button class="navitem" type="button" data-target="handoff-section"><span class="dot"></span>05 · Handoff</button>
+ </nav>
+ <div class="bottom"><div class="live">● LOCAL ENGINE · R1.0</div><div>666TDI-001 · Keine Suno-Verbindung</div><div>Keine globale Lernmutation · Kein Audio gerendert</div></div>
+</aside>
+<main>
+ <header class="header">
+  <div><div class="eyebrow">NEON CYBER / NATIVE VISUAL DAEMON</div><h1>Musik verstehen.<br>Entscheidungen begründen.</h1><p>Musikalische Voranalyse mit semantischer Evidenz, kausalen Funktionsbeziehungen, produktiver Spannung und Creator-Entscheidungen.</p></div>
+  <div class="pill" id="engine-status">● ENGINE CONNECTING</div>
+ </header>
+ <section class="section card" id="device-section">
+  <div class="step">01 / DEVICE PREFLIGHT <span class="required">· erforderlich</span></div>
+  <h2>Wo arbeitest du mit Suno?</h2><p>Deine Wahl bestimmt den späteren Ausgabekontext. Musikalische Entscheidungen bleiben geräteunabhängig.</p>
+  <div class="device-grid">
+   <button type="button" class="device" data-device="IPHONE_SUNO_APP" aria-pressed="false"><span class="emoji" aria-hidden="true">📱</span><span><strong>iPhone · Suno App</strong><small>Custom-Eingabe, mobile Feldroute. Keine PC-Regler voraussetzen.</small></span></button>
+   <button type="button" class="device" data-device="PC_SUNO_BROWSER" aria-pressed="false"><span class="emoji" aria-hidden="true">🖥️</span><span><strong>PC · Suno Browser</strong><small>Web-Feldroute, tatsächlich verfügbare Controls später prüfen.</small></span></button>
+  </div>
+  <div class="notice">Ohne Geräteauswahl kein Track-Analyse-Auftrag. Keine Live-Suno-Felder oder Modellrechte werden behauptet.</div>
+ </section>
+ <section class="section card" id="intent-section">
+  <div class="step">02 / MUSICAL INTENT INTAKE</div>
+  <h2>Was soll musikalisch entstehen?</h2>
+  <p>Die R1.0-Engine untersucht die musikalischen Funktionen. Nutze konkrete Begriffe zu Motor, Vocals, Klangschichten und Dramaturgie – keine Pflicht zum Standard-Preset.</p>
+  <form id="intent-form" autocomplete="off">
+   <div class="formgrid">
+    <div class="field"><label for="title">Tracktitel</label><input id="title" maxlength="240" placeholder="z. B. Amazing Journeys"></div>
+    <div class="field"><label for="genre">Genre</label><input id="genre" maxlength="500" placeholder="Dark Goa / Dark Psytrance"></div>
+    <div class="field"><label for="bpm">Tempo (BPM) · optional</label><input id="bpm" inputmode="numeric" type="number" min="1" max="350" placeholder="148"></div>
+    <div class="field"><label for="energy">Energie / Spannung</label><input id="energy" maxlength="2000" placeholder="build tension, escalating pressure"></div>
+    <div class="field wide"><label for="story">Musikalische Absicht & Geschichte</label><textarea id="story" maxlength="12000" placeholder="Worum geht die Reise? Welche Gefühle und Veränderungen sollen hörbar sein?"></textarea></div>
+    <div class="field"><label for="motor">LOW · Kick, Bass, Groove</label><textarea id="motor" maxlength="12000" placeholder="dry kick, stable sub, relentless forward motion, rolling psybass"></textarea></div>
+    <div class="field"><label for="mid">MID · Acid, FM, Instrumente</label><textarea id="mid" maxlength="12000" placeholder="dense acid layers, metallic FM counterpoints"></textarea></div>
+    <div class="field"><label for="high">HIGH · Raum & Effekte</label><textarea id="high" maxlength="12000" placeholder="spatial motion, stereo orbit, moving high field"></textarea></div>
+    <div class="field"><label for="voice">VOICE · Stimme & Charakter</label><textarea id="voice" maxlength="12000" placeholder="clear vocal, dry centered voice"></textarea></div>
+    <div class="field wide"><label for="structure">Arrangement & Spannungsbogen</label><textarea id="structure" maxlength="12000" placeholder="deep break, transformation, variation, final release"></textarea></div>
+    <div class="field"><label for="ending">Bewusstes Ende</label><textarea id="ending" maxlength="12000" placeholder="clear ending, final landing"></textarea></div>
+    <div class="field"><label for="avoid">Ausgeschlossen / vermeiden</label><textarea id="avoid" maxlength="12000" placeholder="avoid swing bass, no static loop"></textarea></div>
+    <div class="field wide"><label for="lyrics">Lyrics / Voice Story · optional</label><textarea id="lyrics" maxlength="12000" placeholder="Originale Lyrics bleiben unverändert. Semantische Hypothesen sind keine automatischen Kompositionsbefehle."></textarea></div>
+    <div class="field wide"><label for="psychoacoustics">Psychoakustische Absicht · optional</label><textarea id="psychoacoustics" maxlength="12000" placeholder="spatial depth, rotation and call and response"></textarea></div>
+   </div>
+   <div class="controls">
+    <button type="submit" class="primary" id="analyze-button" disabled>✦ Musikalische Voranalyse</button>
+    <button type="button" class="ghost" id="clear-button">Eingaben leeren</button>
+    <span id="status" class="status" role="status" aria-live="polite">Wähle zuerst dein Suno-Gerät.</span>
+   </div>
+  </form>
+ </section>
+ <section class="section hide" id="results-section" aria-live="polite">
+  <div class="metrics">
+   <div class="metric"><b id="count-functions">0</b><span>Musikalische Funktionen</span></div>
+   <div class="metric"><b id="count-relations">0</b><span>Funktionsbeziehungen</span></div>
+   <div class="metric"><b id="count-emergences">0</b><span>Emergenz-Hypothesen</span></div>
+   <div class="metric"><b id="count-conflicts">0</b><span>Spannungsfelder</span></div>
+  </div>
+  <div class="analysis-grid section">
+   <article class="card"><div class="step">03 / MUSIC RELATIONSHIP INTELLIGENCE</div><h2>Beziehungen und musikalische Funktionen</h2><p>Diese Zusammenhänge werden aus deiner Eingabe von der bestehenden R0.9/R1.0-Engine abgeleitet. Sie sind keine gemessenen Audioeigenschaften.</p><div id="relation-list"></div></article>
+   <article class="card"><div class="step">CAUSAL VISUAL MAP</div><h2>Absicht → Wechselwirkung</h2>
+    <div class="musical-map"><div class="mapnode">CREATOR INTENT</div><div class="arrow">↓</div><div class="maprow"><div class="mapnode">FUNCTION SUPPORT</div><div class="mapnode">PRODUCTIVE TENSION</div></div><div class="arrow">↓</div><div class="mapnode">EVIDENCE-BOUND CONSEQUENCES</div></div>
+    <div class="divider"></div><h3>Semantische Abdeckung</h3><div class="bar"><span id="coverage-bar" style="width:0"></span></div><p class="subtle">Visualisiert die Anzahl erkannter Funktionen relativ zum Katalog; kein musikalischer Qualitätswert.</p><div id="function-tags"></div>
+   </article>
+  </div>
+ </section>
+ <section class="section card hide" id="decisions-section">
+  <div class="step">04 / CREATOR DECISION SUPPORT</div><h2>Bewusst entscheiden statt automatisch reparieren</h2>
+  <p>Jede Entscheidung bleibt beim Creator. Wir zeigen Wirkung, Gegenfaktum und Evidenz. Musikalische Reibung kann erwünscht sein.</p>
+  <div class="decisions" id="decision-list"></div>
+  <div class="divider"></div><h3>Konflikt-Hypothesen</h3><div id="collision-list"></div>
+ </section>
+ <section class="section card hide" id="handoff-section">
+  <div class="step">05 / AUDITABLE HANDOFF</div><h2>Deine Voranalyse sichern</h2>
+  <p>Exportiere die Analyse mit deinen Entscheidungen als JSON oder kopiere die musikalischen Entscheidungsgründe. Ohne automatische Suno-Übertragung.</p>
+  <div class="controls"><button class="primary" id="download-button" type="button">↓ JSON exportieren</button><button class="ghost" id="copy-button" type="button">Entscheidungen kopieren</button><span id="export-status" class="status" role="status"></span></div>
+  <div class="notice">Nur ein lokaler Browser-Download. Kein GitHub-Write, keine Track-Erstellung und kein Suno-Render. Die R1.0-Engine bleibt die musikalische Quelle.</div>
+ </section>
+ <footer class="footer">666TDI-001 · LOCAL R1.1 DAEMON · VISUAL UI · R1.0 CREATIVE CAUSAL ENGINE · NO FOREIGN AUTHORITY · AUDIO UNVERIFIED</footer>
+</main>
+</div>
+<script>
+"use strict";
+const selected={device:null,result:null,choices:{}};
+const $=id=>document.getElementById(id);
+const fields=["title","genre","bpm","energy","story","motor","mid","high","voice","structure","ending","avoid","lyrics","psychoacoustics"];
+const text=(node,value)=>{node.textContent=String(value??"");return node;};
+const el=(tag,cls,parent,value)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(value!==undefined)text(n,value);if(parent)parent.append(n);return n;};
+const badge=(parent,value,cls="")=>el("span","tag "+cls,parent,value);
+function changeDevice(value){
+ selected.device=value;
+ document.querySelectorAll(".device").forEach(button=>{
+  const active=button.dataset.device===value;
+  button.classList.toggle("selected",active);
+  button.setAttribute("aria-pressed",String(active));
+ });
+ $("analyze-button").disabled=false;
+ statusText("Gerät: "+(value==="IPHONE_SUNO_APP"?"iPhone Suno App":"PC Suno Browser")+". Jetzt Track-Idee eingeben.",false);
+ updateNav();
+}
+function statusText(value,error){text($("status"),value);$("status").className="status "+(error?"err":"ok");}
+function updateNav(){
+ document.querySelectorAll(".navitem").forEach((btn,i)=>{
+  btn.classList.toggle("ready",i===0?!!selected.device:i===1?!!selected.result:i<5?!!selected.result:false);
+ });
+}
+document.querySelectorAll(".device").forEach(b=>b.addEventListener("click",()=>changeDevice(b.dataset.device)));
+document.querySelectorAll(".navitem").forEach(b=>b.addEventListener("click",()=>{
+ const target=$(b.dataset.target);
+ if(target.classList.contains("hide")){statusText("Führe zuerst die Voranalyse durch.",true);return;}
+ document.querySelectorAll(".navitem").forEach(n=>n.classList.toggle("active",n===b));
+ target.scrollIntoView({behavior:"smooth",block:"start"});
+}));
+$("clear-button").addEventListener("click",()=>{
+ fields.forEach(f=>$(f).value="");selected.result=null;selected.choices={};
+ for(const id of ["results-section","decisions-section","handoff-section"])$(id).classList.add("hide");
+ statusText(selected.device?"Eingaben geleert. Gerät bleibt ausgewählt.":"Wähle zuerst dein Gerät.",false);updateNav();
+});
+function readIntent(){
+ const intent={};
+ for(const f of fields){intent[f]=f==="bpm" ? ($(f).value.trim()===""?"":Number($(f).value)) : $(f).value.trim();}
+ return intent;
+}
+function renderRelations(data){
+ const root=$("relation-list");root.replaceChildren();
+ if(!data.causal.relations.length && !data.causal.emergences.length){
+  el("div","empty",root,"Noch keine belegbaren Funktionsbeziehungen. Ergänze konkrete musikalische Aufgaben.");return;
+ }
+ for(const r of data.causal.relations){
+  const card=el("div","relation",root);
+  el("strong","",card,r.functions.join(" ⇄ "));
+  badge(card,r.relation);
+  el("p","",card,r.rationale);
+  const details=el("details","",card);el("summary","meta",details,"Evidenz anzeigen");
+  for(const [key,arr] of Object.entries(r.evidence||{})){el("div","meta",details,key+": "+arr.map(a=>a.field+" · "+a.phrase).join("; "));}
+ }
+ for(const r of data.causal.emergences){
+  const card=el("div","relation",root);
+  el("strong","",card,r.id.replaceAll("_"," "));
+  badge(card,r.relation,"pink");el("p","",card,r.effect);
+  el("div","meta",card,"Gegenfaktum: "+r.counterfactual);
+ }
+}
+function renderDecisions(data){
+ const root=$("decision-list");root.replaceChildren();
+ const list=data.causal.decisions||[];
+ if(!list.length){el("div","empty",root,"Keine automatische Entscheidung. Zusätzliche musikalische Angaben können neue Hypothesen ermöglichen.");}
+ for(const d of list){
+  const box=el("article","decision",root);el("h3","",box,d.emergence.replaceAll("_"," "));
+  badge(box,"REQUIRES CREATOR","pink");el("p","",box,d.reason);
+  el("div","meta",box,"Vorschlag: "+d.recommendation);
+  const row=el("div","choices",box);
+  for(const [id,label] of [["preserve","Spannung erhalten"],["adapt","Gezielt gestalten"],["reject","Nicht übernehmen"]]){
+   const btn=el("button","choice",row,label);btn.type="button";
+   btn.classList.toggle("active",selected.choices[d.emergence]===id);
+   btn.addEventListener("click",()=>{
+    selected.choices[d.emergence]=id;
+    row.querySelectorAll("button").forEach(b=>b.classList.toggle("active",b===btn));
+   });
+  }
+ }
+ const collisions=$("collision-list");collisions.replaceChildren();
+ if(!data.causal.collisions.length)el("div","empty",collisions,"Kein explizites Kollisionpaar im aktuellen Regelsatz gefunden. Dies beweist nicht, dass keine musikalischen Konflikte existieren.");
+ for(const c of data.causal.collisions){
+  const box=el("div","relation",collisions);
+  el("strong","",box,c.functions.join(" ↔ "));
+  badge(box,c.status,"amber");el("p","",box,c.reason);
+  el("div","meta",box,c.interpretation+" · Nicht audioverifiziert");
+ }
+}
+function render(data){
+ selected.result=data;selected.choices={};
+ $("results-section").classList.remove("hide");
+ $("decisions-section").classList.remove("hide");
+ $("handoff-section").classList.remove("hide");
+ text($("count-functions"),data.causal.functions.length);
+ text($("count-relations"),data.causal.relations.length);
+ text($("count-emergences"),data.causal.emergences.length);
+ text($("count-conflicts"),data.causal.collisions.length);
+ $("coverage-bar").style.width=Math.min(100,Math.round(data.semantic.functions.length/15*100))+"%";
+ const tags=$("function-tags");tags.replaceChildren();
+ for(const f of data.semantic.functions)badge(tags,f.id,f.status==="EXPLICITLY_CONSTRAINED"?"amber":"green");
+ renderRelations(data);renderDecisions(data);updateNav();
+ $("results-section").scrollIntoView({behavior:"smooth",block:"start"});
+}
+$("intent-form").addEventListener("submit",async event=>{
+ event.preventDefault();
+ if(!selected.device){statusText("DEVICE_PREFLIGHT_REQUIRED",true);return;}
+ const button=$("analyze-button");button.disabled=true;statusText("R1.0 analysiert deine musikalische Absicht …",false);
+ try{
+  const response=await fetch("/api/preanalysis",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({device:selected.device,intent:readIntent()})});
+  const data=await response.json();
+  if(!response.ok)throw new Error(data.error||"ANALYSIS_FAILED");
+  render(data);statusText("Voranalyse erstellt – Hypothesen, nicht Audio-Beweise.",false);
+ }catch(err){statusText("Analyse nicht möglich: "+err.message,true);}
+ finally{button.disabled=!selected.device;}
+});
+function exportObject(){
+ return {...selected.result,creator_decisions:{...selected.choices},creator_decisions_source:"EXPLICIT_BROWSER_SELECTION",decision_review_status:Object.keys(selected.choices).length?"PARTIAL_OR_FULL_CREATOR_REVIEW":"UNREVIEWED",exported_by:"LOCAL_BROWSER_NO_REPOSITORY_WRITE"};
+}
+$("download-button").addEventListener("click",()=>{
+ if(!selected.result)return;
+ const body=JSON.stringify(exportObject(),null,2);
+ const url=URL.createObjectURL(new Blob([body],{type:"application/json"}));
+ const a=document.createElement("a");a.href=url;a.download="666TDI-R11-preanalysis.json";a.click();
+ URL.revokeObjectURL(url);text($("export-status"),"Lokaler Download ausgelöst.");
+});
+$("copy-button").addEventListener("click",async()=>{
+ if(!selected.result)return;
+ const lines=selected.result.causal.decisions.map(d=>d.emergence+": "+d.reason+" | "+d.recommendation+" | Creator: "+(selected.choices[d.emergence]||"UNREVIEWED"));
+ const payload=lines.join("\n")||"Keine begründeten Entscheidungskarten vorhanden.";
+ try{await navigator.clipboard.writeText(payload);text($("export-status"),"Entscheidungen kopiert.");}
+ catch(err){text($("export-status"),"Clipboard nicht verfügbar; nutze den JSON-Export.");}
+});
+fetch("/api/status").then(r=>r.json()).then(data=>{
+ text($("engine-status"),data.status==="LOCAL_VISUAL_DAEMON_READY"?"● R1.0 ENGINE CONNECTED":"● ENGINE UNVERIFIED");
+}).catch(()=>text($("engine-status"),"● ENGINE OFFLINE"));
+updateNav();
+</script>
+</body>
+</html>

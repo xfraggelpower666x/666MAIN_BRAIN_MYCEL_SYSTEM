@@ -51,3 +51,8 @@ CURRENT_666TDI_GT_HISTORICAL_LYVRA. Änderungen erhalten bestehenden gültigen C
 - R1.2 Track Pre-Analysis: visual music forecast and creator decision support.
 - R1.3 Device Intelligence: explicit iPhone Suno app vs PC Suno browser preflight before track build; shared musical analysis, separate renderer profiles.
 - R1.4 Evidence Learning: scoped learning from real creator-reviewed outcomes; no automatic global promotion.
+
+
+## R1.1 – 666TDI Daemon local visual implementation
+
+Start: `cd PROJECTS/666TDI/source && python -m engine.daemon_cli --port 8766` (Python 3.10+), anschließend `http://127.0.0.1:8766` öffnen. Das lokale Neon-Cyber-Control-Center nutzt direkt die bestehende R1.0-Engine für Funktionsbeziehungen, musikalische Spannungen, Evidenz, Creator-Entscheidungen und JSON-Handoff. Gerätevorabwahl ist verpflichtend: iPhone Suno App oder PC Suno Browser. Keine Live-Suno-Steuerung, kein autarker Komponist, keine Host-UI-Abnahme behauptet. Dokumentation: `source/docs/R11_VISUAL_DAEMON_IMPLEMENTATION.md`.
