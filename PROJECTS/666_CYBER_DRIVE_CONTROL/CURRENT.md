@@ -4,7 +4,7 @@ SYSTEM_ID: 666_CYBER_DRIVE_CONTROL
 REPOSITORY: xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM
 BRANCH: 666MAIN_BRAIN
 NATIVE_ROOT: PROJECTS/666_CYBER_DRIVE_CONTROL
-STATE: PARTIAL (source migration VERIFIED, Windows build and R19 feature parity pending)
+STATE: PARTIAL (R18 source VERIFIED; Windows Portable/Setup BUILD VERIFIED; clean Windows GUI and R19 full feature parity pending)
 R18_FULL_SOURCE: VERIFIED_GITHUB
 R18_PATH: PROJECTS/666_CYBER_DRIVE_CONTROL/r18-legacy/
 R18_FILE_COUNT: 186
@@ -17,10 +17,10 @@ BUILD_IMPLEMENTATION_COMMIT: 19105d6a226efa243ed11efe4f10ec85eccab79e
 BUILD_START: START_BUILD_WINDOWS.bat -> BUILD/BUILD_CONTROL.ps1
 BUILD_MENU9: no ZIP required; verify committed 186 R18 files, run 288 regressions, freeze Python sidecar, package portable and NSIS setup
 BUILD_SOURCE_VERIFIER: scripts/VERIFY_R18_RELEASE.py
-BUILD_OUTPUTS: Windows Portable EXE and NSIS Setup are CONFIGURED, NOT BUILT
-WINDOWS_HOST_EXECUTION: READBACK_PENDING
+BUILD_OUTPUTS: Windows Portable EXE and NSIS Setup BUILT_VERIFIED (Actions run 45243406158; original release candidate 0.19.1-dev)
+WINDOWS_HOST_EXECUTION: GitHub Windows Server 2022 CI BUILD_VERIFIED; interactive GUI and clean Windows installer acceptance READBACK_PENDING
 R19_ELECTRON_UI: D default, remaining tab parity still PARTIAL
-RUNTIME_BUNDLE: Electron and frozen Python engine configured, clean-Windows verification OPEN
+RUNTIME_BUNDLE: Electron package built; frozen Python engine --once smoke PASS; clean-Windows GUI verification OPEN
 PRESERVE: original R18 code, versions, tests, Windows launchers retained under r18-legacy
 SCOPE: no foreign systems changed; no Git force; no backup promoted to live
 
@@ -48,8 +48,8 @@ R19_B: original R18 indicator_hex classic disk preview, no Windows Lock LED muta
 R19_C: build, setup, update and Python recovery deliberately remain in external Windows batch only
 R19_STATUS: original R18 OverviewSampler CPU/RAM/disk/network telemetry
 R19_ABC_TESTS: unchanged R18 local regression 288/288 PASS at 2026-11-22; renderer V8 syntax PASS; repository file readback PASS
-R19_ABC_HOST_GATES: Python bridge native Windows host behavior, full B classic feature parity, portable and NSIS executable builds READBACK_PENDING
-NEXT_DEVELOPMENT: targeted Windows host bridge/renderer IPC smoke test, real portable/setup proof, then remaining parity without removing R18 or exposing installer UI
+R19_ABC_HOST_GATES: native Windows CI binary build PASS; Python bridge frozen smoke PASS; full B Classic and desktop GUI acceptance READBACK_PENDING
+NEXT_DEVELOPMENT: clean Windows Portable/Setup GUI acceptance including install destination selection, tray, overlay and USB hotplug; remaining Classic parity and reproducible dependency pinning
 
 
 REPOSITORY_RECOVERY_2026_11_23: VERIFIED
@@ -60,7 +60,7 @@ RECOVERY_IMPLEMENTATION_COMMIT: 10aa6141f803a65fb78d7c50822fbac38f73b649
 RECOVERY_READBACK: project subtree found current branch, 224 project blobs including 186 original R18 blobs, recursive tree not truncated
 RECOVERY_SCOPE: only PROJECTS/666_CYBER_DRIVE_CONTROL restored additively, no branch reset, no foreign project changes
 CODEFORGE_COORDINATION: LYVRA CODING PROFI technical lead, independent native owners preserved; cross-system merges forbidden
-NEXT_OPEN_HOST_GATE: Windows Electron runtime D/E/A/B/C, Classic parity check, portable and NSIS setup build remain pending; source restoration is not Windows execution
+NEXT_OPEN_HOST_GATE: real Windows Portable+NSIS build now verified from 2026-11-23 CI; clean Windows GUI, install/uninstall and Classic parity remain pending
 
 R19_D_THRESHOLD_REPAIR: SOURCE_VERIFIED
 R19_D_THRESHOLD_REPAIR_COMMIT: a375b74df750ad137f2ada00c0a746913caaf6f2
@@ -68,6 +68,24 @@ R19_D_THRESHOLD_BEHAVIOR: saved per-Caps/Num/Scroll threshold_kib applied to tru
 R19_D_UNPLUG_BEHAVIOR: missing device renders OFF without modifying persisted binding
 R19_D_REPAIR_CHECKS: 6 function probes PASS in JS isolate, JS syntax PASS, GitHub source readback PASS
 R19_D_NODE_TEST: tests/test_r19_renderer_contract.cjs added, registered in BUILD/BUILD_CONTROL.ps1, native Windows Node test run pending
-R19_WINDOWS_HOST_GATE: Electron runtime, complete Classic parity, portable and NSIS setup compile READBACK_PENDING
+R19_WINDOWS_HOST_GATE: Portable and NSIS compile PASS from Windows CI; Electron GUI + Classic parity READBACK_PENDING
 
-NEXT_EXECUTABLE: Windows checkout of verified GitHub Current; START_BUILD_WINDOWS.bat -> menu 9; inspect real EXEs, setup install directory choice, tray, overlay and USB hotplug, then hash/readback release artifacts
+
+R19_WINDOWS_CI_WORKFLOW: .github/workflows/cyber-drive-r19-windows.yml
+R19_WINDOWS_BUILD_CONTROLLER: BUILD/BUILD_CONTROL.ps1 -Action BuildBoth; original interactive BAT unchanged
+R19_WINDOWS_BUILD_SOURCE_COMMIT: 934276e2efc27b75c4d495285b1199f51753dc53
+R19_WINDOWS_BUILD_RUN: 45243406158
+R19_WINDOWS_BUILD_JOB: 137933760474
+R19_WINDOWS_BUILD_ARTIFACT: 14853276212
+R19_WINDOWS_BUILD_STATUS: VERIFIED_SUCCESS
+R19_WINDOWS_R18_TESTS: 285 PASS / 3 SKIPPED on Windows (separate historical Linux 288/288)
+R19_WINDOWS_NODE_TESTS: 3 PASS
+R19_WINDOWS_PYTHON_TESTS: 3 PASS
+R19_WINDOWS_PYINSTALLER_SMOKE: PASS --once
+R19_WINDOWS_PORTABLE_EXE: 666-Cyber-Drive-Control-0.19.1-dev-x64-PORTABLE.exe | bytes=82778080 | SHA256=A773848375BC2A6FDE65E3883212FA8476B1C0A4206658DD88B47207DCBF9EFB
+R19_WINDOWS_NSIS_SETUP_EXE: 666-Cyber-Drive-Control-0.19.1-dev-x64-SETUP.exe | bytes=83005906 | SHA256=B0F8CF012D8F0EC5D8E8BCA3AB85E5FDCDEAFBB114E46AD4338F1A4EF2B2E826
+R19_WINDOWS_ARTIFACT_READBACK: both EXEs downloaded from GitHub Actions and independently SHA256 + MZ verified
+R19_WINDOWS_RELEASE_EVIDENCE: docs/R19_WINDOWS_BUILD_VERIFIED_2026-11-23.md
+R19_WINDOWS_REMAINING: clean Windows desktop GUI/installer acceptance; complete Classic parity; dependency lockfile/pinning
+
+NEXT_EXECUTABLE: run clean Windows graphical acceptance on verified CI Portable/Setup executables, test setup destination selection/uninstall, tray/overlay/USB hotplug and Classic parity; binary hashes already verified
