@@ -142,6 +142,28 @@
       "no_suno_execution": true,
       "no_global_learning": true,
       "host_acceptance": "OPEN"
+    },
+    "r14_creator_evidence": {
+      "source": "DIRECT_USER_MESSAGE_2026-11-23T18:20:27Z",
+      "scope": "PROJECTS/666TDI_ONLY",
+      "operations": [
+        "LOCAL_CREATOR_EVIDENCE_ENGINE",
+        "EXPLICIT_FEEDBACK_LEDGER",
+        "CONTRADICTION_AWARE_REPORT",
+        "R11_DAEMON_UI_ADDITION",
+        "TARGETED_REGRESSION",
+        "MANIFEST_INTEGRITY",
+        "CURRENT_POINTER_LAST"
+      ],
+      "pre_change_backup": "backup/666tdi-r1.4-learning-prechange-20261123",
+      "preserve_existing": true,
+      "foreign_repo_writes": false,
+      "no_auto_suno_execution": true,
+      "no_auto_global_promotion": true,
+      "other_systems": "READ_ONLY_METHOD_SOURCES_NO_ACTIVATION_OR_MUTATION",
+      "python_host_acceptance": "PARTIAL",
+      "native_browser_acceptance": "OPEN",
+      "pointer_last": true
     }
   }
 }

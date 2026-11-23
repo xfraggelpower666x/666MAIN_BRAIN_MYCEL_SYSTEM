@@ -2,7 +2,7 @@
   "schema": "666TDI_DAEMON_CONTRACT_R11_V1",
   "system_id": "666TDI-001",
   "name": "666TDI DAEMON",
-  "status": "R13_DEVICE_OUTPUT_IMPLEMENTED_HOST_ACCEPTANCE_OPEN",
+  "status": "R14_CREATOR_EVIDENCE_LEARNING_SOURCE_IMPLEMENTED_HOST_ACCEPTANCE_OPEN",
   "authority": "666TDI_ONLY",
   "purpose": "Guide the creator through evidence-backed musical analysis and track-design decisions using the existing TDI engine.",
   "consumes": [
@@ -22,7 +22,9 @@
     "low_mid_high_voice_matrix",
     "creator_alternatives_and_counterfactuals",
     "explicit_bar_plan_if_supplied",
-    "device_scoped_four_source_copy_fields"
+    "device_scoped_four_source_copy_fields",
+    "track_scoped_creator_evidence_receipts",
+    "contradiction_preserving_creator_learning_report"
   ],
   "flow": [
     "DEVICE_PREFLIGHT",
@@ -71,7 +73,10 @@
     "recommendations_require_reasons": true,
     "alternatives_and_counterfactuals_supported": true,
     "automatic_repair": false,
-    "global_learning": false
+    "global_learning": false,
+    "creator_feedback_requires_confirmation": true,
+    "creator_feedback_is_not_independent_audio_proof": true,
+    "automatic_global_learning": false
   },
   "integration": {
     "reuse_existing_tdi_engine": true,
@@ -98,6 +103,11 @@
     "device_adapter": "source/engine/device_output.py",
     "device_output_status": "SOURCE_IMPLEMENTED_PROVIDER_LIVE_VERIFICATION_OPEN",
     "current_visual_release": "R1.3",
-    "clipboard_host_acceptance": "NOT_EXECUTED"
+    "clipboard_host_acceptance": "NOT_EXECUTED",
+    "creator_learning": "source/engine/creator_learning.py",
+    "creator_feedback_endpoint": "POST /api/feedback",
+    "creator_read_endpoint": "POST /api/learning/read",
+    "creator_feedback_server_storage": "source/runtime/creator_evidence/",
+    "r14_host_acceptance": "NOT_EXECUTED"
   }
 }

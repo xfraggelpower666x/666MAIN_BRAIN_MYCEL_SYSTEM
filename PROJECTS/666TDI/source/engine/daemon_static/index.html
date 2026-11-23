@@ -52,6 +52,7 @@ label{display:block;font-size:12px;color:#dce2f5;margin-bottom:6px;font-weight:6
 .output-count{font-size:11px;color:var(--muted);margin:5px 0 10px}
 .output-count.bad{color:#ff9e9e}
 @media(max-width:700px){.device-choices,.output-fields{grid-template-columns:1fr}}
+.learning-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.learning-grid input,.learning-grid textarea,.learning-grid select{width:100%;background:#0b1022;border:1px solid #3c4565;border-radius:11px;padding:12px;color:var(--text)}.learning-grid textarea{min-height:86px}.feedback-row{margin:9px 0;padding:13px;background:#10182b;border:1px solid #3e4763;border-radius:12px}.learning-caution{border-left:3px solid var(--pink);padding:10px 14px;background:#3116296e;color:#ffe2f5}.learning-status{color:var(--cyan)}@media(max-width:700px){.learning-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -63,7 +64,8 @@ label{display:block;font-size:12px;color:#dce2f5;margin-bottom:6px;font-weight:6
   <button class="navitem" type="button" data-target="intent-section"><span class="dot"></span>02 · Creator Intent</button>
   <button class="navitem" type="button" data-target="results-section"><span class="dot"></span>03 · Musical Forecast</button>
   <button class="navitem" type="button" data-target="decisions-section"><span class="dot"></span>04 · Decision Support</button>
-  <button class="navitem" type="button" data-target="handoff-section"><span class="dot"></span>05 · Handoff</button>
+  <button class="navitem" type="button" data-target="learning-section"><span class="dot"></span>05 · Creator Evidence</button>
+  <button class="navitem" type="button" data-target="handoff-section"><span class="dot"></span>06 · Handoff</button>
  </nav>
  <div class="bottom"><div class="live">● LOCAL ENGINE · R1.0</div><div>666TDI-001 · Keine Suno-Verbindung</div><div>Keine globale Lernmutation · Kein Audio gerendert</div></div>
 </aside>
@@ -171,13 +173,36 @@ label{display:block;font-size:12px;color:#dce2f5;margin-bottom:6px;font-weight:6
   </div>
   <div id="device-guidance" class="subtle" style="margin-top:14px"></div>
  </section>
+ <section class="section card" id="learning-section">
+  <div class="step">R1.4 / CREATOR EVIDENCE LEARNING · EXPLICIT APPROVAL</div>
+  <h2>Musikalische Entscheidung → tatsächlich gehörtes Ergebnis</h2>
+  <p>Hier dokumentierst du deine Bewertung eines wirklichen Track-Ergebnisses. Nur der ausdrücklich bestätigte Klick auf „Feedback lokal speichern“ schreibt in TDI-Lokaldateien. Keine automatische Suno-Bewertung.</p>
+  <div class="learning-grid">
+   <div class="field"><label for="learn-track">Track-ID (eigene eindeutige Kennung)</label><input id="learn-track" maxlength="96" placeholder="z.B. track-my-song-v1"></div>
+   <div class="field"><label for="learn-decision">Bewertete musikalische Entscheidung</label><input id="learn-decision" maxlength="160" placeholder="z.B. VOICE_LAYER_NEGOTIATION" list="learn-decisions"><datalist id="learn-decisions"></datalist></div>
+   <div class="field"><label for="learn-category">Musikalischer Bereich</label><select id="learn-category"><option value="MOTOR">LOW / Motor</option><option value="VOICE">Vocals</option><option value="ARRANGEMENT">Arrangement</option><option value="PRESSURE">Druck</option><option value="DYNAMICS">Dynamik</option><option value="ATMOSPHERE">Atmosphäre</option><option value="ENDING">Ende</option><option value="OTHER">Sonstiges</option></select></div>
+   <div class="field"><label for="learn-rating">Deine Bewertung</label><select id="learn-rating"><option value="SUCCESS">Erfolgreich</option><option value="MIXED">Gemischt</option><option value="UNSUCCESSFUL">Nicht erfolgreich</option></select></div>
+   <div class="field wide"><label for="learn-intent">Was sollte die Entscheidung erreichen?</label><textarea id="learn-intent" maxlength="1600" placeholder="Die ursprüngliche musikalische Absicht – keine neue Regel"></textarea></div>
+   <div class="field wide"><label for="learn-outcome">Was hast du im tatsächlichen Ergebnis gehört?</label><textarea id="learn-outcome" maxlength="1600" placeholder="Konkrete Creator-Beobachtung, keine erfundene Audiomessung"></textarea></div>
+   <div class="field wide"><label for="learn-note">Zusatznotiz / Gegenbeleg (optional)</label><textarea id="learn-note" maxlength="1600"></textarea></div>
+   <div class="field wide"><label for="learn-hash">SHA-256 des Audios (optional, nur wenn tatsächlich bekannt)</label><input id="learn-hash" maxlength="64" placeholder="64 hex Zeichen oder leer lassen"></div>
+  </div>
+  <div class="learning-caution">Ein Creator-Bericht ist ein wertvoller Outcome-Beleg, aber kein unabhängig bewiesener Kausalzusammenhang. Ein einzelner Track erzeugt niemals eine globale Regel. Widersprüche bleiben erhalten.</div>
+  <div class="controls">
+   <label><input type="checkbox" id="learn-consent"> Ich bestätige ausdrücklich diese eigene Bewertung und den lokalen Speichervorgang.</label>
+   <button class="primary" id="learn-save" type="button">Feedback lokal speichern</button>
+   <button class="ghost" id="learn-read" type="button">Track-Lernbericht lesen</button>
+  </div>
+  <p id="learn-status" class="learning-status" role="status" aria-live="polite">Noch kein Feedback gespeichert.</p>
+  <div id="learn-report"></div>
+ </section>
  <section class="section card hide" id="handoff-section">
   <div class="step">05 / AUDITABLE HANDOFF</div><h2>Deine Voranalyse sichern</h2>
   <p>Exportiere die Analyse mit deinen Entscheidungen als JSON oder kopiere die musikalischen Entscheidungsgründe. Ohne automatische Suno-Übertragung.</p>
   <div class="controls"><button class="primary" id="download-button" type="button">↓ JSON exportieren</button><button class="ghost" id="copy-button" type="button">Entscheidungen kopieren</button><span id="export-status" class="status" role="status"></span></div>
   <div class="notice">Nur ein lokaler Browser-Download. Kein GitHub-Write, keine Track-Erstellung und kein Suno-Render. Die R1.0-Engine bleibt die musikalische Quelle.</div>
  </section>
- <footer class="footer">666TDI-001 · LOCAL R1.3 DAEMON · VISUAL UI · R1.0 CREATIVE CAUSAL ENGINE · NO FOREIGN AUTHORITY · AUDIO UNVERIFIED</footer>
+ <footer class="footer">666TDI-001 · LOCAL R1.4 DAEMON · VISUAL UI · R1.0 CREATIVE CAUSAL ENGINE · NO FOREIGN AUTHORITY · AUDIO UNVERIFIED</footer>
 </main>
 </div>
 <script>
@@ -365,6 +390,13 @@ $("device-main-copy").addEventListener("click",async()=>{
  try{await navigator.clipboard.writeText($("device-main-text").value);text($("device-main-count"),"Main Input exakt kopiert");}
  catch(e){text($("device-main-count"),"Clipboard nicht verfügbar");}
 });
+function suggestEvidenceChoices(data){
+ const list=$("learn-decisions");list.replaceChildren();
+ for(const item of data.causal.decisions||[]){const option=document.createElement("option");option.value=item.emergence;list.append(option);}
+ if(data.causal.decisions&&data.causal.decisions.length&&!$("learn-decision").value)
+  $("learn-decision").value=data.causal.decisions[0].emergence;
+ if(!$("learn-intent").value)$("learn-intent").value=(data.intent.story||data.intent.structure||data.intent.motor||"").slice(0,1600);
+}
 function render(data){
  selected.result=data;selected.choices={};
  $("results-section").classList.remove("hide");
@@ -379,7 +411,7 @@ function render(data){
  $("coverage-bar").style.width=Math.min(100,Math.round(data.semantic.functions.length/15*100))+"%";
  const tags=$("function-tags");tags.replaceChildren();
  for(const f of data.semantic.functions)badge(tags,f.id,f.status==="EXPLICITLY_CONSTRAINED"?"amber":"green");
- renderRelations(data);renderForecast(data);renderDecisions(data);renderDeviceOutput(data);updateNav();
+ renderRelations(data);renderForecast(data);renderDecisions(data);renderDeviceOutput(data);suggestEvidenceChoices(data);updateNav();
  $("results-section").scrollIntoView({behavior:"smooth",block:"start"});
 }
 $("intent-form").addEventListener("submit",async event=>{
@@ -393,6 +425,47 @@ $("intent-form").addEventListener("submit",async event=>{
   render(data);statusText("Voranalyse erstellt – Hypothesen, nicht Audio-Beweise.",false);
  }catch(err){statusText("Analyse nicht möglich: "+err.message,true);}
  finally{button.disabled=!selected.device;}
+});
+async function evidenceRequest(path,payload){
+ const response=await fetch(path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+ const data=await response.json();
+ if(!response.ok)throw new Error(data.error||"FEEDBACK_REQUEST_FAILED");
+ return data;
+}
+function renderEvidenceReport(data){
+ const root=$("learn-report");root.replaceChildren();
+ const heading=el("h3","",root,"Tracklokaler Bericht · "+data.observations+" Bewertungen");
+ badge(root,data.status,data.has_contradictions?"pink":"green");
+ if(!data.relations.length)el("div","empty",root,"Für diesen Track liegen noch keine Bewertungen vor.");
+ for(const relation of data.relations){
+  const card=el("div","feedback-row",root);
+  el("strong","",card,relation.category+" / "+relation.decision_id);
+  badge(card,relation.status,relation.contradiction?"pink":"amber");
+  el("p","meta",card,"Ergebnisse: "+JSON.stringify(relation.counts)+" · "+relation.observations+" lokale Beobachtungen");
+  el("p","subtle",card,relation.claim);
+ }
+}
+$("learn-save").addEventListener("click",async()=>{
+ const status=$("learn-status");
+ if(!$("learn-consent").checked){text(status,"CREATOR_CONFIRMATION_REQUIRED");return;}
+ const route=selected.result?.device_output?.route||"UNKNOWN";
+ const payload={track_id:$("learn-track").value.trim(),decision_id:$("learn-decision").value.trim(),
+  category:$("learn-category").value,rating:$("learn-rating").value,
+  intent_summary:$("learn-intent").value,observed_outcome:$("learn-outcome").value,
+  creator_note:$("learn-note").value,artifact_sha256:$("learn-hash").value.trim(),
+  device_route:route,creator_confirmed:true};
+ try{
+  const result=await evidenceRequest("/api/feedback",payload);
+  text(status,"Lokal gespeichert: "+result.id+" · keine globale Regel.");
+  $("learn-consent").checked=false;
+  const report=await evidenceRequest("/api/learning/read",{track_id:payload.track_id});
+  renderEvidenceReport(report);
+ }catch(e){text(status,"Fehler: "+e.message);}
+});
+$("learn-read").addEventListener("click",async()=>{
+ try{renderEvidenceReport(await evidenceRequest("/api/learning/read",{track_id:$("learn-track").value.trim()}));
+ text($("learn-status"),"Lernbericht gelesen · keine Mutation");}
+ catch(e){text($("learn-status"),"Fehler: "+e.message);}
 });
 function exportObject(){
  return {...selected.result,creator_edited_copy_fields:{...selected.editedFields},creator_decisions:{...selected.choices},creator_decisions_source:"EXPLICIT_BROWSER_SELECTION",decision_review_status:Object.keys(selected.choices).length?"PARTIAL_OR_FULL_CREATOR_REVIEW":"UNREVIEWED",exported_by:"LOCAL_BROWSER_NO_REPOSITORY_WRITE"};

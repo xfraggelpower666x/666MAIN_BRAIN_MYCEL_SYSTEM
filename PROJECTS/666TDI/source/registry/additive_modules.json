@@ -183,6 +183,18 @@
       "no_suno_execution": true,
       "no_foreign_authority": true,
       "no_global_learning": true
+    },
+    "creator_evidence_learning_r14": {
+      "status": "LOCAL_SOURCE_IMPLEMENTED_HOST_ACCEPTANCE_OPEN",
+      "source": "engine/creator_learning.py",
+      "ui": "engine/daemon_static/index.html",
+      "storage": "runtime/creator_evidence/",
+      "scope": "EXPLICIT_CREATOR_CONFIRMED_TRACK_LOCAL_OUTCOMES",
+      "purpose": "Compare creator intent and decision against reported Suno result with provenance, contradictory cases and per-track summary",
+      "no_auto_global_promotion": true,
+      "no_audio_claim": true,
+      "no_cross_system_learning": true,
+      "no_autonomous_music_controller": true
     }
   }
 }

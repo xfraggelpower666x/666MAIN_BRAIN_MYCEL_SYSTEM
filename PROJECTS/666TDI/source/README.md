@@ -189,3 +189,7 @@ Start (Python 3.10+): `python -m engine.daemon_cli --port 8766`; dann `http://12
 
 ## R1.3 – Device Intelligence (additiv)
 Die bewährte R1.0/R1.2-Musikanalyse bleibt einheitlich. `engine/device_output.py` erzeugt aus vorhandenen Creator-Angaben vier getrennte, echte UTF-16-gezählte Suno-Kopierfelder mit klarer Provenienz. Der visuelle Daemon unterscheidet iPhone ohne Main, iPhone mit ausdrücklich optionalem Main und PC-Browser; Duration-Slider wird nur bei Creator-bestätigter Sichtbarkeit berücksichtigt. Keine neue Musikengine, keine automatische Generierung oder Audio-Pflicht. Quelle und Einschränkungen: `docs/R13_DEVICE_INTELLIGENCE.md`. Python-/Browser-Abnahme noch offen.
+
+
+## R1.4 – Creator Evidence Learning
+`engine/creator_learning.py` dokumentiert explizit bestätigte reale Creator-Beobachtungen pro Track und Designentscheidung in `runtime/creator_evidence/`. Die Daemon-UI bietet Feedback-Formular, Bestätigung, lokalen Persistenzpfad und widerspruchserhaltende Lernansicht. Der neue Lernbericht ist nie Audio-Kausalitätsbeweis oder automatische globale Regel. Details: `docs/R14_CREATOR_EVIDENCE_LEARNING.md`.

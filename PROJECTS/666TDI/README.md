@@ -64,3 +64,7 @@ R1.1 bleibt lokale Neon-Cyber-UI, R1.0 die musikalische Entscheidungsautorität.
 
 ## R1.3 – Device Intelligence
 Additiver Ausgabeadapter `source/engine/device_output.py` und dieselbe R1.1/R1.2-Browser-UI; unterstützt creator-reported iPhone Custom ohne/mit optionalem Main Input und PC Browser mit bestätigungsabhängigem Duration-Slider. Exakte UTF-16-Zähler und kopierbare Creator-Quellfelder. Die LYVRA-Gerätereferenz ist lesend und nicht musikalische TDI-Authority. Siehe `source/docs/R13_DEVICE_INTELLIGENCE.md`.
+
+
+## R1.4 – Creator Evidence Learning
+Die vorhandene Engine erhält ein lokal speicherbares und ausdrücklich vom Creator bestätigtes Outcome-Learning. Bewertungen sind getrennt von Audio-Messung und nachweisbarer Kausalität; Widersprüche und Track-Isolation bleiben erhalten. Neue Dateien unter `source/engine/creator_learning.py` und `source/tests/test_creator_learning.py`; bestehender R1.1-R1.3-Daemon zeigt Feedback und Lernbericht. Siehe `source/docs/R14_CREATOR_EVIDENCE_LEARNING.md`.

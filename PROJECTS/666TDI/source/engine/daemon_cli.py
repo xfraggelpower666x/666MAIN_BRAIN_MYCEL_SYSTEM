@@ -12,7 +12,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from . import creative_causal, semantic_intelligence, track_preanalysis, device_output
+from . import creative_causal, semantic_intelligence, track_preanalysis, device_output, creator_learning
+from . import portable
 
 SYSTEM_ID = "666TDI-001"
 DAEMON_SCHEMA = "666TDI_DAEMON_R11_LOCAL_V1"
@@ -105,7 +106,7 @@ def preanalysis(payload: dict) -> dict:
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "666TDI-Daemon/1.3"
+    server_version = "666TDI-Daemon/1.4"
 
     def log_message(self, format, *args):
         # Avoid logging submitted lyrics, creative intent or other body content.
@@ -150,7 +151,7 @@ class Handler(BaseHTTPRequestHandler):
             self._json(404, {"error": "NOT_FOUND"})
 
     def do_POST(self):
-        if self.path != "/api/preanalysis":
+        if self.path not in ("/api/preanalysis", "/api/feedback", "/api/learning/read"):
             self._json(404, {"error": "NOT_FOUND"})
             return
         if not self._safe_origin():
@@ -169,7 +170,14 @@ class Handler(BaseHTTPRequestHandler):
             return
         try:
             request = json.loads(self.rfile.read(size))
-            output = preanalysis(request)
+            if self.path == "/api/preanalysis":
+                output = preanalysis(request)
+            elif self.path == "/api/feedback":
+                output = creator_learning.record(portable.DATA, request)
+            else:
+                if not isinstance(request, dict):
+                    raise ValueError("INVALID_LEARNING_REQUEST")
+                output = creator_learning.assess(portable.DATA, request.get("track_id"))
         except (ValueError, UnicodeDecodeError, json.JSONDecodeError) as exc:
             self._json(400, {"error": str(exc)})
             return
@@ -184,7 +192,7 @@ def main():
         parser.error("port must be between 1024 and 65535")
     host = "127.0.0.1"
     with ThreadingHTTPServer((host, args.port), Handler) as server:
-        print("666TDI DAEMON R1.3 · http://%s:%s" % (host, args.port))
+        print("666TDI DAEMON R1.4 · http://%s:%s" % (host, args.port))
         print("LOCAL ONLY · DEVICE PREFLIGHT REQUIRED · NO SUNO EXECUTION")
         try:
             server.serve_forever()
