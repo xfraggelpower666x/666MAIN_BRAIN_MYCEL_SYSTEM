@@ -664,6 +664,7 @@ class Broadcaster:
             src = PCMSource(self._decoder_cmd(tools.device_input_args(device), True),
                             self.chunk_bytes, True, title=device)
         src.start()
+        self.emit("track", src.title)
         return src
 
     def _prefetcher(self):
@@ -764,7 +765,10 @@ class Broadcaster:
         while not self.stop_event.is_set():
             if self.skip_event.is_set():
                 self.skip_event.clear()
-                if self.cfg["source"] == "queue" and self.crossfade_enabled and cur is not None and not cur.live:
+                if fade_next is not None:
+                    # Coalesce repeated Skip presses while a transition is already running.
+                    pass
+                elif self.cfg["source"] == "queue" and self.crossfade_enabled and cur is not None and not cur.live:
                     skip_requested = True
                 elif cur is not None:
                     cur.close()

@@ -48,9 +48,14 @@ class LocalMonitor:
                 outdata[:] = (samples.reshape(frames, self.channels).astype(np.float32)
                               * (self.volume / 32768.0))
 
-            self._stream = sd.OutputStream(samplerate=self.samplerate, channels=self.channels,
-                                           dtype="float32", blocksize=self.blocksize, callback=callback)
-            self._stream.start()
+            stream = sd.OutputStream(samplerate=self.samplerate, channels=self.channels,
+                                     dtype="float32", blocksize=self.blocksize, callback=callback)
+            try:
+                stream.start()
+            except Exception:
+                stream.close()
+                raise
+            self._stream = stream
 
     def write(self, pcm_s16le):
         if not self.running or self._muted:
@@ -78,7 +83,10 @@ class LocalMonitor:
         with self._lock:
             stream, self._stream = self._stream, None
             if stream is not None:
-                stream.stop()
+                try:
+                    stream.stop()
+                except Exception:
+                    pass
                 stream.close()
             self._pending.clear()
             while True:
