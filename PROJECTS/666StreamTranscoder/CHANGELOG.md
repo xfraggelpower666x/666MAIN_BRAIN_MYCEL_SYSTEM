@@ -1,5 +1,13 @@
 # 666StreamTranscoder v3.0 — Changelog
 
+## R08 — 2026-11-23 — Isolated real-audio end-to-end acceptance
+
+- Added two synthetic WAV-to-MP3-to-HTTP tests exercising real FFmpeg and the original 3DX built-in streaming server.
+- Tests cover automatic crossfade and user Skip crossfade, encoder process continuity, same HTTP listener, decoded audible output, and fatal-error absence.
+- Network binding is forced to loopback using the original LocalServer, without public radio services, credentials, drivers or external provider traffic.
+- The project-scoped GitHub Actions workflow now includes real local end-to-end streaming alongside its existing 26 Python unit/contract tests.
+- Windows WASAPI, physical monitor devices, online providers and installers remain separate acceptance gates.
+
 ## R06 — 2026-11-23 — Runtime boundary contracts and safe virtual-cable routing
 
 - Added ten new focused runtime-boundary/route tests with mocked FFmpeg/process/device/network boundaries.

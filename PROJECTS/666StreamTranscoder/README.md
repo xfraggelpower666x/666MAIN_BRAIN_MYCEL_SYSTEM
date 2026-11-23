@@ -32,6 +32,18 @@ The complete 3DX Radio Streamer 1.3.0 source is retained in the active project a
 - Validation is local to monitor startup and does not change existing stream or virtual audio device settings.
 - These are source-level changes and acceptance tests, **not** evidence of a completed native Windows or live Shoutcast/Icecast run.
 
+## R08 isolated end-to-end audio gate
+
+The R08 synthetic end-to-end test generates local tone WAV files, runs the real existing FFmpeg encoder and local HTTP radio server, and verifies **automatic crossfade** and **Skip crossfade** while retaining the same encoder process and HTTP listener. It decodes the received MP3 back to audible PCM.
+
+The isolated CI test binds only to `127.0.0.1`, uses no public broadcaster, secrets, driver, or hardware. Run with:
+
+```powershell
+python -m unittest discover -s tests -p 'test_e2e_synthetic.py' -v
+```
+
+This is an executable acceptance test, not a declaration that it passed; inspect the matching GitHub Actions run. Windows WASAPI, virtual cable device identity and real Shoutcast/Icecast remain separate acceptance gates.
+
 ## Optional local monitor
 
 The monitor uses `sounddevice` and `numpy`. Install them only if local playback is needed:

@@ -13,6 +13,18 @@ checks also cover the project package. Never interpret a passing CI unit
 test as a Windows WASAPI, physical cable, portable installer, or live provider
 certification.
 
+## R08 headless real streaming gate
+
+The script `tests/test_e2e_synthetic.py` generates two local stereo WAV tones and starts
+the original FFmpeg decoder/encoder and built-in listener server, strictly bound
+to 127.0.0.1. It requests audio from the HTTP listener, checks both a
+normal automatic fade and the Skip fade, keeps the same encoder and HTTP
+connection, and decodes received MP3 back to audible PCM.
+
+Run `python -m unittest discover -s tests -p 'test_e2e_synthetic.py' -v`.
+This confirms a real local encode/decode/network path **only if the job passes**.
+It does not test a physical sound card, WASAPI, or real remote broadcast server.
+
 ## Local end-to-end acceptance (Windows)
 
 Use an isolated local Icecast/Shoutcast mock server, finite tone/audio source,
