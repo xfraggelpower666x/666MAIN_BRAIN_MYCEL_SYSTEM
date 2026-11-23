@@ -1,6 +1,7 @@
 """Resin 3 signal control plane: independent stream gain, metering and route description."""
 import array
 import math
+import re
 import threading
 
 try:
@@ -85,20 +86,25 @@ class RoutePlan:
 
     @staticmethod
     def validate_monitor_route(source, input_device="", monitor_device=""):
-        """Block a physical audio feedback loop when the same VB-CABLE feeds both sides."""
+        """Fail closed for a looped-back virtual cable; warn on unresolved WASAPI endpoints."""
         source = str(source or "").lower()
         input_device = str(input_device or "").lower()
         monitor_device = str(monitor_device or "").lower()
-        if (source == "device"
-                and "cable output" in input_device
-                and "cable input" in monitor_device):
-            raise ValueError(
-                "Monitor cannot play to CABLE Input while CABLE Output is the stream source: "
-                "this creates an audio feedback loop. Pick a physical monitor output."
-            )
-        if source == "loopback" and monitor_device not in ("", "default output"):
-            # Exact endpoint selection is host-specific; do not silently claim safety.
-            return "Check that monitor output is not the same endpoint captured by WASAPI loopback."
+        cable = re.compile(r"\\bcable[- ]?([a-d])?\\s+(input|output)\\b")
+        capture = cable.search(input_device)
+        playback = cable.search(monitor_device)
+        if source == "device" and capture and playback:
+            # Standard VB-CABLE (no suffix) and A/B/C/D cables must not
+            # feed their own playback input from their corresponding capture.
+            same_cable = capture.group(1) == playback.group(1)
+            if capture.group(2) == "output" and playback.group(2) == "input" and same_cable:
+                raise ValueError(
+                    "Monitor cannot play to CABLE Input while CABLE Output is the stream source: "
+                    "this creates an audio feedback loop. Pick a physical monitor output."
+                )
+        if source == "loopback":
+            return ("Verify that local monitoring does not feed the captured WASAPI "
+                    "endpoint; exact Windows endpoint identity requires host validation.")
         return ""
 
 

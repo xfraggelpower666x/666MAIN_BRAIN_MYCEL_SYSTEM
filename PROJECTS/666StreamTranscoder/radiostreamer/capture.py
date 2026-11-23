@@ -6,6 +6,7 @@ the sound of one app (and its child processes) with everything else left off air
 """
 
 import ctypes
+import re
 import sys
 import threading
 import time
@@ -40,7 +41,8 @@ def list_loopback_devices():
         return []
     p = pyaudio.PyAudio()
     try:
-        return [d["name"] for d in p.get_loopback_device_info_generator()]
+        return [f'WASAPI:{int(d["index"])} | {d["name"]}'
+                for d in p.get_loopback_device_info_generator()]
     except (OSError, LookupError):
         return []
     finally:
@@ -48,13 +50,26 @@ def list_loopback_devices():
 
 
 def _resolve(p, name):
+    """Resolve an explicit WASAPI device identity; never silently substitute another endpoint."""
     loopbacks = list(p.get_loopback_device_info_generator())
     if not loopbacks:
         raise OSError("no loopback-capable output device found")
-    if name:
-        for d in loopbacks:
-            if d["name"] == name:
-                return d
+    name = str(name or "").strip()
+    if name and name != "Default speakers":
+        match = re.fullmatch(r"WASAPI:(\\d+) \\| (.+)", name)
+        if match:
+            index, label = int(match.group(1)), match.group(2)
+            exact = [d for d in loopbacks if int(d["index"]) == index and d["name"] == label]
+            if len(exact) != 1:
+                raise OSError("Selected WASAPI endpoint changed; refresh and select again.")
+            return exact[0]
+        # Legacy name-only settings are allowed if their identity is unambiguous.
+        exact = [d for d in loopbacks if d["name"] == name]
+        if len(exact) == 1:
+            return exact[0]
+        if len(exact) > 1:
+            raise OSError("Multiple WASAPI endpoints share this name; select the indexed endpoint.")
+        raise OSError(f"WASAPI endpoint no longer available: {name}")
     wasapi = p.get_host_api_info_by_type(pyaudio.paWASAPI)
     default = p.get_device_info_by_index(wasapi["defaultOutputDevice"])
     for d in loopbacks:

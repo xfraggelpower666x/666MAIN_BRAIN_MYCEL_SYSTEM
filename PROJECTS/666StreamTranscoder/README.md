@@ -32,6 +32,30 @@ The complete 3DX Radio Streamer 1.3.0 source is retained in the active project a
 - Validation is local to monitor startup and does not change existing stream or virtual audio device settings.
 - These are source-level changes and acceptance tests, **not** evidence of a completed native Windows or live Shoutcast/Icecast run.
 
+## R10 device-identity and failure routing
+
+- Monitor output choices now show the PortAudio enumeration index, host API and
+  exact device name. On opening, all three are checked again. A stale selection
+  fails visibly instead of silently sending audio to a different output.
+- Existing legacy plain monitor names are preserved if unambiguous. Duplicate
+  names are rejected until an indexed device is selected.
+- WASAPI loopback choices similarly show `WASAPI:<index> | <name>`. Existing
+  unique legacy settings continue to work; duplicate or missing explicit
+  endpoints are rejected rather than falling back to the default.
+- The VB-CABLE feedback guard distinguishes standard, A, B, C and D cable
+  instances. The same cable feeding itself is blocked; two different cables
+  are not treated as the same device.
+- Real local socket disconnect/reconnect tests supplement the existing mocked
+  relay failure tests without contacting external radio providers.
+
+Device indices are validated at runtime and are **not persistent Windows
+IMMDevice endpoint IDs**. A fully persistent endpoint-ID routing implementation
+and device hotplug acceptance require Windows host verification.
+
+```powershell
+python -m unittest discover -s tests -p 'test_device_routing.py' -v
+```
+
 ## R09 FFmpeg process and pipe lifecycle repair
 
 The original PCMSource and the Resin 3 EncoderEngine now explicitly release

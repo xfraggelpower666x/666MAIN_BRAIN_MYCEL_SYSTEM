@@ -34,6 +34,16 @@
 - `OPEN`: tests are present but have not been executed against a Windows device/network runtime.
 - `OPEN`: actual end-to-end input → PCM mix → encoder → Icecast/Shoutcast provider acceptance.
 
+## R10 routing identity and real local socket failure
+
+- `SOURCE IMPLEMENTED`: exact PortAudio index, host API and name validation for local monitor output.
+- `SOURCE IMPLEMENTED`: indexed WASAPI loopback selection, legacy name compatibility
+  and explicit stale/duplicate device failures rather than silent fallback.
+- `SOURCE IMPLEMENTED`: standard and A/B/C/D VB-CABLE loop-protection differentiation.
+- `TESTS ADDED`: 15 focused tests including an actual socketpair disconnect/reconnect.
+- `OPEN`: execution readback and CI acceptance pending publication.
+- `OPEN`: persistent Windows IMMDevice IDs, physical device hotplug and provider connections.
+
 ## R09 resource lifecycle repairs
 
 - `SOURCE IMPLEMENTED`: explicit FFmpeg decoder and encoder pipe cleanup.
