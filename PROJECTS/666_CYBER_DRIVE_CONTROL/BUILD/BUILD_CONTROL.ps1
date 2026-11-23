@@ -1,7 +1,7 @@
 # 666 Cyber Drive Control — central one-batch build host, never shipped in app.
 # Only one BAT at project root; all actions here are developer-time operations.
 [CmdletBinding()]
-param()
+param([ValidateSet('Menu','BuildBoth')][string]$Action='Menu')
 $ErrorActionPreference = 'Stop'
 $Root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $App = Join-Path $Root 'r19-electron'
@@ -137,11 +137,36 @@ function Build-Target([string]$target) {
   }
   Build-Engine
   Check-Release
+  if ($target -eq 'both') { Check-FrozenEngine }
   Push-Location $App
   try {
     Run 'npm.cmd' @('run',("dist:"+$target))
     Log ('Release files: '+(Join-Path $App 'dist'))
+    if ($target -eq 'both') { Verify-ReleaseArtifacts }
   } finally { Pop-Location }
+}
+function Verify-ReleaseArtifacts {
+  $dist=Join-Path $App 'dist'
+  $outputs=@(Get-ChildItem -LiteralPath $dist -File -Filter '*.exe')
+  foreach ($kind in @('PORTABLE','SETUP')) {
+    $matches=@($outputs | Where-Object { $_.Name.EndsWith("-$kind.exe") })
+    if ($matches.Count -ne 1) { throw "Expected exactly one $kind EXE; found $($matches.Count)" }
+    $item=$matches[0]
+    if ($item.Length -lt 1048576) { throw "Invalid $kind size" }
+    $h=(Get-FileHash -LiteralPath $item.FullName -Algorithm SHA256).Hash
+    Log "RELEASE $kind $($item.Name) $($item.Length) SHA256=$h"
+  }
+}
+function Check-FrozenEngine {
+  $lines=@(& $Metrics --once)
+  if ($LASTEXITCODE -ne 0) { throw "Frozen engine smoke failed: $LASTEXITCODE" }
+  $valid=0
+  foreach($line in $lines) {
+    try { $event=$line | ConvertFrom-Json -ErrorAction Stop } catch { continue }
+    if ($event.protocol -eq 'cyber-drive.metrics.v2' -and $event.status -eq 'ok') { $valid++ }
+  }
+  if ($valid -ne 1) { throw "Frozen engine expected one valid snapshot, found $valid" }
+  Log 'Frozen engine smoke PASS'
 }
 function Open-Dev {
   Ensure-Source
@@ -174,6 +199,16 @@ function Show-Menu {
   Write-Host '0  Beenden'
 }
 Log "Build host started; project $Root"
+if ($Action -eq 'BuildBoth') {
+  try {
+    Build-Target 'both'
+    Log 'Unattended Windows build succeeded'
+    exit 0
+  } catch {
+    Log ("BUILD_BLOCKED: "+$_.Exception.Message)
+    exit 1
+  }
+}
 while ($true) {
   Show-Menu
   $choice=Read-Host 'Auswahl'
