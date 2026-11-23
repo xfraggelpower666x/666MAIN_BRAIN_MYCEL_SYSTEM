@@ -32,6 +32,26 @@
     "forbid_new_update_trigger": true,
     "forbid_foreign_write": true,
     "requires_pre_change_backup": true,
-    "requires_readback": true
+    "requires_readback": true,
+    "r09": {
+      "source": "DIRECT_USER_MESSAGE_2026-11-23",
+      "scope": "PROJECTS/666TDI/source/engine/semantic_intelligence.py;PROJECTS/666TDI/source/engine/portable.py;PROJECTS/666TDI/source/tests/test_semantic_intelligence.py;PROJECTS/666TDI/source/registry/additive_modules.json;PROJECTS/666TDI/source/README.md;PROJECTS/666TDI/source/docs/R09_SEMANTIC_MUSIC_INTELLIGENCE.md;PROJECTS/666TDI/transfer/SOURCE_MANIFEST.json;PROJECTS/666TDI/CURRENT_POINTER.json",
+      "permitted_operations": [
+        "ADDITIVE_SEMANTIC_FUNCTION_INTERPRETATION",
+        "NEGATION_AND_AVOIDANCE_SCOPE",
+        "MUSICAL_FUNCTION_AND_COUNTERRELATION_ANALYSIS",
+        "TARGETED_REGRESSION",
+        "DIRECT_BLOB_READBACK",
+        "NATIVE_POINTER_LAST"
+      ],
+      "preserve_existing": true,
+      "no_foreign_activation": true,
+      "no_foreign_repository_writes": true,
+      "no_audio_requirement": true,
+      "no_automatic_global_learning": true,
+      "pre_change_backup": "backup/666tdi-r0.9-prechange-20261123",
+      "requires_direct_readback": true,
+      "pointer_last": true
+    }
   }
 }
