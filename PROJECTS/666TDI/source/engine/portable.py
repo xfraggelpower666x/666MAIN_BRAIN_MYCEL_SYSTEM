@@ -121,6 +121,9 @@ def analyze(track):
               'semantic_hypothesis':c['meaning'],'candidate_audible_consequence':c['consequence'],
               'counterrelation':c['anti'],'status':'CANDIDATE_CONTEXT_REVIEW'})
     out['analysis']['active_cards']=cards
+    # R0.9: enrich normal analysis with read-only musical-function interpretation.
+    from . import semantic_intelligence as semantic
+    out['analysis']['semantic_intelligence']=semantic.assess(out)
     out['analysis']['relations']=[{'from':'LOW','to':'MID/HIGH','reason':'Tempo/Phasenstabilität bei wahrnehmungsbezogener Bewegung','constraint':'LOW_STABLE'},
         {'from':'STORY','to':'ARRANGEMENT','reason':'Musikalische Ereignisse müssen eine nachvollziehbare Funktion haben','constraint':'NO_RANDOM_STORY_INVENTION'},
         {'from':'RENDERER','to':'INTENT','reason':'Renderer begrenzt Ausdruck, nicht musikalische Bedeutung','constraint':'NO_COMPOSITION_OVERRIDE'}]
