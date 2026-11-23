@@ -71,10 +71,10 @@ Inno Setup 6 is required for the installer stage. Windows packaging and physical
 ## Test commands
 
 ```powershell
-python -m unittest discover -s tests -v
+python scripts/run_resin3_acceptance.py
 ```
 
-Focused crossfade, Resin 3 adapter and control-plane tests are present. They have **not** been executed in this session. Native Windows GUI, WASAPI, physical monitor output, portable build, installer and real user-owned radio-provider acceptance remain open.
+The targeted headless acceptance command avoids original 3DX hardware scripts that are unsafe for `unittest discover`. See `docs/R07_ACCEPTANCE.md` and the repo-scoped CI workflow for execution evidence. Windows WASAPI and external provider acceptance remain separate. Native Windows GUI, WASAPI, physical monitor output, portable build, installer and real user-owned radio-provider acceptance remain open.
 
 ## Configuration and secrets
 

@@ -1,0 +1,36 @@
+name: 666StreamTranscoder Resin 3 R07 unit acceptance
+
+on:
+  push:
+    branches: [666MAIN_BRAIN]
+    paths:
+      - 'PROJECTS/666StreamTranscoder/**'
+      - '.github/workflows/666streamtranscoder-r07.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: 666streamtranscoder-r07-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  resin3-python-contracts:
+    name: Resin 3 contract tests (headless)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: PROJECTS/666StreamTranscoder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check Python compilation
+        run: python -m compileall -q radiostreamer tests/test_resin3_control_plane.py tests/test_resin3_modules.py tests/test_resin3_runtime_boundaries.py tests/test_crossfade_audio.py
+      - name: Resin 3 contract suite (no audio device, no provider, no credentials)
+        run: python -m unittest discover -s tests -p 'test_resin3_*.py' -v
+      - name: Crossfade pure PCM tests
+        run: python -m unittest discover -s tests -p 'test_crossfade_audio.py' -v
