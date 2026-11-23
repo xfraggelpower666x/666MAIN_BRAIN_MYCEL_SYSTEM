@@ -22,6 +22,12 @@ class PortableTests(unittest.TestCase):
   self.assertIn('semantic_intelligence',b['analysis'])
   self.assertEqual(b['analysis']['semantic_intelligence']['system_id'],'666TDI-001')
   self.assertTrue(b['analysis']['semantic_intelligence']['read_only'])
+ def test_r10_creative_causal_is_integrated(self):
+  a=p.create_track({**self.intent,'motor':'relentless forward motion','structure':'deep break and dynamic contrast'})
+  b=p.analyze(a)
+  self.assertIn('creative_causal',b['analysis'])
+  self.assertEqual(b['analysis']['creative_causal']['system_id'],'666TDI-001')
+  self.assertTrue(b['analysis']['creative_causal']['read_only'])
  def test_compiler_underrun_warns(self):
   b=p.analyze(p.create_track(self.intent));r=p.compiler(b,'lyria2_asg');self.assertIn('DURATION_EXCEEDS_HISTORICAL_RENDERER_LIMIT',r['warnings'])
  def test_ledger_no_auto_promotion(self):

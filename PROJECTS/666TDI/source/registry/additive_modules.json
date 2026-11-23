@@ -123,6 +123,16 @@
       "no_renderer_override": true,
       "no_global_learning": true,
       "source": "engine/semantic_intelligence.py"
+    },
+    "creative_causal_emergence": {
+      "status": "ADDITIVE_LOCAL_R10",
+      "scope": "TRACK_LOCAL_READ_ONLY_FUNCTION_RELATIONSHIPS",
+      "purpose": "Derive evidence-bound musical relations and candidate emergent effects from R0.9 semantic functions; preserve productive tension and expose counterfactuals.",
+      "source": "engine/creative_causal.py",
+      "no_audio_claim": true,
+      "no_renderer_override": true,
+      "no_global_learning": true,
+      "no_automatic_repair": true
     }
   }
 }

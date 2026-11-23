@@ -43,3 +43,11 @@ CURRENT_666TDI_GT_HISTORICAL_LYVRA. Änderungen erhalten bestehenden gültigen C
 5. CLIC-R11-Annahme bleibt eine separate CLIC-Zuständigkeit; sie ist kein TDI-Host-PASS.
 
 **Nächster TDI-Entwicklungsschritt:** R0.9 auf repräsentativen Creator-Intents fachlich validieren, Negations-/Konfliktfälle erweitern und danach nur belegte semantische Lücken ergänzen. Die bestehende Engine bleibt erhalten.
+
+
+## 666TDI Development Roadmap — 2026-11-23
+- R1.0 Creative Causal Emergence: additive implementation in source/engine/creative_causal.py; R0.9 remains intact.
+- R1.1 666TDI Daemon: data contract at facets/daemon/CONTRACT.json; UI/host runtime not yet implemented.
+- R1.2 Track Pre-Analysis: visual music forecast and creator decision support.
+- R1.3 Device Intelligence: explicit iPhone Suno app vs PC Suno browser preflight before track build; shared musical analysis, separate renderer profiles.
+- R1.4 Evidence Learning: scoped learning from real creator-reviewed outcomes; no automatic global promotion.

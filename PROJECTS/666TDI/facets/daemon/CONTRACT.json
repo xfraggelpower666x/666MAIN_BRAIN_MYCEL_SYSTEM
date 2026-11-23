@@ -1,0 +1,11 @@
+{
+ "schema":"666TDI_DAEMON_CONTRACT_R11_V1","system_id":"666TDI-001","name":"666TDI DAEMON","status":"CONTRACT_ONLY_NOT_IMPLEMENTED","authority":"666TDI_ONLY",
+ "purpose":"Guide the creator through evidence-backed musical analysis and track-design decisions using the existing TDI engine.",
+ "consumes":["analysis.semantic_intelligence","analysis.creative_causal","track_local_relational_graph","creator_reviewed_feedback"],
+ "produces":["visual_pre_analysis_model","decision_support_cards","contextual_next_actions","creator_decision_receipts"],
+ "flow":["DEVICE_PREFLIGHT","CREATIVE_INTENT_INTAKE","SEMANTIC_FUNCTION_ANALYSIS","CAUSAL_RELATION_ANALYSIS","CREATIVE_EMERGENCE_REVIEW","TRACK_PRE_ANALYSIS","CREATOR_DECISIONS","RENDERER_TRANSLATION","OUTPUT_REVIEW","TRACK_LOCAL_FEEDBACK"],
+ "device_preflight":{"required_before_track_build":true,"choices":["IPHONE_SUNO_APP","PC_SUNO_BROWSER"],"unknown_device":"ASK_CREATOR","no_silent_default":true,"field_availability":"VERIFY_AGAINST_CURRENT_CREATOR_SURFACE","never_infer_missing_fields":true,"renderer_profiles_are_separate":true,"musical_intelligence_is_shared":true},
+ "visual_truth":{"derive_ui_from_current_analysis":true,"show_evidence_and_uncertainty":true,"show_counterrelations":true,"productive_tension_is_not_automatically_an_error":true,"distinguish_hypothesis_from_audio_measurement":true,"never_claim_unexecuted_action":true},
+ "decision_contract":{"creator_retains_final_authority":true,"recommendations_require_reasons":true,"alternatives_and_counterfactuals_supported":true,"automatic_repair":false,"global_learning":false},
+ "integration":{"reuse_existing_tdi_engine":true,"no_second_music_controller":true,"lyvra_source_mode":"READ_ONLY_REFERENCE","foreign_identity_override":false,"cross_system_merge":false}
+}
