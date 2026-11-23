@@ -1,0 +1,44 @@
+name: Cyber Drive R19 Windows Portable and Setup
+on:
+  workflow_dispatch:
+  push:
+    branches: [666MAIN_BRAIN]
+    paths:
+      - 'PROJECTS/666_CYBER_DRIVE_CONTROL/**'
+      - '.github/workflows/cyber-drive-r19-windows.yml'
+permissions:
+  contents: read
+concurrency:
+  group: cyber-drive-r19-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  windows-build:
+    runs-on: windows-2022
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          architecture: x64
+      - name: Original Windows build controller
+        shell: pwsh
+        run: |
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File "PROJECTS/666_CYBER_DRIVE_CONTROL/BUILD/BUILD_CONTROL.ps1" -Action BuildBoth
+          if ($LASTEXITCODE -ne 0) { throw "R19 build failed with code $LASTEXITCODE" }
+      - name: Upload build evidence and executables
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cyber-drive-r19-windows-${{ github.run_id }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            PROJECTS/666_CYBER_DRIVE_CONTROL/r19-electron/dist/*-PORTABLE.exe
+            PROJECTS/666_CYBER_DRIVE_CONTROL/r19-electron/dist/*-SETUP.exe
+            PROJECTS/666_CYBER_DRIVE_CONTROL/BUILD/REPORTS/*
