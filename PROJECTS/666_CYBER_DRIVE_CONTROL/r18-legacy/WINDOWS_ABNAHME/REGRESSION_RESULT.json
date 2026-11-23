@@ -1,6 +1,0 @@
-{
-  "returncode": 0,
-  "summary": "187 passed in 2.15s",
-  "command": "PYTHONPATH=src python -m pytest -q",
-  "execution_platform": "Linux (Windows-specific native behavior not executed)"
-}

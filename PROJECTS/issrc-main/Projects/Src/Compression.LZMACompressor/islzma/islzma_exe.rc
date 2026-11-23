@@ -1,7 +1,0 @@
-#include "windows.h"
-
-#ifdef WIN32
-MAINICON ICON "islzma_exe32.ico"
-#else
-MAINICON ICON "islzma_exe64.ico"
-#endif

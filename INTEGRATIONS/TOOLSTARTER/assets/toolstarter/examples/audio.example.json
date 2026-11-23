@@ -1,8 +1,0 @@
-{
-  "project_root": "..",
-  "path_dirs": ["tools/ffmpeg/bin"],
-  "tools": [
-    {"id": "FFmpeg", "kind": "audio", "winget": "Gyan.FFmpeg"}
-  ],
-  "actions": {}
-}

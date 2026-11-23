@@ -1,5 +1,0 @@
-# Optional audio-only dependencies for 666TDI R0.8
-# NOT required for normal SYSTEMSTART, Trackdesign, renderer compilation, rehydration or non-audio freeze.
-# Install on demand: python -m pip install -r native/requirements-audio.txt
-numpy>=1.24
-soundfile>=0.12

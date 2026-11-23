@@ -1,9 +1,0 @@
-node_modules/
-dist/
-build/runtime/
-build/pyi-work/
-build/pyi-spec/
-__pycache__/
-*.pyc
-*.exe
-.env

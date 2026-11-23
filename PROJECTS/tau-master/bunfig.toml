@@ -1,4 +1,0 @@
-preload = ["./test/helpers/bun-source-shims.ts"]
-
-[test]
-preload = ["./test/helpers/bun-source-shims.ts"]

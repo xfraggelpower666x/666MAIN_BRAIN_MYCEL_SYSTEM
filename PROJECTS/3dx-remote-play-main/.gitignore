@@ -1,9 +1,0 @@
-node_modules/
-dist/
-phone/dist/
-src-tauri/target/
-src-tauri/gen/
-.wrangler/
-*.log
-.env
-.env.*

@@ -1,3 +1,0 @@
-# Fresh-chat rehydration
-
-Read `CURRENT_POINTER.json` from canonical branch at the live HEAD, not from a local snippet. Check SYSTEM_ID, branch and project_root. Verify declared Git blob SHA1s or equivalent independent GitHub blob readback. Load all files in bootstrap_order, then inspect `continuity/CURRENT_HANDOFF.json` for the next evidenced step. R04 is an offline browser app; optional Node CLI performs local checks. Project memory is defined by the repository artifacts, not by the previous chat transcript. Host routing/adoption remains pending until independently tested. No foreign system activation or Main Brain pointer promotion.

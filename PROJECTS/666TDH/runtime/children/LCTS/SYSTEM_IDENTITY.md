@@ -1,6 +1,0 @@
-SYSTEM_ID=666LCTS-001
-ACTIVE_NAME=666LCTS
-ROLE=LONGFORM_CONTINUOUS_TRACK_SPECIALIST
-VERSION=v1.1.0
-MIGRATION_BUILD=666TRACK-IDENTITY-MIGRATION-001
-CREATIVE_SOURCE_DESCRIPTION=Longform specialist derived from verified track-design musical intelligence; LYVRA retained only as historical provenance.

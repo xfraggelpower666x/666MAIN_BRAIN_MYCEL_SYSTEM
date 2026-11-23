@@ -1,55 +1,45 @@
-# 666MAIN BRAIN MYCEL SYSTEM
+# 666 RESEARCH MD DATABASE ORCHESTRA — Live-System / Recovery Worktree
 
-**Canonical name:** 666MAIN BRAIN MYCEL SYSTEM  
-**Repository:** `xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM`  
-**Branch:** `666MAIN_BRAIN`  
-**System class:** System Coordination Archive + Chaos-with-Direction Routing System  
-**Native character:** **PSYLLO — The Neon Mycel Architect**
+**Arbeitsstand:** `PARTIAL · READBACK_PENDING` (22.11.2026). **Kein neuer Freeze und kein vollständiger v1.7.1-Rebuild.**
 
-## Purpose
+Dies ist das dauerhaft bearbeitbare GitHub-Projekt unter `PROJECTS/666_RESEARCH_MD_DATABASE_ORCHESTRA/` auf Branch `666MAIN_BRAIN`. Der Projektordner ist von 666CLS, LYVRA, 666PFS, 666CLIC und anderen Systemen isoliert. Das Host-Repository ist kein Authority-Transfer.
 
-666MAIN BRAIN MYCEL SYSTEM is the repository-first coordination, catalog, routing and semantic relation layer for the 666SOUNDsDESIGn native-system landscape.
+## Sofort nutzbarer Einstieg
 
-It does **not** merge native systems or steal their execution authority. It discovers, catalogs and connects them through verified current pointers, system cards and causal relations, then routes direct user intent to the correct native authority.
+```bash
+python3 tools/livecircle.py status
+python3 tools/livecircle.py audit --json
+python3 -m unittest discover -s tests -v
+python3 -m unittest discover -s recovery/tests -v
+```
 
-## Core intelligence
+Der Status-CLI ist lesend und kann den unvollständigen Source-Readback nicht als PASS darstellen. `audit` beendet sich bei fehlenden Originalen mit Code 2.
 
-- Semantic intelligence
-- Causal intelligence
-- Emergence-based intelligence
-- Rational / relational intelligence
-- Evidence-based self-learning
-- Governed self-control and self-audit
-- LiveCircle continuity
-- Native rehydration
-- Interruption processing
-- Parallel Deployment
-- Lock / queue / readback governance
-- System-card cartography
-- Chaos-with-Direction routing
-- Cyber Corporate Visual Intelligence
-- Peer technical intelligence exchange without identity copying
+## Wiederherstellung weiterer Originalquellen
 
-## PSYLLO navigation cards
+1. Einen **belegten Original-Quellstand** als Verzeichnis oder ZIP bereitstellen (niemals ins Git-Repo als Archiv einchecken).
+2. Quelldateien mit `python3 recovery/tools/source_readback_guard.py --source <QUELLORDNER_ODER_ZIP> --sha-manifest history/v1_7_1/SYSTEM_ONLY_FILE_MANIFEST_SHA256.txt` auf den Vollstand prüfen.
+3. Teilfunde einzeln durch SHA-256-Abgleich gegen das historische Manifest verifizieren, dann ausschließlich im ursprünglichen Pfad ergänzen. Bereits verifizierte Dateien nicht überschreiben.
+4. Nach vollständigem Readback Originaltests ausführen. Erst danach neue Release- und Freeze-Evidenz schreiben.
 
-| Card | Open |
-|---|---|
-| 🧠 **MYCEL CORE** | [Current Pointer](CURRENT_POINTER.md) · [Identity](SYSTEM/IDENTITY.md) · [Authority](SYSTEM/GLOBAL_AUTHORITY.md) · [State](SYSTEM/CURRENT_STATE.md) |
-| 🕸️ **RELATIONS** | [Causal Graph](SYSTEM/CAUSAL_RELATION_GRAPH.md) · [Relation Model](CATALOG/RELATION_MODEL.md) · [System Cards](CATALOG/SYSTEM_CARDS.md) |
-| ♻️ **LIVECIRCLE** | [LiveCircle](RUNTIME/LIVECIRCLE.md) · [Rehydration](RUNTIME/REHYDRATION.md) · [Continuity](CONTINUITY/HANDOFF_CONTRACT.md) |
-| ⚡ **PARALLEL DEPLOY** | [Parallel Deployment](RUNTIME/PARALLEL_DEPLOYMENT.md) · [Interruption Protocol](RUNTIME/INTERRUPTION_PROTOCOL.md) · [Chaos With Direction](RUNTIME/CHAOS_WITH_DIRECTION.md) |
-| 🛡️ **SENTINEL** | [Currentness Audit](INTELLIGENCE/CURRENTNESS_AUDIT.md) · [Lock / Queue](RUNTIME/LOCK_QUEUE_GOVERNANCE.md) · [Write Governance](GOVERNANCE/WRITE_GOVERNANCE.md) |
-| 🍄 **PSYLLO** | [Character](INTELLIGENCE/PSYLLO_CHARACTER.md) · [Facets](INTELLIGENCE/FACETS.md) · [Self-Conductor](INTELLIGENCE/SELF_CONDUCTOR.md) · [Learning](INTELLIGENCE/LEARNING.md) |
-| 🏢 **OPERATIONS CENTER** | [Cyber Corporate Visual Intelligence](UI/VISUAL_INTELLIGENCE.md) · [Operations Center](UI/OPERATIONS_CENTER.md) |
-| 🔌 **PEER TECH** | [Peer Technical Intelligence Exchange](INTELLIGENCE/PEER_TECH_EXCHANGE.md) |
-| 🧭 **TRIGGERS** | [Trigger Contract](RUNTIME/TRIGGER_CONTRACT.md) · [Runtime Registry](RUNTIME/RUNTIME_REGISTRY.json) |
-| 🧬 **MIGRATION** | [Drive → Repo Migration](MIGRATION/DRIVE_TO_REPO_2026-11-07.md) |
+## Struktur
 
-## Authority rule
+- `data/topics/` und `data/prompts/` — **3 SHA-256-genau zum v1.7.1-Manifest passende Originaldateien**, noch nicht als lauffähiges v1.7.1-System aktiviert
+- `history/v1_7_1/` — vergangene Audit-, Freeze- und Manifestdokumentation, nicht neue Authority
+- `recovery/tools/` und `recovery/tests/` — original erhaltenes, isoliertes Guard-Werkzeug mit Regression
+- `tools/livecircle.py` — lesender Live-Arbeitsstand, Inventar, nächste Schritte
+- `state/LIVE_WORKSPACE_STATE.json` — der fortsetzbare Recovery-Zustand
+- `tests/` — zusätzliche LiveCircle-Regression
 
-`CURRENT_POINTER.md` is the repository-native migration pointer while construction is in progress. Google Drive remains **migration source + recovery evidence until FINAL_COMPLETION_GATE**. Only after that gate does the system switch to **REPO_FIRST_AUTH** and Drive becomes **HISTORY_ONLY**. History and backups may never self-promote to Live.
+**Ausschluss:** keine generierten Texte, Lyrics, Bilder, Audio, PDFs/DOCX, Ergebnisse, Suchhistorien, Credentials, User-Stems oder temporären Dateien einchecken. `history/` speichert ausschließlich notwendige Release-Metadaten, nicht einen Suchverlauf.
 
-`FOUND != VERIFIED`  
-`SEARCH_RESULT != READBACK`  
-`READ != REHYDRATED`  
-`NEWER_VALID_EVOLUTION > OLDER_VALID_STATE`
+## Recovery-Suche in Originalmodulen (Node.js 18+)
+
+Die zusätzlichen Recovery-Tools können die **drei nach SHA-256 verifizierten Originalmodule** in einer isolierten, lesenden Umgebung prüfen und durchsuchen. Das ist kein Ersatz für die fehlende v1.7.1-Runtime.
+
+```bash
+node recovery/tools/catalog_probe.js --summary
+node recovery/tools/catalog_probe.js --search psycho
+node recovery/tools/catalog_probe.js --id chaos-theory
+node --test recovery/tests/catalog_probe.test.js
+```

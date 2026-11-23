@@ -1,3 +1,0 @@
-[console_scripts]
-suno-clean = src.cli:main
-sunocleanser-gui = src.gui.app:run_app

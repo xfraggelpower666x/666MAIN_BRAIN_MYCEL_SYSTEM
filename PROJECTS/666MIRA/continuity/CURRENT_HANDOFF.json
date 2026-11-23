@@ -1,8 +1,0 @@
-{
-  "system_id": "666MIRA-CORE-001",
-  "return_anchor": "MIRA_NATIVE_FRESH_HOST_ACCEPTANCE",
-  "state": "OFFEN",
-  "next_step": "MIRA in einem frischen Host über den eigenständigen GitHub-Current rehydrieren. Beide Sentence-Aufrufe mit derselben Quelle vergleichen und Output-Envelope-Evidenz separat dokumentieren.",
-  "legacy_pfs_entry": "MIRA-27001",
-  "pfs_cleanup_is_separate": true
-}
