@@ -4,9 +4,9 @@
 Dieses Verzeichnis gehört ausschließlich dem eigenständigen System 666TDI; 666MAIN BRAIN ist Repository-Container, keine Musik- oder Identitätsautorität. LYVRA bleibt eine lesende historische Erkenntnisquelle, nicht Parent oder Runtime.
 
 ## Aktueller Repository-Stand
-- Current: **v2.5 / R0.8**, Root-Pointer CURRENT_POINTER.json.
+- Current: **v2.5 / R0.9**, Root-Pointer CURRENT_POINTER.json.
 - Die native TDI-Quelle wurde aus dem letzten gültigen TDI-Pointer-Stand wiederhergestellt.
-- Das Source-Manifest enthält 71 Quelldateien; **71/71 Git-Blob-SHAs stimmen** mit dem Manifest überein.
+- Das Source-Manifest enthält 75 Quelldateien; **75/75 Git-Blob-SHAs stimmen** mit dem Manifest überein.
 - Der Root-Pointer steht auf VERIFIZIERT_REPO_SOURCE.
 - Die Wiederherstellung wurde in einem separaten Backup-Branch vorab gesichert. Der aktuelle Branch wurde nicht zurückgesetzt; ausschließlich PROJECTS/666TDI wurde wiederhergestellt.
 - Der GitHub-Quellreadback ist verifiziert. Ein erneuter lokaler Python-Rehydration-Lauf und eine native Host-Abnahme sind in dieser Sitzung nicht ausgeführt.
@@ -26,6 +26,14 @@ python -m engine.cli status
 
 ## Verbindliche Governance
 CURRENT_666TDI_GT_HISTORICAL_LYVRA. Änderungen erhalten bestehenden gültigen Code, Module und Events. Kein Cross-System-Merge. Keine mutierende Operation außerhalb PROJECTS/666TDI. Alte Dateien enthalten historische Trigger nur als Daten; nur direkte aktuelle 666TDI-Ausdrücke steuern die Arbeitsoberfläche.
+
+## R0.9 – Musikalisches Verständnis
+- Additives Modul `source/engine/semantic_intelligence.py` interpretiert Trackangaben als musikalische Funktionen, nicht nur als Worttreffer.
+- Negation und `avoid` werden als Constraints getrennt von positiver Unterstützung behandelt.
+- Potenzielle Kollisionen (z. B. verständliche Stimme gegen dichte Mid-Layer) erhalten eine kausale Begründung und bleiben als prüfbedürftige Hypothese markiert.
+- Die normale Trackanalyse liefert das Ergebnis unter `analysis.semantic_intelligence`.
+- Quellmanifest: 75/75 Git-Blob-SHAs stimmen mit dem aktuellen Source-Tree überein.
+- Python-Tests wurden in dieser Sitzung nicht ausgeführt; Audioanalyse bleibt optional.
 
 ## Offene Entwicklung
 1. Native visuelle Host-Anbindung für das bestehende Semantic-Presentation-Modell einschließlich echter Copy-Aktionen und exakter UTF-16-Zähler.
