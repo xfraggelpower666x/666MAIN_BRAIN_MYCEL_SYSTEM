@@ -2,21 +2,26 @@
   "schema": "666TDI_DAEMON_CONTRACT_R11_V1",
   "system_id": "666TDI-001",
   "name": "666TDI DAEMON",
-  "status": "LOCAL_UI_IMPLEMENTED_HOST_ACCEPTANCE_OPEN",
+  "status": "R12_VISUAL_PREANALYSIS_IMPLEMENTED_HOST_ACCEPTANCE_OPEN",
   "authority": "666TDI_ONLY",
   "purpose": "Guide the creator through evidence-backed musical analysis and track-design decisions using the existing TDI engine.",
   "consumes": [
     "analysis.semantic_intelligence",
     "analysis.creative_causal",
     "track_local_relational_graph",
-    "creator_reviewed_feedback"
+    "creator_reviewed_feedback",
+    "preanalysis.r12_from_r09_r10"
   ],
   "produces": [
     "visual_pre_analysis_model",
     "decision_support_cards",
     "contextual_next_actions",
     "creator_decision_receipts",
-    "local_json_handoff"
+    "local_json_handoff",
+    "musical_chapter_timeline",
+    "low_mid_high_voice_matrix",
+    "creator_alternatives_and_counterfactuals",
+    "explicit_bar_plan_if_supplied"
   ],
   "flow": [
     "DEVICE_PREFLIGHT",
@@ -76,6 +81,11 @@
     "bind_host": "127.0.0.1",
     "server_storage": "NONE",
     "port_default": 8766,
-    "native_host_browser_acceptance": "NOT_EXECUTED"
+    "native_host_browser_acceptance": "NOT_EXECUTED",
+    "preanalysis_engine": "source/engine/track_preanalysis.py",
+    "preanalysis_status": "IMPLEMENTED_SOURCE_HOST_ACCEPTANCE_OPEN",
+    "timelines_are_proposals_not_measured": true,
+    "no_bar_default": true,
+    "r12_ui": "source/engine/daemon_static/index.html"
   }
 }

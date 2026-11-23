@@ -105,6 +105,25 @@
       "native_host_acceptance": "OPEN",
       "requires_direct_readback": true,
       "pointer_last": true
+    },
+    "r12_track_preanalysis": {
+      "source": "DIRECT_USER_NEXT_R1.2_MESSAGE_2026-11-23T17:47:13Z",
+      "scope": "PROJECTS/666TDI_ONLY",
+      "operations": [
+        "ADDITIVE_TRACK_PREANALYSIS",
+        "LOCAL_DAEMON_FORECAST_VISUALIZATION",
+        "CREATOR_ALTERNATIVE_CARDS",
+        "DEVICE_GATE_PRESERVATION",
+        "SOURCE_MANIFEST_AND_POINTER_PUBLICATION"
+      ],
+      "pre_change_backup": "backup/666tdi-r1.2-preanalysis-prechange-20261123",
+      "preserve_existing": true,
+      "no_foreign_repository_writes": true,
+      "no_audio_requirement": true,
+      "no_suno_execution": true,
+      "no_global_learning": true,
+      "host_acceptance": "NOT_EXECUTED",
+      "pointer_last": true
     }
   }
 }

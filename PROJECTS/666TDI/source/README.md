@@ -181,3 +181,7 @@ R1.1-Datenvertrag: facets/daemon/CONTRACT.json. Der Vertrag ist noch keine produ
 Echte lokale Browser-Oberfläche mit Neon-Cyber-Menü, verpflichtender iPhone-/PC-Auswahl, musikalischer Voranalyse, Evidence-/Relation-/Emergence-Karten, Creator-Entscheidungen und lokalem JSON-Export. Das Python-Backend `engine.daemon_cli` konsumiert direkt R0.9 + R1.0; es verwendet keinen zweiten Musikcontroller. Kein automatischer Track-Write, keine Suno-Verbindung, keine Audio-Pflicht. Details: `docs/R11_VISUAL_DAEMON_IMPLEMENTATION.md`.
 
 Start (Python 3.10+): `python -m engine.daemon_cli --port 8766`; dann `http://127.0.0.1:8766`. Unter Windows alternativ `START_666TDI_DAEMON.bat`. Native Host-Browser-Abnahme bleibt offen.
+
+
+## R1.2 – Track Pre-Analysis Intelligence (additiv)
+`engine/track_preanalysis.py` verknüpft die belegten R0.9/R1.0-Funktionsbeziehungen mit acht vorgeschlagenen musikalischen Kapiteln, LOW/MID/HIGH/VOICE-Matrix und kausal begründeten Alternativen. Die bestehende R1.1-Oberfläche zeigt eine visuelle Kapitel-Zeitleiste. Der Taktzielwert (32–2048) ist optional und wird niemals stillschweigend gesetzt; die Dauer ist nur bei explizitem BPM und Taktziel eine mathematische 4/4-Planung. Keine erfundenen Songinhalte, keine Audio-Messungsbehauptungen, keine fremde Authority. Siehe `docs/R12_TRACK_PREANALYSIS.md`.

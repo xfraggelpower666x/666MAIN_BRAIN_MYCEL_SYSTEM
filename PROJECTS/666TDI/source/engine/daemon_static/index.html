@@ -25,6 +25,23 @@ label{display:block;font-size:12px;color:#dce2f5;margin-bottom:6px;font-weight:6
 .decisions{display:grid;gap:11px}.decision{background:#10182a;border:1px solid #3b4765;padding:15px;border-radius:13px}.decision .choices{display:flex;gap:7px;margin-top:12px;flex-wrap:wrap}.choice{font-size:12px;border:1px solid #455574;border-radius:8px;padding:7px 9px;background:#1b2741}.choice.active{border-color:var(--lime);color:var(--lime);background:#18372d}.divider{height:1px;background:var(--line);margin:18px 0}.empty{color:var(--muted);border:1px dashed #475274;padding:18px;border-radius:12px;text-align:center}.hide{display:none!important}.footer{padding:16px 0;color:var(--muted);font-size:11px}
 @media(max-width:1080px){.shell{grid-template-columns:1fr}.sidebar{position:static;height:auto;gap:12px;padding:14px 20px}.sidebar nav{display:flex;overflow:auto}.navitem{min-width:180px}.sidebar .bottom{display:none}.analysis-grid{grid-template-columns:1fr}}
 @media(max-width:700px){main{padding:22px 14px}.grid,.formgrid,.device-grid{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}.header h1{font-size:31px}.card{padding:16px}.grid3{grid-template-columns:1fr}.wide{grid-column:auto}}
+
+.forecast-top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.forecast-scroll{overflow-x:auto;margin-top:16px;padding-bottom:7px}
+.timeline{min-width:700px;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:5px;align-items:end;min-height:196px}
+.chapter{border:1px solid #48587a;border-radius:12px;background:#121c35;padding:9px 6px;min-height:150px;display:flex;flex-direction:column;justify-content:end;gap:7px}
+.chapter h3{font-size:10px;line-height:1.35;margin:0;overflow-wrap:anywhere}
+.chapter .bar{height:65px;display:flex;align-items:end;background:transparent}
+.chapter .bar span{height:var(--energy);width:100%;border-radius:7px 7px 2px 2px;background:linear-gradient(180deg,#fc68c8,#735bda,#4df1ec)}
+.chapter .meta{font-size:10px}
+.layer-compare{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.layerbox{background:#10172c;border:1px solid #435474;padding:12px;border-radius:12px}
+.layerbox b{color:#74eff2}
+.alternative{background:#10192c;border:1px solid #4c507c;border-radius:12px;padding:13px;margin:9px 0}
+.alternative .options{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}
+.alternative .option{border:1px solid #455574;border-radius:9px;padding:10px;background:#172039}
+.alternative .option b{color:#d4b6fc}
+@media(max-width:700px){.layer-compare{grid-template-columns:1fr 1fr}.alternative .options{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -34,7 +51,7 @@ label{display:block;font-size:12px;color:#dce2f5;margin-bottom:6px;font-weight:6
  <nav id="nav" aria-label="Daemon Menü">
   <button class="navitem active" type="button" data-target="device-section"><span class="dot"></span>01 · Device Preflight</button>
   <button class="navitem" type="button" data-target="intent-section"><span class="dot"></span>02 · Creator Intent</button>
-  <button class="navitem" type="button" data-target="results-section"><span class="dot"></span>03 · Musical Analysis</button>
+  <button class="navitem" type="button" data-target="results-section"><span class="dot"></span>03 · Musical Forecast</button>
   <button class="navitem" type="button" data-target="decisions-section"><span class="dot"></span>04 · Decision Support</button>
   <button class="navitem" type="button" data-target="handoff-section"><span class="dot"></span>05 · Handoff</button>
  </nav>
@@ -63,6 +80,7 @@ label{display:block;font-size:12px;color:#dce2f5;margin-bottom:6px;font-weight:6
     <div class="field"><label for="title">Tracktitel</label><input id="title" maxlength="240" placeholder="z. B. Amazing Journeys"></div>
     <div class="field"><label for="genre">Genre</label><input id="genre" maxlength="500" placeholder="Dark Goa / Dark Psytrance"></div>
     <div class="field"><label for="bpm">Tempo (BPM) · optional</label><input id="bpm" inputmode="numeric" type="number" min="1" max="350" placeholder="148"></div>
+    <div class="field"><label for="total-bars">Taktziel · optional (4/4)</label><input id="total-bars" inputmode="numeric" type="number" min="32" max="2048" placeholder="z. B. 224"><span class="subtle">Nur Planungswert, keine garantierte Suno-Länge.</span></div>
     <div class="field"><label for="energy">Energie / Spannung</label><input id="energy" maxlength="2000" placeholder="build tension, escalating pressure"></div>
     <div class="field wide"><label for="story">Musikalische Absicht & Geschichte</label><textarea id="story" maxlength="12000" placeholder="Worum geht die Reise? Welche Gefühle und Veränderungen sollen hörbar sein?"></textarea></div>
     <div class="field"><label for="motor">LOW · Kick, Bass, Groove</label><textarea id="motor" maxlength="12000" placeholder="dry kick, stable sub, relentless forward motion, rolling psybass"></textarea></div>
@@ -97,6 +115,19 @@ label{display:block;font-size:12px;color:#dce2f5;margin-bottom:6px;font-weight:6
    </article>
   </div>
  </section>
+ <section class="section card hide" id="forecast-section">
+  <div class="step">R1.2 / MUSICAL CHAPTER INTELLIGENCE</div>
+  <div class="forecast-top"><h2>Musikalische Kapitel & zeitliche Entwicklung</h2><span class="pill" id="forecast-duration">Keine Dauer abgeleitet</span></div>
+  <p>Die acht Kapitel sind Vorschläge aus der bestehenden R1.0-Funktionsanalyse. Energieprofile sind qualitative Entwurfswerte, keine Messung. Story-Ereignisse werden nicht erfunden.</p>
+  <div class="forecast-scroll"><div class="timeline" id="forecast-timeline"></div></div>
+  <div class="divider"></div>
+  <h2>LOW / MID / HIGH / VOICE – Wechselwirkungen</h2>
+  <div class="layer-compare" id="forecast-layers"></div>
+  <div class="divider"></div>
+  <h2>Musikalische Alternativentscheidungen</h2>
+  <p>Zwei Wege pro belegter Emergenz: Beziehung erhalten oder Arrangement ändern. Keine Alternative wird automatisch ausgewählt.</p>
+  <div id="forecast-alternatives"></div>
+ </section>
  <section class="section card hide" id="decisions-section">
   <div class="step">04 / CREATOR DECISION SUPPORT</div><h2>Bewusst entscheiden statt automatisch reparieren</h2>
   <p>Jede Entscheidung bleibt beim Creator. Wir zeigen Wirkung, Gegenfaktum und Evidenz. Musikalische Reibung kann erwünscht sein.</p>
@@ -123,7 +154,7 @@ const badge=(parent,value,cls="")=>el("span","tag "+cls,parent,value);
 function invalidateAnalysis(message){
  if(!selected.result)return;
  selected.result=null;selected.choices={};
- for(const id of ["results-section","decisions-section","handoff-section"])$(id).classList.add("hide");
+ for(const id of ["results-section","forecast-section","decisions-section","handoff-section"])$(id).classList.add("hide");
  if(message)statusText(message,false);
  updateNav();
 }
@@ -154,7 +185,7 @@ document.querySelectorAll(".navitem").forEach(b=>b.addEventListener("click",()=>
 }));
 $("intent-form").addEventListener("input",()=>invalidateAnalysis("Eingaben geändert. Bitte Voranalyse erneut ausführen."));
 $("clear-button").addEventListener("click",()=>{
- fields.forEach(f=>$(f).value="");selected.result=null;selected.choices={};
+ fields.forEach(f=>$(f).value="");$("total-bars").value="";selected.result=null;selected.choices={};
  for(const id of ["results-section","decisions-section","handoff-section"])$(id).classList.add("hide");
  statusText(selected.device?"Eingaben geleert. Gerät bleibt ausgewählt.":"Wähle zuerst dein Gerät.",false);updateNav();
 });
@@ -210,9 +241,43 @@ function renderDecisions(data){
   el("div","meta",box,c.interpretation+" · Nicht audioverifiziert");
  }
 }
+function renderForecast(data){
+ const f=data.preanalysis; if(!f)return;
+ const duration=$("forecast-duration");
+ const time=f.planned_duration_seconds;
+ text(duration,time===null?"Keine automatische Längenschätzung":("≈ "+Math.floor(time/60)+":"+String(Math.round(time%60)).padStart(2,"0")+" · 4/4 rechnerisch · "+f.bar_target+" Takte"));
+ const timeline=$("forecast-timeline");timeline.replaceChildren();
+ for(const c of f.chapters){
+  const card=el("article","chapter",timeline);
+  el("div","bar",card).append(Object.assign(document.createElement("span"),{style:"--energy:"+Math.round(c.relative_energy*100)+"%"}));
+  el("h3","",card,c.index.toString().padStart(2,"0")+" · "+c.label);
+  el("div","meta",card,c.bars===null?"Takte offen":(c.bars+" Takte · "+(c.start_bar_zero_based+1)+"–"+c.end_bar_exclusive));
+  const detail=el("details","",card);el("summary","meta",detail,c.status==="EVIDENCE_SUPPORTED_CANDIDATE"?"Begründet":"Optional");
+  el("p","subtle",detail,c.reason);
+  el("p","meta",detail,c.supported_by_functions.length?"Belege: "+c.supported_by_functions.join(", "):"Kein Funktionsbeleg: Creator-Review");
+ }
+ const layers=$("forecast-layers");layers.replaceChildren();
+ for(const item of f.layers){
+  const card=el("div","layerbox",layers);el("b","",card,item.layer);
+  el("p","subtle",card,item.musical_role);
+  badge(card,item.status,item.provided?"green":"amber");
+  el("p","meta",card,item.supported_functions.length?item.supported_functions.join(" · "):"Keine belegte Funktion");
+ }
+ const alt=$("forecast-alternatives");alt.replaceChildren();
+ if(!f.alternatives.length)el("div","empty",alt,"Keine belegte alternative Emergenzentscheidung. Keine Story oder Funktion wird erfunden.");
+ for(const a of f.alternatives){
+  const card=el("article","alternative",alt);
+  el("h3","",card,a.id.replaceAll("_"," "));
+  const options=el("div","options",card);
+  const left=el("div","option",options);el("b","",left,a.option_a.name);el("p","subtle",left,a.option_a.effect);
+  const right=el("div","option",options);el("b","",right,a.option_b.name);el("p","subtle",right,a.option_b.tradeoff);
+  el("p","meta",card,"Funktionen: "+a.functions.join(", ")+" · Creator-Entscheidung erforderlich");
+ }
+}
 function render(data){
  selected.result=data;selected.choices={};
  $("results-section").classList.remove("hide");
+ $("forecast-section").classList.remove("hide");
  $("decisions-section").classList.remove("hide");
  $("handoff-section").classList.remove("hide");
  text($("count-functions"),data.causal.functions.length);
@@ -222,7 +287,7 @@ function render(data){
  $("coverage-bar").style.width=Math.min(100,Math.round(data.semantic.functions.length/15*100))+"%";
  const tags=$("function-tags");tags.replaceChildren();
  for(const f of data.semantic.functions)badge(tags,f.id,f.status==="EXPLICITLY_CONSTRAINED"?"amber":"green");
- renderRelations(data);renderDecisions(data);updateNav();
+ renderRelations(data);renderForecast(data);renderDecisions(data);updateNav();
  $("results-section").scrollIntoView({behavior:"smooth",block:"start"});
 }
 $("intent-form").addEventListener("submit",async event=>{
@@ -230,7 +295,7 @@ $("intent-form").addEventListener("submit",async event=>{
  if(!selected.device){statusText("DEVICE_PREFLIGHT_REQUIRED",true);return;}
  const button=$("analyze-button");button.disabled=true;statusText("R1.0 analysiert deine musikalische Absicht …",false);
  try{
-  const response=await fetch("/api/preanalysis",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({device:selected.device,intent:readIntent()})});
+  const response=await fetch("/api/preanalysis",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({device:selected.device,intent:readIntent(),total_bars:$("total-bars").value})});
   const data=await response.json();
   if(!response.ok)throw new Error(data.error||"ANALYSIS_FAILED");
   render(data);statusText("Voranalyse erstellt – Hypothesen, nicht Audio-Beweise.",false);

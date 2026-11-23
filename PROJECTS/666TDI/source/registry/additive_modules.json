@@ -145,6 +145,26 @@
       "no_automatic_audio": true,
       "no_global_learning": true,
       "no_foreign_authority": true
+    },
+    "track_preanalysis_r12": {
+      "status": "ADDITIVE_LOCAL_SOURCE_R12_HOST_ACCEPTANCE_OPEN",
+      "source": "engine/track_preanalysis.py",
+      "consumes": [
+        "R09_SEMANTIC_FUNCTIONS",
+        "R10_CREATIVE_CAUSAL"
+      ],
+      "provides": [
+        "CHAPTER_PLAN",
+        "LAYER_MATRIX",
+        "EVIDENCE_BOUNDED_ALTERNATIVES",
+        "OPTIONAL_BAR_ALLOCATION"
+      ],
+      "no_autonomous_composer": true,
+      "no_rendered_timeline_claim": true,
+      "no_audio_measurement": true,
+      "no_suno_execution": true,
+      "no_global_learning": true,
+      "no_foreign_authority": true
     }
   }
 }

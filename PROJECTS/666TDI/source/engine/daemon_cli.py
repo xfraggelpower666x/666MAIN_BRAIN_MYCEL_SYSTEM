@@ -12,7 +12,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from . import creative_causal, semantic_intelligence
+from . import creative_causal, semantic_intelligence, track_preanalysis
 
 SYSTEM_ID = "666TDI-001"
 DAEMON_SCHEMA = "666TDI_DAEMON_R11_LOCAL_V1"
@@ -54,9 +54,22 @@ def preanalysis(payload: dict) -> dict:
     else:
         bpm = None
     intent["bpm"] = bpm
+    bars = payload.get("total_bars", None)
+    if bars in ("", None):
+        bars = None
+    else:
+        try:
+            if isinstance(bars, bool) or str(bars).strip() != str(int(bars)):
+                raise ValueError("INVALID_BAR_TARGET")
+            bars = int(bars)
+        except (ValueError, TypeError):
+            raise ValueError("INVALID_BAR_TARGET") from None
+        if not 32 <= bars <= 2048:
+            raise ValueError("INVALID_BAR_TARGET")
     # R1.0 and R0.9 remain the only musical analysis engines.
     semantic = semantic_intelligence.assess(intent)
     causal = creative_causal.assess(intent)
+    preanalysis = track_preanalysis.assess(intent, semantic, causal, total_bars=bars)
     device_labels = {
         "IPHONE_SUNO_APP": "iPhone · Suno App",
         "PC_SUNO_BROWSER": "PC · Suno Browser",
@@ -71,6 +84,7 @@ def preanalysis(payload: dict) -> dict:
         "intent": intent,
         "semantic": semantic,
         "causal": causal,
+        "preanalysis": preanalysis,
         "menu": [
             {"id":"device", "label":"Gerät & Workflow", "status":"COMPLETE"},
             {"id":"intent", "label":"Track-Idee", "status":"COMPLETE"},
