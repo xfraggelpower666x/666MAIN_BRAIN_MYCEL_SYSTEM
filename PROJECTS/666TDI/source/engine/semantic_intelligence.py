@@ -150,19 +150,19 @@ FIELD_ORDER = ("title", "genre", "story", "motor", "mid", "high", "voice",
 
 def _clauses(value):
     # Keep clause boundaries explicit so negation does not leak across sentences.
-    parts = re.split(r"[.!?;\\n]+|\\b(?:but|however|instead|rather|yet|sondern|aber|jedoch|stattdessen|hingegen)\\b",
+    parts = re.split(r"[.!?;,\n]+|\b(?:but|however|instead|rather|yet|sondern|aber|jedoch|stattdessen|hingegen)\b",
                      str(value), flags=re.IGNORECASE)
     return [p.strip() for p in parts if p.strip()]
 
 def _contains_phrase(text, phrase):
-    return re.search(r"(?<!\\w)" + re.escape(phrase) + r"(?!\\w)", text, flags=re.IGNORECASE) is not None
+    return re.search(r"(?<!\w)" + re.escape(phrase) + r"(?!\w)", text, flags=re.IGNORECASE) is not None
 
 def _negated(clause, phrase):
     pos = clause.casefold().find(phrase.casefold())
     if pos < 0:
         return False
     prefix = clause[:pos].casefold()
-    words = re.findall(r"[\\wäöüß]+", prefix)[-5:]
+    words = re.findall(r"[\wäöüß]+", prefix)[-5:]
     return any(n in words for n in NEGATORS)
 
 def _evidence_for(track):
