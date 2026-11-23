@@ -90,7 +90,7 @@ class RoutePlan:
         source = str(source or "").lower()
         input_device = str(input_device or "").lower()
         monitor_device = str(monitor_device or "").lower()
-        cable = re.compile(r"\\bcable[- ]?([a-d])?\\s+(input|output)\\b")
+        cable = re.compile(r"\bcable[- ]?([a-d])?\s+(input|output)\b")
         capture = cable.search(input_device)
         playback = cable.search(monitor_device)
         if source == "device" and capture and playback:

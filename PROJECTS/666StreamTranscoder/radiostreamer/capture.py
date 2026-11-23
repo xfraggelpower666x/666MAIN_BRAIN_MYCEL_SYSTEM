@@ -56,7 +56,7 @@ def _resolve(p, name):
         raise OSError("no loopback-capable output device found")
     name = str(name or "").strip()
     if name and name != "Default speakers":
-        match = re.fullmatch(r"WASAPI:(\\d+) \\| (.+)", name)
+        match = re.fullmatch(r"WASAPI:(\d+) \| (.+)", name)
         if match:
             index, label = int(match.group(1)), match.group(2)
             exact = [d for d in loopbacks if int(d["index"]) == index and d["name"] == label]

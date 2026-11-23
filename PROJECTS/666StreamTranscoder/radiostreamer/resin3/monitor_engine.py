@@ -7,7 +7,7 @@ import re
 class LocalMonitor:
     # Index is scoped to a specific PortAudio enumeration. Host/name are
     # rechecked before opening so stale indices cannot silently route audio.
-    DEVICE_LABEL = re.compile(r"^PA:(\\d+) \\| ([^|]+) \\| (.+)$")
+    DEVICE_LABEL = re.compile(r"^PA:(\d+) \| ([^|]+) \| (.+)$")
 
     @staticmethod
     def _inventory(sd):
