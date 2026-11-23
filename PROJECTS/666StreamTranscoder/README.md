@@ -24,6 +24,14 @@ The complete 3DX Radio Streamer 1.3.0 source is retained in the active project a
 - Local monitor output-device selection includes physical outputs and VB-CABLE endpoints exposed by PortAudio.
 - Resin 3 adapters under `radiostreamer/resin3/` include input routing, relay health/watch, encoder lifecycle, output routing, signal gain/metering, status bus and local monitor.
 
+## R06 runtime boundary and routing safety
+
+- Added eight adapter-oriented runtime acceptance tests for input, decoder/capture delegation, persistent encoder, protocol output, relay recovery, and independent monitor/stream audio.
+- Added two route-safety tests for VB-CABLE output-to-input loop prevention and physical-monitor routing.
+- Monitor startup now rejects VB-CABLE feedback when the broadcast input captures CABLE Output and the local monitor targets CABLE Input; this protection does not disconnect the broadcaster.
+- Validation is local to monitor startup and does not change existing stream or virtual audio device settings.
+- These are source-level changes and acceptance tests, **not** evidence of a completed native Windows or live Shoutcast/Icecast run.
+
 ## Optional local monitor
 
 The monitor uses `sounddevice` and `numpy`. Install them only if local playback is needed:

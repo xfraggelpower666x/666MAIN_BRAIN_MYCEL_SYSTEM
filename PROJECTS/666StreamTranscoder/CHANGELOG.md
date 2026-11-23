@@ -1,5 +1,13 @@
 # 666StreamTranscoder v3.0 — Changelog
 
+## R06 — 2026-11-23 — Runtime boundary contracts and safe virtual-cable routing
+
+- Added ten new focused runtime-boundary/route tests with mocked FFmpeg/process/device/network boundaries.
+- Coverage includes InputRouter device/WASAPI/HTTP relay, single EncoderEngine process, OutputEngine protocol/send/close, RelayController reconnect lifecycle, stream-versus-monitor gain, and monitor Stop isolation.
+- Added virtual cable feedback-route guard to prevent monitoring to CABLE Input while capturing CABLE Output from the same cable; physical monitor devices remain selectable.
+- Preserved the existing 3DX source baseline, protocol handlers, encoder, mixer, UI and build scripts.
+- Native Windows hardware, real network/provider acceptance and executable test receipts remain open.
+
 ## R05 — 2026-11-23 — Resin 3 Cyber Stream Control Engine
 
 - Split active runtime responsibilities into InputRouter, RelayController, EncoderEngine and OutputEngine adapters while preserving the existing 3DX PCMSource, FFmpeg and protocol implementations.
