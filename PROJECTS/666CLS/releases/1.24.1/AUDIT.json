@@ -1,0 +1,17 @@
+{
+  "version": "1.24.1",
+  "status": "VERIFIZIERT",
+  "domains": {
+    "LYRICS": 0,
+    "RAW_MATERIAL": 0,
+    "STORIES": 0,
+    "TEXT": 0
+  },
+  "phase": "INITIAL_ZERO_STATE",
+  "checks": [
+    "Schema",
+    "IDs",
+    "Menüparität",
+    "Zähler"
+  ]
+}

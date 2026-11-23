@@ -1,0 +1,15 @@
+{
+  "schema": "666CLS_SUB_LIVECIRCLE_V1",
+  "facet_id": "mantra-router",
+  "state": "REFERENCE_ONLY",
+  "native_system_id": "PAPAEMDS",
+  "native_entry": "",
+  "parent_cls": "666CLS-CORE-001",
+  "source_version": "1.0.1",
+  "source_sha256": "65670c45191c5d16a3712b61740c99c8f330335890b4425b46cc89c491e83b97",
+  "autoload": false,
+  "execution_authority": "NATIVE_OWNER_ONLY",
+  "triggers": {},
+  "rehydration": "VERIFY_PARENT_THEN_SOURCE_EVIDENCE",
+  "continuation": "NO_FOREIGN_AUTOACTIVATION"
+}

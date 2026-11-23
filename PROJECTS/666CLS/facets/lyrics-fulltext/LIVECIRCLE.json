@@ -1,0 +1,15 @@
+{
+  "schema": "666CLS_SUB_LIVECIRCLE_V1",
+  "facet_id": "lyrics-fulltext",
+  "state": "REFERENCE_ONLY",
+  "native_system_id": "LYRIK_ZU_VOLLTEXT_REKONSTRUKTOR_SYSTEM",
+  "native_entry": "",
+  "parent_cls": "666CLS-CORE-001",
+  "source_version": "1.1.0",
+  "source_sha256": "74ab16fb97cfdd7ee11695677761acc89e22ebc3d911180ef153862432798528",
+  "autoload": false,
+  "execution_authority": "NATIVE_OWNER_ONLY",
+  "triggers": {},
+  "rehydration": "VERIFY_PARENT_THEN_SOURCE_EVIDENCE",
+  "continuation": "SOURCE_ORIGINAL_GAPS"
+}

@@ -1,0 +1,25 @@
+{
+  "version": "1.24.5",
+  "status": "VERIFIZIERT",
+  "domains": {
+    "LYRICS": 0,
+    "RAW_MATERIAL": 0,
+    "STORIES": 0,
+    "TEXT": 0
+  },
+  "phase": "SOURCE_CATALOG_MAIN_SUB_LIVECIRCLE_UI_INTEGRATION",
+  "checks": [
+    "Schema",
+    "IDs",
+    "Menüparität",
+    "Zähler",
+    "Freeze-Base-Version",
+    "9 ZIP CRC",
+    "Source Authority Isolation",
+    "Catalog Permissions",
+    "Main LiveCircle native rehydration",
+    "Five subfacet identity gates",
+    "Intelligent UI and advisory daemon no-autoload",
+    "Facet source hash closure"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "system_id": "666CLS-CORE-001",
+  "version": "1.24.6",
+  "status": "FROZEN_LOCAL",
+  "base_version": "1.24.5",
+  "base_git_head": "7392f2779161055d967499740cbd68ca5faf19e2",
+  "scope": "666CLS_CURES_AUTHORITY_METADATA_RECONCILIATION_ONLY",
+  "record_role": "PRE_PUBLICATION_FREEZE",
+  "active_provider_version_at_freeze": "1.24.5",
+  "provider_readback_at_freeze": "READBACK_PENDING",
+  "native_child_authority": "666PFS-CORE-001",
+  "pfs_head_read": "199c24a1ad3b9a0baa218f2b97cd847dbbd0448c",
+  "cures_entry": "CURES-16001",
+  "cures_pfs_runtime": "HOLD_FUNCTIONAL_PAYLOAD_SOURCE_NOT_FOUND",
+  "cures_local_zip": "FROZEN_LOCAL_RELEASE_V0.2.0",
+  "archive_content_changed": false,
+  "foreign_native_write": false,
+  "facet_mode": "READ_ONLY",
+  "pointer_last_required": true
+}
