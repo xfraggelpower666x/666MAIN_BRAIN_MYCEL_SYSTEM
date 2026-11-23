@@ -163,3 +163,8 @@ python -m unittest discover -s tests -v
 ```
 
 Benötigt: numpy, soundfile (installierte Umgebung prüfen). BPM, Key, Vocals oder echtes Masking werden nicht behauptet.
+
+
+## R0.9 — Semantic Music Intelligence (additiv)
+
+`engine/semantic_intelligence.py` interpretiert explizite Trackangaben als musikalische Funktionen: Vorwärtsbewegung, Low-Anker, Stimmverständlichkeit, Dichte, Spannung, Release, Wiederkehr, Variation, Kontrast, Raumbewegung und Endgültigkeit. Negationen werden innerhalb ihrer Satzklausel ausgewertet; das Feld `avoid` liefert ausschließlich Constraints und niemals positive Unterstützung. Mögliche Funktionskollisionen werden mit Begründung und Unsicherheit ausgegeben. Die normale `engine.cli analyze <track_id>`-Analyse ergänzt `analysis.semantic_intelligence`; die separate read-only Ansicht ist `python -m engine.semantic_cli assess <track_id>`. Keine Audio-Wahrnehmungsbehauptung, kein Renderer-Eingriff, keine automatische Übernahme oder globale Lernregel. Details: `docs/R09_SEMANTIC_MUSIC_INTELLIGENCE.md`.
