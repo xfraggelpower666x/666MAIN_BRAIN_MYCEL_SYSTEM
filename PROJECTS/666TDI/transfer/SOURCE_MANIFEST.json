@@ -2,7 +2,7 @@
   "system_id": "666TDI-001",
   "source_file_count": 75,
   "source_files": {
-    "README.md": "b7c7e79ca6131659d2032d57dd41456c44b62412470a479bd6c5c3bfb188d4e6",
+    "README.md": "96697f8751eb7b084778ff5f07d8d716d0b5e8e805a4a4233bbd2a263f4ddb9d",
     "docs/ADDITIVE_MIGRATION_AUDIT_R03.md": "d349cc2dfee7e99750c8a12b74b6d88d57ceed792c0310a567a7087b06de9d2b",
     "docs/ARCHITECTURE.md": "9109fe2886fc1215e98f870435126f178b325d6d711050d7479047fa89b8d80c",
     "docs/ARCHIVE_CHECK_REPORT.json": "adebe6cd695f0c0199c81675b8bfb3ddad294693efc61295dd85d0be3e4a19df",
@@ -35,7 +35,7 @@
     "engine/heritage_cli.py": "6a9184b3cf227cb0cfa88ce22b54af724a92f2dab4352a04d71caa175944515f",
     "engine/pattern_cli.py": "3ced409958adf5d321cfdf714e456f65c125c572eb9550f5cdf4cf94ef78d3f8",
     "engine/pattern_relations.py": "ba353a67868293beedd1942ab375f82c64f1b245a6bc0038386bdb3c6272a45b",
-    "engine/portable.py": "d537523f2f14c60742fff5f99b01f33b7ffa4922001486ae39ba97ffe946f864",
+    "engine/portable.py": "83e314c83cd48275c64140a7f369cb4536807f672cf7f75ce15bee5e2037f3f2",
     "engine/relational.py": "1db708640cdcd4ae0a37abca43ebaeb87f00adecc44d4da00118617afb7df0d0",
     "engine/relational_cli.py": "519c445cf5c77522bc957b560e6b0b7fac1d3f791d0ecf5169763311ba17bd16",
     "engine/source_adapters.py": "eee77c176a25a034c7463fbe4986046ac66f86871eb7f28a742de098b1942854",
@@ -47,7 +47,7 @@
     "legacy_r01/examples/lyria_output.json": "94bc8009d6c070eda2e4a6175a0a161a99a1d653134b10fa4fff2445336c80da",
     "legacy_r01/src/music_arch.py": "bd5c33524a923c7b5e0f98db793e66ef1785da7417c3fc377d71e9954a82ca64",
     "legacy_r01/tests/test_arch.py": "a50c6e1e3989c8c33e8e8ba085ff023eb49729b76247a51b582855cbea8e6275",
-    "registry/additive_modules.json": "dba76b9c9aace45363de9440c55d6799a176993866f0c103867a5801bad4df9a",
+    "registry/additive_modules.json": "e46fab5c75f67f6068f94c5376eebbc8e17843102e302717e7d24abadf6f920c",
     "registry/identity_current.json": "91d6649dc3c4286911ff16cdf892f298621dc47055f1a579fa6128ef3324bbb5",
     "registry/r04_intake_inventory.json": "d4dadde20678ed17f3cc3d61a39df1b15c9b7482f92a99b75b1288685af44d5e",
     "registry/r06_intake_inventory.json": "e591669a04d9ff8bb386ad7019837b9d4afc310cbc7af4d9a8f354ea546662d3",
@@ -73,10 +73,10 @@
     "tests/test_portable.py": "65a7d371403a11dd76d0301ff63428004d9c8d729a815760df4d599e70f3a6d3",
     "tests/test_relational.py": "03e0723f4f025a15f79440333a41f3059c7db42e00ba6ab97b059d9b76c6a15d",
     "tests/test_source_adapters.py": "00e8dde49017bda1e29467bbdad51cc78803567bd47749e8a92e08a5b11daaab",
-    "engine/semantic_intelligence.py": "c2cc757ac410dc222b08cccdc8f6ca5c9470fd3441279003d81bbb2c0aeb9976",
-    "engine/semantic_cli.py": "f0dd78059bf0b55ebec32fc51a092c2211694be984774ff780beb78c8785ad37",
-    "tests/test_semantic_intelligence.py": "b1944e934a1605035bbf23bf6fdd6d5d69901ec0ce0a689b3d88428738ad29fc",
-    "docs/R09_SEMANTIC_MUSIC_INTELLIGENCE.md": "2d7d2518620a340361181c3c70685fd9c00e3ca1370d0a67db06f2a710ba1778"
+    "engine/semantic_intelligence.py": "1f68796836961bd46bbe97809d78f85430635672dfee4ea394b32c0318a8abe5",
+    "engine/semantic_cli.py": "13af5301dc6990dd74ebaba119d855a3cd3ec5b7aae63929e7ccaab0d0e7c12c",
+    "tests/test_semantic_intelligence.py": "633213571f2f93cdd15ef70cc38d678a00e13ea19c1dc52e61548c0755e886c5",
+    "docs/R09_SEMANTIC_MUSIC_INTELLIGENCE.md": "550082c849f5955dc88a63fb41f29ea67cb826887ac7ef77896d79cb3284026c"
   },
   "source_git_sha1": {
     "README.md": "459e28f5232d15d6e98f37ffe6eb40a9b3416d48",
