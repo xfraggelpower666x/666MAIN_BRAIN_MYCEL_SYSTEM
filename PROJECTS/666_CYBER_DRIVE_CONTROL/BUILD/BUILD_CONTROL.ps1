@@ -125,6 +125,8 @@ function Build-Target([string]$target) {
   Ensure-Source
   Ensure-Dependencies
   Verify-R18
+  # Validate the real R19 renderer preview contract before any packaging.
+  Run 'node' @('--test',(Join-Path $Root 'tests\test_r19_renderer_contract.cjs'))
   # Run R19 D/E integration unit tests against the same R18 sources.
   $savedPythonPath = $env:PYTHONPATH
   try {

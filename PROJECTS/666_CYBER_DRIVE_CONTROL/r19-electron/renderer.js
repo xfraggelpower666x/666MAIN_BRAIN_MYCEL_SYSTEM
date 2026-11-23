@@ -17,16 +17,25 @@ function meter(label,value,kind){
   fill.style.width=Math.min(100,Math.max(0,(value||0)/(5*1024*1024))*100)+'%';
   track.append(fill);row.append(track,create('span',null,fmt(value)));return row;
 }
+function bindingActive(binding,rate){
+  if(!rate||!binding||!['read','write','either'].includes(binding.mode))return false;
+  const threshold=Number(binding.threshold_kib)*1024;
+  if(!Number.isFinite(threshold)||threshold<0)return false;
+  const read=typeof rate.read_bps==='number'&&Number.isFinite(rate.read_bps)&&rate.read_bps>threshold;
+  const write=typeof rate.write_bps==='number'&&Number.isFinite(rate.write_bps)&&rate.write_bps>threshold;
+  return binding.mode==='read'?read:binding.mode==='write'?write:read||write;
+}
 function drawD(root){
   const dev=Array.isArray(last.physical)?last.physical:[];
   const p=create('div','control-card');p.append(create('h2',null,'PHYSISCHE DATENTRAEGER · CAPS/NUM/SCROLL VORSCHAU'));
   p.append(create('p','state-line','Nur optische Vorschau. Keine Tastatur- oder HID-Steuerung.'));
   const grid=create('div','control-grid');
   for(const key of ['caps','num','scroll']){
-    const conf=last.bindings?.[key]||bindings[key], ids=dev.map(d=>d.id);
-    if(!ids.includes(conf.device))conf.device=ids.includes('_total')?'_total':(ids[0]||'');
-    const d=dev.find(v=>v.id===conf.device),threshold=last.settings?.activity_threshold_bps??4096;
-    const on=Boolean(d&&conf.mode!=='off'&&(conf.mode==='read'?d.read_bps>threshold:conf.mode==='write'?d.write_bps>threshold:d.read_bps>threshold||d.write_bps>threshold));
+    // Do not mutate the authoritative saved binding when a physical device is unplugged.
+    const conf={...(last.bindings?.[key]||bindings[key])}, ids=dev.map(d=>d.id);
+    const displayDevice=ids.includes(conf.device)?conf.device:(ids.includes('_total')?'_total':(ids[0]||''));
+    const d=dev.find(v=>v.id===conf.device);
+    const on=bindingActive(conf,d);
     const card=create('div','control-card');card.append(create('h2',null,key.toUpperCase()+' · '+(on?'VORSCHAU AN':'AUS')));
     const save=async(device,mode,threshold)=>{
       const result=await window.cyber.setVisualBinding(key,device,mode,threshold);
@@ -39,7 +48,7 @@ function drawD(root){
       }
       if(!grid.contains(document.activeElement))draw();
     };
-    card.append(dropdown(dev.map(x=>[x.id,x.id]),conf.device,v=>save(v,conf.mode,Number(conf.threshold_kib??4))));
+    card.append(dropdown(dev.map(x=>[x.id,x.id]),displayDevice,v=>save(v,conf.mode,Number(conf.threshold_kib??4))));
     card.append(dropdown(modes.map(x=>[x,x]),conf.mode,v=>save(conf.device,v,Number(conf.threshold_kib??4))));
     const t=create('input');t.type='number';t.min='0';t.max='1048576';t.step='0.5';t.value=String(conf.threshold_kib??4);
     t.setAttribute('aria-label',key+' Schwellwert KiB/s');
