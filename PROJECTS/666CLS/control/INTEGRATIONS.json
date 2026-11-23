@@ -107,7 +107,7 @@
       },
       "sha256": {
         "facets/MAIN_LIVECIRCLE.json": "4b2b30d80c5b43945a99b004150207873d4175468e123c3ded14f52e07aff7af",
-        "facets/FACET_REGISTRY.json": "3c219ca9bcd664eca04804ed53705857cd605a282324f18aa2f1e1d49e11a74c",
+        "facets/FACET_REGISTRY.json": "3ac6ac0285df298fb74b18650c95d40083441b2c35acf6259d0ce946c5f5d998",
         "facets/README.md": "e63092e60575d0a41b60f5d3ab6e4a93844f0b3c3ea5af37c48d07e4fae4f285",
         "runtime/cls_facet_runtime.py": "d1987237ba77f9c5695d8a5e280d4e6f4ba662ba230db2a809df2be932e3374a",
         "tests/test_cls_facet_runtime.py": "8fb3c6dba4fe2ff6642c1ccff63558c080c8e2470eda72f96ffa9fe3fecb8012",

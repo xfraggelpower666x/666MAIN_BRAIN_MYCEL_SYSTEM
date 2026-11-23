@@ -10,7 +10,7 @@
     "666CLS WEITER": "continue",
     "666CLS UPDATE": "update"
   },
-  "next_step": "Review missing original sources and authoritative current versions of the independent read-only source candidates; CURES v0.2.0 remains local-only and PFS CURES-16001 remains HOLD; no owner promotion.",
+  "next_step": "CLS R08 CURES reference accepted as read-only candidate; preserve PFS CURES-16001 HOLD, no autoload or adoption. Continue only with CLS-owned independently verifiable source candidates and scoped functional development; do not restart foreign recovery loops.",
   "resume_mode": "REREAD_CURRENT",
   "checkpoint_scope": "SYSTEM_AND_RELEASE"
 }
