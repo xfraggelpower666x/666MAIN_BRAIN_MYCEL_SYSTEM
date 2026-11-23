@@ -35,7 +35,25 @@
         "reconciliation": "PFS_OWNER_REVIEW_REQUIRED",
         "readback_scope": "PFS_METADATA_ONLY",
         "no_owner_promotion": true
-      }
+      },
+      "candidate_references": [
+        {
+          "id": "666CURES-R08-ISOLATED-CANDIDATE",
+          "classification": "LOCAL_CANDIDATE_REFERENCE_ONLY",
+          "release": "R08",
+          "reference_path": "facets/cures/CLS_REFERENCE_INTERFACE_R08.json",
+          "evidence_path": "facets/cures/R08_REFERENCE_ACCEPTANCE_20261123.json",
+          "reference_sha256": "9984321120f409257d0da2418290de5109c64cc98ba5e9063dd3450857a5dddf",
+          "source_artifact_sha256": "c3190fb8f94c77546aafb7cd2dc3a01cd8675cc34118215594178b33aed4ff6d",
+          "registered_by": "666CLS UPDATE",
+          "source_status": "LOCAL_CANDIDATE_NOT_PFS_PUBLISHED",
+          "execution": false,
+          "autoload": false,
+          "triggers": [],
+          "host_test": false,
+          "pfs_hold": "HOLD_FUNCTIONAL_PAYLOAD_SOURCE_NOT_FOUND"
+        }
+      ]
     },
     {
       "id": "lyrics-fulltext",
