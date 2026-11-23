@@ -39,8 +39,11 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_resin3_*.py' -v
       - name: Crossfade pure PCM tests
         run: python -m unittest discover -s tests -p 'test_crossfade_audio.py' -v
+      - name: Install FFmpeg on the isolated CI runner
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
       - name: Real FFmpeg -> PCM -> MP3 -> localhost HTTP listener
         run: |
-          command -v ffmpeg
           ffmpeg -hide_banner -encoders | grep -q libmp3lame
           python -m unittest discover -s tests -p 'test_e2e_synthetic.py' -v
