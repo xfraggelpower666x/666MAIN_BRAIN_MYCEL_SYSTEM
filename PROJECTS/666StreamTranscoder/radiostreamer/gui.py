@@ -16,6 +16,7 @@ from .config import (BUILTIN, HOST_MODES, BITRATES, CACHE_DIR, DATA_DIR, DEFAULT
                      SETTINGS_FILE, SOURCES, TITLE_SOURCES, import_mixxx_profile, load_settings,
                      mixxx_profile_exists, save_settings)
 from .engine import Broadcaster, Playlist
+from .resin3.monitor_engine import LocalMonitor
 from .lastfm import CREATE_KEY_URL, LastFM, LastFMError, Scrobbler
 from .protocol import StreamError, listener_url, open_source_connection, source_port, update_metadata
 
@@ -30,6 +31,7 @@ class App:
         self.root = root
         self.events = queue.Queue()            # (kind, payload, source broadcaster or None)
         self.broadcaster = None
+        self.monitor = None
         self.scrobbler = None
         self.level = -120.0
         self.silent_since = None
@@ -181,14 +183,30 @@ class App:
                         command=self.on_source_change).grid(row=3, column=0, sticky="w", pady=(4, 0))
         self.device_cb = ttk.Combobox(src, textvariable=v["device"], state="readonly")
         self.device_cb.grid(row=3, column=1, sticky="ew", padx=6, pady=(4, 0))
+        ttk.Radiobutton(src, text=SOURCES["relay"], value="relay", variable=v["source"],
+                        command=self.on_source_change).grid(row=4, column=0, sticky="w", pady=(4, 0))
+        self.relay_entry = ttk.Entry(src, textvariable=v["relay_url"])
+        self.relay_entry.grid(row=4, column=1, sticky="ew", padx=6, pady=(4, 0))
         ttk.Button(src, text="Refresh", command=self.refresh_devices).grid(row=1, column=2, rowspan=3)
         if not capture.available():
             self.loop_rb.config(state="disabled", text=SOURCES["loopback"] + " - Windows only")
         if not capture.app_capture_available():
             self.app_rb.config(state="disabled", text=SOURCES["app"] + " - Windows 10 2004+")
 
+        # Playlist transition controls; live inputs are unaffected.
+        fade = ttk.LabelFrame(tab, text=" Playlist transition ", padding=(12, 8))
+        fade.grid(row=3, column=0, sticky="ew", pady=4)
+        ttk.Checkbutton(fade, text="Enable automatic crossfade and smooth Skip",
+                        variable=v["crossfade"]).grid(row=0, column=0, sticky="w")
+        ttk.Label(fade, text="Duration (seconds)").grid(row=0, column=1, padx=(18, 6))
+        self.crossfade_spin = ttk.Spinbox(fade, from_=3, to=15, increment=1, width=5,
+                                          textvariable=v["crossfade_seconds"])
+        self.crossfade_spin.grid(row=0, column=2, sticky="w")
+        ttk.Label(fade, text="3–15 seconds · default 8 · queue sources only",
+                  style="Faint.TLabel").grid(row=1, column=0, columnspan=3, sticky="w", pady=(4, 0))
+
         mic = ttk.LabelFrame(tab, text=" Microphone ", padding=(12, 8))
-        mic.grid(row=3, column=0, sticky="ew", pady=4)
+        mic.grid(row=4, column=0, sticky="ew", pady=4)
         self.mic_btn = theme.PillButton(mic, "MIC OFF", (theme.RAISED, theme.HOVER), self.toggle_mic,
                                         width=130, height=52, font_size=12)
         self.mic_btn.grid(row=0, column=0, rowspan=3, padx=(0, 14), sticky="n")
@@ -210,8 +228,29 @@ class App:
         self.mic_hint.grid(row=2, column=1, columnspan=4, sticky="w", pady=(4, 0))
         self.on_mic_settings()
 
+        monitor = ttk.LabelFrame(tab, text=" Local monitor (independent from relay) ", padding=(12, 8))
+        monitor.grid(row=5, column=0, sticky="ew", pady=4)
+        ttk.Button(monitor, text="Play monitor", style="Accent.TButton",
+                   command=self.start_monitor).grid(row=0, column=0, padx=(0, 6))
+        ttk.Button(monitor, text="Stop monitor", command=self.stop_monitor).grid(row=0, column=1, padx=(0, 12))
+        ttk.Label(monitor, text="Local volume").grid(row=0, column=2, padx=(0, 6))
+        self.monitor_volume = tk.DoubleVar(value=80)
+        ttk.Scale(monitor, from_=0, to=100, variable=self.monitor_volume,
+                  command=lambda value: self.set_monitor_volume(value)).grid(row=0, column=3, sticky="ew")
+        monitor.columnconfigure(3, weight=1)
+        ttk.Label(monitor, text="Stop affects local listening only; the radio relay stays connected.",
+                  style="Faint.TLabel").grid(row=1, column=0, columnspan=4, sticky="w", pady=(4, 0))
+        led_row = ttk.Frame(monitor)
+        led_row.grid(row=2, column=0, columnspan=4, sticky="ew", pady=(8, 0))
+        self.led_widgets = {}
+        for idx, name in enumerate(("SOURCE", "MONITOR", "ENCODER", "SERVER", "RELAY", "ERROR")):
+            led = tk.Label(led_row, text=f"● {name}", bg=theme.BG, fg=theme.FAINT,
+                           font=(theme.MONO, 8, "bold"))
+            led.pack(side="left", padx=(0, 14))
+            self.led_widgets[name] = led
+
         np_ = ttk.LabelFrame(tab, text=" Now playing (stream title) ", padding=(12, 8))
-        np_.grid(row=4, column=0, sticky="ew", pady=4)
+        np_.grid(row=6, column=0, sticky="ew", pady=4)
         np_.columnconfigure(0, weight=1)
         self.np_var = tk.StringVar()
         np_entry = ttk.Entry(np_, textvariable=self.np_var)
@@ -227,8 +266,8 @@ class App:
         self.title_src_cb.pack(side="left", padx=4)
 
         qf = ttk.LabelFrame(tab, text=" Queue ", padding=(12, 8))
-        qf.grid(row=5, column=0, sticky="nsew", pady=4)
-        tab.rowconfigure(5, weight=1)
+        qf.grid(row=7, column=0, sticky="nsew", pady=4)
+        tab.rowconfigure(7, weight=1)
         qf.columnconfigure(0, weight=1)
         qf.rowconfigure(1, weight=1)
         bar = ttk.Frame(qf)
@@ -434,6 +473,8 @@ class App:
             elif isinstance(default, int):
                 try:
                     cfg[key] = int(float(str(raw).strip()))
+                if key == "crossfade_seconds":
+                    cfg[key] = max(3, min(15, cfg[key]))
                 except ValueError:
                     raise ValueError(f"'{key.replace('_', ' ')}' must be a number (got '{raw}')") from None
             else:
@@ -536,6 +577,7 @@ class App:
         self.device_cb.config(state="readonly" if src == "device" else "disabled")
         self.loopback_cb.config(state="readonly" if src == "loopback" else "disabled")
         self.app_cb.config(state="normal" if src == "app" else "disabled")
+        self.relay_entry.config(state="normal" if src == "relay" else "disabled")
         self.title_src_cb.config(state="disabled" if src == "queue" else "readonly")
 
     def refresh_devices(self):
@@ -757,6 +799,39 @@ class App:
         if self.broadcaster:
             self.broadcaster.skip()
 
+    def set_led(self, name, state):
+        palette = {
+            "active": theme.CYAN, "connected": theme.GREEN, "connecting": theme.AMBER,
+            "error": theme.RED, "idle": theme.FAINT, "off": theme.FAINT,
+        }
+        widget = getattr(self, "led_widgets", {}).get(name)
+        if widget is not None:
+            widget.config(fg=palette.get(state, theme.FAINT))
+
+    def start_monitor(self):
+        if not self.broadcaster:
+            messagebox.showinfo(APP_NAME, "Start the radio source first.")
+            return
+        if self.monitor is None:
+            messagebox.showwarning(APP_NAME, "Local monitor is not initialized.")
+            return
+        try:
+            self.monitor.start()
+            self.set_led("MONITOR", "active")
+            self.log("Local monitor started. Radio relay is unchanged.")
+        except (RuntimeError, OSError) as e:
+            messagebox.showerror(APP_NAME, str(e))
+
+    def stop_monitor(self):
+        if self.monitor is not None:
+            self.monitor.stop()
+            self.set_led("MONITOR", "off")
+            self.log("Local monitor stopped. Radio relay remains connected.")
+
+    def set_monitor_volume(self, value):
+        if self.monitor is not None:
+            self.monitor.set_volume(float(value) / 100)
+
     def refresh_queue(self, force=False):
         if not force and self.playlist.version == self.queue_version:
             return
@@ -806,6 +881,9 @@ class App:
             return
         if cfg["loopback_device"] == "Default speakers":
             cfg["loopback_device"] = ""
+        if cfg["source"] == "relay" and not cfg["relay_url"].strip():
+            messagebox.showwarning(APP_NAME, "Enter an HTTP(S) radio stream URL.")
+            return
         if cfg["source"] == "app" and not cfg["app_name"].strip():
             messagebox.showwarning(APP_NAME, "Pick the app to air (start it first, then press Refresh).")
             return
@@ -818,12 +896,21 @@ class App:
         cfg["mic_on"] = self.mic_on
         b = Broadcaster(cfg, self.playlist, None)
         b.emit = lambda kind, payload=None: self.events.put((kind, payload, b))
+        self.monitor = LocalMonitor(samplerate=cfg["samplerate"], channels=cfg["channels"],
+                                    volume=float(self.monitor_volume.get()) / 100)
+        b.monitor_sink = self.monitor
         try:
             b.start()
         except StreamError as e:
+            if self.monitor is not None:
+                self.monitor.stop()
+                self.monitor = None
             messagebox.showerror(APP_NAME, str(e))
             return
         self.broadcaster = b
+        self.set_led("ERROR", "off")
+        self.set_led("ENCODER", "active")
+        self.set_led("RELAY", "connecting")
         self.scrobbler = None
         if cfg["lastfm_scrobble"] and cfg["lastfm_session"]:
             self.scrobbler = Scrobbler(LastFM(cfg["lastfm_api_key"], cfg["lastfm_api_secret"],
@@ -834,6 +921,11 @@ class App:
         self.log(f"Starting broadcast ({SOURCES[cfg['source']]})")
 
     def stop(self, reason="Broadcast stopped."):
+        if self.monitor is not None:
+            self.monitor.stop()
+            self.monitor = None
+        for led_name in ("SOURCE", "MONITOR", "ENCODER", "SERVER", "RELAY"):
+            self.set_led(led_name, "off")
         if self.broadcaster:
             self.broadcaster.stop()
             self.broadcaster = None
@@ -961,13 +1053,21 @@ class App:
                     self.log(payload)
                 elif kind == "status":
                     self.set_status(*payload)
+                    state = payload[0]
+                    self.set_led("SERVER", "connected" if state == "live" else
+                                 "connecting" if state == "connecting" else
+                                 "error" if state == "error" else "idle")
                 elif kind == "level":
                     self.level = payload
                 elif kind == "track":
                     self.on_track(payload)
+                    self.set_led("SOURCE", "active" if payload else "idle")
                 elif kind == "queue":
                     self.refresh_queue(force=True)
                 elif kind == "connected":
+                    self.set_led("SERVER", "connected")
+                    self.set_led("ENCODER", "active")
+                    self.set_led("RELAY", "active")
                     if self.np_var.get():
                         self.push_metadata()
                 elif kind == "listen_url":
@@ -975,6 +1075,8 @@ class App:
                 elif kind == "listeners":
                     self.listener_count = payload
                 elif kind == "fatal":
+                    self.set_led("ERROR", "error")
+                    self.set_led("RELAY", "error")
                     self.log(payload)
                     self.stop("Broadcast stopped.")
                     self.set_status("error", "OFF AIR - " + payload[:80])

@@ -33,7 +33,11 @@ from . import capture, media, nowplaying, tools, upnp
 from .localserver import LocalServer
 from .tunnel import QuickTunnel
 from .config import CACHE_DIR
-from .protocol import StreamError, open_source_connection
+from .protocol import StreamError
+from .resin3.encoder import mp3_command
+from .resin3.output_router import connect as connect_output
+from .resin3.source_audio import create_capture
+from .resin3.source_stream import display_name as stream_display_name, stream_input_args
 
 CHUNK_SEC = 0.05
 PREBUFFER = 4          # chunks a file/stream source must hold before it starts playing (200 ms)
@@ -41,6 +45,8 @@ MAX_BACKLOG = 60       # live sources: only drop audio if we're more than 3 s be
 LIVE_IDLE = 0.25       # a live source silent this long (nothing playing) gets silence filled in
 MIC_PREBUFFER = 2      # mic jitter buffer (100 ms)
 MIC_MAX = 6            # keep mic latency under 300 ms
+CROSSFADE_MAX_SEC = 15  # longest supported playlist transition
+CROSSFADE_BUFFER_HEADROOM_SEC = 10  # keep the start of a track outside the fade window
 
 
 def scale_mix(a, b, gain_from, gain_to, gain_b, frame=4):
@@ -64,6 +70,25 @@ def scale_mix(a, b, gain_from, gain_to, gain_b, frame=4):
         v = x[k] * gains[k] + (y[k] * gain_b if y is not None else 0)
         x[k] = -32768 if v < -32768 else 32767 if v > 32767 else int(v)
     return x.tobytes()
+def crossfade_mix(a, b, progress):
+    """Linear, frame-safe s16le crossfade; progress is clamped to 0..1."""
+    progress = max(0.0, min(1.0, float(progress)))
+    if b is None:
+        return scale_mix(a, None, 1.0, 1.0, 0.0)
+    if len(a) != len(b):
+        size = min(len(a), len(b))
+        a, b = a[:size], b[:size]
+    if audioop:
+        left = audioop.mul(a, 2, 1.0 - progress)
+        right = audioop.mul(b, 2, progress)
+        return audioop.add(left, right, 2)
+    x, y = array.array("h", a), array.array("h", b)
+    for i in range(min(len(x), len(y))):
+        value = int(x[i] * (1.0 - progress) + y[i] * progress)
+        x[i] = max(-32768, min(32767, value))
+    return x.tobytes()
+
+
 EOF = object()
 LEVEL_RE = re.compile(r"\bM:\s*(-?[\d.]+|-?inf|nan)")
 
@@ -209,7 +234,10 @@ class PCMSource:
         self.item = item
         self.temp_file = temp_file
         self.feeder = feeder            # LoopbackCapture feeding stdin
-        self.q = queue.Queue(maxsize=MAX_BACKLOG + 10)
+        # Finite decoded tracks need enough headroom for a 15-second transition.
+        # Live inputs retain their short bounded queue to avoid adding latency.
+        max_chunks = MAX_BACKLOG + 10 if live else int((CROSSFADE_MAX_SEC + CROSSFADE_BUFFER_HEADROOM_SEC) / CHUNK_SEC) + 10
+        self.q = queue.Queue(maxsize=max_chunks)
         self.proc = None
         self.tail = collections.deque(maxlen=8)
         self.bytes = 0
@@ -350,6 +378,8 @@ class Broadcaster:
         self.chunk_bytes = int(self.sr * CHUNK_SEC) * self.ch * 2
         self.stop_event = threading.Event()
         self.skip_event = threading.Event()
+        self.crossfade_seconds = max(3, min(CROSSFADE_MAX_SEC, int(cfg.get("crossfade_seconds", 8))))
+        self.crossfade_enabled = bool(cfg.get("crossfade", True))
         self.sock = None
         self.sock_lock = threading.Lock()
         self.encoder = None
@@ -369,11 +399,17 @@ class Broadcaster:
         self.mic_buffering = True
         self.mic_retry = 0.0
         self.music_gain = 1.0
+        self.monitor_sink = None  # optional local sink; never owns the relay connection
 
     # -- lifecycle ---------------------------------------------------------- #
     def start(self):
         if not self.ffmpeg:
             raise StreamError("ffmpeg was not found.")
+        if self.cfg["source"] == "relay":
+            try:
+                stream_input_args(self.cfg.get("relay_url", ""))
+            except ValueError as e:
+                raise StreamError(str(e)) from e
         media.configure(self.cfg)
         if self.cfg["source"] == "queue":
             self.playlist.reset()
@@ -385,7 +421,7 @@ class Broadcaster:
             threading.Thread(target=self._guard, args=(target,), daemon=True).start()
         if self.cfg["source"] == "queue":
             threading.Thread(target=self._guard, args=(self._prefetcher,), daemon=True).start()
-        elif self.cfg["title_source"] != "Manual":
+        elif self.cfg["source"] != "relay" and self.cfg["title_source"] != "Manual":
             threading.Thread(target=self._guard, args=(self._title_watcher,), daemon=True).start()
 
     def stop(self):
@@ -409,6 +445,7 @@ class Broadcaster:
                 self.next_src = None
 
     def skip(self):
+        # The mixer owns the transition. Never close the current source on the UI thread.
         self.skip_event.set()
 
     def set_mic(self, on):
@@ -497,13 +534,7 @@ class Broadcaster:
 
     # -- encoder ------------------------------------------------------------ #
     def _start_encoder(self):
-        cmd = [self.ffmpeg, "-hide_banner", "-nostdin", "-nostats",
-               "-probesize", "32", "-analyzeduration", "0", "-fflags", "nobuffer",
-               "-f", "s16le", "-ar", str(self.sr), "-ac", str(self.ch), "-i", "pipe:0",
-               # limiter: loud sources would otherwise clip and crackle once encoded to MP3
-               "-af", "alimiter=limit=0.9:attack=5:release=60:level=false,ebur128=framelog=info",
-               "-c:a", "libmp3lame", "-b:a", f"{int(self.cfg['bitrate'])}k",
-               "-write_xing", "0", "-id3v2_version", "0", "-flush_packets", "1", "-f", "mp3", "pipe:1"]
+        cmd = mp3_command(self.ffmpeg, self.sr, self.ch, self.cfg['bitrate'])
         self.encoder = tools.popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self.encoder_tail = collections.deque(maxlen=8)
         threading.Thread(target=self._encoder_out, daemon=True).start()
@@ -539,7 +570,7 @@ class Broadcaster:
             if self.sock is None:
                 self.emit("status", ("connecting", f"Connecting to {target}..."))
                 try:
-                    sock = open_source_connection(self.cfg)
+                    sock = connect_output(self.cfg)
                 except StreamError as e:
                     attempts += 1
                     self.emit("log", f"Connect failed (attempt {attempts}): {e}")
@@ -608,16 +639,24 @@ class Broadcaster:
         return cmd + ["-f", "s16le", "-ar", str(self.sr), "-ac", str(self.ch), "pipe:1"]
 
     def _live_source(self):
-        if self.cfg["source"] in ("loopback", "app"):
-            if self.cfg["source"] == "app":
-                cap = capture.AppCapture(self.cfg.get("app_name", ""))
-            else:
-                cap = capture.LoopbackCapture(self.cfg.get("loopback_device", ""))
+        source = self.cfg["source"]
+        if source in ("loopback", "app"):
+            cap = create_capture(source, self.cfg)
             cmd = [self.ffmpeg, "-hide_banner", "-nostdin", "-nostats", "-loglevel", "error",
                    "-probesize", "32", "-analyzeduration", "0", "-fflags", "nobuffer",
                    "-f", "s16le", "-ar", str(cap.rate), "-ac", str(cap.channels), "-i", "pipe:0",
                    "-f", "s16le", "-ar", str(self.sr), "-ac", str(self.ch), "pipe:1"]
             src = PCMSource(cmd, self.chunk_bytes, True, title=cap.name, feeder=cap)
+        elif source == "relay":
+            url = str(self.cfg.get("relay_url", "")).strip()
+            if not url:
+                raise StreamError("Enter an HTTP(S) radio stream URL.")
+            try:
+                args = stream_input_args(url)
+            except ValueError as e:
+                raise StreamError(str(e)) from e
+            src = PCMSource(self._decoder_cmd(args, True), self.chunk_bytes, True,
+                            title=stream_display_name(url))
         else:
             device = self.cfg["device"]
             if not device and sys.platform == "win32":
@@ -677,6 +716,29 @@ class Broadcaster:
         self.emit("queue", None)
         return src
 
+    def _peek_prepared_next(self):
+        """Return the prefetched queue source without transferring ownership."""
+        with self.next_lock:
+            src = self.next_src
+        if src is None or src.live or src.item is not self.playlist.peek():
+            return None
+        return src
+
+    def _take_prepared_next(self):
+        """Transfer the prefetched finite source to the mixer and advance the playlist."""
+        it = self.playlist.peek()
+        with self.next_lock:
+            src = self.next_src
+            if src is None or src.item is not it or src.live:
+                return None
+            self.next_src = None
+        src.start()
+        self.playlist.advance(it)
+        self.current_title = src.title
+        self.emit("track", src.title)
+        self.emit("queue", None)
+        return src
+
     def _finish(self, src):
         err = src.error() if src.bytes == 0 else None
         src.close()
@@ -692,6 +754,9 @@ class Broadcaster:
                 return
         silence = bytes(self.chunk_bytes)
         cur, buffering = None, True
+        fade_next, fade_total, fade_pos = None, 0, 0
+        skip_requested = False
+        cur_was_buffered = False
         retry_at, live_failures = 0.0, 0
         end_logged = False
         t_next = time.monotonic()
@@ -699,7 +764,9 @@ class Broadcaster:
         while not self.stop_event.is_set():
             if self.skip_event.is_set():
                 self.skip_event.clear()
-                if cur is not None:
+                if self.cfg["source"] == "queue" and self.crossfade_enabled and cur is not None and not cur.live:
+                    skip_requested = True
+                elif cur is not None:
                     cur.close()
                     cur = None
 
@@ -721,6 +788,84 @@ class Broadcaster:
                     self.emit("log", "Queue finished - sending silence. Add tracks to keep playing."
                               if items else "Queue is empty - add tracks (sending silence).")
                     self.emit("track", "")
+
+            # Start an automatic transition near the end of a finite queue track.
+            # Skip requests use the same transition, but wait for the next source to be ready.
+            if (cur is not None and not cur.live and fade_next is None
+                    and self.cfg["source"] == "queue" and self.crossfade_enabled
+                    and not buffering):
+                candidate = self._peek_prepared_next()
+                threshold = int(self.crossfade_seconds / CHUNK_SEC)
+                queued = cur.q.qsize()
+                if queued > threshold:
+                    cur_was_buffered = True
+                decoder_finished = cur.proc is not None and cur.proc.poll() is not None
+                near_end = cur_was_buffered and queued <= threshold
+                short_track_finished = decoder_finished and queued <= threshold
+                if candidate is not None and candidate.ready() and (skip_requested or near_end or short_track_finished):
+                    fade_next = self._take_prepared_next()
+                    if fade_next is not None:
+                        fade_total = max(1, int(self.crossfade_seconds / CHUNK_SEC))
+                        fade_pos = 0
+                        skip_requested = False
+                        self.emit("log", f"Crossfade: {cur.title} -> {fade_next.title} ({self.crossfade_seconds}s)")
+
+            if fade_next is not None:
+                # Pull both decoders on the same mixer clock; the encoder/socket remain untouched.
+                old_data = cur.get() if cur is not None and not buffering else None
+                new_data = fade_next.get()
+                if old_data is EOF:
+                    self._finish(cur)
+                    if new_data is EOF:
+                        self._finish(fade_next)
+                        cur = None
+                        fade_next = None
+                        buffering = True
+                        skip_requested = False
+                        out = silence
+                    else:
+                        cur = fade_next
+                        fade_next = None
+                        cur_was_buffered = False
+                        buffering = new_data is None
+                        out = new_data if new_data is not None else silence
+                elif new_data is EOF:
+                    self._finish(fade_next)
+                    fade_next = None
+                    fade_total, fade_pos = 0, 0
+                    self.emit("log", "Crossfade target ended before transition; continuing current track.")
+                    out = old_data if old_data not in (None, EOF) else silence
+                elif new_data is None:
+                    # Do not advance fade time while the incoming decoder is temporarily starved.
+                    out = old_data if old_data not in (None, EOF) else silence
+                else:
+                    old_chunk = old_data if old_data not in (None, EOF) else silence
+                    fade_pos += 1
+                    out = crossfade_mix(old_chunk, new_data, fade_pos / fade_total)
+                    if fade_pos >= fade_total:
+                        self._finish(cur)
+                        cur = fade_next
+                        fade_next = None
+                        cur_was_buffered = False
+                        buffering = False
+                        fade_total, fade_pos = 0, 0
+                if len(out) < self.chunk_bytes:
+                    out += bytes(self.chunk_bytes - len(out))
+                try:
+                    stdin.write(self._with_mic(out))
+                    stdin.flush()
+                except (OSError, ValueError):
+                    if not self.stop_event.is_set():
+                        tail = self.encoder_tail[-1] if self.encoder_tail else "encoder exited"
+                        self.emit("fatal", f"MP3 encoder stopped: {tail}")
+                    break
+                t_next += CHUNK_SEC
+                delay = t_next - time.monotonic()
+                if delay > 0:
+                    time.sleep(delay)
+                elif delay < -1.0:
+                    t_next = time.monotonic()
+                continue
 
             if cur is not None and cur.live:
                 # A live source (system audio, input device, internet radio) runs on its own clock:
@@ -772,6 +917,8 @@ class Broadcaster:
                             retry_at = time.monotonic() + 3
                         self._finish(cur)
                         cur = None
+                        skip_requested = False
+                        cur_was_buffered = False
                         continue          # take the next track in the same time slot
             out = data if data else silence
             if len(out) < self.chunk_bytes:
@@ -791,6 +938,8 @@ class Broadcaster:
                 time.sleep(delay)
             elif delay < -1.0:
                 t_next = time.monotonic()
+        if fade_next is not None:
+            fade_next.close()
         if cur is not None:
             cur.close()
         if self.mic_src is not None:
@@ -841,9 +990,13 @@ class Broadcaster:
         before = self.music_gain
         self.music_gain = min(target, before + step) if before < target else max(target, before - step)
         if mic is None and before >= 0.999 and self.music_gain >= 0.999:
-            return chunk
-        gain_mic = max(0.0, float(self.cfg.get("mic_gain", 100)) / 100)
-        return scale_mix(chunk, mic, before, self.music_gain, gain_mic, frame=2 * self.ch)
+            mixed = chunk
+        else:
+            gain_mic = max(0.0, float(self.cfg.get("mic_gain", 100)) / 100)
+            mixed = scale_mix(chunk, mic, before, self.music_gain, gain_mic, frame=2 * self.ch)
+        if self.monitor_sink is not None:
+            self.monitor_sink.write(mixed)
+        return mixed
 
     # -- titles for live sources -------------------------------------------- #
     def _title_watcher(self):

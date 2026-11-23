@@ -8,7 +8,10 @@ The 3DX Radio Streamer 1.3.0 remains the runtime base. The source tree is preser
 
 - Audio engine: preserve the existing continuous encoder and stream connection.
 - Playlist: retain current queue ordering, shuffle, loop, play-next, and skip semantics.
-- Crossfade: mix decoded PCM from current and prepared next source; never restart the encoder or network connection.
+- Crossfade: mix decoded PCM from current and prepared next source inside the existing mixer; finite-source buffering supports up to 15 seconds; never restart the encoder or network connection.
+- Relay source: direct HTTP(S) stream input enters the existing PCM decoder and encoder path.
+- Local monitor: a separate sounddevice sink receives post-mix PCM; its Stop control must not call Broadcaster.stop() or drop the output socket.
+- Resin 3 adapters delegate to preserved 3DX primitives instead of duplicating the streaming stack.
 - Skip: request a crossfade, not abrupt source termination.
 - Microphone: preserve mic gain and ducking, and mix after track crossfade.
 - Monitoring: local monitor lifecycle must not control broadcast lifecycle.

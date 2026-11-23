@@ -34,7 +34,8 @@ BITRATES = [64, 96, 128, 160, 192, 256, 320]
 SAMPLERATES = [44100, 48000]
 
 SOURCES = {"queue": "Playlist / queue", "loopback": "System audio (what this PC plays)",
-           "app": "One app only", "device": "Audio input device (mic, VB-CABLE, mixer)"}
+           "app": "One app only", "device": "Audio input device (mic, VB-CABLE, mixer)",
+           "relay": "Internet radio stream (relay)"}
 TITLE_SOURCES = ["Manual", "Music app (auto-detect)", "Spotify app", "Browser (YouTube / SoundCloud)",
                  "Last.fm user's now playing"]
 
@@ -64,11 +65,14 @@ DEFAULTS = {
     "device": "",
     "loopback_device": "",
     "app_name": "",
+    "relay_url": "",
     "mic_device": "",
     "mic_gain": 100,
     "mic_duck": 30,
     "queue": [],
     "loop": True,
+    "crossfade": True,
+    "crossfade_seconds": 8,
     # titles
     "title_source": "Music app (auto-detect)",
     "auto_metadata": True,
