@@ -17,6 +17,11 @@ class PortableTests(unittest.TestCase):
   a=p.create_track(self.intent);b=p.analyze(a);self.assertEqual(b['lyrics'],self.intent['lyrics'])
  def test_cards_are_candidates(self):
   b=p.analyze(p.create_track(self.intent));self.assertTrue(b['analysis']['active_cards']);self.assertTrue(all(c['status']=='CANDIDATE_CONTEXT_REVIEW' for c in b['analysis']['active_cards']))
+ def test_r09_semantic_intelligence_is_integrated(self):
+  a=p.create_track(self.intent);b=p.analyze(a)
+  self.assertIn('semantic_intelligence',b['analysis'])
+  self.assertEqual(b['analysis']['semantic_intelligence']['system_id'],'666TDI-001')
+  self.assertTrue(b['analysis']['semantic_intelligence']['read_only'])
  def test_compiler_underrun_warns(self):
   b=p.analyze(p.create_track(self.intent));r=p.compiler(b,'lyria2_asg');self.assertIn('DURATION_EXCEEDS_HISTORICAL_RENDERER_LIMIT',r['warnings'])
  def test_ledger_no_auto_promotion(self):
