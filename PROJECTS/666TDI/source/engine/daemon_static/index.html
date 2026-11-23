@@ -249,7 +249,7 @@ function renderForecast(data){
  const timeline=$("forecast-timeline");timeline.replaceChildren();
  for(const c of f.chapters){
   const card=el("article","chapter",timeline);
-  el("div","bar",card).append(Object.assign(document.createElement("span"),{style:"--energy:"+Math.round(c.relative_energy*100)+"%"}));
+  const bar=el("div","bar",card);const meter=el("span","",bar);meter.style.setProperty("--energy",Math.round(c.relative_energy*100)+"%");
   el("h3","",card,c.index.toString().padStart(2,"0")+" · "+c.label);
   el("div","meta",card,c.bars===null?"Takte offen":(c.bars+" Takte · "+(c.start_bar_zero_based+1)+"–"+c.end_bar_exclusive));
   const detail=el("details","",card);el("summary","meta",detail,c.status==="EVIDENCE_SUPPORTED_CANDIDATE"?"Begründet":"Optional");
