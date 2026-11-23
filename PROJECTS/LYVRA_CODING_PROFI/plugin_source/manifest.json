@@ -1,0 +1,68 @@
+{
+  "plugin_id": "plugins_6af753996b5c81918daadc40df266ce7",
+  "base_version": "0.87.6",
+  "base_release": "pluginrel_6b02fd5dd41c819190e194cf2377c72d",
+  "target_version": "0.87.7",
+  "files": [
+    {
+      "group": "overlay",
+      "path": ".codex-plugin/plugin.json",
+      "bytes": 2184,
+      "sha256": "834b1816d1fa5e544c31d083ff0398feb7e596023154e21e16af6b668adb016b"
+    },
+    {
+      "group": "overlay",
+      "path": "plugin.json",
+      "bytes": 2339,
+      "sha256": "ccc35a7d4e7113ecd6143225df54309d517237c768924d24d72ded053d0976c8"
+    },
+    {
+      "group": "overlay",
+      "path": "references/chat-betriebsmodell.md",
+      "bytes": 6887,
+      "sha256": "8aa1edcd72435a210611a47ac7caf6a204838d3f4150ddb31153a35bc07dce31"
+    },
+    {
+      "group": "overlay",
+      "path": "references/coding-profi-development.md",
+      "bytes": 8670,
+      "sha256": "222ccef0f3ee03997b17059455e61e45f0f715ce7f7bccbf2f8f6422fd508100"
+    },
+    {
+      "group": "overlay",
+      "path": "skills/sceeri-coding-profi-chat/SKILL.md",
+      "bytes": 15913,
+      "sha256": "feff171cfb4411c352eb4bcc563d4a9aabfeecc653830443c009ecee689e9856"
+    },
+    {
+      "group": "backup",
+      "path": ".codex-plugin/plugin.json",
+      "bytes": 2184,
+      "sha256": "3ee53c9a4a38c5f1ef7022fd2e1d6becacb6c4398ecf4e90b32f3297ea6e14f0"
+    },
+    {
+      "group": "backup",
+      "path": "plugin.json",
+      "bytes": 2339,
+      "sha256": "56ed7621f222ca1ff4672719be34ea56fb042722d00d3bc1b4163f52566407ae"
+    },
+    {
+      "group": "backup",
+      "path": "references/chat-betriebsmodell.md",
+      "bytes": 3874,
+      "sha256": "f610318740830baeee528e90d8b069c1d7975b55a66745245e80254068efd549"
+    },
+    {
+      "group": "backup",
+      "path": "references/coding-profi-development.md",
+      "bytes": 5533,
+      "sha256": "990f4ee140ca3511a6306bc0f4258cdf78d7de0d74b3ad13590def2ae9b847a9"
+    },
+    {
+      "group": "backup",
+      "path": "skills/sceeri-coding-profi-chat/SKILL.md",
+      "bytes": 14743,
+      "sha256": "8a863ea7cef2867bb35e06527763750e9e58b56efc816b1559e4d29ecba277e3"
+    }
+  ]
+}

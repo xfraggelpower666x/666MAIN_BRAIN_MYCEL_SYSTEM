@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "id": "toolstarter",
+  "name": "Windows ToolStarter",
+  "evidence": [
+    "Start-Batch",
+    "Toolinstallation",
+    "Diagnose",
+    "Windows-Release"
+  ],
+  "roles": [
+    "development",
+    "build",
+    "target"
+  ],
+  "check": "Projektprofil, ausführbare Normalroute, Exitcode und Logausgabe prüfen.",
+  "repair": "Fehlerhafte Pflichtkomponente mit ihrem Adapter einmal reparieren und dieselbe Probe wiederholen.",
+  "delivery": "Bei Zielsystemen den gepackten Starter und die deklarierte Runtime-Nutzlast ausliefern.",
+  "acceptance": "Fehlende Komponente blockiert Start. Ein erfolgreicher Reparaturschritt muss die Funktion wiederherstellen."
+}

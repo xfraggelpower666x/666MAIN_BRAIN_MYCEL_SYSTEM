@@ -1,0 +1,4 @@
+interface:
+  display_name: "CODING L.Y.V.R.A."
+  short_description: "Coding-Aufträge planen, bauen, prüfen und reparieren"
+  default_prompt: "Nutze CODING L.Y.V.R.A. für meinen Coding-Auftrag und zeige den aktuellen Stand, das Ergebnis und die tatsächlich ausgeführten Prüfungen."

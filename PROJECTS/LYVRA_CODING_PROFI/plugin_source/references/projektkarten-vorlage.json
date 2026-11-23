@@ -1,0 +1,93 @@
+{
+  "format_version": "1.0.0",
+  "cards": [
+    {
+      "card_id": "project",
+      "language": "de",
+      "title": "Projekt",
+      "source_manifest_version": "1.0.0",
+      "data": {
+        "project_id": null,
+        "revision": null,
+        "source_ref": null,
+        "entrypoint": null
+      }
+    },
+    {
+      "card_id": "contributions",
+      "language": "de",
+      "title": "Beiträge und Komponenten",
+      "source_manifest_version": "1.0.0",
+      "data": {
+        "human_contributions": [],
+        "ai_contributions": [],
+        "third_party_components": [],
+        "license_evidence": []
+      }
+    },
+    {
+      "card_id": "evidence",
+      "language": "de",
+      "title": "Evidenz",
+      "source_manifest_version": "1.0.0",
+      "data": {
+        "coverage": null,
+        "observations": []
+      }
+    },
+    {
+      "card_id": "decisions",
+      "language": "de",
+      "title": "Entscheidungen",
+      "source_manifest_version": "1.0.0",
+      "data": {
+        "decisions": [],
+        "open_steps": []
+      }
+    },
+    {
+      "card_id": "project",
+      "language": "en",
+      "title": "Project",
+      "source_manifest_version": "1.0.0",
+      "data": {
+        "project_id": null,
+        "revision": null,
+        "source_ref": null,
+        "entrypoint": null
+      }
+    },
+    {
+      "card_id": "contributions",
+      "language": "en",
+      "title": "Contributions and components",
+      "source_manifest_version": "1.0.0",
+      "data": {
+        "human_contributions": [],
+        "ai_contributions": [],
+        "third_party_components": [],
+        "license_evidence": []
+      }
+    },
+    {
+      "card_id": "evidence",
+      "language": "en",
+      "title": "Evidence",
+      "source_manifest_version": "1.0.0",
+      "data": {
+        "coverage": null,
+        "observations": []
+      }
+    },
+    {
+      "card_id": "decisions",
+      "language": "en",
+      "title": "Decisions",
+      "source_manifest_version": "1.0.0",
+      "data": {
+        "decisions": [],
+        "open_steps": []
+      }
+    }
+  ]
+}

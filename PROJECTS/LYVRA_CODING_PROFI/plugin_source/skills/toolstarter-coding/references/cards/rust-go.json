@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "id": "rust-go",
+  "name": "Rust und Go",
+  "evidence": [
+    "Cargo.toml",
+    "Cargo.lock",
+    "rust-toolchain.toml",
+    "go.mod",
+    "go.sum"
+  ],
+  "roles": [
+    "development",
+    "build",
+    "target"
+  ],
+  "check": "Gepinnte Toolchain, Zielplattform und ggf. C-/Systemabhängigkeiten prüfen.",
+  "repair": "Deklarierte Toolchain und für das Projekt vorgesehene Abhängigkeiten wiederherstellen.",
+  "delivery": "Zielbinary und tatsächlich benötigte dynamische Bibliotheken, Daten oder CA-Dateien ausliefern.",
+  "acceptance": "Normale Tests und gepackten Start für die deklarierte Zielarchitektur prüfen."
+}
