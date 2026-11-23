@@ -19,8 +19,8 @@
     "control/BOOTSTRAP.json": "c5edae5ff5171515b1e1ac14b6ce848a39370af1cb9da503adcb5e890dc9bff9",
     "control/FRAMEWORK.md": "a099a54f2987fb7797044b3fe5383c338180647c1145724158cce198c7041512",
     "control/SYSTEM_REGISTRY.json": "449d24ed2a5f0ee1802c1a217be2276f9e7681fae153e6f5df685b5139d80436",
-    "continuity/LIVECIRCLE.json": "8ce1c883bb783c767e503bc0b3eea94134f52470db721cc73fd3f9ec84ddc4fc",
-    "control/INTEGRATIONS.json": "784e5fd327b68c0203d88d43b49225f43fc5c6de91bc8153a1e9a374b8560391"
+    "continuity/LIVECIRCLE.json": "d653c1ebaaf7777fb2584e7ec2076879e000ce95913dea290af41f900311bc61",
+    "control/INTEGRATIONS.json": "73c5b3eb0292425e9f4a950caad3890c914cc796895972fe9d9662d38b2e1dae"
   },
   "facet_reference_checkpoint": {
     "id": "CURES_R08_NONEXECUTING_REFERENCE_20261123",
