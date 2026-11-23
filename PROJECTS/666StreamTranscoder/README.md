@@ -32,6 +32,22 @@ The complete 3DX Radio Streamer 1.3.0 source is retained in the active project a
 - Validation is local to monitor startup and does not change existing stream or virtual audio device settings.
 - These are source-level changes and acceptance tests, **not** evidence of a completed native Windows or live Shoutcast/Icecast run.
 
+## R09 FFmpeg process and pipe lifecycle repair
+
+The original PCMSource and the Resin 3 EncoderEngine now explicitly release
+FFmpeg stdin/stdout/stderr after process shutdown and bounded reader-thread joins.
+Repeated PCMSource.close calls are harmless. Process/pipe cleanup is separate
+from the normal playback/crossfade path: no new encoder or stream reconnection.
+
+Five targeted process/pipe regression tests are included:
+
+```powershell
+python -m unittest discover -s tests -p 'test_pipe_lifecycle.py' -v
+```
+
+The result is only marked accepted after GitHub Actions passes and its logs
+are checked for ResourceWarning. Hardware-specific testing remains separate.
+
 ## R08 isolated end-to-end audio gate
 
 The R08 synthetic end-to-end test generates local tone WAV files, runs the real existing FFmpeg encoder and local HTTP radio server, and verifies **automatic crossfade** and **Skip crossfade** while retaining the same encoder process and HTTP listener. It decodes the received MP3 back to audible PCM.

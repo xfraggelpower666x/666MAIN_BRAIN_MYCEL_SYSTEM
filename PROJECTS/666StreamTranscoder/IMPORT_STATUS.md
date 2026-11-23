@@ -34,6 +34,14 @@
 - `OPEN`: tests are present but have not been executed against a Windows device/network runtime.
 - `OPEN`: actual end-to-end input → PCM mix → encoder → Icecast/Shoutcast provider acceptance.
 
+## R09 resource lifecycle repairs
+
+- `SOURCE IMPLEMENTED`: explicit FFmpeg decoder and encoder pipe cleanup.
+- `SOURCE IMPLEMENTED`: idempotent PCMSource.close and bounded worker joins.
+- `TESTS ADDED`: five process/pipe regression cases.
+- `READBACK_PENDING`: validate GitHub Actions R09 tests, real local FFmpeg crossfade, warnings and live branch before promoting to VERIFIED.
+- `OPEN`: Windows WASAPI/device/provider/installer validation remains separate.
+
 ## R08 isolated real-audio integration gate
 
 - `IMPLEMENTED`: two synthetic end-to-end tests using real FFmpeg, the existing 3DX local server, a persistent MP3 encoder and one HTTP listener.

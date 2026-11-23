@@ -1,5 +1,14 @@
 # 666StreamTranscoder v3.0 — Changelog
 
+## R09 — 2026-11-23 — FFmpeg resource lifecycle repair
+
+- PCMSource.close now guards repeated calls, stops the decoder, performs bounded reader-thread joins and explicitly closes stdin/stdout/stderr.
+- EncoderEngine.stop explicitly terminates the encoder, joins its output/error readers and releases its process pipes.
+- Broadcaster.stop delegates encoder cleanup to the Resin 3 lifecycle owner.
+- Added five focused pipe-lifecycle regression tests and a dedicated CI gate.
+- Crossfade, source routing, local monitor, original 3DX features and codec settings remain unchanged.
+- Windows/WASAPI/physical monitor and remote provider acceptance remains open.
+
 ## R08 — 2026-11-23 — Isolated real-audio end-to-end acceptance
 
 - Added two synthetic WAV-to-MP3-to-HTTP tests exercising real FFmpeg and the original 3DX built-in streaming server.

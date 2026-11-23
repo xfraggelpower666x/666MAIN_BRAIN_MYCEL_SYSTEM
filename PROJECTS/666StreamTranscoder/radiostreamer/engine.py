@@ -246,6 +246,8 @@ class PCMSource:
         self.bytes = 0
         self.started = False
         self.closed = False
+        self._reader_threads = []
+        self._close_lock = threading.Lock()
 
     def start(self):
         if self.started:
@@ -253,8 +255,10 @@ class PCMSource:
         self.started = True
         self.proc = tools.popen(self.cmd, stdin=subprocess.PIPE if self.feeder else subprocess.DEVNULL,
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        threading.Thread(target=self._read, daemon=True).start()
-        threading.Thread(target=self._read_err, daemon=True).start()
+        for target in (self._read, self._read_err):
+            worker = threading.Thread(target=target, daemon=True)
+            self._reader_threads.append(worker)
+            worker.start()
         if self.feeder:
             # The audio callback must never block (Windows drops sound if it does), so it only queues
             # the data; this thread does the (possibly slow) pipe writes.
@@ -272,7 +276,9 @@ class PCMSource:
                         stdin.flush()
                     except (OSError, ValueError):
                         return
-            threading.Thread(target=pump, daemon=True).start()
+            pump_thread = threading.Thread(target=pump, daemon=True)
+            self._reader_threads.append(pump_thread)
+            pump_thread.start()
 
             def feed(data):
                 try:
@@ -342,19 +348,34 @@ class PCMSource:
         return self.tail[-1] if self.tail else f"exit code {self.proc.returncode}"
 
     def close(self):
-        self.closed = True
+        # Stop the decoder first, then release its pipes after worker threads exit.
+        # Repeated closes are safe (prefetch, Skip, mixer and UI may race).
+        with self._close_lock:
+            if self.closed:
+                return
+            self.closed = True
         if self.feeder:
             self.feeder.stop()
-        if self.proc and self.proc.poll() is None:
+        proc = self.proc
+        if proc is not None:
+            if proc.poll() is None:
+                try:
+                    proc.kill()
+                except OSError:
+                    pass
             try:
-                self.proc.kill()
-            except OSError:
-                pass
-        if self.proc:
-            try:
-                self.proc.wait(timeout=5)
+                proc.wait(timeout=5)
             except subprocess.TimeoutExpired:
                 pass
+            for worker in self._reader_threads:
+                if worker is not threading.current_thread() and worker.ident is not None:
+                    worker.join(timeout=1)
+            for pipe in (proc.stdin, proc.stdout, proc.stderr):
+                if pipe is not None and not pipe.closed:
+                    try:
+                        pipe.close()
+                    except OSError:
+                        pass
         if self.temp_file:
             for _ in range(5):
                 try:
@@ -464,12 +485,8 @@ class Broadcaster:
             self.local.stop()
         if self.mapping:
             threading.Thread(target=self.mapping.close, daemon=True).start()
-        enc = self.encoder
-        if enc and enc.poll() is None:
-            try:
-                enc.kill()
-            except OSError:
-                pass
+        # The encoder lifecycle adapter owns process and pipe cleanup.
+        self.encoder_engine.stop()
         with self.next_lock:
             if self.next_src:
                 self.next_src.close()
