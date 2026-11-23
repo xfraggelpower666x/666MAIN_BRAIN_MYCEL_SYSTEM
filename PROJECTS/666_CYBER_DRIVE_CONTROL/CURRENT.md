@@ -62,4 +62,12 @@ RECOVERY_SCOPE: only PROJECTS/666_CYBER_DRIVE_CONTROL restored additively, no br
 CODEFORGE_COORDINATION: LYVRA CODING PROFI technical lead, independent native owners preserved; cross-system merges forbidden
 NEXT_OPEN_HOST_GATE: Windows Electron runtime D/E/A/B/C, Classic parity check, portable and NSIS setup build remain pending; source restoration is not Windows execution
 
+R19_D_THRESHOLD_REPAIR: SOURCE_VERIFIED
+R19_D_THRESHOLD_REPAIR_COMMIT: a375b74df750ad137f2ada00c0a746913caaf6f2
+R19_D_THRESHOLD_BEHAVIOR: saved per-Caps/Num/Scroll threshold_kib applied to true R18 disk rates; no global threshold override
+R19_D_UNPLUG_BEHAVIOR: missing device renders OFF without modifying persisted binding
+R19_D_REPAIR_CHECKS: 6 function probes PASS in JS isolate, JS syntax PASS, GitHub source readback PASS
+R19_D_NODE_TEST: tests/test_r19_renderer_contract.cjs added, registered in BUILD/BUILD_CONTROL.ps1, native Windows Node test run pending
+R19_WINDOWS_HOST_GATE: Electron runtime, complete Classic parity, portable and NSIS setup compile READBACK_PENDING
+
 NEXT_EXECUTABLE: Windows checkout of verified GitHub Current; START_BUILD_WINDOWS.bat -> menu 9; inspect real EXEs, setup install directory choice, tray, overlay and USB hotplug, then hash/readback release artifacts
