@@ -7,6 +7,16 @@
 - `VERIFIED`: original engine, GUI, capture, protocol, media, integrations, wizard, tests, assets and build files are present in the active project.
 - `VERIFIED`: active theme palette updated to neon cyan, pink, purple and yellow accents.
 
+## R05 Resin 3 Stream Control Engine
+
+- `IMPLEMENTED`: active InputRouter / RelayController / EncoderEngine / OutputEngine boundaries.
+- `IMPLEMENTED`: independent 0–200% stream gain after the local-monitor tap.
+- `IMPLEMENTED`: independent 0–100% local monitor gain and PortAudio output selection.
+- `IMPLEMENTED`: input and output peak meters in dBFS.
+- `IMPLEMENTED`: connection activity watch, byte counters, last error and exponential reconnect backoff.
+- `IMPLEMENTED`: source/encoder/server/relay/monitor component-state events connected to the Tk status LEDs.
+- `IMPLEMENTED`: route selection for playlist, direct input/virtual cable, WASAPI loopback, WASAPI app capture, HTTP(S) relay, Shoutcast, Icecast and local monitor output.
+
 ## v3.0 code added in R04
 
 - `IMPLEMENTED`: PCM crossfade helper and mixer transition path for finite queue tracks.

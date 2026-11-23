@@ -1,5 +1,16 @@
 # 666StreamTranscoder v3.0 — Changelog
 
+## R05 — 2026-11-23 — Resin 3 Cyber Stream Control Engine
+
+- Split active runtime responsibilities into InputRouter, RelayController, EncoderEngine and OutputEngine adapters while preserving the existing 3DX PCMSource, FFmpeg and protocol implementations.
+- Added independent transmitted-stream gain (0–200%) and local monitor gain/device selection (0–100%).
+- Added separate pre-stream-gain INPUT and post-stream-gain OUTPUT peak meters in dBFS.
+- Added a thread-safe connection watch with target, last activity, byte counters and last error.
+- Added bounded exponential reconnect backoff for both failed logins and established-socket send failures, retaining the existing max-retries setting and 0=unlimited behavior.
+- Added active component-state events for source, encoder, server, relay and monitor; the Tk status LEDs consume those events.
+- Added direct monitor routing to available PortAudio outputs, including virtual-cable playback endpoints where installed.
+- Added focused control-plane tests. Execution remains open pending a suitable Python/Windows runtime.
+
 ## R04 — 2026-11-23 — PCM crossfade, relay input and Resin 3 modules
 
 - Added automatic 3–15 second finite-queue PCM crossfade (default 8 seconds).

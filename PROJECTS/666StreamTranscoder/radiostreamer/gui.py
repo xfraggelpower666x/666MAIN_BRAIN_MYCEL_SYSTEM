@@ -53,7 +53,7 @@ class App:
                 continue
             if isinstance(default, bool):
                 self.vars[key] = tk.BooleanVar(value=bool(cfg[key]))
-            elif key in ("mic_gain", "mic_duck"):
+            elif key in ("mic_gain", "mic_duck", "stream_gain", "monitor_volume"):
                 self.vars[key] = tk.DoubleVar(value=float(cfg[key]))
             else:
                 self.vars[key] = tk.StringVar(value=str(cfg[key]))
@@ -150,19 +150,25 @@ class App:
         meter = ttk.Frame(tab)
         meter.grid(row=1, column=0, sticky="ew", pady=(12, 0))
         meter.columnconfigure(1, weight=1)
-        ttk.Label(meter, text="LEVEL", style="Faint.TLabel", font=(theme.FONT, 8, "bold")).grid(
+        ttk.Label(meter, text="OUTPUT", style="Faint.TLabel", font=(theme.FONT, 8, "bold")).grid(
             row=0, column=0, sticky="w", padx=(0, 12))
         self.meter = theme.LevelMeter(meter)
         self.meter.grid(row=0, column=1, sticky="ew")
         self.level_lbl = ttk.Label(meter, text="silent", width=11, anchor="e", style="Muted.TLabel")
         self.level_lbl.grid(row=0, column=2, padx=(10, 0))
+        ttk.Label(meter, text="INPUT", style="Faint.TLabel", font=(theme.FONT, 8, "bold")).grid(
+            row=1, column=0, sticky="w", padx=(0, 12), pady=(5, 0))
+        self.input_meter = theme.LevelMeter(meter)
+        self.input_meter.grid(row=1, column=1, sticky="ew", pady=(5, 0))
+        self.input_level_lbl = ttk.Label(meter, text="silent", width=11, anchor="e", style="Muted.TLabel")
+        self.input_level_lbl.grid(row=1, column=2, padx=(10, 0), pady=(5, 0))
         ttk.Label(meter, text="LISTEN", style="Faint.TLabel", font=(theme.FONT, 8, "bold")).grid(
-            row=1, column=0, sticky="w", padx=(0, 12), pady=(12, 0))
+            row=2, column=0, sticky="w", padx=(0, 12), pady=(12, 0))
         self.room_url = tk.StringVar()
         ttk.Entry(meter, textvariable=self.room_url, state="readonly", font=(theme.MONO, 10)).grid(
-            row=1, column=1, sticky="ew", pady=(12, 0))
+            row=2, column=1, sticky="ew", pady=(12, 0))
         ttk.Button(meter, text="Copy link", style="Accent.TButton", command=self.copy_room_url).grid(
-            row=1, column=2, padx=(10, 0), pady=(12, 0), sticky="ew")
+            row=2, column=2, padx=(10, 0), pady=(12, 0), sticky="ew")
 
         src = ttk.LabelFrame(tab, text=" Audio source ", padding=(12, 8))
         src.grid(row=2, column=0, sticky="ew", pady=(10, 2))
@@ -228,20 +234,34 @@ class App:
         self.mic_hint.grid(row=2, column=1, columnspan=4, sticky="w", pady=(4, 0))
         self.on_mic_settings()
 
+        stream_gain = ttk.LabelFrame(tab, text=" Stream output gain ", padding=(12, 8))
+        stream_gain.grid(row=5, column=0, sticky="ew", pady=4)
+        ttk.Label(stream_gain, text="On-air level").grid(row=0, column=0, padx=(0, 10))
+        self.stream_gain_lbl = ttk.Label(stream_gain, text=f"{float(v['stream_gain'].get()):.0f}%", width=6)
+        self.stream_gain_lbl.grid(row=0, column=1, padx=(0, 8))
+        ttk.Scale(stream_gain, from_=0, to=200, variable=v["stream_gain"],
+                  command=self.set_stream_gain).grid(row=0, column=2, sticky="ew")
+        stream_gain.columnconfigure(2, weight=1)
+        ttk.Label(stream_gain, text="Affects the transmitted stream only; local monitor has its own volume.",
+                  style="Faint.TLabel").grid(row=1, column=0, columnspan=3, sticky="w", pady=(4, 0))
+
         monitor = ttk.LabelFrame(tab, text=" Local monitor (independent from relay) ", padding=(12, 8))
-        monitor.grid(row=5, column=0, sticky="ew", pady=4)
+        monitor.grid(row=6, column=0, sticky="ew", pady=4)
         ttk.Button(monitor, text="Play monitor", style="Accent.TButton",
                    command=self.start_monitor).grid(row=0, column=0, padx=(0, 6))
         ttk.Button(monitor, text="Stop monitor", command=self.stop_monitor).grid(row=0, column=1, padx=(0, 12))
         ttk.Label(monitor, text="Local volume").grid(row=0, column=2, padx=(0, 6))
-        self.monitor_volume = tk.DoubleVar(value=80)
-        ttk.Scale(monitor, from_=0, to=100, variable=self.monitor_volume,
+        ttk.Scale(monitor, from_=0, to=100, variable=v["monitor_volume"],
                   command=lambda value: self.set_monitor_volume(value)).grid(row=0, column=3, sticky="ew")
         monitor.columnconfigure(3, weight=1)
+        ttk.Label(monitor, text="Output device").grid(row=1, column=0, padx=(0, 6), pady=(6, 0), sticky="w")
+        self.monitor_device_cb = ttk.Combobox(monitor, textvariable=v["monitor_device"], state="readonly")
+        self.monitor_device_cb.grid(row=1, column=1, columnspan=3, sticky="ew", pady=(6, 0))
+        self.monitor_device_cb.bind("<<ComboboxSelected>>", lambda e: self.change_monitor_device())
         ttk.Label(monitor, text="Stop affects local listening only; the radio relay stays connected.",
-                  style="Faint.TLabel").grid(row=1, column=0, columnspan=4, sticky="w", pady=(4, 0))
+                  style="Faint.TLabel").grid(row=2, column=0, columnspan=4, sticky="w", pady=(4, 0))
         led_row = ttk.Frame(monitor)
-        led_row.grid(row=2, column=0, columnspan=4, sticky="ew", pady=(8, 0))
+        led_row.grid(row=3, column=0, columnspan=4, sticky="ew", pady=(8, 0))
         self.led_widgets = {}
         for idx, name in enumerate(("SOURCE", "MONITOR", "ENCODER", "SERVER", "RELAY", "ERROR")):
             led = tk.Label(led_row, text=f"● {name}", bg=theme.BG, fg=theme.FAINT,
@@ -250,7 +270,7 @@ class App:
             self.led_widgets[name] = led
 
         np_ = ttk.LabelFrame(tab, text=" Now playing (stream title) ", padding=(12, 8))
-        np_.grid(row=6, column=0, sticky="ew", pady=4)
+        np_.grid(row=7, column=0, sticky="ew", pady=4)
         np_.columnconfigure(0, weight=1)
         self.np_var = tk.StringVar()
         np_entry = ttk.Entry(np_, textvariable=self.np_var)
@@ -266,8 +286,8 @@ class App:
         self.title_src_cb.pack(side="left", padx=4)
 
         qf = ttk.LabelFrame(tab, text=" Queue ", padding=(12, 8))
-        qf.grid(row=7, column=0, sticky="nsew", pady=4)
-        tab.rowconfigure(7, weight=1)
+        qf.grid(row=8, column=0, sticky="nsew", pady=4)
+        tab.rowconfigure(8, weight=1)
         qf.columnconfigure(0, weight=1)
         qf.rowconfigure(1, weight=1)
         bar = ttk.Frame(qf)
@@ -473,10 +493,14 @@ class App:
             elif isinstance(default, int):
                 try:
                     cfg[key] = int(float(str(raw).strip()))
-                if key == "crossfade_seconds":
-                    cfg[key] = max(3, min(15, cfg[key]))
                 except ValueError:
                     raise ValueError(f"'{key.replace('_', ' ')}' must be a number (got '{raw}')") from None
+                if key == "crossfade_seconds":
+                    cfg[key] = max(3, min(15, cfg[key]))
+                elif key == "stream_gain":
+                    cfg[key] = max(0, min(200, cfg[key]))
+                elif key == "monitor_volume":
+                    cfg[key] = max(0, min(100, cfg[key]))
             else:
                 cfg[key] = str(raw) if key in ("password", "lastfm_api_secret") else str(raw).strip()
         return cfg
@@ -588,6 +612,10 @@ class App:
             cable = [d for d in devices if "CABLE Output" in d]
             self.vars["device"].set(cable[0] if cable else devices[0])
         self.mic_cb.config(values=devices)
+        monitor_devices = ["Default output"] + LocalMonitor.list_output_devices()
+        self.monitor_device_cb.config(values=monitor_devices)
+        if self.vars["monitor_device"].get() not in monitor_devices:
+            self.vars["monitor_device"].set("Default output")
         if devices and self.vars["mic_device"].get() not in devices:
             mics = [d for d in devices if "mic" in d.lower() and "virtual" not in d.lower()] or devices
             self.vars["mic_device"].set(mics[0])
@@ -802,11 +830,23 @@ class App:
     def set_led(self, name, state):
         palette = {
             "active": theme.CYAN, "connected": theme.GREEN, "connecting": theme.AMBER,
-            "error": theme.RED, "idle": theme.FAINT, "off": theme.FAINT,
+            "starting": theme.AMBER, "retrying": theme.AMBER, "error": theme.RED,
+            "idle": theme.FAINT, "off": theme.FAINT,
         }
         widget = getattr(self, "led_widgets", {}).get(name)
         if widget is not None:
             widget.config(fg=palette.get(state, theme.FAINT))
+
+    def set_stream_gain(self, value):
+        percent = float(value)
+        self.stream_gain_lbl.config(text=f"{percent:.0f}%")
+        if self.broadcaster:
+            self.broadcaster.set_stream_gain(percent)
+
+    def change_monitor_device(self):
+        if self.monitor is not None and self.monitor.running:
+            self.stop_monitor()
+            self.log("Monitor device changed. Press Play monitor to use the new output.")
 
     def start_monitor(self):
         if not self.broadcaster:
@@ -816,15 +856,21 @@ class App:
             messagebox.showwarning(APP_NAME, "Local monitor is not initialized.")
             return
         try:
+            self.monitor.set_volume(float(self.vars["monitor_volume"].get()) / 100)
+            self.monitor.device = self.vars["monitor_device"].get()
             self.monitor.start()
+            if self.broadcaster:
+                self.broadcaster.set_monitor_state(True)
             self.set_led("MONITOR", "active")
             self.log("Local monitor started. Radio relay is unchanged.")
-        except (RuntimeError, OSError) as e:
+        except Exception as e:
             messagebox.showerror(APP_NAME, str(e))
 
     def stop_monitor(self):
         if self.monitor is not None:
             self.monitor.stop()
+            if self.broadcaster:
+                self.broadcaster.set_monitor_state(False)
             self.set_led("MONITOR", "off")
             self.log("Local monitor stopped. Radio relay remains connected.")
 
@@ -897,7 +943,8 @@ class App:
         b = Broadcaster(cfg, self.playlist, None)
         b.emit = lambda kind, payload=None: self.events.put((kind, payload, b))
         self.monitor = LocalMonitor(samplerate=cfg["samplerate"], channels=cfg["channels"],
-                                    volume=float(self.monitor_volume.get()) / 100)
+                                    volume=float(cfg["monitor_volume"]) / 100,
+                                    device=cfg["monitor_device"])
         b.monitor_sink = self.monitor
         try:
             b.start()
@@ -908,6 +955,7 @@ class App:
             messagebox.showerror(APP_NAME, str(e))
             return
         self.broadcaster = b
+        b.set_stream_gain(cfg["stream_gain"])
         self.set_led("ERROR", "off")
         self.set_led("ENCODER", "active")
         self.set_led("RELAY", "connecting")
@@ -1059,6 +1107,14 @@ class App:
                                  "error" if state == "error" else "idle")
                 elif kind == "level":
                     self.level = payload
+                elif kind == "meters":
+                    self.input_level, self.output_level = payload
+                elif kind == "component":
+                    component, state, detail = payload
+                    led = {"source": "SOURCE", "monitor": "MONITOR", "encoder": "ENCODER",
+                           "server": "SERVER", "relay": "RELAY", "error": "ERROR"}.get(component)
+                    if led:
+                        self.set_led(led, state)
                 elif kind == "track":
                     self.on_track(payload)
                     self.set_led("SOURCE", "active" if payload else "idle")
@@ -1100,11 +1156,15 @@ class App:
 
     def update_meter(self):
         lvl = self.level
-        self.meter.draw(min(1.0, max(0.0, (lvl + 60) / 60)))
+        self.meter.draw(min(1.0, max(0.0, (getattr(self, "output_level", -120.0) + 60) / 60)))
+        input_level = getattr(self, "input_level", -120.0)
+        self.input_meter.draw(min(1.0, max(0.0, (input_level + 60) / 60)))
+        self.input_level_lbl.config(text="silent" if input_level <= -70 else f"{input_level:.1f} dBFS")
         if getattr(self, "status_state", "") == "live":           # a slow on-air pulse
             pulse = (math.sin(time.time() * 3.2) + 1) / 2
             self.status_lbl.config(fg=theme.mix(theme.RED, theme.PINK, pulse * 0.7))
-        self.level_lbl.config(text="silent" if lvl <= -70 else f"{lvl:.1f} LUFS")
+        self.level_lbl.config(text="silent" if getattr(self, "output_level", -120.0) <= -70
+                              else f"{self.output_level:.1f} dBFS")
         b = self.broadcaster
         if b and b.live and b.cfg["source"] != "queue":
             if lvl <= -70:
@@ -1118,7 +1178,12 @@ class App:
 
     def update_stats(self):
         b = self.broadcaster
-        if not (b and b.connected_since):
+        if not b:
+            return
+        relay = b.relay_controller.snapshot()
+        if not b.connected_since:
+            detail = relay.get("last_error") or "waiting for output connection"
+            self.stats_lbl.config(text=f"Relay {relay['state'].upper()} · retry {b.reconnect_policy.attempts} · {detail[:90]}")
             return
         now = time.time()
         last_b, last_t = self.last_bytes
@@ -1127,8 +1192,10 @@ class App:
             self.last_bytes = (b.bytes_sent, now)
         up = int(now - b.connected_since)
         who = f"   {getattr(self, 'listener_count', 0)} listening" if b.builtin else ""
+        last_activity = relay.get("last_activity")
+        activity = f"   Last packet {max(0, int(now - last_activity))}s ago" if last_activity else ""
         self.stats_lbl.config(text=f"On air {up // 3600:d}:{up // 60 % 60:02d}:{up % 60:02d}   "
-                                   f"Sent {b.bytes_sent / 1e6:.1f} MB   {self.kbps:.0f} kbps{who}")
+                                   f"Sent {b.bytes_sent / 1e6:.1f} MB   {self.kbps:.0f} kbps{who}{activity}")
 
 
 def icon_path():

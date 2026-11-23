@@ -4,11 +4,21 @@ import threading
 
 
 class LocalMonitor:
-    def __init__(self, samplerate=44100, channels=2, volume=1.0, blocksize=1024):
+    @staticmethod
+    def list_output_devices():
+        try:
+            import sounddevice as sd
+            return sorted({str(device["name"]) for device in sd.query_devices()
+                           if int(device.get("max_output_channels", 0)) > 0})
+        except Exception:
+            return []
+
+    def __init__(self, samplerate=44100, channels=2, volume=1.0, blocksize=1024, device="Default output"):
         self.samplerate = int(samplerate)
         self.channels = int(channels)
         self.volume = max(0.0, min(1.0, float(volume)))
         self.blocksize = int(blocksize)
+        self.device = str(device or "Default output")
         self._queue = queue.Queue(maxsize=32)
         self._stream = None
         self._lock = threading.RLock()
@@ -48,7 +58,15 @@ class LocalMonitor:
                 outdata[:] = (samples.reshape(frames, self.channels).astype(np.float32)
                               * (self.volume / 32768.0))
 
-            stream = sd.OutputStream(samplerate=self.samplerate, channels=self.channels,
+            device_index = None
+            if self.device != "Default output":
+                for index, info in enumerate(sd.query_devices()):
+                    if info["name"] == self.device and int(info.get("max_output_channels", 0)) >= self.channels:
+                        device_index = index
+                        break
+                if device_index is None:
+                    raise RuntimeError(f"Monitor output device not available: {self.device}")
+            stream = sd.OutputStream(device=device_index, samplerate=self.samplerate, channels=self.channels,
                                      dtype="float32", blocksize=self.blocksize, callback=callback)
             try:
                 stream.start()

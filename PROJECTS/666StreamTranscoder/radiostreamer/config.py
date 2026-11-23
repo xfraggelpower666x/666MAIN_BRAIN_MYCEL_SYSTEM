@@ -73,6 +73,9 @@ DEFAULTS = {
     "loop": True,
     "crossfade": True,
     "crossfade_seconds": 8,
+    "stream_gain": 100,
+    "monitor_volume": 80,
+    "monitor_device": "Default output",
     # titles
     "title_source": "Music app (auto-detect)",
     "auto_metadata": True,

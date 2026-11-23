@@ -17,7 +17,12 @@ The complete 3DX Radio Streamer 1.3.0 source is retained in the active project a
 - Direct HTTP(S) internet-radio relay input uses the existing FFmpeg decode and output pipeline.
 - Local monitor Play/Stop and volume are independent of the outgoing relay. Stopping local monitoring does not disconnect the radio server.
 - Visible SOURCE / MONITOR / ENCODER / SERVER / RELAY / ERROR indicators.
-- Resin 3 adapters under `radiostreamer/resin3/` for audio and stream sources, MP3 encoder construction, Icecast/Shoutcast outputs, relay lifecycle, monitor output, status bus and UI status model.
+- Resin 3 separates runtime boundaries into InputRouter, RelayController, EncoderEngine and OutputEngine while delegating FFmpeg, capture and protocol primitives to 3DX.
+- Independent stream gain (0–200%) is applied after the monitor tap; local monitor gain (0–100%) remains independent.
+- Input and output peak meters report dBFS separately; the existing EBU R128 loudness monitor remains available for silence detection.
+- Reconnect uses bounded exponential backoff (base delay from the existing setting, cap 60 seconds; max retries 0 still means unlimited).
+- Local monitor output-device selection includes physical outputs and VB-CABLE endpoints exposed by PortAudio.
+- Resin 3 adapters under `radiostreamer/resin3/` include input routing, relay health/watch, encoder lifecycle, output routing, signal gain/metering, status bus and local monitor.
 
 ## Optional local monitor
 
@@ -58,14 +63,14 @@ Inno Setup 6 is required for the installer stage. Windows packaging and physical
 ## Test commands
 
 ```powershell
-python -m unittest tests.test_crossfade_audio tests.test_resin3_modules -v
+python -m unittest discover -s tests -v
 ```
 
-These focused tests were added in this source revision. They have **not** been executed in this session. Native Windows GUI, WASAPI, physical monitor output, portable build, installer and real user-owned radio-provider acceptance remain open.
+Focused crossfade, Resin 3 adapter and control-plane tests are present. They have **not** been executed in this session. Native Windows GUI, WASAPI, physical monitor output, portable build, installer and real user-owned radio-provider acceptance remain open.
 
 ## Configuration and secrets
 
-Existing 3DX settings remain untouched. Crossfade and relay settings are stored in the current application settings. Stream passwords stay in local user settings and must never be committed.
+Existing 3DX settings remain compatible. Crossfade, stream gain, monitor gain/device and relay settings are stored in the current application settings. Stream passwords stay in local user settings and must never be committed.
 
 ## Licensing
 

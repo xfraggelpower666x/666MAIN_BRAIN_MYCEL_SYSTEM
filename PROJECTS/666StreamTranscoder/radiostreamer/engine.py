@@ -34,10 +34,13 @@ from .localserver import LocalServer
 from .tunnel import QuickTunnel
 from .config import CACHE_DIR
 from .protocol import StreamError
-from .resin3.encoder import mp3_command
-from .resin3.output_router import connect as connect_output
-from .resin3.source_audio import create_capture
-from .resin3.source_stream import display_name as stream_display_name, stream_input_args
+from .resin3.source_stream import stream_input_args
+from .resin3.control_plane import GainStage, RoutePlan, peak_dbfs
+from .resin3.input_router import InputRouter
+from .resin3.encoder_engine import EncoderEngine
+from .resin3.output_engine import OutputEngine
+from .resin3.status_bus import StatusBus
+from .resin3.relay_engine import RelayController
 
 CHUNK_SEC = 0.05
 PREBUFFER = 4          # chunks a file/stream source must hold before it starts playing (200 ms)
@@ -380,8 +383,6 @@ class Broadcaster:
         self.skip_event = threading.Event()
         self.crossfade_seconds = max(3, min(CROSSFADE_MAX_SEC, int(cfg.get("crossfade_seconds", 8))))
         self.crossfade_enabled = bool(cfg.get("crossfade", True))
-        self.sock = None
-        self.sock_lock = threading.Lock()
         self.encoder = None
         self.bytes_sent = 0
         self.connected_since = None
@@ -400,8 +401,33 @@ class Broadcaster:
         self.mic_retry = 0.0
         self.music_gain = 1.0
         self.monitor_sink = None  # optional local sink; never owns the relay connection
+        self.stream_gain = GainStage(cfg.get("stream_gain", 100))
+        self.input_router = InputRouter(self)
+        self.encoder_engine = EncoderEngine(self)
+        self.output_engine = OutputEngine(cfg)
+        self.relay_controller = RelayController(cfg, self.output_engine)
+        self.reconnect_policy = self.relay_controller.policy
+        self.connection_watch = self.relay_controller.watch
+        self.status_bus = StatusBus()
+        self._component_states = {}
 
     # -- lifecycle ---------------------------------------------------------- #
+    def _component(self, component, state, message=""):
+        if self._component_states.get(component) == state:
+            return
+        self._component_states[component] = state
+        self.status_bus.publish(component, state, message)
+        self.emit("component", (component, state, message))
+
+    def set_stream_gain(self, percent):
+        value = self.stream_gain.set_percent(percent)
+        self.cfg["stream_gain"] = int(round(value * 100))
+        return value
+
+    def set_monitor_state(self, running):
+        self._component("monitor", "active" if running else "idle",
+                        "Local monitor active." if running else "Local monitor stopped.")
+
     def start(self):
         if not self.ffmpeg:
             raise StreamError("ffmpeg was not found.")
@@ -414,6 +440,11 @@ class Broadcaster:
         if self.cfg["source"] == "queue":
             self.playlist.reset()
             shutil.rmtree(CACHE_DIR, ignore_errors=True)
+        route = RoutePlan.describe(self.cfg["source"], self.cfg.get("server_type"),
+                                  self.cfg.get("monitor_device", ""))
+        self.emit("log", f"Signal route: {route['input']} → {route['output']} | monitor: {route['monitor']}")
+        self._component("source", "starting", route["input"])
+        self._component("encoder", "starting", "Starting persistent MP3 encoder.")
         self._start_encoder()
         if self.builtin:
             self._start_local()
@@ -452,6 +483,10 @@ class Broadcaster:
         self.mic_on = bool(on)
 
     @property
+    def sock(self):
+        return self.relay_controller.current()
+
+    @property
     def live(self):
         return self.sock is not None or (self.local is not None and self.local.running)
 
@@ -475,6 +510,8 @@ class Broadcaster:
         self.ever_connected.set()
         self.emit("log", f"Built-in server running on port {port}")
         self.emit("connected", None)
+        self._component("server", "connected", "Built-in server listening.")
+        self._component("relay", "active", "Built-in output active.")
         threading.Thread(target=self._guard, args=(self._listener_watch,), daemon=True).start()
         lan = f"http://{upnp.local_ip()}:{port}/"
         if mode == "easy":
@@ -534,11 +571,8 @@ class Broadcaster:
 
     # -- encoder ------------------------------------------------------------ #
     def _start_encoder(self):
-        cmd = mp3_command(self.ffmpeg, self.sr, self.ch, self.cfg['bitrate'])
-        self.encoder = tools.popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        self.encoder_tail = collections.deque(maxlen=8)
-        threading.Thread(target=self._encoder_out, daemon=True).start()
-        threading.Thread(target=self._encoder_err, daemon=True).start()
+        self.encoder_engine.start()
+        self._component("encoder", "active", "Persistent MP3 encoder running.")
 
     def _encoder_out(self):
         out = self.encoder.stdout
@@ -563,70 +597,74 @@ class Broadcaster:
     # -- connection --------------------------------------------------------- #
     def _connection_loop(self):
         attempts = 0
-        delay = max(1, int(self.cfg["reconnect_delay"]))
-        max_retries = int(self.cfg["max_retries"])
         target = f"{self.cfg['host']}:{self.cfg['port']}"
         while not self.stop_event.is_set():
+            wait_for = self.relay_controller.wait_remaining()
+            if wait_for > 0:
+                self.stop_event.wait(wait_for)
+                continue
             if self.sock is None:
                 self.emit("status", ("connecting", f"Connecting to {target}..."))
+                self.relay_controller.connecting(target)
+                self._component("server", "connecting", f"Connecting to {target}.")
+                self._component("relay", "connecting", "Waiting for output connection.")
                 try:
-                    sock = connect_output(self.cfg)
+                    sock = self.relay_controller.open()
                 except StreamError as e:
-                    attempts += 1
+                    attempts, retry_delay, exhausted = self.relay_controller.failed(str(e))
                     self.emit("log", f"Connect failed (attempt {attempts}): {e}")
-                    if max_retries and attempts >= max_retries:
+                    self._component("server", "error", str(e))
+                    self._component("relay", "retrying", f"Retrying in {retry_delay}s.")
+                    if exhausted:
                         self.emit("fatal", f"Gave up after {attempts} attempts.")
                         return
-                    self.emit("status", ("error", f"Not connected - retrying in {delay}s"))
-                    self.stop_event.wait(delay)
+                    self.emit("status", ("error", f"Not connected - retrying in {retry_delay}s"))
                     continue
                 if self.stop_event.is_set():
                     sock.close()
                     return
                 sock.settimeout(15)
-                with self.sock_lock:
-                    self.sock = sock
+                self.relay_controller.attach(sock)
                 attempts = 0
                 self.connected_since = time.time()
+                self.relay_controller.connected(target)
                 self.ever_connected.set()
                 self.emit("log", f"Connected to {target} ({self.cfg['server_type']})")
                 self.emit("status", ("live", f"LIVE on {target}"))
+                self._component("server", "connected", f"Connected to {target}.")
+                self._component("relay", "active", "Encoded stream is being delivered.")
                 self.emit("connected", None)
             self.stop_event.wait(0.5)
 
     def _drop_socket(self, reason):
-        sock, self.sock = self.sock, None
         self.connected_since = None
-        if sock is None:
+        had_socket, retry = self.relay_controller.close(reason or "")
+        if not had_socket:
             return
-        try:
-            sock.shutdown(socket.SHUT_RDWR)
-        except OSError:
-            pass
-        sock.close()
         if reason and not self.stop_event.is_set():
+            attempts, retry_delay, exhausted = retry
             self.emit("log", reason)
-            self.emit("status", ("error", "Connection lost - reconnecting..."))
+            self.emit("status", ("error", f"Connection lost - retrying in {retry_delay}s"))
+            self._component("server", "error", reason)
+            self._component("relay", "retrying", f"Output reconnect in {retry_delay}s.")
+            if exhausted:
+                self.emit("fatal", f"Gave up after {attempts} output failures.")
 
     def _send(self, data):
         if self.local is not None:
             self.local.broadcast(data)
             self.bytes_sent += len(data)
             return
-        with self.sock_lock:
-            sock = self.sock
-            if sock is None:
-                return
-            try:
-                sock.sendall(data)
-                self.bytes_sent += len(data)
-            except OSError as e:
-                since = self.connected_since
-                hint = ""
-                if since and time.time() - since < 10:
-                    hint = (" - the server dropped the stream right after login. This usually means the "
-                            "bitrate is above your plan's limit (free plans are often 96 kbps).")
-                self._drop_socket(f"Connection lost: {e}{hint}")
+        try:
+            sent = self.relay_controller.send(data)
+            self.bytes_sent += sent
+        except OSError as e:
+            since = self.connected_since
+            hint = ""
+            if since and time.time() - since < 10:
+                hint = (" - the server dropped the stream right after login. This usually means the "
+                        "bitrate is above your plan's limit (free plans are often 96 kbps).")
+            self._drop_socket(f"Connection lost: {e}{hint}")
 
     # -- sources ------------------------------------------------------------ #
     def _decoder_cmd(self, input_args, live):
@@ -639,31 +677,8 @@ class Broadcaster:
         return cmd + ["-f", "s16le", "-ar", str(self.sr), "-ac", str(self.ch), "pipe:1"]
 
     def _live_source(self):
-        source = self.cfg["source"]
-        if source in ("loopback", "app"):
-            cap = create_capture(source, self.cfg)
-            cmd = [self.ffmpeg, "-hide_banner", "-nostdin", "-nostats", "-loglevel", "error",
-                   "-probesize", "32", "-analyzeduration", "0", "-fflags", "nobuffer",
-                   "-f", "s16le", "-ar", str(cap.rate), "-ac", str(cap.channels), "-i", "pipe:0",
-                   "-f", "s16le", "-ar", str(self.sr), "-ac", str(self.ch), "pipe:1"]
-            src = PCMSource(cmd, self.chunk_bytes, True, title=cap.name, feeder=cap)
-        elif source == "relay":
-            url = str(self.cfg.get("relay_url", "")).strip()
-            if not url:
-                raise StreamError("Enter an HTTP(S) radio stream URL.")
-            try:
-                args = stream_input_args(url)
-            except ValueError as e:
-                raise StreamError(str(e)) from e
-            src = PCMSource(self._decoder_cmd(args, True), self.chunk_bytes, True,
-                            title=stream_display_name(url))
-        else:
-            device = self.cfg["device"]
-            if not device and sys.platform == "win32":
-                raise StreamError("No input device selected.")
-            src = PCMSource(self._decoder_cmd(tools.device_input_args(device), True),
-                            self.chunk_bytes, True, title=device)
-        src.start()
+        src = self.input_router.open_live()
+        self._component("source", "active", src.title or self.cfg["source"])
         self.emit("track", src.title)
         return src
 
@@ -712,6 +727,7 @@ class Broadcaster:
             self.next_src = None
         src.start()
         self.playlist.advance(it)
+        self._component("source", "active", src.title)
         self.current_title = src.title
         self.emit("track", src.title)
         self.emit("queue", None)
@@ -735,6 +751,7 @@ class Broadcaster:
             self.next_src = None
         src.start()
         self.playlist.advance(it)
+        self._component("source", "active", src.title)
         self.current_title = src.title
         self.emit("track", src.title)
         self.emit("queue", None)
@@ -780,7 +797,9 @@ class Broadcaster:
                 except (OSError, StreamError) as e:
                     live_failures += 1
                     self.emit("log", f"Audio source error: {e}")
+                    self._component("source", "retrying", str(e))
                     if live_failures >= 3:
+                        self._component("source", "error", str(e))
                         self.emit("fatal", f"Cannot open the audio source: {e}")
                         return
                     retry_at = time.monotonic() + 3
@@ -861,6 +880,7 @@ class Broadcaster:
                 except (OSError, ValueError):
                     if not self.stop_event.is_set():
                         tail = self.encoder_tail[-1] if self.encoder_tail else "encoder exited"
+                        self._component("encoder", "error", tail)
                         self.emit("fatal", f"MP3 encoder stopped: {tail}")
                     break
                 t_next += CHUNK_SEC
@@ -884,6 +904,7 @@ class Broadcaster:
                         self.emit("fatal", f"Cannot open the audio source: {reason}")
                         return
                     self.emit("log", f"Audio source stopped ({reason}) - restarting")
+                    self._component("source", "retrying", reason)
                     retry_at = time.monotonic() + 3
                     continue
                 if data is None:
@@ -898,6 +919,7 @@ class Broadcaster:
                 except (OSError, ValueError):
                     if not self.stop_event.is_set():
                         tail = self.encoder_tail[-1] if self.encoder_tail else "encoder exited"
+                        self._component("encoder", "error", tail)
                         self.emit("fatal", f"MP3 encoder stopped: {tail}")
                     break
                 t_next = time.monotonic()
@@ -918,6 +940,7 @@ class Broadcaster:
                                 self.emit("fatal", f"Cannot open the audio source: {reason}")
                                 return
                             self.emit("log", f"Audio source stopped ({reason}) - restarting")
+                            self._component("source", "retrying", reason)
                             retry_at = time.monotonic() + 3
                         self._finish(cur)
                         cur = None
@@ -998,9 +1021,14 @@ class Broadcaster:
         else:
             gain_mic = max(0.0, float(self.cfg.get("mic_gain", 100)) / 100)
             mixed = scale_mix(chunk, mic, before, self.music_gain, gain_mic, frame=2 * self.ch)
+        # Tap the post-mic mix before stream gain: monitor volume remains independent.
         if self.monitor_sink is not None:
             self.monitor_sink.write(mixed)
-        return mixed
+        input_level = peak_dbfs(mixed)
+        stream_pcm = self.stream_gain.process(mixed)
+        output_level = peak_dbfs(stream_pcm)
+        self.emit("meters", (input_level, output_level))
+        return stream_pcm
 
     # -- titles for live sources -------------------------------------------- #
     def _title_watcher(self):
