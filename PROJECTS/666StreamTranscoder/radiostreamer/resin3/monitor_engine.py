@@ -1,17 +1,58 @@
 """Independent local audio monitor. Stopping it never touches the relay session."""
 import queue
 import threading
+import re
 
 
 class LocalMonitor:
+    # Index is scoped to a specific PortAudio enumeration. Host/name are
+    # rechecked before opening so stale indices cannot silently route audio.
+    DEVICE_LABEL = re.compile(r"^PA:(\d+) \| ([^|]+) \| (.+)$")
+
     @staticmethod
-    def list_output_devices():
+    def _inventory(sd):
+        devices = sd.query_devices()
+        apis = sd.query_hostapis()
+        records = []
+        for index, device in enumerate(devices):
+            if int(device.get("max_output_channels", 0)) <= 0:
+                continue
+            host_index = int(device.get("hostapi", 0))
+            host_name = str(apis[host_index]["name"]) if 0 <= host_index < len(apis) else "Unknown API"
+            label = f'PA:{index} | {host_name} | {device["name"]}'
+            records.append((index, str(device["name"]), host_name, label,
+                            int(device.get("max_output_channels", 0))))
+        return records
+
+    @classmethod
+    def list_output_devices(cls):
         try:
             import sounddevice as sd
-            return sorted({str(device["name"]) for device in sd.query_devices()
-                           if int(device.get("max_output_channels", 0)) > 0})
+            return [record[3] for record in cls._inventory(sd)]
         except Exception:
             return []
+
+    @classmethod
+    def resolve_output_device(cls, sd, selected, channels):
+        if not selected or selected == "Default output":
+            return None
+        records = cls._inventory(sd)
+        match = cls.DEVICE_LABEL.fullmatch(str(selected))
+        if match:
+            index, host_name, name = int(match.group(1)), match.group(2), match.group(3)
+            candidates = [record for record in records
+                          if record[0] == index and record[1] == name
+                          and record[2] == host_name and record[4] >= channels]
+            if len(candidates) != 1:
+                raise RuntimeError("Selected monitor endpoint changed; refresh device list and select again.")
+            return candidates[0][0]
+        # Existing saved plain-name settings remain supported when unambiguous.
+        candidates = [record for record in records if record[1] == selected and record[4] >= channels]
+        if len(candidates) == 1:
+            return candidates[0][0]
+        if len(candidates) > 1:
+            raise RuntimeError("Multiple audio devices share this name; refresh and select a PA endpoint.")
+        raise RuntimeError(f"Monitor output device not available: {selected}")
 
     def __init__(self, samplerate=44100, channels=2, volume=1.0, blocksize=1024, device="Default output"):
         self.samplerate = int(samplerate)
@@ -58,14 +99,7 @@ class LocalMonitor:
                 outdata[:] = (samples.reshape(frames, self.channels).astype(np.float32)
                               * (self.volume / 32768.0))
 
-            device_index = None
-            if self.device != "Default output":
-                for index, info in enumerate(sd.query_devices()):
-                    if info["name"] == self.device and int(info.get("max_output_channels", 0)) >= self.channels:
-                        device_index = index
-                        break
-                if device_index is None:
-                    raise RuntimeError(f"Monitor output device not available: {self.device}")
+            device_index = self.resolve_output_device(sd, self.device, self.channels)
             stream = sd.OutputStream(device=device_index, samplerate=self.samplerate, channels=self.channels,
                                      dtype="float32", blocksize=self.blocksize, callback=callback)
             try:

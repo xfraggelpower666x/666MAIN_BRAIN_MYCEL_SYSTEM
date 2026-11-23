@@ -615,15 +615,30 @@ class App:
         self.mic_cb.config(values=devices)
         monitor_devices = ["Default output"] + LocalMonitor.list_output_devices()
         self.monitor_device_cb.config(values=monitor_devices)
-        if self.vars["monitor_device"].get() not in monitor_devices:
+        selected_monitor = self.vars["monitor_device"].get()
+        if not selected_monitor:
             self.vars["monitor_device"].set("Default output")
+        elif selected_monitor not in monitor_devices and not selected_monitor.startswith("PA:"):
+            # Upgrade a legacy name only if it maps to exactly one endpoint.
+            matches = [value for value in monitor_devices if value.rsplit(" | ", 1)[-1] == selected_monitor]
+            if len(matches) == 1:
+                self.vars["monitor_device"].set(matches[0])
+        # Preserve unavailable/ambiguous selections. Startup fails clearly instead
+        # of redirecting a user's monitor to the wrong physical or virtual output.
         if devices and self.vars["mic_device"].get() not in devices:
             mics = [d for d in devices if "mic" in d.lower() and "virtual" not in d.lower()] or devices
             self.vars["mic_device"].set(mics[0])
         loops = capture.list_loopback_devices()
         self.loopback_cb.config(values=["Default speakers"] + loops)
-        if self.vars["loopback_device"].get() not in loops:
+        selected_loopback = self.vars["loopback_device"].get()
+        if not selected_loopback:
             self.vars["loopback_device"].set("Default speakers")
+        elif selected_loopback not in loops and not selected_loopback.startswith("WASAPI:"):
+            matches = [value for value in loops if value.split(" | ", 1)[-1] == selected_loopback]
+            if len(matches) == 1:
+                self.vars["loopback_device"].set(matches[0])
+        # Preserve stale/ambiguous explicit device selections for a safe error
+        # at activation rather than silently activating another endpoint.
         apps = capture.list_apps()
         self.app_cb.config(values=apps)
         if not self.vars["app_name"].get():

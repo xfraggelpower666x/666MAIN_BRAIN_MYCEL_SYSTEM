@@ -1,5 +1,19 @@
 # 666StreamTranscoder v3.0 — Changelog
 
+## R10 — 2026-11-23 — Device identity and fault-injection routing
+
+- Added PortAudio monitor output descriptors with host API, enumerated device index
+  and exact name readback before opening output. Duplicate legacy names fail closed.
+- Added indexed WASAPI loopback selection with explicit stale/ambiguous device rejection.
+  Compatible unambiguous legacy device names remain supported.
+- Updated GUI refresh to preserve old selections and safely migrate unique legacy names
+  without silently choosing another output.
+- Strengthened virtual-cable feedback guard to distinguish standard and A/B/C/D cables.
+- Added device identity, local monitor isolation, reconnect and real local socket-failure
+  regression tests to the project-scoped CI gate.
+- Protected 3DX original source snapshot and existing stream protocol implementation unchanged.
+- Windows hardware endpoint ID / hotplug and live Icecast/Shoutcast provider acceptance remain open.
+
 ## R09 — 2026-11-23 — FFmpeg resource lifecycle repair
 
 - PCMSource.close now guards repeated calls, stops the decoder, performs bounded reader-thread joins and explicitly closes stdin/stdout/stderr.
