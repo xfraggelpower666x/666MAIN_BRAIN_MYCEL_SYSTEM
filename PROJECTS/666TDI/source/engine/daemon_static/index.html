@@ -120,7 +120,15 @@ const fields=["title","genre","bpm","energy","story","motor","mid","high","voice
 const text=(node,value)=>{node.textContent=String(value??"");return node;};
 const el=(tag,cls,parent,value)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(value!==undefined)text(n,value);if(parent)parent.append(n);return n;};
 const badge=(parent,value,cls="")=>el("span","tag "+cls,parent,value);
+function invalidateAnalysis(message){
+ if(!selected.result)return;
+ selected.result=null;selected.choices={};
+ for(const id of ["results-section","decisions-section","handoff-section"])$(id).classList.add("hide");
+ if(message)statusText(message,false);
+ updateNav();
+}
 function changeDevice(value){
+ if(selected.device!==value)invalidateAnalysis("Gerät geändert. Voranalyse muss neu erstellt werden.");
  selected.device=value;
  document.querySelectorAll(".device").forEach(button=>{
   const active=button.dataset.device===value;
@@ -144,6 +152,7 @@ document.querySelectorAll(".navitem").forEach(b=>b.addEventListener("click",()=>
  document.querySelectorAll(".navitem").forEach(n=>n.classList.toggle("active",n===b));
  target.scrollIntoView({behavior:"smooth",block:"start"});
 }));
+$("intent-form").addEventListener("input",()=>invalidateAnalysis("Eingaben geändert. Bitte Voranalyse erneut ausführen."));
 $("clear-button").addEventListener("click",()=>{
  fields.forEach(f=>$(f).value="");selected.result=null;selected.choices={};
  for(const id of ["results-section","decisions-section","handoff-section"])$(id).classList.add("hide");
