@@ -27,6 +27,13 @@
 - `IMPLEMENTED`: SOURCE / MONITOR / ENCODER / SERVER / RELAY / ERROR status indicators.
 - `IMPLEMENTED`: initial Resin 3 adapters under `radiostreamer/resin3/`.
 
+## R06 boundary and routing protection
+
+- `IMPLEMENTED`: runtime-boundary tests cover input, encoder, output and relay adapter handoffs.
+- `IMPLEMENTED`: guard against a VB-CABLE monitoring feedback loop.
+- `OPEN`: tests are present but have not been executed against a Windows device/network runtime.
+- `OPEN`: actual end-to-end input → PCM mix → encoder → Icecast/Shoutcast provider acceptance.
+
 ## Evidence and open gates
 
 - `OPEN`: focused Python tests added but not executed in this session.

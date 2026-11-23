@@ -17,6 +17,7 @@ from .config import (BUILTIN, HOST_MODES, BITRATES, CACHE_DIR, DATA_DIR, DEFAULT
                      mixxx_profile_exists, save_settings)
 from .engine import Broadcaster, Playlist
 from .resin3.monitor_engine import LocalMonitor
+from .resin3.control_plane import RoutePlan
 from .lastfm import CREATE_KEY_URL, LastFM, LastFMError, Scrobbler
 from .protocol import StreamError, listener_url, open_source_connection, source_port, update_metadata
 
@@ -856,6 +857,11 @@ class App:
             messagebox.showwarning(APP_NAME, "Local monitor is not initialized.")
             return
         try:
+            warning = RoutePlan.validate_monitor_route(
+                self.vars["source"].get(), self.vars["device"].get(),
+                self.vars["monitor_device"].get())
+            if warning:
+                self.log("Monitor routing: " + warning)
             self.monitor.set_volume(float(self.vars["monitor_volume"].get()) / 100)
             self.monitor.device = self.vars["monitor_device"].get()
             self.monitor.start()

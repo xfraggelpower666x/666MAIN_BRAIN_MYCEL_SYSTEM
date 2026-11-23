@@ -44,6 +44,18 @@ python -m pip install -r requirements-monitor.txt
 - Local monitor: select a PortAudio output device; the VB-CABLE playback endpoint is typically listed as `CABLE Input`.
 - Stream gain is applied after the local monitor tap. The monitor's own gain is applied only by its local playback sink.
 
+## R06 runtime acceptance gates
+
+The test suite `tests/test_resin3_runtime_boundaries.py` checks runtime boundary contracts using fake devices, FFmpeg process handles, and network sockets. Execute with:
+
+```powershell
+python -m unittest tests.test_resin3_runtime_boundaries tests.test_resin3_control_plane -v
+```
+
+Route safety: monitor playback to a VB-CABLE playback endpoint (`CABLE Input`) is blocked when that cable's capture endpoint (`CABLE Output`) is the active stream input. A physical monitor output remains available. On WASAPI loopback, the UI warns when a custom output is selected; exact hardware loop checks require native Windows device identity and are not claimed complete.
+
+Runtime tests are *not* equivalent to provider or Windows WASAPI acceptance. Do not mark those gates VERIFIED without actual execution and receipts.
+
 ## Preservation rules
 
 - Existing 3DX queue, media resolution, Shoutcast/Icecast protocol code, local server, tunnel, UPnP, metadata, microphone ducking and build workflows remain the runtime authority.

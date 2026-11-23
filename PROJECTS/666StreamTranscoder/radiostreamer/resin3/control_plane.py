@@ -83,6 +83,24 @@ class RoutePlan:
             "monitor": monitor_device or "default local output",
         }
 
+    @staticmethod
+    def validate_monitor_route(source, input_device="", monitor_device=""):
+        """Block a physical audio feedback loop when the same VB-CABLE feeds both sides."""
+        source = str(source or "").lower()
+        input_device = str(input_device or "").lower()
+        monitor_device = str(monitor_device or "").lower()
+        if (source == "device"
+                and "cable output" in input_device
+                and "cable input" in monitor_device):
+            raise ValueError(
+                "Monitor cannot play to CABLE Input while CABLE Output is the stream source: "
+                "this creates an audio feedback loop. Pick a physical monitor output."
+            )
+        if source == "loopback" and monitor_device not in ("", "default output"):
+            # Exact endpoint selection is host-specific; do not silently claim safety.
+            return "Check that monitor output is not the same endpoint captured by WASAPI loopback."
+        return ""
+
 
 class ConnectionWatch:
     """Live output health counters consumed by the UI and diagnostics."""
