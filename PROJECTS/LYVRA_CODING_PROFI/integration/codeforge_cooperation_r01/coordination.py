@@ -39,7 +39,7 @@ class WorkOffer:
         if self.source.family != self.native_owner: raise ValueError("owner/source mismatch")
         if not self.goal.strip() or not self.target_paths: raise ValueError("missing goal or paths")
         for path in self.target_paths:
-            if not path or path.startswith(("/","\\\\") ) or "\\\\" in path or ".." in path.split("/") or any(x in path for x in "\\x00\\r\\n"):
+            if not path or path.startswith("/") or chr(92) in path or ".." in path.split("/") or any(ord(ch) in (0, 10, 13) for ch in path):
                 raise ValueError("unsafe relative path")
         if self.mode not in ("READ_ONLY","PATCH_PROPOSAL"): raise ValueError("mode not supported")
         if self.user_write_authorization: raise ValueError("offers cannot confer write authorization")
