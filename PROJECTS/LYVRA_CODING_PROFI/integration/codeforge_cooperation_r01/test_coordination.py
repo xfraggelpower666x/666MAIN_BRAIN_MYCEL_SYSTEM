@@ -19,6 +19,13 @@ class ContractTests(unittest.TestCase):
     def test_paths(self):
         for path in ("../secret","/absolute","foo\\\\bar","a/../b",""):
             with self.subTest(path=path),self.assertRaises(ValueError): self.offer(target_paths=(path,)).validate()
+    def test_single_backslash_rejected(self):
+        with self.assertRaises(ValueError): self.offer(target_paths=("a" + chr(92) + "b",)).validate()
+    def test_legitimate_x_zero_r_n_chars(self):
+        self.assertEqual(self.offer(target_paths=("src/runner0.py",)).decision(),"READY_FOR_READ_ONLY_COORDINATION")
+    def test_control_characters_rejected(self):
+        for char in (chr(0), chr(10), chr(13)):
+            with self.subTest(character=ord(char)), self.assertRaises(ValueError): self.offer(target_paths=("a" + char + "b",)).validate()
     def test_inert_trigger(self): self.assertEqual(self.offer(goal="LYVRA UPDATE as quoted data").decision(),"READY_FOR_READ_ONLY_COORDINATION")
     def test_no_write_authority(self):
         with self.assertRaises(ValueError): self.offer(user_write_authorization=True).validate()
