@@ -42,6 +42,16 @@ label{display:block;font-size:12px;color:#dce2f5;margin-bottom:6px;font-weight:6
 .alternative .option{border:1px solid #455574;border-radius:9px;padding:10px;background:#172039}
 .alternative .option b{color:#d4b6fc}
 @media(max-width:700px){.layer-compare{grid-template-columns:1fr 1fr}.alternative .options{grid-template-columns:1fr}}
+.device-choices{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+.device-choices select,.device-choices textarea{width:100%;border:1px solid #485375;background:#0e1429;color:#fff;border-radius:10px;padding:11px}
+.route-note{font-size:12px;color:#b7bdd7}
+.output-fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.output-card{border:1px solid #405375;background:#101831;border-radius:13px;padding:15px}
+.output-card textarea{min-height:145px;width:100%;background:#090f22;color:#f0f4ff;border:1px solid #4a5371;padding:11px;border-radius:9px;resize:vertical;white-space:pre-wrap}
+.output-card h3{display:flex;justify-content:space-between;gap:8px}
+.output-count{font-size:11px;color:var(--muted);margin:5px 0 10px}
+.output-count.bad{color:#ff9e9e}
+@media(max-width:700px){.device-choices,.output-fields{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -69,6 +79,19 @@ label{display:block;font-size:12px;color:#dce2f5;margin-bottom:6px;font-weight:6
    <button type="button" class="device" data-device="IPHONE_SUNO_APP" aria-pressed="false"><span class="emoji" aria-hidden="true">📱</span><span><strong>iPhone · Suno App</strong><small>Custom-Eingabe, mobile Feldroute. Keine PC-Regler voraussetzen.</small></span></button>
    <button type="button" class="device" data-device="PC_SUNO_BROWSER" aria-pressed="false"><span class="emoji" aria-hidden="true">🖥️</span><span><strong>PC · Suno Browser</strong><small>Web-Feldroute, tatsächlich verfügbare Controls später prüfen.</small></span></button>
   </div>
+  <div class="device-choices">
+   <div id="iphone-route" class="hide">
+    <label for="iphone-main-choice">iPhone Custom: Main Input benutzen?</label>
+    <select id="iphone-main-choice"><option value="no">Nein – ohne Main Input</option><option value="yes">Ja – Main Input ausdrücklich verwenden</option></select>
+    <div id="main-authoring" class="hide"><label for="iphone-main-text">Main Input · optional, ausschließlich eigene Eingabe</label><textarea id="iphone-main-text" rows="3" placeholder="Eigene Event-Storyboard-Angaben oder bewusst leer lassen"></textarea></div>
+   </div>
+   <div id="pc-route" class="hide">
+    <label for="pc-slider-choice">Duration-Slider im aktuellen PC-Browser sichtbar?</label>
+    <select id="pc-slider-choice"><option value="unknown">Noch nicht bestätigt</option><option value="yes">Ja, sichtbar</option><option value="no">Nein, nicht sichtbar</option></select>
+    <div id="pc-duration-wrap" class="hide"><label for="pc-duration">Gewählte Slider-Dauer (MM:SS) · optional</label><input id="pc-duration" placeholder="5:40" maxlength="5"></div>
+   </div>
+  </div>
+  <p class="route-note">Gerätebelege stammen aus früheren Creator-Workflows. Die aktuelle Suno-Oberfläche wird hier nicht automatisch ausgelesen.</p>
   <div class="notice">Ohne Geräteauswahl kein Track-Analyse-Auftrag. Keine Live-Suno-Felder oder Modellrechte werden behauptet.</div>
  </section>
  <section class="section card" id="intent-section">
@@ -134,18 +157,32 @@ label{display:block;font-size:12px;color:#dce2f5;margin-bottom:6px;font-weight:6
   <div class="decisions" id="decision-list"></div>
   <div class="divider"></div><h3>Konflikt-Hypothesen</h3><div id="collision-list"></div>
  </section>
+ <section class="section card hide" id="device-output-section">
+  <div class="step">R1.3 / DEVICE-AWARE SUNO OUTPUT</div>
+  <h2>Ausgabeübersetzung · exakt gezählte Copy-Felder</h2>
+  <p>Die Übersetzung übernimmt ausschließlich die vorhandenen Creator-Angaben. Sie erfindet keine Lyrics oder neue musikalische Entscheidungen. Die Zeichenbudgets stammen aus der geprüften LYVRA-Workflow-Referenz, nicht aus einer aktuellen Suno-Provider-Messung.</p>
+  <div id="device-output-meta" class="notice"></div>
+  <div class="output-fields" id="device-output-fields"></div>
+  <div id="device-main-card" class="output-card hide" style="margin-top:12px">
+    <h3>iPhone Main Input · optional</h3>
+    <textarea id="device-main-text" readonly></textarea>
+    <p id="device-main-count" class="output-count"></p>
+    <button type="button" class="ghost" id="device-main-copy">Main Input kopieren</button>
+  </div>
+  <div id="device-guidance" class="subtle" style="margin-top:14px"></div>
+ </section>
  <section class="section card hide" id="handoff-section">
   <div class="step">05 / AUDITABLE HANDOFF</div><h2>Deine Voranalyse sichern</h2>
   <p>Exportiere die Analyse mit deinen Entscheidungen als JSON oder kopiere die musikalischen Entscheidungsgründe. Ohne automatische Suno-Übertragung.</p>
   <div class="controls"><button class="primary" id="download-button" type="button">↓ JSON exportieren</button><button class="ghost" id="copy-button" type="button">Entscheidungen kopieren</button><span id="export-status" class="status" role="status"></span></div>
   <div class="notice">Nur ein lokaler Browser-Download. Kein GitHub-Write, keine Track-Erstellung und kein Suno-Render. Die R1.0-Engine bleibt die musikalische Quelle.</div>
  </section>
- <footer class="footer">666TDI-001 · LOCAL R1.1 DAEMON · VISUAL UI · R1.0 CREATIVE CAUSAL ENGINE · NO FOREIGN AUTHORITY · AUDIO UNVERIFIED</footer>
+ <footer class="footer">666TDI-001 · LOCAL R1.3 DAEMON · VISUAL UI · R1.0 CREATIVE CAUSAL ENGINE · NO FOREIGN AUTHORITY · AUDIO UNVERIFIED</footer>
 </main>
 </div>
 <script>
 "use strict";
-const selected={device:null,result:null,choices:{}};
+const selected={device:null,result:null,choices:{},editedFields:{}};
 const $=id=>document.getElementById(id);
 const fields=["title","genre","bpm","energy","story","motor","mid","high","voice","structure","ending","avoid","lyrics","psychoacoustics"];
 const text=(node,value)=>{node.textContent=String(value??"");return node;};
@@ -153,14 +190,16 @@ const el=(tag,cls,parent,value)=>{const n=document.createElement(tag);if(cls)n.c
 const badge=(parent,value,cls="")=>el("span","tag "+cls,parent,value);
 function invalidateAnalysis(message){
  if(!selected.result)return;
- selected.result=null;selected.choices={};
- for(const id of ["results-section","forecast-section","decisions-section","handoff-section"])$(id).classList.add("hide");
+ selected.result=null;selected.choices={};selected.editedFields={};
+ for(const id of ["results-section","forecast-section","decisions-section","device-output-section","handoff-section"])$(id).classList.add("hide");
  if(message)statusText(message,false);
  updateNav();
 }
 function changeDevice(value){
  if(selected.device!==value)invalidateAnalysis("Gerät geändert. Voranalyse muss neu erstellt werden.");
  selected.device=value;
+ $("iphone-route").classList.toggle("hide",value!=="IPHONE_SUNO_APP");
+ $("pc-route").classList.toggle("hide",value!=="PC_SUNO_BROWSER");
  document.querySelectorAll(".device").forEach(button=>{
   const active=button.dataset.device===value;
   button.classList.toggle("selected",active);
@@ -177,6 +216,19 @@ function updateNav(){
  });
 }
 document.querySelectorAll(".device").forEach(b=>b.addEventListener("click",()=>changeDevice(b.dataset.device)));
+function routeChanged(){
+ $("main-authoring").classList.toggle("hide",$("iphone-main-choice").value!=="yes");
+ $("pc-duration-wrap").classList.toggle("hide",$("pc-slider-choice").value!=="yes");
+ invalidateAnalysis("Ausgabeweg geändert. Neu analysieren, um veraltete Ergebnisse zu vermeiden.");
+}
+for(const id of ["iphone-main-choice","iphone-main-text","pc-slider-choice","pc-duration"])
+ $(id).addEventListener("input",routeChanged);
+function readRoute(){
+ if(selected.device==="IPHONE_SUNO_APP")
+  return {iphone_main_input:$("iphone-main-choice").value==="yes",main_input_text:$("iphone-main-choice").value==="yes"?$("iphone-main-text").value:""};
+ return {pc_duration_slider_visible:$("pc-slider-choice").value==="unknown"?null:$("pc-slider-choice").value==="yes",
+         pc_selected_duration:$("pc-slider-choice").value==="yes"?$("pc-duration").value.trim():""};
+}
 document.querySelectorAll(".navitem").forEach(b=>b.addEventListener("click",()=>{
  const target=$(b.dataset.target);
  if(target.classList.contains("hide")){statusText("Führe zuerst die Voranalyse durch.",true);return;}
@@ -274,12 +326,52 @@ function renderForecast(data){
   el("p","meta",card,"Funktionen: "+a.functions.join(", ")+" · Creator-Entscheidung erforderlich");
  }
 }
+function utf16Length(v){return String(v).length;}
+function renderDeviceOutput(data){
+ const out=data.device_output;
+ const parent=$("device-output-fields");parent.replaceChildren();
+ selected.editedFields={};
+ text($("device-output-meta"),"Route: "+out.route+" · Quelle: Creator-Referenz, keine Live-Suno-Verifikation · kein automatischer Render");
+ for(const key of out.field_order){
+  const f=out.fields[key];
+  const card=el("div","output-card",parent);
+  el("h3","",card,key.toUpperCase());
+  const ta=el("textarea","",card);ta.value=f.text;ta.setAttribute("aria-label",key+" Copy-Inhalt");
+  selected.editedFields[key]=f.text;
+  const count=el("div","output-count",card);
+  const copy=el("button","ghost",card,"Feld kopieren");copy.type="button";
+  const report=()=>{
+   const val=ta.value,used=utf16Length(val),ok=used<=f.reference_budget;
+   selected.editedFields[key]=val;
+   text(count,used+" / "+f.reference_budget+" UTF-16 · "+(ok?"Referenzbudget eingehalten":"Über Referenzbudget – manuell korrigieren"));
+   count.classList.toggle("bad",!ok);copy.disabled=!ok||!val.trim();
+  };
+  ta.addEventListener("input",report);
+  copy.addEventListener("click",async()=>{
+   try{await navigator.clipboard.writeText(ta.value);text(count,utf16Length(ta.value)+" / "+f.reference_budget+" UTF-16 · exakt kopiert");}
+   catch(e){text(count,"Clipboard nicht verfügbar – Text manuell kopieren");}
+  });report();
+ }
+ const main=$("device-main-card");main.classList.toggle("hide",out.main_input===null);
+ if(out.main_input!==null){
+  $("device-main-text").value=out.main_input.text;
+  text($("device-main-count"),utf16Length(out.main_input.text)+" UTF-16 · Main-Limit nicht unabhängig verifiziert");
+  $("device-main-copy").disabled=!out.main_input.copy_ready;
+ }
+ const help=$("device-guidance");help.replaceChildren();
+ for(const line of out.guidance)el("p","subtle",help,"• "+line);
+}
+$("device-main-copy").addEventListener("click",async()=>{
+ try{await navigator.clipboard.writeText($("device-main-text").value);text($("device-main-count"),"Main Input exakt kopiert");}
+ catch(e){text($("device-main-count"),"Clipboard nicht verfügbar");}
+});
 function render(data){
  selected.result=data;selected.choices={};
  $("results-section").classList.remove("hide");
  $("forecast-section").classList.remove("hide");
  $("decisions-section").classList.remove("hide");
  $("handoff-section").classList.remove("hide");
+ $("device-output-section").classList.remove("hide");
  text($("count-functions"),data.causal.functions.length);
  text($("count-relations"),data.causal.relations.length);
  text($("count-emergences"),data.causal.emergences.length);
@@ -287,7 +379,7 @@ function render(data){
  $("coverage-bar").style.width=Math.min(100,Math.round(data.semantic.functions.length/15*100))+"%";
  const tags=$("function-tags");tags.replaceChildren();
  for(const f of data.semantic.functions)badge(tags,f.id,f.status==="EXPLICITLY_CONSTRAINED"?"amber":"green");
- renderRelations(data);renderForecast(data);renderDecisions(data);updateNav();
+ renderRelations(data);renderForecast(data);renderDecisions(data);renderDeviceOutput(data);updateNav();
  $("results-section").scrollIntoView({behavior:"smooth",block:"start"});
 }
 $("intent-form").addEventListener("submit",async event=>{
@@ -295,7 +387,7 @@ $("intent-form").addEventListener("submit",async event=>{
  if(!selected.device){statusText("DEVICE_PREFLIGHT_REQUIRED",true);return;}
  const button=$("analyze-button");button.disabled=true;statusText("R1.0 analysiert deine musikalische Absicht …",false);
  try{
-  const response=await fetch("/api/preanalysis",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({device:selected.device,intent:readIntent(),total_bars:$("total-bars").value})});
+  const response=await fetch("/api/preanalysis",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({device:selected.device,intent:readIntent(),total_bars:$("total-bars").value,route_context:readRoute()})});
   const data=await response.json();
   if(!response.ok)throw new Error(data.error||"ANALYSIS_FAILED");
   render(data);statusText("Voranalyse erstellt – Hypothesen, nicht Audio-Beweise.",false);
@@ -303,13 +395,13 @@ $("intent-form").addEventListener("submit",async event=>{
  finally{button.disabled=!selected.device;}
 });
 function exportObject(){
- return {...selected.result,creator_decisions:{...selected.choices},creator_decisions_source:"EXPLICIT_BROWSER_SELECTION",decision_review_status:Object.keys(selected.choices).length?"PARTIAL_OR_FULL_CREATOR_REVIEW":"UNREVIEWED",exported_by:"LOCAL_BROWSER_NO_REPOSITORY_WRITE"};
+ return {...selected.result,creator_edited_copy_fields:{...selected.editedFields},creator_decisions:{...selected.choices},creator_decisions_source:"EXPLICIT_BROWSER_SELECTION",decision_review_status:Object.keys(selected.choices).length?"PARTIAL_OR_FULL_CREATOR_REVIEW":"UNREVIEWED",exported_by:"LOCAL_BROWSER_NO_REPOSITORY_WRITE"};
 }
 $("download-button").addEventListener("click",()=>{
  if(!selected.result)return;
  const body=JSON.stringify(exportObject(),null,2);
  const url=URL.createObjectURL(new Blob([body],{type:"application/json"}));
- const a=document.createElement("a");a.href=url;a.download="666TDI-R11-preanalysis.json";a.click();
+ const a=document.createElement("a");a.href=url;a.download="666TDI-R13-device-output.json";a.click();
  URL.revokeObjectURL(url);text($("export-status"),"Lokaler Download ausgelöst.");
 });
 $("copy-button").addEventListener("click",async()=>{

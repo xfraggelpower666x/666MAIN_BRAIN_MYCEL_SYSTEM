@@ -165,6 +165,24 @@
       "no_suno_execution": true,
       "no_global_learning": true,
       "no_foreign_authority": true
+    },
+    "device_output_r13": {
+      "status": "ADDITIVE_SOURCE_IMPLEMENTED_HOST_ACCEPTANCE_OPEN",
+      "module": "engine/device_output.py",
+      "purpose": "Three creator-evidence-scoped output translations for iPhone Suno Custom with/without optional Main and PC Browser",
+      "outputs": [
+        "TITLE",
+        "EXTENDED",
+        "STYLE",
+        "LYRICS"
+      ],
+      "optional_main_input": "IPHONE_ONLY_EXPLICIT",
+      "pc_slider": "ONLY_CREATOR_CONFIRMED_VISIBLE",
+      "utf16_budget_source": "CREATOR_REPORTED_REFERENCE_ONLY",
+      "no_autonomous_composer": true,
+      "no_suno_execution": true,
+      "no_foreign_authority": true,
+      "no_global_learning": true
     }
   }
 }

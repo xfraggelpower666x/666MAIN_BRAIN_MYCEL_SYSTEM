@@ -124,6 +124,24 @@
       "no_global_learning": true,
       "host_acceptance": "NOT_EXECUTED",
       "pointer_last": true
+    },
+    "r13_device_intelligence": {
+      "source": "DIRECT_USER_NEXT_R1.3_2026-11-23T17:56:08Z",
+      "scope": "PROJECTS/666TDI_ONLY",
+      "operations": [
+        "ADDITIVE_DEVICE_OUTPUT_ADAPTER",
+        "R11_R12_UI_ROUTE_INTEGRATION",
+        "UTF16_COPY_GUARD",
+        "CREATOR_REPORTED_PROFILE_REFERENCE",
+        "TARGETED_TEST_SOURCES",
+        "POINTER_LAST"
+      ],
+      "pre_change_backup": "backup/666tdi-r1.3-device-prechange-20261123",
+      "preserve_existing": true,
+      "no_foreign_repository_writes": true,
+      "no_suno_execution": true,
+      "no_global_learning": true,
+      "host_acceptance": "OPEN"
     }
   }
 }

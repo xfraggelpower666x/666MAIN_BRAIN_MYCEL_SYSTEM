@@ -2,7 +2,7 @@
   "schema": "666TDI_DAEMON_CONTRACT_R11_V1",
   "system_id": "666TDI-001",
   "name": "666TDI DAEMON",
-  "status": "R12_VISUAL_PREANALYSIS_IMPLEMENTED_HOST_ACCEPTANCE_OPEN",
+  "status": "R13_DEVICE_OUTPUT_IMPLEMENTED_HOST_ACCEPTANCE_OPEN",
   "authority": "666TDI_ONLY",
   "purpose": "Guide the creator through evidence-backed musical analysis and track-design decisions using the existing TDI engine.",
   "consumes": [
@@ -21,7 +21,8 @@
     "musical_chapter_timeline",
     "low_mid_high_voice_matrix",
     "creator_alternatives_and_counterfactuals",
-    "explicit_bar_plan_if_supplied"
+    "explicit_bar_plan_if_supplied",
+    "device_scoped_four_source_copy_fields"
   ],
   "flow": [
     "DEVICE_PREFLIGHT",
@@ -47,7 +48,14 @@
     "never_infer_missing_fields": true,
     "renderer_profiles_are_separate": true,
     "musical_intelligence_is_shared": true,
-    "implemented_in_r11": true
+    "implemented_in_r11": true,
+    "routes": [
+      "IPHONE_CUSTOM_NO_MAIN",
+      "IPHONE_CUSTOM_WITH_MAIN",
+      "PC_BROWSER"
+    ],
+    "route_authority": "LYVRA_CREATOR_REPORTED_READ_ONLY_REFERENCE",
+    "no_actual_provider_live_verification": true
   },
   "visual_truth": {
     "derive_ui_from_current_analysis": true,
@@ -86,6 +94,10 @@
     "preanalysis_status": "IMPLEMENTED_SOURCE_HOST_ACCEPTANCE_OPEN",
     "timelines_are_proposals_not_measured": true,
     "no_bar_default": true,
-    "r12_ui": "source/engine/daemon_static/index.html"
+    "r12_ui": "source/engine/daemon_static/index.html",
+    "device_adapter": "source/engine/device_output.py",
+    "device_output_status": "SOURCE_IMPLEMENTED_PROVIDER_LIVE_VERIFICATION_OPEN",
+    "current_visual_release": "R1.3",
+    "clipboard_host_acceptance": "NOT_EXECUTED"
   }
 }

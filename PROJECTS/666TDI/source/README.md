@@ -185,3 +185,7 @@ Start (Python 3.10+): `python -m engine.daemon_cli --port 8766`; dann `http://12
 
 ## R1.2 – Track Pre-Analysis Intelligence (additiv)
 `engine/track_preanalysis.py` verknüpft die belegten R0.9/R1.0-Funktionsbeziehungen mit acht vorgeschlagenen musikalischen Kapiteln, LOW/MID/HIGH/VOICE-Matrix und kausal begründeten Alternativen. Die bestehende R1.1-Oberfläche zeigt eine visuelle Kapitel-Zeitleiste. Der Taktzielwert (32–2048) ist optional und wird niemals stillschweigend gesetzt; die Dauer ist nur bei explizitem BPM und Taktziel eine mathematische 4/4-Planung. Keine erfundenen Songinhalte, keine Audio-Messungsbehauptungen, keine fremde Authority. Siehe `docs/R12_TRACK_PREANALYSIS.md`.
+
+
+## R1.3 – Device Intelligence (additiv)
+Die bewährte R1.0/R1.2-Musikanalyse bleibt einheitlich. `engine/device_output.py` erzeugt aus vorhandenen Creator-Angaben vier getrennte, echte UTF-16-gezählte Suno-Kopierfelder mit klarer Provenienz. Der visuelle Daemon unterscheidet iPhone ohne Main, iPhone mit ausdrücklich optionalem Main und PC-Browser; Duration-Slider wird nur bei Creator-bestätigter Sichtbarkeit berücksichtigt. Keine neue Musikengine, keine automatische Generierung oder Audio-Pflicht. Quelle und Einschränkungen: `docs/R13_DEVICE_INTELLIGENCE.md`. Python-/Browser-Abnahme noch offen.

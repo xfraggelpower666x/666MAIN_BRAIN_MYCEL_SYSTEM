@@ -60,3 +60,7 @@ Start: `cd PROJECTS/666TDI/source && python -m engine.daemon_cli --port 8766` (P
 
 ## R1.2 – Track Pre-Analysis Intelligence
 R1.1 bleibt lokale Neon-Cyber-UI, R1.0 die musikalische Entscheidungsautorität. Die additive R1.2-Voranalyse zeigt acht vorgeschlagene Kapitel, einen optionalen exakten Taktplan, qualitative dramaturgische Dynamik, LOW/MID/HIGH/VOICE-Quellen und Alternativen mit Gegenfakten. Es gibt keine automatische Suno-Ausführung oder erfundene Story-Kapitel. Siehe `source/docs/R12_TRACK_PREANALYSIS.md`. Laufzeittests und Host-Abnahme sind separat nachzuweisen.
+
+
+## R1.3 – Device Intelligence
+Additiver Ausgabeadapter `source/engine/device_output.py` und dieselbe R1.1/R1.2-Browser-UI; unterstützt creator-reported iPhone Custom ohne/mit optionalem Main Input und PC Browser mit bestätigungsabhängigem Duration-Slider. Exakte UTF-16-Zähler und kopierbare Creator-Quellfelder. Die LYVRA-Gerätereferenz ist lesend und nicht musikalische TDI-Authority. Siehe `source/docs/R13_DEVICE_INTELLIGENCE.md`.

@@ -12,7 +12,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from . import creative_causal, semantic_intelligence, track_preanalysis
+from . import creative_causal, semantic_intelligence, track_preanalysis, device_output
 
 SYSTEM_ID = "666TDI-001"
 DAEMON_SCHEMA = "666TDI_DAEMON_R11_LOCAL_V1"
@@ -70,12 +70,13 @@ def preanalysis(payload: dict) -> dict:
     semantic = semantic_intelligence.assess(intent)
     causal = creative_causal.assess(intent)
     preanalysis = track_preanalysis.assess(intent, semantic, causal, total_bars=bars)
+    renderer = device_output.translate(intent, device, payload.get("route_context"))
     device_labels = {
         "IPHONE_SUNO_APP": "iPhone · Suno App",
         "PC_SUNO_BROWSER": "PC · Suno Browser",
     }
     return {
-        "schema": DAEMON_SCHEMA,
+        "schema": "666TDI_DAEMON_R13_LOCAL_V1",
         "system_id": SYSTEM_ID,
         "device": device,
         "device_label": device_labels[device],
@@ -85,12 +86,13 @@ def preanalysis(payload: dict) -> dict:
         "semantic": semantic,
         "causal": causal,
         "preanalysis": preanalysis,
+        "device_output": renderer,
         "menu": [
             {"id":"device", "label":"Gerät & Workflow", "status":"COMPLETE"},
             {"id":"intent", "label":"Track-Idee", "status":"COMPLETE"},
             {"id":"analysis", "label":"Musikalische Voranalyse", "status":"COMPLETE"},
             {"id":"decisions", "label":"Entscheidungshilfen", "status":"CREATOR_REVIEW"},
-            {"id":"output", "label":"Suno-Übergabe", "status":"NOT_IMPLEMENTED"},
+            {"id":"output", "label":"Suno-Übergabe", "status":"CREATOR_REVIEW_NO_RENDER"},
         ],
         "evidence_class": "TRACK_INTENT_RULE_DERIVED_HYPOTHESIS",
         "audio_verified": False,
@@ -103,7 +105,7 @@ def preanalysis(payload: dict) -> dict:
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "666TDI-Daemon/1.1"
+    server_version = "666TDI-Daemon/1.3"
 
     def log_message(self, format, *args):
         # Avoid logging submitted lyrics, creative intent or other body content.
@@ -182,7 +184,7 @@ def main():
         parser.error("port must be between 1024 and 65535")
     host = "127.0.0.1"
     with ThreadingHTTPServer((host, args.port), Handler) as server:
-        print("666TDI DAEMON R1.1 · http://%s:%s" % (host, args.port))
+        print("666TDI DAEMON R1.3 · http://%s:%s" % (host, args.port))
         print("LOCAL ONLY · DEVICE PREFLIGHT REQUIRED · NO SUNO EXECUTION")
         try:
             server.serve_forever()
