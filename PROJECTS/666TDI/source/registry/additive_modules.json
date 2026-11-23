@@ -114,6 +114,15 @@
       "purpose": "Measure actual PCM audio and stem signals; compare quantitative targets; preserve hashes, uncertainty and reviewed hypotheses",
       "no_automatic_global_learning": true,
       "no_foreign_repository_writes": true
+    },
+    "semantic_music_intelligence": {
+      "status": "ADDITIVE_LOCAL_R09",
+      "scope": "TRACK_LOCAL_READ_ONLY_FUNCTION_INTERPRETATION",
+      "purpose": "Interpret creator language as musical jobs, distinguish support from negated/avoided constraints, expose potential function collisions and explain design rationale",
+      "no_audio_claim": true,
+      "no_renderer_override": true,
+      "no_global_learning": true,
+      "source": "engine/semantic_intelligence.py"
     }
   }
 }
