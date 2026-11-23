@@ -20,15 +20,15 @@
   "livecircle": "PROJECTS/666TDI/livecircle/CURRENT_STATE.json",
   "rehydration": "PROJECTS/666TDI/rehydration/rehydrate.py",
   "triggers": "PROJECTS/666TDI/triggers/TRIGGER_REGISTRY.json",
-  "source_commit_sha": "94d9f61209fde22a7374f5a54ae043acb1070136",
+  "source_commit_sha": "803b8e632d2de4625df0e0a343fd919498ef2406",
   "audio_validation": "OPTIONAL_ON_DEMAND",
-  "next_action": "R0.9 creator-intent validation and targeted regression execution; native host acceptance remains open; audio optional",
-  "source_readback_commit_sha": "94d9f61209fde22a7374f5a54ae043acb1070136",
+  "next_action": "Execute the 13 authored R0.9 semantic and integration tests in Python 3.10+; review creator-provided intents; native host acceptance remains open; audio optional",
+  "source_readback_commit_sha": "803b8e632d2de4625df0e0a343fd919498ef2406",
   "source_readback_result": "75_OF_75_GIT_BLOBS_MATCH_R09_MANIFEST",
   "audio_analysis_required": false,
   "optional_audio_policy": "PROJECTS/666TDI/governance/AUDIO_MUSIC_ANALYSIS_OPTIONAL.json",
   "additive_4c_facet": "PROJECTS/666TDI/facets/4c/CONTRACT.json",
-  "source_manifest_blob_sha": "3d2feb0a015600647e6a92be4e3b5b7b7e0124c4",
+  "source_manifest_blob_sha": "257bf5aad06f8be579753a25b9071a598d438471",
   "r11_handoff_id": "CLIC-TO-666TDI-R11-20261122-01",
   "r11_native_integration_status": "NATIVE_ADOPTED_VERIFIED_READBACK",
   "r11_source_commit": "0d955834f58181cf1b0cb94c8c81dc299c07dbfe",
@@ -84,12 +84,13 @@
       "FUNCTION_COLLISION_EXPLANATION",
       "TRACK_LOCAL_READ_ONLY_DECISIONS"
     ],
-    "test_cases_authored": 12,
+    "test_cases_authored": 13,
     "python_test_execution": "NOT_EXECUTED_IN_THIS_SESSION",
     "creator_sample_validation": "OPEN",
     "audio_validation": "OPTIONAL_NOT_EXECUTED",
     "renderer_override": false,
     "automatic_global_learning": false,
-    "foreign_activation": false
+    "foreign_activation": false,
+    "integration_test": "PROJECTS/666TDI/source/tests/test_portable.py::test_r09_semantic_intelligence_is_integrated"
   }
 }
