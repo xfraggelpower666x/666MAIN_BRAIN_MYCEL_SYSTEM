@@ -51,4 +51,15 @@ R19_ABC_TESTS: unchanged R18 local regression 288/288 PASS at 2026-11-22; render
 R19_ABC_HOST_GATES: Python bridge native Windows host behavior, full B classic feature parity, portable and NSIS executable builds READBACK_PENDING
 NEXT_DEVELOPMENT: targeted Windows host bridge/renderer IPC smoke test, real portable/setup proof, then remaining parity without removing R18 or exposing installer UI
 
+
+REPOSITORY_RECOVERY_2026_11_23: VERIFIED
+RECOVERY_REASON: unrelated research-orchestra commit 17692f9921e0bc16912fea9f93af63e1342c0b65 switched the shared branch to a reduced repository tree; Cyber Drive subtree disappeared despite later valid R19 state.
+RECOVERY_SOURCE_COMMIT: ff0d832fc4beba51095e71af16ddde633a65ebee
+RECOVERY_SOURCE_SUBTREE: d57f5a44f862afd8f6bd1e2a35155909a832fea6
+RECOVERY_IMPLEMENTATION_COMMIT: 10aa6141f803a65fb78d7c50822fbac38f73b649
+RECOVERY_READBACK: project subtree found current branch, 224 project blobs including 186 original R18 blobs, recursive tree not truncated
+RECOVERY_SCOPE: only PROJECTS/666_CYBER_DRIVE_CONTROL restored additively, no branch reset, no foreign project changes
+CODEFORGE_COORDINATION: LYVRA CODING PROFI technical lead, independent native owners preserved; cross-system merges forbidden
+NEXT_OPEN_HOST_GATE: Windows Electron runtime D/E/A/B/C, Classic parity check, portable and NSIS setup build remain pending; source restoration is not Windows execution
+
 NEXT_EXECUTABLE: Windows checkout of verified GitHub Current; START_BUILD_WINDOWS.bat -> menu 9; inspect real EXEs, setup install directory choice, tray, overlay and USB hotplug, then hash/readback release artifacts
