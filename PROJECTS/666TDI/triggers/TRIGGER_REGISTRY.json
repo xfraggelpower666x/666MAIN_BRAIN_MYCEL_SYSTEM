@@ -1,0 +1,30 @@
+{
+  "system_id": "666TDI-001",
+  "namespace": "666TDI",
+  "direct_chat_triggers": [
+    "666TDI SYSTEMSTART",
+    "666TDI STATUS",
+    "666TDI HELP",
+    "666TDI TRACKDESIGN",
+    "666TDI SOURCE",
+    "666TDI DISCOVERY",
+    "666TDI ANALYSE",
+    "666TDI COMPILE",
+    "666TDI FEEDBACK",
+    "666TDI LIVECIRCLE",
+    "666TDI REHYDRATION",
+    "666TDI WEITER",
+    "666TDI FREEZE",
+    "666TDI BACKUP",
+    "666TDI CHARAKTER",
+    "666TDI EVOLUTION",
+    "666TDI TEMPORAL FEEDBACK",
+    "666TDI TENSION",
+    "666TDI AUDIO AUDIT",
+    "666TDI RELATIONAL",
+    "666TDI RELATIONAL AUDIT"
+  ],
+  "chat_trigger_installation": "NOT_INSTALLED",
+  "scope": "ONLY_666TDI",
+  "foreign_triggers_in_sources_inert": true
+}

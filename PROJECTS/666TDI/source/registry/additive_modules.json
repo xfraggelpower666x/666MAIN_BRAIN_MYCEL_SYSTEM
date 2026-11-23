@@ -1,0 +1,119 @@
+{
+  "schema": "666TDI_ADDITIVE_MODULE_REGISTRY_V1",
+  "system_id": "666TDI-001",
+  "current_base": "EXISTING_V2.5_CURRENT_UNCHANGED",
+  "default_policy": "CANDIDATE_ADDITIVE_NOT_AUTOPROMOTED",
+  "modules": {
+    "character_continuity": {
+      "description": "666TDI character, masculine, experience-based growth; no LYVRA self-import",
+      "source": "LYVRA_CHARACTER_INTELLIGENCE_FOUNDATION_v1_0_0.md",
+      "status": "IMPLEMENTED_PARTIAL",
+      "not_audio_verified": true
+    },
+    "temporal_feedback": {
+      "description": "Layered immediate, later, technical feedback; no silent supersession",
+      "source": "LYVRA_CUMULATIVE_ADAPTIVE_TEMPORAL_FEEDBACK_PROTOCOL_v1_0_0.md",
+      "status": "IMPLEMENTED_PARTIAL",
+      "not_audio_verified": true
+    },
+    "controlled_aperture": {
+      "description": "Geometry of pressure projection with stable core",
+      "source": "LYVRA_CONTROLLED_OUTPUT_APERTURE_MODULATION_COAM_v1_0_0.md",
+      "status": "IMPLEMENTED_PARTIAL",
+      "not_audio_verified": true
+    },
+    "predictive_tension": {
+      "description": "Expected anchor and structured eventual resolution",
+      "source": "Eingefügter Text(1).txt",
+      "status": "IMPLEMENTED_PARTIAL",
+      "not_audio_verified": true
+    },
+    "embodied_pressure": {
+      "description": "Load, decompression, impact return, afterpressure",
+      "source": "Eingefügter Text(1).txt",
+      "status": "IMPLEMENTED_PARTIAL",
+      "not_audio_verified": true
+    },
+    "sound_object_lifecycle": {
+      "description": "Emergence-motion-transformation-termination, no fixed re-use",
+      "source": "Eingefügter Text(1).txt",
+      "status": "IMPLEMENTED_PARTIAL",
+      "not_audio_verified": true
+    },
+    "psychoacoustic_conflict": {
+      "description": "Priority-based candidate repair, stem evidence required",
+      "source": "Eingefügter Text(1).txt",
+      "status": "IMPLEMENTED_PARTIAL",
+      "not_audio_verified": true
+    },
+    "protected_autonomy": {
+      "description": "Task fidelity separate from quality, candidate creative mutation",
+      "source": "LYVRA_CREATIVE_AUTONOMY_META_LEARNING_AND_VISUAL_TRUTH_ARCHITECTURE_FULL_FIDELITY_v1_1_0.md",
+      "status": "CONCEPT_REGISTERED",
+      "not_audio_verified": true
+    },
+    "album_role": {
+      "description": "Role classification as non-binding musical interpretation",
+      "source": "LYVRA_ALBUM_DYNAMIC_ROLE_CLASSIFIER_LADRC_v1_0_0.md",
+      "status": "CONCEPT_REGISTERED",
+      "not_audio_verified": true
+    },
+    "renderer_laboratory": {
+      "description": "Renderer-specific semantics, controlled tests, no authority override",
+      "source": "ChatGPT_AI-Song-Generator-Analyse_20261121-0700(1).pdf",
+      "status": "CONCEPT_REGISTERED",
+      "not_audio_verified": true
+    },
+    "source_fidelity": {
+      "description": "Preserve source meaning and current track context",
+      "source": "LYVRA native readback 2026-11-21",
+      "status": "CONCEPT_REGISTERED",
+      "not_audio_verified": true
+    },
+    "legacy_guards_reference": {
+      "description": "Earlier 1.9/1.12 cost and runtime gates for review, no autopromotion",
+      "source": "historical LYVRA archives",
+      "status": "CONCEPT_REGISTERED",
+      "not_audio_verified": true
+    },
+    "style_lineage_context": {
+      "status": "ADDITIVE_LOCAL",
+      "purpose": "Historical genre families as optional evidence, never unconditional defaults"
+    },
+    "one_week_reflection": {
+      "status": "ADDITIVE_LOCAL",
+      "purpose": "Provisional seven-day observations with no scheduled deletion or promotion"
+    },
+    "role_surface_separation": {
+      "status": "ADDITIVE_LOCAL",
+      "purpose": "Music authoring distinct from HTML code and autonomous deployment"
+    },
+    "source_traceability": {
+      "status": "ADDITIVE_LOCAL",
+      "purpose": "Historical excerpts remain non-authoritative, source-specific and conflict aware"
+    },
+    "legacy_field_contract_guard": {
+      "status": "ADDITIVE_LOCAL",
+      "purpose": "Conflicting older output orders never overwrite current target renderer contract"
+    },
+    "character_masculine_guard": {
+      "status": "ADDITIVE_LOCAL",
+      "purpose": "666TDI male pronouns only in new character runtime; imported LYVRA text inert"
+    },
+    "relational_music_pattern_bridge": {
+      "status": "ADDITIVE_LOCAL_R07",
+      "scope": "TRACK_LOCAL_READONLY_EVALUATION",
+      "purpose": "Connect historical music pattern candidates with 666TDI track causal graph using function witnesses, counterrelations, provenance and explicit reviewed association",
+      "no_auto_promotion": true,
+      "no_audio_claim": true,
+      "source": "registry/r06_music_candidates.json"
+    },
+    "causal_audio_feedback_engine": {
+      "status": "ADDITIVE_LOCAL_R08",
+      "scope": "LOCAL_MEASUREMENT_AND_SCOPED_FEEDBACK",
+      "purpose": "Measure actual PCM audio and stem signals; compare quantitative targets; preserve hashes, uncertainty and reviewed hypotheses",
+      "no_automatic_global_learning": true,
+      "no_foreign_repository_writes": true
+    }
+  }
+}

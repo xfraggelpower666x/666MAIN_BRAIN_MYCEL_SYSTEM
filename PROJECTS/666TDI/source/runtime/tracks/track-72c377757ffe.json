@@ -1,0 +1,121 @@
+{
+  "analysis": {
+    "active_cards": [
+      {
+        "candidate_audible_consequence": "Stabiler 4/4-Kick, klarer 16tel-Psybass, feste DJ-Zeitbasis",
+        "card_id": "motor-straight",
+        "counterrelation": [
+          "unmotivierter Bounce",
+          "unkontrollierter Swing"
+        ],
+        "kind": "motor",
+        "matched_terms": [
+          "psytrance"
+        ],
+        "semantic_hypothesis": "gerichteter kinetischer Antrieb",
+        "status": "CANDIDATE_CONTEXT_REVIEW"
+      },
+      {
+        "candidate_audible_consequence": "Metallische Acid-/FM-Ereignisse und digitale Störtextur",
+        "card_id": "cyber-material",
+        "counterrelation": [
+          "zufällige Effekte ohne Storybezug"
+        ],
+        "kind": "material",
+        "matched_terms": [
+          "machine",
+          "circuit",
+          "signal"
+        ],
+        "semantic_hypothesis": "technische Materialität und Reibung",
+        "status": "CANDIDATE_CONTEXT_REVIEW"
+      },
+      {
+        "candidate_audible_consequence": "Atemräume, Pulsereignisse, Nähe-/Distanz-Vocals",
+        "card_id": "somatic-human",
+        "counterrelation": [
+          "automatische Erotisierung"
+        ],
+        "kind": "somatic",
+        "matched_terms": [
+          "heart"
+        ],
+        "semantic_hypothesis": "körperliche Nähe, Verletzlichkeit und Spannung",
+        "status": "CANDIDATE_CONTEXT_REVIEW"
+      },
+      {
+        "candidate_audible_consequence": "Kontrollierte spektrale Bewegung in MID/HIGH bei stabilem LOW",
+        "card_id": "psy-orbit",
+        "counterrelation": [
+          "stereo-unruhiger Subbass"
+        ],
+        "kind": "spatial",
+        "matched_terms": [
+          "orbit"
+        ],
+        "semantic_hypothesis": "Wahrnehmungsrotation und räumliche Verzerrung",
+        "status": "CANDIDATE_CONTEXT_REVIEW"
+      },
+      {
+        "candidate_audible_consequence": "Kontrast zwischen Kompression, Leerräumen und starken Rückkehrereignissen",
+        "card_id": "dark-pressure",
+        "counterrelation": [
+          "dauerhaft maximale Dichte"
+        ],
+        "kind": "energy",
+        "matched_terms": [
+          "dark"
+        ],
+        "semantic_hypothesis": "Druck als erzählerische Kraft",
+        "status": "CANDIDATE_CONTEXT_REVIEW"
+      }
+    ],
+    "meaning_sources": [
+      "current_input",
+      "explicit_track_fields"
+    ],
+    "relations": [
+      {
+        "constraint": "LOW_STABLE",
+        "from": "LOW",
+        "reason": "Tempo/Phasenstabilität bei wahrnehmungsbezogener Bewegung",
+        "to": "MID/HIGH"
+      },
+      {
+        "constraint": "NO_RANDOM_STORY_INVENTION",
+        "from": "STORY",
+        "reason": "Musikalische Ereignisse müssen eine nachvollziehbare Funktion haben",
+        "to": "ARRANGEMENT"
+      },
+      {
+        "constraint": "NO_COMPOSITION_OVERRIDE",
+        "from": "RENDERER",
+        "reason": "Renderer begrenzt Ausdruck, nicht musikalische Bedeutung",
+        "to": "INTENT"
+      }
+    ],
+    "warnings": [
+      "SOURCE_FIDELITY_REQUIRES_HUMAN_SEMANTIC_REVIEW"
+    ]
+  },
+  "atmosphere": "cybernetic void and metallic signal noise",
+  "avoid": "pop chorus, bouncing bass, happy EDM lead",
+  "bpm": 145,
+  "ending": "clean DJ-readable terminal landing, no accidental fade",
+  "energy": "relentless forward traction with contrast and two earned drops",
+  "genre": "Dark Psytrance",
+  "high": "rotating spectral echoes and moving phantom distances",
+  "independent_context": true,
+  "lyrics": "I hear the circuit breathe.\nThe machine remembers me.",
+  "mid": "acid/FM call-response, evolving rhythmic patterns",
+  "mode": "SOURCE",
+  "motor": "dry punchy 4/4 kick and straight 16th mono psybass",
+  "psychoacoustics": "perceptual orbit above stable mono low-end",
+  "references": [],
+  "story": "A human pulse awakens inside a silent machine",
+  "structure": "intro, first encounter, void, return-with-history, terminal landing",
+  "target_seconds": 330,
+  "title": "Orbit of the Machine Heart",
+  "track_id": "track-72c377757ffe",
+  "voice": "close whispered, intelligible, tense"
+}

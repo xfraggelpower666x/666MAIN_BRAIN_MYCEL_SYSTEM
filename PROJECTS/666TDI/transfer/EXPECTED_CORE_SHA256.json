@@ -1,0 +1,16 @@
+{
+  "system_id": "666TDI-001",
+  "source_root": "PROJECTS/666TDI/source",
+  "expected_source_files": 71,
+  "expected_zip_files": 79,
+  "quarantine_files": 8,
+  "expected_source_sha256": {
+    "engine/portable.py": "3801c7eb289cddd9d5c15414f5610c562a43ec35669bd25cf34a8d21a293e64d",
+    "engine/relational.py": "1db708640cdcd4ae0a37abca43ebaeb87f00adecc44d4da00118617afb7df0d0",
+    "engine/audio_feedback.py": "2427352771f38d648354f19b61047f3b126ff7f7fca9af8580f902c4acbf1f3b",
+    "registry/triggers.json": "a206693e8f88ff86a17cda61da7848a2eda38adbd21b0696add53b85ddb41bd0",
+    "runtime/livecircle.json": "63e395d73b86aa190485531ea7a598408e4cb73115776de0ea621d55abe066c1",
+    "runtime/character.json": "158b1723ed32afe82227692d98514f63bf14a2014410982d28f8d0c4dce93614",
+    "tests/test_audio_feedback.py": "7045e4bdfcef7396651c080034ad266dc2deb6fb0edc538d0ee1853afda51230"
+  }
+}
