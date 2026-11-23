@@ -39,10 +39,21 @@ def list_loopback_devices():
     """Names of output devices that can be captured. '' means the current default output."""
     if not available():
         return []
+    from .resin3 import windows_endpoints
     p = pyaudio.PyAudio()
     try:
-        return [f'WASAPI:{int(d["index"])} | {d["name"]}'
-                for d in p.get_loopback_device_info_generator()]
+        loopbacks = list(p.get_loopback_device_info_generator())
+        labels = [f'WASAPI:{int(d["index"])} | {d["name"]}' for d in loopbacks]
+        try:
+            endpoints = windows_endpoints.render_endpoints()
+            records = [(int(d["index"]), d["name"]) for d in loopbacks]
+            for endpoint in endpoints:
+                if windows_endpoints.unique_native_device_index(
+                        endpoints, endpoint.endpoint_id, records) is not None:
+                    labels.append(windows_endpoints.stable_label(endpoint))
+        except (OSError, RuntimeError):
+            pass
+        return labels
     except (OSError, LookupError):
         return []
     finally:
@@ -50,12 +61,27 @@ def list_loopback_devices():
 
 
 def _resolve(p, name):
+    from .resin3 import windows_endpoints
     """Resolve an explicit WASAPI device identity; never silently substitute another endpoint."""
     loopbacks = list(p.get_loopback_device_info_generator())
     if not loopbacks:
         raise OSError("no loopback-capable output device found")
     name = str(name or "").strip()
     if name and name != "Default speakers":
+        stable_id = windows_endpoints.parse_stable_label(name)
+        if stable_id is not None:
+            try:
+                endpoints = windows_endpoints.render_endpoints()
+                index = windows_endpoints.unique_native_device_index(
+                    endpoints, stable_id, [(int(d["index"]), d["name"]) for d in loopbacks])
+            except RuntimeError as exc:
+                raise OSError(str(exc)) from exc
+            if index is None:
+                raise OSError("Windows loopback identity cannot be uniquely mapped; refresh selection.")
+            exact = [d for d in loopbacks if int(d["index"]) == index]
+            if len(exact) != 1:
+                raise OSError("Windows WASAPI endpoint disappeared during activation.")
+            return exact[0]
         match = re.fullmatch(r"WASAPI:(\d+) \| (.+)", name)
         if match:
             index, label = int(match.group(1)), match.group(2)

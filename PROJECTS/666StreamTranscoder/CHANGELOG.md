@@ -1,5 +1,20 @@
 # 666StreamTranscoder v3.0 — Changelog
 
+## R11 — 2026-11-23 — Native Windows endpoint identity and acceptance gate
+
+- Added read-only native Windows IMMDeviceEnumerator COM adapter for
+  IMMDevice::GetId and active render endpoint friendly names.
+- Added optional IMM-prefixed stable endpoint choices for monitor output and
+  WASAPI loopback, only with unique Windows/PortAudio/PyAudioWPatch mappings.
+- Preserved existing R10 index-based/legacy device labels as compatible fallbacks;
+  stale/ambiguous Core Audio identity never redirects to a guessed device.
+- Added 10 identity-mapping tests, native Windows CI smoke, and read-only
+  physical host inventory script with evidence checklist.
+- No new stream engine, driver installation, system settings changes,
+  network service login, or original asset mutation.
+- Physical Windows hardware, provider networking, hotplug, and installer
+  acceptance remain open.
+
 ## R10 — 2026-11-23 — Device identity and fault-injection routing
 
 - Added PortAudio monitor output descriptors with host API, enumerated device index

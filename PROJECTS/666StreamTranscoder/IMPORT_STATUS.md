@@ -34,6 +34,18 @@
 - `OPEN`: tests are present but have not been executed against a Windows device/network runtime.
 - `OPEN`: actual end-to-end input → PCM mix → encoder → Icecast/Shoutcast provider acceptance.
 
+## R11 Windows IMMDevice identity extension
+
+- `IMPLEMENTED`: Windows MMDeviceEnumerator COM-based render endpoint ID
+  enumeration and unique mapping to existing PortAudio/PyAudioWPatch routes.
+- `IMPLEMENTED`: stable `IMM:` selections and explicit rejection of
+  stale/ambiguous endpoint mappings, preserving R10 legacy selections.
+- `IMPLEMENTED`: 10 new identity tests, Windows CI smoke job,
+  read-only Windows host inventory and hardware acceptance protocol.
+- `OPEN`: native CI receipt and direct Git readback must be checked.
+- `OPEN`: physical capture/monitor/audio hardware, hotplug, owned
+  Shoutcast/Icecast endpoint and Windows EXE/installer acceptance.
+
 ## R10 routing identity and real local socket failure
 
 - `SOURCE IMPLEMENTED`: exact PortAudio index, host API and name validation for local monitor output.

@@ -32,6 +32,24 @@ The complete 3DX Radio Streamer 1.3.0 source is retained in the active project a
 - Validation is local to monitor startup and does not change existing stream or virtual audio device settings.
 - These are source-level changes and acceptance tests, **not** evidence of a completed native Windows or live Shoutcast/Icecast run.
 
+## R11 native Windows Core Audio endpoint identities
+
+- Additive Windows Core Audio COM adapter reads `IMMDevice::GetId` and
+  friendly name for active render endpoints. The stable `IMM:` identity
+  survives PortAudio/PyAudioWPatch index reorder when the mapping to the
+  native sound device is unique.
+- Existing legacy `PA:`/`WASAPI:` selections remain supported.
+  Ambiguous native mappings fail rather than silently rerouting.
+- Read-only Windows hardware inventory and manual device/hotplug,
+  VB-CABLE, provider and installer acceptance procedure are in
+  `docs/R11_WINDOWS_HARDWARE_ACCEPTANCE.md`.
+- CI includes mocked identity tests plus native COM enumeration on a Windows
+  GitHub runner. **A CI VM cannot certify physical audio hardware.**
+
+```powershell
+python scripts/windows_hardware_probe.py --json
+```
+
 ## R10 device-identity and failure routing
 
 - Monitor output choices now show the PortAudio enumeration index, host API and

@@ -34,7 +34,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Check Python compilation
-        run: python -m compileall -q radiostreamer tests/test_resin3_control_plane.py tests/test_resin3_modules.py tests/test_resin3_runtime_boundaries.py tests/test_crossfade_audio.py tests/test_pipe_lifecycle.py tests/test_device_routing.py
+        run: python -m compileall -q radiostreamer tests/test_resin3_control_plane.py tests/test_resin3_modules.py tests/test_resin3_runtime_boundaries.py tests/test_crossfade_audio.py tests/test_pipe_lifecycle.py tests/test_device_routing.py tests/test_windows_endpoint_ids.py
       - name: Resin 3 contract suite (no audio device, no provider, no credentials)
         run: python -m unittest discover -s tests -p 'test_resin3_*.py' -v
       - name: Crossfade pure PCM tests
@@ -43,6 +43,8 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_pipe_lifecycle.py' -v
       - name: R10 deterministic device routing and real loopback socket failure tests
         run: python -m unittest discover -s tests -p 'test_device_routing.py' -v
+      - name: R11 stable Windows IMMDevice identity contracts (mocked inventory)
+        run: python -m unittest discover -s tests -p 'test_windows_endpoint_ids.py' -v
       - name: Install FFmpeg on the isolated CI runner
         run: |
           sudo apt-get update -qq
@@ -51,3 +53,22 @@ jobs:
         run: |
           ffmpeg -hide_banner -encoders | grep -q libmp3lame
           python -m unittest discover -s tests -p 'test_e2e_synthetic.py' -v
+
+  windows-coreaudio-smoke:
+    name: R11 native Windows MMDevice smoke (not physical hardware acceptance)
+    runs-on: windows-latest
+    timeout-minutes: 6
+    defaults:
+      run:
+        working-directory: PROJECTS/666StreamTranscoder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile Windows device adapter
+        run: python -m compileall -q radiostreamer/resin3/windows_endpoints.py scripts/windows_hardware_probe.py
+      - name: Core Audio identity contract tests
+        run: python -m unittest discover -s tests -p 'test_windows_endpoint_ids.py' -v
+      - name: Read-only IMMDevice enumeration on Windows runner
+        run: python scripts/windows_hardware_probe.py --json
