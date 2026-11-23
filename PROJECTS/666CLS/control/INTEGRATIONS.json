@@ -109,7 +109,7 @@
         "facets/MAIN_LIVECIRCLE.json": "4b2b30d80c5b43945a99b004150207873d4175468e123c3ded14f52e07aff7af",
         "facets/FACET_REGISTRY.json": "3c219ca9bcd664eca04804ed53705857cd605a282324f18aa2f1e1d49e11a74c",
         "facets/README.md": "e63092e60575d0a41b60f5d3ab6e4a93844f0b3c3ea5af37c48d07e4fae4f285",
-        "runtime/cls_facet_runtime.py": "0f94c04a94cb88f3fa681347b8812a1c374ead1b8d34910c7c5353f389e9a3e6",
+        "runtime/cls_facet_runtime.py": "d1987237ba77f9c5695d8a5e280d4e6f4ba662ba230db2a809df2be932e3374a",
         "tests/test_cls_facet_runtime.py": "8fb3c6dba4fe2ff6642c1ccff63558c080c8e2470eda72f96ffa9fe3fecb8012",
         "facets/cures/LIVECIRCLE.json": "a067ef9670b4dea398fb497139c068bda17ad02ef8c8bb8ce37185c9f5736eb2",
         "facets/cures/UI.json": "ae310359c32675985d5bda911ea1028243c050e22826ebddf918a2f898a48a33",
