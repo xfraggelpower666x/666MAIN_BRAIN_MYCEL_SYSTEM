@@ -1,0 +1,11 @@
+node_modules/
+dist/
+build/engine/
+build/work/
+.venv/
+.build-venv/
+__pycache__/
+*.pyc
+BUILD/REPORTS/
+r19-electron/build/engine/
+r19-electron/dist/
