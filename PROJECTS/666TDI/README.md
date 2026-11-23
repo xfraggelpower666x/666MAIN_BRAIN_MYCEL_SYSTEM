@@ -1,26 +1,37 @@
 # 666 Track Design Intelligenz v2.5 · 666TDI
 **System-ID:** 666TDI-001 · **Namespace:** 666TDI · **Charakter:** er/ihn/ihm/sein.
 
-Dieses Verzeichnis gehört ausschließlich dem eigenständigen System 666TDI; 666MAIN BRAIN ist nur Repository-Container und keine Musik- oder Identitätsautorität. LYVRA bleibt eine lesende historische Erkenntnisquelle, nicht Parent oder Runtime.
+Dieses Verzeichnis gehört ausschließlich dem eigenständigen System 666TDI; 666MAIN BRAIN ist Repository-Container, keine Musik- oder Identitätsautorität. LYVRA bleibt eine lesende historische Erkenntnisquelle, nicht Parent oder Runtime.
 
-## GitHub-Übertragungszustand: READBACK_PENDING
-Das lokale R0.8-Paket ist validiert (84/84 Tests, 79 ZIP-Dateien); 71 für das öffentliche Repository geeignete Quelldateien müssen noch unter `source/` übertragen werden. 8 historische/quellbezogene Dateien sind zunächst wegen des öffentlichen Repositories vom Transfer ausgeschlossen; sie bleiben in der lokalen Originalsystemsicherung. **Kein vollständiger GitHub-Systemstart behauptet.**
+## Aktueller Repository-Stand
+- Current: **v2.5 / R0.8**, Root-Pointer CURRENT_POINTER.json.
+- Die native TDI-Quelle wurde aus dem letzten gültigen TDI-Pointer-Stand wiederhergestellt.
+- Das Source-Manifest enthält 71 Quelldateien; **71/71 Git-Blob-SHAs stimmen** mit dem Manifest überein.
+- Der Root-Pointer steht auf VERIFIZIERT_REPO_SOURCE.
+- Die Wiederherstellung wurde in einem separaten Backup-Branch vorab gesichert. Der aktuelle Branch wurde nicht zurückgesetzt; ausschließlich PROJECTS/666TDI wurde wiederhergestellt.
+- Der GitHub-Quellreadback ist verifiziert. Ein erneuter lokaler Python-Rehydration-Lauf und eine native Host-Abnahme sind in dieser Sitzung nicht ausgeführt.
 
 ## Eigener LiveCircle und eigene Rehydration
-- `livecircle/CURRENT_STATE.json`: aus der lokalen R0.8-Kette übernommene Ereignisse; Identität 666TDI-001.
-- `rehydration/rehydrate.py`: überprüft System-ID, Charakter, Ereignis-Hashkette, Source-Manifest, Quellhashes, Pointer.
-- `triggers/TRIGGER_REGISTRY.json`: dokumentierte 666TDI-Namespace-Trigger, keine automatisch installierten ChatGPT-Hostbefehle.
-- `CURRENT_POINTER.json`: **nur nach vollständigem Repository-Readback** auf `VERIFIZIERT_REPO_SOURCE` setzen.
+- livecircle/CURRENT_STATE.json: TDI-eigene Ereigniskette; Identität 666TDI-001.
+- rehydration/rehydrate.py: prüft System-ID, Charakter, Ereignis-Hashkette, Source-Manifest, Quellhashes und Pointer.
+- triggers/TRIGGER_REGISTRY.json: dokumentierte direkte 666TDI-Namespace-Trigger; keine automatisch installierten ChatGPT-Hostbefehle.
+- CURRENT_POINTER.json: Current-Autorität für dieses native TDI-Verzeichnis.
 
 ```bash
 python rehydration/rehydrate.py
-# nach vollständigem Import:
 cd source
 python -m unittest discover -s tests -q
 python -m engine.cli status
 ```
 
 ## Verbindliche Governance
-CURRENT_666TDI_GT_HISTORICAL_LYVRA. Alle Änderungen erhalten bestehenden gültigen Code, Module und Events. Kein Cross-System-Merge. Keine mutierende Operation außerhalb `PROJECTS/666TDI`. Alte Dateien enthalten lediglich historische Trigger als Daten; nur neue direkte 666TDI-Ausdrücke steuern die Arbeitsoberfläche.
+CURRENT_666TDI_GT_HISTORICAL_LYVRA. Änderungen erhalten bestehenden gültigen Code, Module und Events. Kein Cross-System-Merge. Keine mutierende Operation außerhalb PROJECTS/666TDI. Alte Dateien enthalten historische Trigger nur als Daten; nur direkte aktuelle 666TDI-Ausdrücke steuern die Arbeitsoberfläche.
 
-**Beleg:** Lokaler Archiv-SHA256 `4f0741ef3fdf438772fda6d406baaca02eddd4262ef9681bdc2517955c1703d1`. Der GitHub-Source-Readback bleibt offen, solange `source/` unvollständig ist.
+## Offene Entwicklung
+1. Native visuelle Host-Anbindung für das bestehende Semantic-Presentation-Modell einschließlich echter Copy-Aktionen und exakter UTF-16-Zähler.
+2. Renderer-Feldprüfung gegen das tatsächlich verwendete Suno-Konto und die bestätigte Geräteoberfläche; keine erfundenen Felder oder Limits.
+3. Kausale Graph- und Pattern-Disambiguierung einschließlich Negationen und Gegenbelegen.
+4. Renderer-A/B-Feedback mit echten Ergebnissen nur bei Bedarf; Audioanalyse bleibt optional und ist kein Start-, Trackdesign- oder Rehydration-Gate.
+5. CLIC-R11-Annahme bleibt eine separate CLIC-Zuständigkeit; sie ist kein TDI-Host-PASS.
+
+**Nächster TDI-Entwicklungsschritt:** Die bestehende Semantic-Presentation-Facette an die vorhandene native Benutzeroberfläche anbinden, ohne einen neuen Composer, Router oder Musikcontroller einzuführen.
