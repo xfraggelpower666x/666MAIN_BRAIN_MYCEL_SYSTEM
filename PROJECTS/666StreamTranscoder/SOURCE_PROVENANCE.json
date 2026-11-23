@@ -1,0 +1,229 @@
+{
+  "project": "666StreamTranscoder v3.0",
+  "repository": "xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM",
+  "branch": "666MAIN_BRAIN",
+  "base_head": "ce87dde6629376acf5b44b662a6224c9c8c264fd",
+  "source_project": "3dx-radio-streamer-1.3.0",
+  "source_tree_commit": "3e63c1a543bed0bb2a9fb012000c5158b7f4c0ef",
+  "source_file_count": 43,
+  "source_files": [
+    {
+      "path": ".gitignore",
+      "blob_sha": "ab09f6df8d0d942594e965405e8724341e4788ad",
+      "size": 164
+    },
+    {
+      "path": "CHANGELOG.md",
+      "blob_sha": "0fc45f97ad8a71328fc7e0736ed897452118dc3d",
+      "size": 4222
+    },
+    {
+      "path": "IMPORT_STATUS.md",
+      "blob_sha": "a6bceb7e8959f7f56ff66bfaa0f5b96051335aa3",
+      "size": 1562
+    },
+    {
+      "path": "LICENSE",
+      "blob_sha": "a530a27e1f8e6bae9644a6c168b48a1487d69f69",
+      "size": 1064
+    },
+    {
+      "path": "README.md",
+      "blob_sha": "ba0788dd71fcd11142ce44ac8377b4d6b2828600",
+      "size": 9574
+    },
+    {
+      "path": "RadioStreamer.py",
+      "blob_sha": "02367a452dddc78f47ac8798dc1636ad388fe30b",
+      "size": 590
+    },
+    {
+      "path": "Start-RadioStreamer.bat",
+      "blob_sha": "64b2e28e0d411db0608196d22e05073055a65859",
+      "size": 357
+    },
+    {
+      "path": "THIRD-PARTY-NOTICES.md",
+      "blob_sha": "206b219a1bd8bc116c98f95fae725c3735025149",
+      "size": 1561
+    },
+    {
+      "path": "build/build.ps1",
+      "blob_sha": "a894d05df92b9ffb01e5556125a5beb3f6401680",
+      "size": 7719
+    },
+    {
+      "path": "build/installer.iss",
+      "blob_sha": "6f67bc9da685a36828462c5eba8e85bd61d7c114",
+      "size": 1369
+    },
+    {
+      "path": "build/make_icon.py",
+      "blob_sha": "3daf8280c3d8aae2ac29b2bc6de6cbbab2b61c24",
+      "size": 1086
+    },
+    {
+      "path": "docs/images/how-it-works.svg",
+      "blob_sha": "d1f252eaf28ff7273af7508b707d7042d03a89d6",
+      "size": 2814
+    },
+    {
+      "path": "docs/make_screenshots.py",
+      "blob_sha": "1ac7e231c723c9e6d5ead9c4d8fb11801d58cffc",
+      "size": 4405
+    },
+    {
+      "path": "radiostreamer/__init__.py",
+      "blob_sha": "1cf5837f07b4c8be4afe4acb5d0a67ba14132abc",
+      "size": 191
+    },
+    {
+      "path": "radiostreamer/capture.py",
+      "blob_sha": "4a14b99b0cf7a87405e17ac2d51ed61d76b04cda",
+      "size": 19901
+    },
+    {
+      "path": "radiostreamer/config.py",
+      "blob_sha": "02583b3aa1350306adc159750d02bbc93e505cb0",
+      "size": 8347
+    },
+    {
+      "path": "radiostreamer/engine.py",
+      "blob_sha": "82efd9dd65062cb7bfc1980041cdc8ecdb875152",
+      "size": 35419
+    },
+    {
+      "path": "radiostreamer/gui.py",
+      "blob_sha": "7430ce3813c99beaa3695b2e99036c99f8672528",
+      "size": 55345
+    },
+    {
+      "path": "radiostreamer/lastfm.py",
+      "blob_sha": "97f1653b86f0a03f469c90e99bd2c7a6c6f940a8",
+      "size": 5132
+    },
+    {
+      "path": "radiostreamer/localserver.py",
+      "blob_sha": "df00ce200e1be93926c4041a2ec58ff3ec15d375",
+      "size": 10476
+    },
+    {
+      "path": "radiostreamer/media.py",
+      "blob_sha": "0047f1e8b859c8b2603a06fbf7c3407f0bab498b",
+      "size": 15586
+    },
+    {
+      "path": "radiostreamer/nowplaying.py",
+      "blob_sha": "957dcec7dabd8ee121d5aa32a33eff44306fd320",
+      "size": 4605
+    },
+    {
+      "path": "radiostreamer/protocol.py",
+      "blob_sha": "615161bec6c47aca894f4b91348ac85aff0f19d8",
+      "size": 6778
+    },
+    {
+      "path": "radiostreamer/selftest.py",
+      "blob_sha": "1870e6cdc35906b156616a590d2c5333ac652bbd",
+      "size": 5926
+    },
+    {
+      "path": "radiostreamer/theme.py",
+      "blob_sha": "14e6b8be6e6ef3b801538bfcb7d675d57b4a1035",
+      "size": 19641
+    },
+    {
+      "path": "radiostreamer/tools.py",
+      "blob_sha": "bc4a8fb893c7905f674e00e726c26176e484c4d3",
+      "size": 4591
+    },
+    {
+      "path": "radiostreamer/tunnel.py",
+      "blob_sha": "a0ae754d5964d5e99c5aee8eb1dc3d9d189aa543",
+      "size": 5380
+    },
+    {
+      "path": "radiostreamer/upnp.py",
+      "blob_sha": "56ddeb603306c1d5168f4170aefe5367e3c9d206",
+      "size": 5226
+    },
+    {
+      "path": "radiostreamer/wizard.py",
+      "blob_sha": "5efd8333bf58bec9bad356a01c61fe60ae9b8f43",
+      "size": 23891
+    },
+    {
+      "path": "requirements-build.txt",
+      "blob_sha": "7eac460216e572e0cdfff01c7ba1088d4fd921c5",
+      "size": 50
+    },
+    {
+      "path": "requirements.txt",
+      "blob_sha": "a71928dd4d5748536049cb35ae5a16795d9814b7",
+      "size": 218
+    },
+    {
+      "path": "tests/gui_live.py",
+      "blob_sha": "f517f234f329558ed9f1b3ff5676122b6665b5d4",
+      "size": 1460
+    },
+    {
+      "path": "tests/gui_local.py",
+      "blob_sha": "690780642716eaab6e84d0e3aa3ab84c67713cb8",
+      "size": 3007
+    },
+    {
+      "path": "tests/gui_mic.py",
+      "blob_sha": "a915e5b989995755210f0a51a8f4a3d543d0e63f",
+      "size": 2096
+    },
+    {
+      "path": "tests/gui_shots.py",
+      "blob_sha": "9e4173d8348c2b3a232bb8af44b8e9d5e3e4e096",
+      "size": 1748
+    },
+    {
+      "path": "tests/gui_test_button.py",
+      "blob_sha": "d57ad826d6c410d82591e1b8f829b6d9cac35e29",
+      "size": 2430
+    },
+    {
+      "path": "tests/mock_server.py",
+      "blob_sha": "4f2c6e7527735f251cc83bd2094ddf4d414e5b5e",
+      "size": 1340
+    },
+    {
+      "path": "tests/test_app_broadcast.py",
+      "blob_sha": "4fa7638842ff8af1154d0d00fb570f250784233d",
+      "size": 1496
+    },
+    {
+      "path": "tests/test_app_capture.py",
+      "blob_sha": "a809be0120c5cb7284ba719cae2b26aa0d258825",
+      "size": 2727
+    },
+    {
+      "path": "tests/test_engine.py",
+      "blob_sha": "ee18c9f4c4e118e2665a0bc5cfddbdba302434b7",
+      "size": 1776
+    },
+    {
+      "path": "tests/test_local_server.py",
+      "blob_sha": "5959d0e85357bcaa22ef8c1aa3119405a133d3d6",
+      "size": 3924
+    },
+    {
+      "path": "tests/tone.py",
+      "blob_sha": "045c07c24b6e8f011313b84a07956fe6bcb933bb",
+      "size": 956
+    },
+    {
+      "path": "tools/restore_original_assets.py",
+      "blob_sha": "c3a1a26d78d6b95e7b8a1e184a63ec15953cf63f",
+      "size": 2017
+    }
+  ],
+  "preservation_copy": "legacy/3dx-radio-streamer-1.3.0/",
+  "active_palette_change": "radiostreamer/theme.py",
+  "crossfade_skip_resin3": "not included in this baseline commit; pending additive implementation"
+}
