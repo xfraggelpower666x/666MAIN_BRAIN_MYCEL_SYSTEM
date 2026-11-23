@@ -1,6 +1,6 @@
 {
   "system_id": "666TDI-001",
-  "source_file_count": 92,
+  "source_file_count": 94,
   "source_files": {
     "README.md": "e19ce33fac348c8e7a3c4d6c2e2c0e9e0958f9906012025cb17ac483abcdb498",
     "docs/ADDITIVE_MIGRATION_AUDIT_R03.md": "d349cc2dfee7e99750c8a12b74b6d88d57ceed792c0310a567a7087b06de9d2b",
@@ -80,7 +80,7 @@
     "engine/creative_causal.py": "54962849d1b7e617bbba944e31487869162f0b64819509dfb592cec7cb9f3cc5",
     "tests/test_creative_causal.py": "b807d18f04305da4b1311b48d703a1baeb23d440750a6d53c2f0d2ff0e3bc439",
     "docs/R10_CREATIVE_CAUSAL_EMERGENCE.md": "da6ece5ff70cb7aef58606a690a76566dd8b4d544fc8a7564574267c01166b59",
-    "engine/daemon_cli.py": "4be6282e5353c56af2996db89f808de6cf05ff74bbfbce27aa7e3d32bd214911",
+    "engine/daemon_cli.py": "6beda00d4b93dda0ba628001b38bb577264485496926c72a7ed8a6098b7c342a",
     "engine/daemon_static/index.html": "433f107720a3d256c9073088c0880ff5016d122092c16e399d0303680377713e",
     "tests/test_daemon.py": "65f3b8a42af6f8cb47ac1de05a509bc3ede83b823b4bfc9f245dd6db977beb67",
     "docs/R11_VISUAL_DAEMON_IMPLEMENTATION.md": "432b027f22961aac496d69386c28ba6221c0a801489e222d73e87a335f443343",
@@ -93,7 +93,9 @@
     "docs/R13_DEVICE_INTELLIGENCE.md": "163cdd6d132dec56073a3003383bab764042e8cba3c6fee5470f995000e1446f",
     "engine/creator_learning.py": "1f021a498269901a6aa6559e78166f49d22b13b391a53ec60069b1a985513cbf",
     "tests/test_creator_learning.py": "3a3e4432fda791246d1b711829b0d0b68231ef562f843b70aebd38f96fb1bc5e",
-    "docs/R14_CREATOR_EVIDENCE_LEARNING.md": "11121f69d0858dbae5787c6fd0bb6bca80b3381a0df49db6b2f39ff5dbb703ce"
+    "docs/R14_CREATOR_EVIDENCE_LEARNING.md": "11121f69d0858dbae5787c6fd0bb6bca80b3381a0df49db6b2f39ff5dbb703ce",
+    "tests/test_daemon_http_guard.py": "f1af0f95b6b827a62fc1d354cd444f13cf8cca83510db635426bba3fa6e242bc",
+    "docs/R14_DAEMON_HTTP_AUDIT_REPAIR_20261123.md": "376b6b07c80384ac98952b18693461f8c6d4bb3d82cd0cd01f435dfe2b42772d"
   },
   "source_git_sha1": {
     "README.md": "83577b17ef012ce50061118b5fd8382796ad2da2",
@@ -174,7 +176,7 @@
     "engine/creative_causal.py": "bcfd39792e73ba55d06b2a096596978adde4ab48",
     "tests/test_creative_causal.py": "69cc2a5dd947c4d21e77e580ed05f49e4e36b422",
     "docs/R10_CREATIVE_CAUSAL_EMERGENCE.md": "e8b9806618902e98e12b1172659f90ade1d70b18",
-    "engine/daemon_cli.py": "06750df335b4e7d0bfc0afcc05863d0afc43ea02",
+    "engine/daemon_cli.py": "096ccc45e61b40ebf335a64db592ff0398229da6",
     "engine/daemon_static/index.html": "4fd4cef446b8e6fae85f2b1be469fe938d755ee7",
     "tests/test_daemon.py": "97dd83233a2633c1596a15e711c6f184da31852b",
     "docs/R11_VISUAL_DAEMON_IMPLEMENTATION.md": "aaa3366f3b65407437c7254c23191aea3754a790",
@@ -187,7 +189,9 @@
     "docs/R13_DEVICE_INTELLIGENCE.md": "aefeeeacd479e0da9cc017c074724eca6e804a05",
     "engine/creator_learning.py": "a92914b9a508546139d42e02485bc8540d79ec65",
     "tests/test_creator_learning.py": "6d44c7e9ea317257c8fb7e9d7ce3cc5fc3ab37e6",
-    "docs/R14_CREATOR_EVIDENCE_LEARNING.md": "6f15a175cca3ba726dbf63fc5b542d024f24794f"
+    "docs/R14_CREATOR_EVIDENCE_LEARNING.md": "6f15a175cca3ba726dbf63fc5b542d024f24794f",
+    "tests/test_daemon_http_guard.py": "6d6f56dc3d3d1ef17f64802ea5e8c9161fe48b0a",
+    "docs/R14_DAEMON_HTTP_AUDIT_REPAIR_20261123.md": "8d3d2571ad3f7abedd47c6a46fa09f1a42f36559"
   },
   "source_archive_sha256": "4f0741ef3fdf438772fda6d406baaca02eddd4262ef9681bdc2517955c1703d1",
   "source_origin": "666TDI_v2.5_ADDITIVE_R08_PORTABLE.zip",
