@@ -57,7 +57,7 @@ label{display:block;font-size:12px;color:#dce2f5;margin-bottom:6px;font-weight:6
 <body>
 <div class="shell">
 <aside class="sidebar">
- <div><div class="logo">666<em>TDI</em></div><div class="tiny">Creative Intelligence / R1.1</div></div>
+ <div><div class="logo">666<em>TDI</em></div><div class="tiny">Creative Intelligence / R1.3</div></div>
  <nav id="nav" aria-label="Daemon Menü">
   <button class="navitem active" type="button" data-target="device-section"><span class="dot"></span>01 · Device Preflight</button>
   <button class="navitem" type="button" data-target="intent-section"><span class="dot"></span>02 · Creator Intent</button>
@@ -237,8 +237,8 @@ document.querySelectorAll(".navitem").forEach(b=>b.addEventListener("click",()=>
 }));
 $("intent-form").addEventListener("input",()=>invalidateAnalysis("Eingaben geändert. Bitte Voranalyse erneut ausführen."));
 $("clear-button").addEventListener("click",()=>{
- fields.forEach(f=>$(f).value="");$("total-bars").value="";selected.result=null;selected.choices={};
- for(const id of ["results-section","decisions-section","handoff-section"])$(id).classList.add("hide");
+ fields.forEach(f=>$(f).value="");$("total-bars").value="";selected.result=null;selected.choices={};selected.editedFields={};
+ for(const id of ["results-section","forecast-section","decisions-section","device-output-section","handoff-section"])$(id).classList.add("hide");
  statusText(selected.device?"Eingaben geleert. Gerät bleibt ausgewählt.":"Wähle zuerst dein Gerät.",false);updateNav();
 });
 function readIntent(){
