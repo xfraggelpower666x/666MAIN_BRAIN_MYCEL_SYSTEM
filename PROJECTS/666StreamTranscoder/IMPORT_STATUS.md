@@ -34,6 +34,14 @@
 - `OPEN`: tests are present but have not been executed against a Windows device/network runtime.
 - `OPEN`: actual end-to-end input → PCM mix → encoder → Icecast/Shoutcast provider acceptance.
 
+## R08 isolated real-audio integration gate
+
+- `IMPLEMENTED`: two synthetic end-to-end tests using real FFmpeg, the existing 3DX local server, a persistent MP3 encoder and one HTTP listener.
+- `IMPLEMENTED`: automatic and Skip crossfade continuity checks, received MP3 decode-back and audible PCM assertions.
+- `IMPLEMENTED`: CI job checks FFmpeg/libmp3lame availability and invokes the isolated synthetic tests.
+- `OPEN`: test execution evidence must be read from the matching GitHub Actions job.
+- `OPEN`: Windows physical WASAPI/VB-CABLE, paid/free provider networking and installer acceptance remain separate.
+
 ## Evidence and open gates
 
 - `OPEN`: focused Python tests added but not executed in this session.
