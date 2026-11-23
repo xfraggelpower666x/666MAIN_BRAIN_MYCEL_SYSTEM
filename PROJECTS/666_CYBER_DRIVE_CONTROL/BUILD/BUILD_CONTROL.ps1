@@ -27,8 +27,12 @@ function Ensure-Node {
   $node=Find-Command 'node'; $npm=Find-Command 'npm.cmd'
   $ok=$false
   if ($node -and $npm) {
-    $v=& $node -p 'process.versions.node.split(".")[0]'
-    if ([int]$v -ge 20) { $ok=$true }
+    # Native PowerShell argument quoting can strip JS string quotes on Windows.
+    # Parse the stable CLI version text instead of relying on node -p.
+    $v=(& $node --version | Select-Object -First 1)
+    if ($LASTEXITCODE -eq 0 -and $v -match '^v([0-9]+)\.') {
+      if ([int]$Matches[1] -ge 20) { $ok=$true }
+    }
   }
   if (-not $ok) {
     Ensure-Winget
