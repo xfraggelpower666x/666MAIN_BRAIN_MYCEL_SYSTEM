@@ -46,9 +46,17 @@ def facet_model(root: Path):
 def guide(facets):
     """Synchronous, deterministic advisory daemon. No background loop or side effects."""
     unresolved = [f for f in facets if f["next_step"] != "NONE"]
+    # A foreign PFS HOLD is evidence, never an automatic CLS work order.
+    actionable = [f for f in unresolved if f["classification"] == "INDEPENDENT_FACET_CANDIDATE"]
+    if actionable:
+        recommendation = "CLS-eigene Quellenlage für " + actionable[0]["name"] + " klären"
+    elif unresolved:
+        recommendation = "Nur fremde oder gesperrte Quellen offen; keine CLS-Fremdaktivierung"
+    else:
+        recommendation = "Keine offenen Quellenkonflikte"
     return {"daemon": "CLS_INTELLIGENT_DAEMON_ADVISORY_V1",
             "mode": "ON_REQUEST_ONLY", "state": "PARTIAL" if unresolved else "VERIFIZIERT",
-            "recommendation": ("Quelle und Native Authority für " + unresolved[0]["name"] + " klären") if unresolved else "Keine offenen Quellenkonflikte",
+            "recommendation": recommendation,
             "auto_run": False, "write_authority": False}
 
 
