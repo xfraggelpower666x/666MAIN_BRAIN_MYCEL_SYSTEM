@@ -1,0 +1,16 @@
+{
+  "schema": "mainbrain.klarcode.acceptance.1",
+  "scope": "MAIN_BRAIN_CANDIDATE_LOCAL_ONLY",
+  "source_files": ["klarcode/__init__.py", "klarcode/engine.py", "klarcode/__main__.py", "tests/test_klarcode.py", "START_WINDOWS.bat", "README.md", "examples/mini_src/main.py"],
+  "owner": "666 MAIN BRAIN",
+  "project_authority": "ONE_OWNER_PER_PROJECT",
+  "native_existing_project_writes": "FORBIDDEN_BY_COORDINATOR",
+  "local_mini_current_write": "POINTER_LAST",
+  "whole_main_brain_auto_update": "FORBIDDEN_WITHOUT_NATIVE_CURRENT_AND_UPDATE_GATE",
+  "actual_plugin_adoption": "NOT_VERIFIED",
+  "github_source_publication": "NOT_VERIFIED",
+  "host_fresh_chat": "NOT_TESTED",
+  "real_demo": "MINI_01_LOCAL_SAVE_AND_REHYDRATE_PASS",
+  "test_count": 20,
+  "test_result": "PASS"
+}
