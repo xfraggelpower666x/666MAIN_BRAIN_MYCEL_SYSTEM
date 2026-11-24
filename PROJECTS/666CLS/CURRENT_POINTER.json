@@ -40,5 +40,17 @@
     "candidate_runtime_promotion": false,
     "autoload": false,
     "new_triggers": false
+  },
+  "source_verification_checkpoint": {
+    "id": "CURES_R08_SOURCE_VERIFICATION_20261125",
+    "role": "PROVENANCE_ONLY",
+    "path": "continuity/CURES_R08_SOURCE_VERIFICATION_20261125.json",
+    "receipt_blob": "763923623149834b7d3396d731d006cb33c2fcf8",
+    "verified_body_commit": "1eb1bde1c89da99f88e4fa1a23effea9a9757cad",
+    "artifact_sha256": "c3190fb8f94c77546aafb7cd2dc3a01cd8675cc34118215594178b33aed4ff6d",
+    "tests": "139_PLUS_6_PLUS_10_PASS",
+    "unpacked_source_published": false,
+    "native_cures_engine_adopted": false,
+    "pfs_hold_preserved": true
   }
 }
