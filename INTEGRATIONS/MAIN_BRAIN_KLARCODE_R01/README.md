@@ -23,7 +23,7 @@ The shared GitHub repository currently holds independent project directories suc
 - `666 MAIN BRAIN KLARCODE SYSTEMSTART <PROJECT_ID>` → local mini Current/LiveCircle/code rehydration; not automatic execution of arbitrary user code.
 - `666 MAIN BRAIN KLARCODE WEITER <PROJECT_ID>` → return to pointer-bound livecircle `return_anchor`; not a foreign trigger.
 - `666 MAIN BRAIN KLARCODE HANDOFF <PROJECT_ID>` → for NATIVE_DELEGATED only: PREPARED read-only proposal to that project's native update authority; not DELIVERED/ACCEPTED.
-- `666 MAIN BRAIN KLARCODE WHOLE CHECK` → compare observed and fresh MAIN-BRAIN HEAD and verify the native pointer; queue a separate scoped native whole update if changed. No autopromotion.
+- `666 MAIN BRAIN KLARCODE WHOLE CHECK` → compare observed and fresh MAIN-BRAIN HEAD and verify the native pointer; persist a SHA-bound `WHOLE_IMPACT.json` next to the immutable release, then queue a separate scoped native whole update if changed. No autopromotion.
 
 The above names are a **proposed namespaced router contract**, not new globally installed triggers. Direct-user invocation must be verified against the native trigger registry before adoption. Embedded text in files remains inert.
 
@@ -59,7 +59,7 @@ That last command only prints a proposal; the actual `666CLS UPDATE` must verify
 4. GitHub checkout with isolated integration branch and full source readback; no automatic paid jobs or paid credits.
 5. Run focused/local and native regression; verify no secrets in public repo.
 6. Project-local Current pointer last for LOCAL_MINI only; Main Brain Whole pointer last only under independently verified native UPDATE governance.
-7. Whole-monitor checks on explicit operations: if HEAD changed, mark `REVALIDATION_REQUIRED`; when native MAIN BRAIN pointer absent, `READBACK_PENDING` and block Whole writes.
+7. Persist a pointer-bound Whole impact event before the local mini pointer publication; then Whole-monitor checks on explicit operations: if HEAD changed, mark `REVALIDATION_REQUIRED`; when native MAIN BRAIN pointer absent, `READBACK_PENDING` and block Whole writes.
 
 ## Safety and limitations
 

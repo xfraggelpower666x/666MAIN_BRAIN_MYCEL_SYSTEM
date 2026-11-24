@@ -54,10 +54,13 @@ def main(argv=None) -> int:
         elif args.command == 'save':
             if bool(args.mainbrain_observed_head) != bool(args.mainbrain_current_head):
                 raise GateError('Whole HEAD observation requires both previous and current heads')
-            result = man.save(args.project,args.source,owner=args.owner,expected_pointer=args.expected_pointer)
+            whole = None
             if args.mainbrain_observed_head:
-                result['whole_delta'] = man.whole_delta(args.mainbrain_observed_head,args.mainbrain_current_head,
-                                                        whole_pointer_present=args.mainbrain_pointer_present)
+                whole = man.whole_delta(args.mainbrain_observed_head,args.mainbrain_current_head,
+                                        whole_pointer_present=args.mainbrain_pointer_present)
+            result = man.save(args.project,args.source,owner=args.owner,expected_pointer=args.expected_pointer, whole_impact=whole)
+            if whole is not None:
+                result['whole_delta'] = whole
         elif args.command == 'handoff':
             result = man.handoff(args.project,desired_action=args.action)
         else:

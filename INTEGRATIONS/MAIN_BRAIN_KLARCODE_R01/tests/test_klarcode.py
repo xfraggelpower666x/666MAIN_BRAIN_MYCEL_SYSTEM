@@ -108,6 +108,19 @@ class TestKlarcode(unittest.TestCase):
         self.man.register('666CLS','666CLS','NATIVE_DELEGATED',native_pointer='CURRENT_POINTER.json')
         p.write_text('{"owner":"666CLS","v":2}')
         self.assertTrue(self.man.status('666CLS')['changed_since_registration'])
+    def test_whole_impact_is_persisted_before_mini_pointer(self):
+        a=self.mini()
+        impact=self.man.whole_delta('a'*40,'b'*40,whole_pointer_present=False)
+        self.man.save('MINI_01',self.source,owner='MINI-OWNER',expected_pointer=a['pointer_sha256'],whole_impact=impact)
+        self.assertEqual(self.man.status('MINI_01')['whole_impact']['decision'], 'READBACK_PENDING')
+
+    def test_whole_impact_tamper_blocks_rehydration(self):
+        a=self.mini()
+        impact=self.man.whole_delta('a'*40,'b'*40,whole_pointer_present=True)
+        r=self.man.save('MINI_01',self.source,owner='MINI-OWNER',expected_pointer=a['pointer_sha256'],whole_impact=impact)
+        (self.root/'PROJECTS/MINI_01/releases'/r['release']/'WHOLE_IMPACT.json').write_text('{}')
+        with self.assertRaises(GateError):self.man.status('MINI_01')
+
     def test_invalid_project_id(self):
         with self.assertRaises(GateError):self.man.register('../bad','OWNER','LOCAL_MINI')
     def test_empty_source_rejected(self):

@@ -227,11 +227,18 @@ class Manager:
         if not livecircle_path.is_file() or sha(livecircle_path.read_bytes()) != pointer.get('livecircle_sha256'):
             raise GateError('LiveCircle drift; no silent promotion')
         check = self._verify_release(project, root, pointer)
+        impact = None
+        if 'whole_impact_path' in pointer:
+            impact_file = safe_subpath(root, pointer['whole_impact_path'])
+            if sha(impact_file.read_bytes()) != pointer.get('whole_impact_sha256'):
+                raise GateError('Whole impact evidence drift')
+            impact = read_json(impact_file)
         return {'project': project, 'owner': record['owner'], 'mode': record['kind'],
                 'pointer_sha256': sha(pointer_bytes), 'revision': pointer['revision'],
-                'livecircle': read_json(livecircle_path), **check}
+                'livecircle': read_json(livecircle_path), 'whole_impact': impact, **check}
 
-    def save(self, project: str, source: Path, *, owner: str, expected_pointer: str) -> dict:
+    def save(self, project: str, source: Path, *, owner: str, expected_pointer: str,
+             whole_impact: dict | None = None) -> dict:
         record, root = self.record(project)
         if record['kind'] != 'LOCAL_MINI':
             raise GateError('Delegated native system: owner update trigger required')
@@ -240,6 +247,11 @@ class Manager:
         current = self.status(project)
         if current['pointer_sha256'] != expected_pointer:
             raise GateError('Stale pointer; CAS rejected')
+        if whole_impact is not None:
+            if (whole_impact.get('schema') != SCHEMA + '.whole-delta'
+                    or whole_impact.get('auto_mutation') is not False
+                    or whole_impact.get('next_authority') != '666 MAIN BRAIN UPDATE'):
+                raise GateError('Invalid Whole impact evidence')
         source = source.resolve()
         if not source.is_dir() or source == root or source.is_relative_to(root):
             raise GateError('Invalid source directory')
@@ -287,6 +299,9 @@ class Manager:
                     'revision': before_pointer['revision'] + 1, 'created_at': utc()}
             live_bytes = canonical(live)
             write_exclusive(release_dir / 'LIVECIRCLE.json', live_bytes)
+            if whole_impact is not None:
+                whole_bytes = canonical(whole_impact)
+                write_exclusive(release_dir / 'WHOLE_IMPACT.json', whole_bytes)
         except Exception:
             shutil.rmtree(release_dir)
             raise
@@ -297,6 +312,9 @@ class Manager:
                     'livecircle_path': f'releases/{content_hash}/LIVECIRCLE.json',
                     'livecircle_sha256': sha(live_bytes),
                     'previous_pointer_sha256': expected_pointer, 'updated_at': utc()}
+        if whole_impact is not None:
+            next_ptr['whole_impact_path'] = f'releases/{content_hash}/WHOLE_IMPACT.json'
+            next_ptr['whole_impact_sha256'] = sha(whole_bytes)
         # The pointer itself is the sole live authority; immutable releases are source evidence.
         atomic_replace(pointer_path, canonical(next_ptr))
         verified = self.status(project)
