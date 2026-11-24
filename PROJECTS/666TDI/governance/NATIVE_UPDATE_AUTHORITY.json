@@ -230,6 +230,20 @@
       "pointer_last": true,
       "requires_direct_readback": true,
       "automatic_promotion": false
+    },
+    "nmi_r04": {
+      "source": "DIRECT_USER_SAVE_UPDATE_2026-11-24T23:04:14Z",
+      "scope": "PROJECTS/666TDI_ONLY",
+      "operations": [
+        "TRACK_LOCAL_AUDIO_EVIDENCE",
+        "POINTER_BOUND_REHYDRATION"
+      ],
+      "backup": "backup/666tdi-nmi-r04-audio-prechange-20261125",
+      "preserve_existing": true,
+      "foreign_writes": false,
+      "pointer_last": true,
+      "requires_direct_readback": true,
+      "automatic_promotion": false
     }
   }
 }
