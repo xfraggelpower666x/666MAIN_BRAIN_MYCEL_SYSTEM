@@ -1,0 +1,23 @@
+{
+  "project_id": "666_UNIVERSAL_DEVELOPMENT_BUILDKIT",
+  "version": "R01.11",
+  "status": "SOURCE_PARTIAL",
+  "source_zip": "666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01_11_ELECTRON_R06_1_ADOPTION.zip",
+  "zip_sha256": "e456876c02b2ed92973391e9babb626120da574b0e3aed54bec654038edcae2f",
+  "local_manifest_entries": 46,
+  "local_python_tests": "15/15_PASS",
+  "local_js_checks": "PASS",
+  "windows_ui": "READBACK_PENDING",
+  "portable_exe": "READBACK_PENDING",
+  "nsis_setup": "READBACK_PENDING",
+  "github_complete_tree_published": false,
+  "github_exact_byte_readback": false,
+  "candidate_branch": "buildkit/r01-11-electron-source-candidate-20261125",
+  "production_branch": "666MAIN_BRAIN",
+  "external_write_scope": "ONLY_THIS_CANDIDATE",
+  "original_electron_main_js_preserved": true,
+  "original_artwork_preserved_in_local_zip": true,
+  "reference_source": "PROJECTS/666_FULL_LYRICS_INTELLIGENCE/DELIVERY_R06_1.json",
+  "no_cross_system_adoption": true,
+  "next_action": "Publish all 46 exact local files including original binary assets, compare GitHub SHA-256 against ZIP manifest, then promote with authorization."
+}
