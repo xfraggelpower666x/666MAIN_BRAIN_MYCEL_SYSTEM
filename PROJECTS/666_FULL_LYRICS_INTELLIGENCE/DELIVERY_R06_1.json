@@ -1,0 +1,13 @@
+{
+  "revision": "R06.1",
+  "fix": "electron path.txt CRLF appended by PowerShell Set-Content, resulting spawn ENOENT",
+  "changed_files": [
+    "tools/LAUNCH.ps1",
+    "tools/INSTALL_ELECTRON_RUNTIME.ps1",
+    "README.md",
+    "README_START_HIER.md"
+  ],
+  "r02_backup_sha256_unchanged": "d00b3cd70eba9bfc677560d4c83dc6e44bb428fe056e51d6633c3b5f33f8034a",
+  "windows_host": "NOT_RUN",
+  "regression_tests": "NOT_RUN_PER_USER_REQUEST"
+}

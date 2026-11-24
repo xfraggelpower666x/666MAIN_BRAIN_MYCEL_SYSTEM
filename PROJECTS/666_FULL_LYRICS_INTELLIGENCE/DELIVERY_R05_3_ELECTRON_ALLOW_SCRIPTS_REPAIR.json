@@ -1,0 +1,10 @@
+{
+  "revision": "R05.3",
+  "based_on": "R05.2",
+  "scope": "Electron npm allowScripts and runtime repair",
+  "changes": ["project-local npm install-scripts approve electron", "npm rebuild electron", "direct dist/electron.exe and path.txt detection", "targeted diagnostics for cache/proxy/download failure"],
+  "not_changed": ["Electron major version", "Python engine", "SQLite data", "R02 backup", "application architecture"],
+  "tests": "NOT_RUN_PER_USER_WORKFLOW",
+  "windows_execution": "PENDING_USER_HOST",
+  "one_batch": "STARTEN.bat"
+}

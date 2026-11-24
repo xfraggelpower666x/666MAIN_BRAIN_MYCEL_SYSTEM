@@ -1,0 +1,22 @@
+{
+  "version": "R06.0",
+  "base": "R05.3",
+  "scope": "FULL LYRICS INTELLIGENCE ONLY",
+  "lead": "LYVRA CODING PROFI",
+  "files_modified": [
+    "electron/main.cjs",
+    "electron/preload.cjs",
+    "engine/bridge.py",
+    "renderer/index.html",
+    "renderer/app.js",
+    "renderer/style.css",
+    "tools/LAUNCH.ps1",
+    "tools/INSTALL_ELECTRON_RUNTIME.ps1",
+    "README_START_HIER.md"
+  ],
+  "new_capability": "Bulk project/category reassignment and explicit batch archive/export",
+  "previous_r02_backup": "preserved",
+  "windows_host": "OPEN",
+  "test_loops": "NOT_RUN_BY_USER_REQUEST",
+  "repo_write": "NO"
+}

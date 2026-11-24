@@ -1,0 +1,15 @@
+{
+  "revision": "R05.2",
+  "scope": "Windows starter/runtime repair",
+  "original": "R05.1 unchanged",
+  "changed_files": [
+    "tools/LAUNCH.ps1",
+    "README_START_HIER.md",
+    "README.md"
+  ],
+  "repair": "electron postinstall blocked => user-consented, targeted execution of local electron/install.js",
+  "electron_project_version": "35.7.5",
+  "windows_execution": "NOT_PERFORMED",
+  "test_runs": "NONE_PER_USER_REQUEST",
+  "data_policy": "originals/R02_LEGACY_ORIGINAL_PRESERVED.zip remains unchanged"
+}

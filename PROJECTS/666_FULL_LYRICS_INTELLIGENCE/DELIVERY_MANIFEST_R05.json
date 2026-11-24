@@ -1,0 +1,16 @@
+{
+  "project": "666 FULL LYRICS INTELLIGENCE",
+  "version": "R05.1_HOST_LAUNCH_REPAIR",
+  "source": "R04 preserved + R05 catalog editing",
+  "entrypoint": "STARTEN.bat",
+  "legacy": "originals/R02_LEGACY_ORIGINAL_PRESERVED.zip",
+  "tests_executed_this_delivery": "NONE_USER_REQUEST",
+  "windows_build": "NOT_EXECUTED",
+  "sensitive_backup": "INCLUDED_LOCAL_ONLY_DO_NOT_PUBLISH",
+  "base": "R05 source preserved, build tool entry and dependency preflight corrected",
+  "changes": [
+    "build/BUILD_WINDOWS.ps1",
+    "tools/LAUNCH.ps1",
+    "README_START_HIER.md"
+  ]
+}

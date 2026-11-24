@@ -1,0 +1,137 @@
+{
+  "schema": "666-full-lyrics-public-source-r06.1/1",
+  "revision": "R06.1",
+  "files": [
+    {
+      "path": "DELIVERY_MANIFEST_R05.json",
+      "sha256": "958a4dd4bad14e9603e243f1142b0e4acaae8282c2f769ce20303d4d1eb9f9de",
+      "bytes": 569
+    },
+    {
+      "path": "DELIVERY_R05_2_RUNTIME_REPAIR.json",
+      "sha256": "5ac11aaa061011f38ba5bad5b934efc35f4f3b40c5ca2d220936f0932840f591",
+      "bytes": 510
+    },
+    {
+      "path": "DELIVERY_R05_3_ELECTRON_ALLOW_SCRIPTS_REPAIR.json",
+      "sha256": "f1d1fef71427cbf92d76a7f6a12fd840a2e5e329d523b085333f56c0614b4471",
+      "bytes": 542
+    },
+    {
+      "path": "DELIVERY_R06.json",
+      "sha256": "567943ef20f96c2e3c5a76381fcf1394d385d7a27ddb7fa79ca6552e025c7bae",
+      "bytes": 614
+    },
+    {
+      "path": "DELIVERY_R06_1.json",
+      "sha256": "ca2c3d567afd17d496fad5e6779985082e76cc1f0e213198802d339afcfaebb4",
+      "bytes": 435
+    },
+    {
+      "path": "README.md",
+      "sha256": "79622afc74a2b034e98a334fccc99d791f0bec4dd2f005c47385daeefaf41e79",
+      "bytes": 5856
+    },
+    {
+      "path": "README_START_HIER.md",
+      "sha256": "2fbb760d1380721f992b57a54504c6af692657a337b5031131449fa78ebe439c",
+      "bytes": 2116
+    },
+    {
+      "path": "STARTEN.bat",
+      "sha256": "6af1528d5e24c72a4b5022e0894fbe4039e5f81e815ea8a0c7b6e90c75ad0330",
+      "bytes": 209
+    },
+    {
+      "path": "build/BUILD_WINDOWS.ps1",
+      "sha256": "ad8179df72b3ee390eb24d8f9dd17f06c454c4908caf3cb16fa46199dc99a839",
+      "bytes": 2314
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "sha256": "784e96c11ad197babf9a7fa4686d7a014278abb4981f57ec8e998b91da8cc089",
+      "bytes": 1977
+    },
+    {
+      "path": "docs/AUDIT_REPAIR_FREEZE_DE.md",
+      "sha256": "c95161f19158bc43c50c31b92cc06eb886456928586a4001f2355f384c0e9770",
+      "bytes": 2551
+    },
+    {
+      "path": "electron/main.cjs",
+      "sha256": "9ad757cba2544176d9f9fef183b841e2b988c066265ea4ccc558b67ba99e5ad6",
+      "bytes": 5429
+    },
+    {
+      "path": "electron/preload.cjs",
+      "sha256": "8ccc3c8c403530afc96036400afbed5fa7ba04dfacc91b28444c6e2f5376395e",
+      "bytes": 454
+    },
+    {
+      "path": "engine/bridge.py",
+      "sha256": "92fb3b9ec582e823a4686690573a02cc4274a0ad6b07f5222f066d36b191718a",
+      "bytes": 23816
+    },
+    {
+      "path": "engine/reconciliation.py",
+      "sha256": "ba3b775dc614585992698983aa171bdb9893bf80d1dd3d3eeddba9cfc0d26dc1",
+      "bytes": 3011
+    },
+    {
+      "path": "package.json",
+      "sha256": "9219ae75e50331c419cb5fa2c22cba0faad245e58a5ae46459fabb33e87e0b26",
+      "bytes": 1717
+    },
+    {
+      "path": "renderer/app.js",
+      "sha256": "a75fa9c53c9392d3327d8b848273687f4469791cb2eff4fced98cb753a22ab48",
+      "bytes": 10407
+    },
+    {
+      "path": "renderer/index.html",
+      "sha256": "03442ccc1efcb0b589a79d91138b2dc6f1ecff8a2ac5870424d22189839b76d9",
+      "bytes": 9847
+    },
+    {
+      "path": "renderer/style.css",
+      "sha256": "ef3e0339882ec0ba32e0b27d3210bb41a56c99129634f87ea4ff798a381a91bd",
+      "bytes": 7557
+    },
+    {
+      "path": "tests/run_portable_regression.py",
+      "sha256": "8cca9f233d8976fc3a9219c558bdd4b2483052f416019d376f22a1f1b5b59074",
+      "bytes": 757
+    },
+    {
+      "path": "tests/test_engine.py",
+      "sha256": "080789a9a06fcc736694247fd657bdce458700177129fec57c8145dfa6f381b6",
+      "bytes": 3705
+    },
+    {
+      "path": "tests/test_reconciliation_r04.py",
+      "sha256": "79aadfe93ecd3ba7d37e7d1510b8d6f807bfa2725ac2f2c0aef98f5ca71d255c",
+      "bytes": 1555
+    },
+    {
+      "path": "tests/test_security_r04.py",
+      "sha256": "c8527ad3fb8462d5cc462e2942155b64b49d02227c1fa38acddae3a2c6f30149",
+      "bytes": 2422
+    },
+    {
+      "path": "tools/INSTALL_ELECTRON_RUNTIME.ps1",
+      "sha256": "3b815de6842c123f80b259845e9dac2d31480802b76505b09f60a8ea25a5c1dc",
+      "bytes": 2705
+    },
+    {
+      "path": "tools/LAUNCH.ps1",
+      "sha256": "dc97dfc64476d70d127b133ef73045214e9a8b41f94289374f7cd657df7dccde",
+      "bytes": 7761
+    }
+  ],
+  "excluded": [
+    "originals/R02_LEGACY_ORIGINAL_PRESERVED.zip",
+    "BUILD_MANIFEST.json"
+  ],
+  "windows_host_result": "USER_CONFIRMED_WORKING",
+  "github_public_source": "PENDING_SYNC"
+}

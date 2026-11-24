@@ -1,0 +1,13 @@
+node_modules/
+dist/
+*.sqlite
+*.sqlite3
+*.db
+*.zip
+*.exe
+*.log
+.env
+*.env.*
+originals/
+legacy_r02/
+__pycache__/
