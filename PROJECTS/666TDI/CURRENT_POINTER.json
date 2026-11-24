@@ -351,5 +351,25 @@
     "automatic_promotion": false,
     "python_pc_deferred": true,
     "foreign_activation": false
+  },
+  "native_musical_intelligence_r04": {
+    "version": "NMI-R04",
+    "status": "TRACK_LOCAL_AUDIO_EVIDENCE_SOURCE_VERIFIED_COMPARATIVE_HOLD",
+    "base_commit": "080d026fd3433b7fdaa7b15fd691bf3253e00130",
+    "source_commit": "a86a44fb1bcbae84cde51e66838160fade65ec4a",
+    "backup_branch": "backup/666tdi-nmi-r04-audio-prechange-20261125",
+    "root": "PROJECTS/666TDI/native/musical_intelligence/",
+    "bindings": {
+      "RIDERS_AUDIO_EVIDENCE_R04.json": "180f268b71ed919439b94b119c1997641bc3a6ec",
+      "GPT_NATIVE_WORKFLOW_R04.md": "b9a381c89d0376cbdfdfbdc7d7b9e2589ee77374"
+    },
+    "rehydration": "READ_R01_R02_R03_THEN_R04; TRACK_LOCAL_MEASUREMENTS_ONLY; AUDIO_OPTIONAL",
+    "next_native_action": "Confirm exact prompt/model/device and emoji attribution for both SHA256-identified WAVs; compare track-local outcomes without global promotion.",
+    "host_acceptance": "OPEN",
+    "musical_acceptance": "POSITIVE_CREATOR_REPORT_COMPARATIVE_HOLD",
+    "raw_wav_uploaded": false,
+    "automatic_promotion": false,
+    "python_pc_deferred": true,
+    "foreign_activation": false
   }
 }
