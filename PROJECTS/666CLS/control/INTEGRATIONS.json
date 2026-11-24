@@ -143,6 +143,15 @@
         "contracts/RECONSTRUCTION_ADAPTER_R01.md": "743a40a52331537b19ab9ac2a6a30c79257803cc97a7ed1b5af5ba71a74bff8b",
         "tests/test_reconstruction_adapter.py": "6199bac9ac2afdcee0f185d03e8dbe5cf02c58f8022b4e115c13c53a7bdd4183"
       }
+    },
+    {
+      "name": "666CLS CURES R08 Reference Evidence",
+      "role": "READ_ONLY_NON_EXECUTING_REFERENCE_INTEGRITY",
+      "scope": "CLS_OWNED_REFERENCE_ONLY_PFS_AUTHORITY_UNCHANGED",
+      "sha256": {
+        "facets/cures/CLS_REFERENCE_INTERFACE_R08.json": "9984321120f409257d0da2418290de5109c64cc98ba5e9063dd3450857a5dddf",
+        "facets/cures/R08_REFERENCE_ACCEPTANCE_20261123.json": "978d91f1dfda4a96c52d5e69c67eb69ce96ca375e66d13f5f9378323ae9aeff9"
+      }
     }
   ]
 }
