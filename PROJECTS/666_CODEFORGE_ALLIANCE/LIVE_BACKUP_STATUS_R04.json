@@ -9,14 +9,26 @@
   },
   "source_path": "PROJECTS/LYVRA_CODING_PROFI/",
   "backup_path": "PROJECTS/666_CODEFORGE_ALLIANCE/CODING_PROFI_LIVE/",
-  "snapshot_tree_sha": "062cdd02f7407f3940c450af79b3c558430c4c38",
+  "snapshot_tree_sha": "53d778022ba23f6036ab2bc0f6b19c7257d55d37",
   "trigger": "GITHUB_PUSH_SAME_REPOSITORY_SOURCE_PATH_AND_WORKFLOW_DISPATCH",
   "workflow": ".github/workflows/coding-profi-live-backup.yml",
-  "workflow_publication": "CANDIDATE_NOT_YET_OBSERVED",
-  "workflow_execution": "PENDING_INDEPENDENT_GITHUB_RUN_READBACK",
+  "workflow_publication": "GITHUB_REPOSITORY_WORKFLOW_SOURCE_VERIFIED",
+  "workflow_execution": "AUTOMATIC_GITHUB_ACTIONS_BOT_COMMIT_OBSERVED",
   "plugin_only_changes_automatic": "NOT_SUPPORTED_SOURCE_RELEASE_SYNC_REQUIRED",
   "repository_update_cost": "STANDARD_PUBLIC_RUNNER_NO_ADDITIONAL_CHARGE",
   "backup_role": "SECONDARY_ONLY_NO_NATIVE_AUTHORITY",
   "scope": "NO_FOREIGN_ACTIVATION_NO_PLUGIN_RELEASE_WRITES",
-  "not_zip": true
+  "not_zip": true,
+  "acceptance": {
+    "source_push_commit": "f3a8c0667397fce01e0342b6418c29fd84427d9a",
+    "automatic_backup_commit": "11bc5615e9d5dbb21a95b0c1d304c335c2ba0018",
+    "commit_author": "github-actions[bot]",
+    "backup_commit_parent": "f3a8c0667397fce01e0342b6418c29fd84427d9a",
+    "changed_path": "PROJECTS/666_CODEFORGE_ALLIANCE/CODING_PROFI_LIVE/integration/live_backup_r04/AUTOSYNC_ACCEPTANCE_SOURCE.md",
+    "same_git_tree_sha": "53d778022ba23f6036ab2bc0f6b19c7257d55d37",
+    "same_tree_readback": "VERIFIED",
+    "automatic_push_sync": "VERIFIED",
+    "github_actions_job_conclusion": "NOT_INDEPENDENTLY_READ",
+    "plugin_only_change_capture": "NOT_AUTOMATED"
+  }
 }
