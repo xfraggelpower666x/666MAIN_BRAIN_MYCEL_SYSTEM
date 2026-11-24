@@ -1,11 +1,11 @@
 {
   "project_id": "666_UNIVERSAL_DEVELOPMENT_BUILDKIT",
-  "version": "R01.11",
-  "status": "SOURCE_PARTIAL",
-  "source_zip": "666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01_11_ELECTRON_R06_1_ADOPTION.zip",
-  "zip_sha256": "e456876c02b2ed92973391e9babb626120da574b0e3aed54bec654038edcae2f",
-  "local_manifest_entries": 46,
-  "local_python_tests": "15/15_PASS",
+  "version": "R01.11.1",
+  "status": "SOURCE_PARTIAL_WITH_LOCAL_FULL_ZIP_AND_WINDOWS_PUBLISHER",
+  "source_zip": "666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01_11_1_ELECTRON_SOURCE_PUBLISH.zip",
+  "zip_sha256": "ae646788d0f55ad63100628ccc67d6bd12e20a242eb11fe95163bc26bb008b1c",
+  "local_manifest_entries": 49,
+  "local_python_tests": "17/17_PASS",
   "local_js_checks": "PASS",
   "windows_ui": "READBACK_PENDING",
   "portable_exe": "READBACK_PENDING",
@@ -19,5 +19,9 @@
   "original_artwork_preserved_in_local_zip": true,
   "reference_source": "PROJECTS/666_FULL_LYRICS_INTELLIGENCE/DELIVERY_R06_1.json",
   "no_cross_system_adoption": true,
-  "next_action": "Publish all 46 exact local files including original binary assets, compare GitHub SHA-256 against ZIP manifest, then promote with authorization."
+  "next_action": "Extract local full ZIP; run PUBLISH_SOURCE_TO_GITHUB.bat; approve JA; verify backup branch + 49 Git blobs and remote HEAD. Only then consider production promotion.",
+  "github_candidate_files_readback": 11,
+  "github_exact_new_code_blobs_readback": 8,
+  "publication_transport": "PUBLISH_SOURCE_TO_GITHUB.bat + tools/publish-source-to-github.ps1 in LOCAL FULL ZIP",
+  "publication_requires_user_windows_git_and_explicit_approval": true
 }
