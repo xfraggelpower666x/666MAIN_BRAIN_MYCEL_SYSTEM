@@ -33,3 +33,7 @@ This directory intentionally starts with a minimal non-destructive governance an
 - **Mandatory per-update sync:** Every authorized Coding Profi source change must update the mirrored tree in the same scoped commit and verify both Git trees after publication. Actual plugin release evolution remains independently governed.
 - **Auto-sync limitation:** Repository-internal snapshot publication and readback are verified per commit; a cross-repository/plugin event hook is not installed. Unobserved edits outside this update path must be marked BACKUP_SYNC_PENDING until reconciled.
 - **R03 details:** `integration/live_backup_r03/README.md` and the backup's `LIVE_BACKUP_STATUS_R03.json`.
+
+## Live backup role (2026-11-25)
+
+The original installed CODING PROFI plugin is the **sole plugin authority and execution location**. This existing GitHub folder remains a useful development/evidence workspace but its `plugin_source/` subtree is an **unpacked, release-bound LIVE BACKUP**, not a second authority, independent plugin, or executable host. The three ordered phases for every authorized plugin change are: (1) original plugin work, (2) guarded publish + live plugin readback, (3) matching GitHub source mirror update + SHA/commit readback. If the third phase fails, report `BACKUP_SYNC_PENDING`. No ZIP is used as the repository backup. See `plugin_source/references/coding-profi-live-backup.md` and `SOURCE_CURRENT.md`.
