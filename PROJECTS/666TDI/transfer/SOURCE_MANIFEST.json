@@ -94,7 +94,7 @@
     "engine/creator_learning.py": "1f021a498269901a6aa6559e78166f49d22b13b391a53ec60069b1a985513cbf",
     "tests/test_creator_learning.py": "3a3e4432fda791246d1b711829b0d0b68231ef562f843b70aebd38f96fb1bc5e",
     "docs/R14_CREATOR_EVIDENCE_LEARNING.md": "11121f69d0858dbae5787c6fd0bb6bca80b3381a0df49db6b2f39ff5dbb703ce",
-    "tests/test_daemon_http_guard.py": "f1af0f95b6b827a62fc1d354cd444f13cf8cca83510db635426bba3fa6e242bc",
+    "tests/test_daemon_http_guard.py": "2feea0f2b941e15b9ae32b0a42013f7d1ae0b6c02f81669b28d4b355dcdad340",
     "docs/R14_DAEMON_HTTP_AUDIT_REPAIR_20261123.md": "376b6b07c80384ac98952b18693461f8c6d4bb3d82cd0cd01f435dfe2b42772d"
   },
   "source_git_sha1": {
@@ -190,7 +190,7 @@
     "engine/creator_learning.py": "a92914b9a508546139d42e02485bc8540d79ec65",
     "tests/test_creator_learning.py": "6d44c7e9ea317257c8fb7e9d7ce3cc5fc3ab37e6",
     "docs/R14_CREATOR_EVIDENCE_LEARNING.md": "6f15a175cca3ba726dbf63fc5b542d024f24794f",
-    "tests/test_daemon_http_guard.py": "6d6f56dc3d3d1ef17f64802ea5e8c9161fe48b0a",
+    "tests/test_daemon_http_guard.py": "70f15d8d98b3b3a6c458ba10a76b418916b8a9b6",
     "docs/R14_DAEMON_HTTP_AUDIT_REPAIR_20261123.md": "8d3d2571ad3f7abedd47c6a46fa09f1a42f36559"
   },
   "source_archive_sha256": "4f0741ef3fdf438772fda6d406baaca02eddd4262ef9681bdc2517955c1703d1",
