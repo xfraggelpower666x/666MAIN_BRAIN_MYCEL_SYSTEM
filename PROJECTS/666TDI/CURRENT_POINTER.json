@@ -20,15 +20,15 @@
   "livecircle": "PROJECTS/666TDI/livecircle/CURRENT_STATE.json",
   "rehydration": "PROJECTS/666TDI/rehydration/rehydrate.py",
   "triggers": "PROJECTS/666TDI/triggers/TRIGGER_REGISTRY.json",
-  "source_commit_sha": "da02b4a326a825321bcedc7bea5ae64b6393a131",
+  "source_commit_sha": "fda3526498645ecdccb3b35a419db512b815611f",
   "audio_validation": "OPTIONAL_ON_DEMAND",
-  "next_action": "Run source/tests/test_daemon_http_guard.py in isolated localhost Python 3.10+ with temporary evidence root; confirm allowed Host GET, foreign Host 403 on GET/POST, origin 403, valid feedback/readback, malformed category 400. Then browser acceptance.",
-  "source_readback_commit_sha": "dfe004702c8be87a130bcc3a63991577cdee9693",
-  "source_readback_result": "94_OF_94_SOURCE_GIT_BLOBS_MATCH_MANIFEST_AFTER_HTTP_GUARD_AUDIT",
+  "next_action": "Run python -m unittest tests.test_daemon_http_guard -v from PROJECTS/666TDI/source on a Python 3.10+ host; then run the full source unittest suite and local browser acceptance.",
+  "source_readback_commit_sha": "258608368efa735cad5aac5807414d06f2ab1f8d",
+  "source_readback_result": "94_OF_94_GIT_BLOBS_MATCH_MANIFEST_AFTER_HTTP_TEST_HARNESS_REPAIR",
   "audio_analysis_required": false,
   "optional_audio_policy": "PROJECTS/666TDI/governance/AUDIO_MUSIC_ANALYSIS_OPTIONAL.json",
   "additive_4c_facet": "PROJECTS/666TDI/facets/4c/CONTRACT.json",
-  "source_manifest_blob_sha": "a435893a7a772e09b69f2e699f2f836e7a98b389",
+  "source_manifest_blob_sha": "5cc2de3d6371b81b99e20ae2bc000b7efea6e506",
   "r11_handoff_id": "CLIC-TO-666TDI-R11-20261122-01",
   "r11_native_integration_status": "NATIVE_ADOPTED_VERIFIED_READBACK",
   "r11_source_commit": "0d955834f58181cf1b0cb94c8c81dc299c07dbfe",
@@ -254,10 +254,10 @@
     "no_foreign_activation": true
   },
   "r14_daemon_http_audit_repair": {
-    "status": "SOURCE_VERIFIED_HOST_ACCEPTANCE_OPEN",
+    "status": "SOURCE_VERIFIED_TEST_HARNESS_REPAIRED_EXECUTION_PENDING",
     "source_commit": "da02b4a326a825321bcedc7bea5ae64b6393a131",
-    "manifest_commit": "dfe004702c8be87a130bcc3a63991577cdee9693",
-    "backup_branch": "backup/666tdi-audit-repair-http-guard-20261123",
+    "manifest_commit": "258608368efa735cad5aac5807414d06f2ab1f8d",
+    "backup_branch": "backup/666tdi-update-http-test-harness-20261124",
     "audit_doc": "PROJECTS/666TDI/source/docs/R14_DAEMON_HTTP_AUDIT_REPAIR_20261123.md",
     "changed_source": [
       "PROJECTS/666TDI/source/engine/daemon_cli.py",
@@ -275,13 +275,16 @@
       "EXPLICIT_FEEDBACK_WRITE_STATUS",
       "ADDITIVE_HTTP_CONTRACT_TESTS"
     ],
-    "http_tests_authored": 6,
-    "python_tests_executed": "NOT_EXECUTED",
+    "http_tests_authored": 7,
+    "python_tests_executed": "NOT_EXECUTED_NETWORK_CLONE_BLOCKED_DNS",
     "native_browser_acceptance": "NOT_EXECUTED",
     "all_94_git_blobs_verified": true,
     "outside_tdi_files_unchanged_by_update": true,
     "music_engines_preserved": true,
     "suno_calls": false,
-    "automatic_global_learning": false
+    "automatic_global_learning": false,
+    "http_test_harness": "HTTPConnection.putrequest_skip_host_SUPPORTED",
+    "duplicate_host_coverage": true,
+    "browser_acceptance": "OPEN"
   }
 }
