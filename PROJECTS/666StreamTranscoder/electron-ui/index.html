@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'"/>
+<title>666StreamTranscoder · Cyber Stream Control</title>
+<link rel="stylesheet" href="./style.css"/></head>
+<body>
+<div class="shell">
+<aside class="sidebar"><div class="brand"><div class="sigil">666</div><div><strong>STREAM<br/>TRANSCODER</strong><small>RESIN 3 · CYBER CONTROL</small></div></div>
+<nav aria-label="Bereiche"><button class="nav active" data-view="broadcast">◉ Broadcast</button><button class="nav" data-view="routing">◇ Routing</button><button class="nav" data-view="playlist">≋ Playlist</button><button class="nav" data-view="diagnostics">⌁ Diagnose</button></nav>
+<div class="foot">3DX RADIO 1.3.0<br/>PRESERVED CORE<br/><span>UI PREVIEW R01</span></div></aside>
+<main class="workspace">
+<header><div><p class="eyebrow">666SOUNDsDESIGn / BROADCAST CONTROL</p><h1>CYBER STREAM <em>ENGINE</em></h1></div><div class="pill">● NICHT VERBUNDEN</div></header>
+<section class="warning" role="status"><strong>ENTWICKLUNGSVORSCHAU</strong> · Noch keine Verbindung zur Python-/3DX-/Resin-3-Engine. Keine Schaltfläche startet einen echten Stream, kein angezeigter Pegel ist gemessen.</section>
+<section class="view current" id="broadcast"><div class="metrics">
+<article class="panel hero"><div class="tag">BROADCAST STATUS</div><h2>OFF AIR</h2><p>Audioengine nicht verbunden</p><button disabled>GO LIVE · NICHT VERFÜGBAR</button></article>
+<article class="panel"><div class="tag">SIGNAL / INPUT</div><div class="meter"><i></i></div><b>— dBFS</b><p>Keine Telemetrie</p></article>
+<article class="panel"><div class="tag">STREAM / OUTPUT</div><div class="meter pink"><i></i></div><b>— dBFS</b><p>Keine Telemetrie</p></article></div>
+<div class="twocol"><article class="panel"><div class="tag">ENGINE COMPONENTS</div><div class="status-grid"><span>SOURCE <b>OFFLINE</b></span><span>MONITOR <b>OFFLINE</b></span><span>ENCODER <b>OFFLINE</b></span><span>SERVER <b>OFFLINE</b></span><span>RELAY <b>OFFLINE</b></span><span>ERROR <b>UNBEKANNT</b></span></div></article>
+<article class="panel"><div class="tag">AUDIO CONTROL · PREVIEW</div><div class="control"><label>Stream Gain <output>—</output></label><input type="range" disabled/></div><div class="control"><label>Monitor Gain <output>—</output></label><input type="range" disabled/></div><p>Getrennte Signalwege bleiben im Python-Kern.</p></article></div>
+</section>
+<section class="view" id="routing"><article class="panel"><div class="tag">SIGNAL ROUTING MATRIX</div><h2>INPUT → ENGINE → OUTPUT</h2><div class="routes"><div>PLAYLIST<br/>WASAPI<br/>VB-CABLE<br/>HTTP RELAY</div><div class="arrow">→</div><div>3DX PCM MIXER<br/>RESIN 3 CONTROL<br/>FFMPEG ENCODER</div><div class="arrow">→</div><div>SHOUTCAST<br/>ICECAST<br/>LOCAL MONITOR</div></div><p>Architekturansicht, keine aktive Gerätezuordnung. IMMDevice-Schutz bleibt Backend-Aufgabe.</p></article></section>
+<section class="view" id="playlist"><article class="panel"><div class="tag">AUTOMATIC CROSSFADE</div><h2>PLAYLIST TRANSITIONS</h2><p>Auto-Crossfade: 3–15 Sekunden, Standard 8 Sekunden. Skip löst ebenfalls den Crossfade aus, ohne Encoder oder Socket neu zu starten.</p><button disabled>SKIP · NICHT VERBUNDEN</button><p>Playlist-Daten sind noch nicht angebunden.</p></article></section>
+<section class="view" id="diagnostics"><article class="panel"><div class="tag">SYSTEM EVIDENCE</div><h2>HOST STATUS</h2><dl><dt>Electron presentation</dt><dd>Geladen</dd><dt>Python audio engine</dt><dd>Nicht gestartet</dd><dt>WASAPI / VB-CABLE</dt><dd>Nicht geprüft</dd><dt>Shoutcast / Icecast</dt><dd>Nicht verbunden</dd><dt>Portable / Setup</dt><dd>Offen</dd></dl><p>Windows-Geräteprobe bleibt separat: python scripts/windows_hardware_probe.py --json</p></article></section>
+<footer>666STREAMTRANSCODER v3.0 · ELECTRON PRESENTATION ONLY · 3DX + RESIN 3 PRESERVED</footer>
+</main></div><script src="./renderer.js"></script></body></html>

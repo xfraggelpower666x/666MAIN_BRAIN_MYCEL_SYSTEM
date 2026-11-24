@@ -1,0 +1,14 @@
+{
+  "name": "666-streamtranscoder-electron-ui",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Additive, disconnected Electron interface preview for 666StreamTranscoder v3.0",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "check": "node --check main.cjs && node --check preload.cjs && node --check renderer.js"
+  },
+  "devDependencies": {
+    "electron": "^35.7.5"
+  }
+}
