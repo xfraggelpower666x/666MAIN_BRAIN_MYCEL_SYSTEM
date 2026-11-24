@@ -1,0 +1,31 @@
+name: MAIN BRAIN Klarcode Coordinator R01 (isolated candidate)
+on:
+  push:
+    branches:
+      - integration/mainbrain-klarcode-coordinator-r01-20261124
+    paths:
+      - INTEGRATIONS/MAIN_BRAIN_KLARCODE_R01/**
+      - .github/workflows/mainbrain-klarcode-r01.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Immutable code source + authority regression
+        run: |
+          cd INTEGRATIONS/MAIN_BRAIN_KLARCODE_R01
+          python -m unittest discover -s tests -p 'test_*.py' -v
+      - name: No native MAIN BRAIN pointer in this candidate
+        run: |
+          test ! -e CURRENT_POINTER.md
+          test ! -e GOVERNANCE/WRITE_GOVERNANCE.md
+          echo 'This branch is source integration only; production authority remains blocked.'
