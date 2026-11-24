@@ -14,9 +14,8 @@ if($Action -eq 'check'){Write-Host 'Tool check passed. No installation performed
 & node --check renderer/app.js; if($LASTEXITCODE -ne 0){throw 'Renderer syntax failed'}
 if(-not (Test-Path node_modules/electron)){throw 'npm dependencies missing. Run npm ci (lockfile) or npm install explicitly.'}
 if($Action -eq 'run') { & npm start;exit $LASTEXITCODE }
-Require py
 & $PythonCmd @PythonArgs -m PyInstaller --version | Out-Null
-if($LASTEXITCODE -ne 0){throw 'PyInstaller missing. Install explicitly with py -3 -m pip install pyinstaller'}
+if($LASTEXITCODE -ne 0){throw 'PyInstaller missing. Install explicitly with the selected Python interpreter (-m pip install pyinstaller)'}
 New-Item -ItemType Directory -Force build/runtime | Out-Null
 & $PythonCmd @PythonArgs -m PyInstaller --onefile --clean --noconfirm --name 666-catalog-bridge --distpath build/runtime --workpath build/pyi-work --specpath build/pyi-spec engine/bridge.py
 if($LASTEXITCODE -ne 0 -or -not (Test-Path build/runtime/666-catalog-bridge.exe)){throw 'Python bridge build failed'}

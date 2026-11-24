@@ -4,7 +4,7 @@
 
 ## Windows start (one CMD only)
 
-Double-click `START.cmd`. The launcher checks for Node.js and Python and installs **only missing Electron npm dependencies** for this new app. It does **not** silently install/upgrade system-wide Node.js or Python. If absent, the launcher gives an installation hint. Optional `pypdf` and `python-docx` are checked from **System & Dependencies**, and installed only upon confirmation. Network may be required for npm/PyPI.
+Double-click `STARTEN.bat`. The launcher checks for Node.js and Python and installs **only missing Electron npm dependencies** for this new app. It does **not** silently install/upgrade system-wide Node.js or Python. If absent, the launcher gives an installation hint. Optional `pypdf` and `python-docx` are checked from **System & Dependencies**, and installed only upon confirmation. Network may be required for npm/PyPI.
 
 Manual alternative:
 
@@ -56,15 +56,15 @@ Each record has category (lyrics, style_prompt, prompt, framework, code, diverse
 ## Validation
 
 ```powershell
-npm run check
-npm test
+npm run check:js
+npm run test:python
 ```
 
 Tests include 120-song split, duplicate avoidance, chat backup extraction, ZIP safety, archival readback, legacy read-only migration, export, unknown formats and project routing.
 
 ## Native integration
 
-This project is not uploaded to GitHub. Its folder can be added to a chosen repository only after current HEAD, authority, permissions and regression checks. A project detected in a backup does not activate that project's runtime.
+This project is published as individually editable public source in `PROJECTS/666_FULL_LYRICS_INTELLIGENCE/` on branch `666MAIN_BRAIN`. The private R02 original database/ZIP must remain outside this public directory. Publication and source checks are not a Windows installer acceptance. A project detected in a backup does not activate that project's runtime.
 
 
 ### R05.2 Reparatur
@@ -89,3 +89,11 @@ Gezielte Korrektur des nachweisbaren Electron-ENOENT-Fehlers durch CRLF in `node
 - Neues neon-cyber Desktop-Metaband, aktueller R06.1-Schriftzug statt altem R03-Label, Kontrast-/Fokusverbesserungen und responsive Layoutanpassungen.
 - Keine IPC-, Datenbank-, Import-, Archiv-, Starter- oder Build-Verhaltensänderungen. Alle bestehenden HTML-Element-IDs und Event-Handler bleiben erhalten.
 - Bestehende erfolgreiche Windows-R06.1-Bestätigung gilt für die unveränderte Laufzeitbasis; die UI-Erweiterung ist noch nicht am Windows-Host abgenommen.
+
+
+### R06.1 source maintenance — Windows build and documentation
+
+- Actual launcher: `STARTEN.bat` (not `START.cmd`); `tools/LAUNCH.ps1` retains its targeted Electron `path.txt` repair.
+- `build/BUILD_WINDOWS.ps1` now uses its selected Python executable consistently for PyInstaller. Having only `python.exe` no longer fails an unrelated unconditional `Require py` gate.
+- `tests/test_r061_launcher_contract.py` adds three source-level contract assertions. Linux source test result: **23/23 PASS**, plus three Electron-related JavaScript syntax checks. No claim of Windows GUI/portable/NSIS acceptance from these tests.
+- The newer additive R06.1 neon Electron renderer is preserved exactly; this change makes **no modifications to renderer, Electron main/preload, Python engine, private database or project runtime pointer**.
