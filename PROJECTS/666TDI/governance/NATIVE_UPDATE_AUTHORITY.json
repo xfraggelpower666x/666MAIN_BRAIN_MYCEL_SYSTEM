@@ -200,6 +200,21 @@
       "automatic_promotion": false,
       "pointer_last": true,
       "requires_direct_readback": true
+    },
+    "nmi_r02": {
+      "source": "DIRECT_USER_MESSAGE_2026-11-24T22:40:22Z",
+      "scope": "PROJECTS/666TDI_ONLY",
+      "operations": [
+        "CHAT_CONTEXT_AUDIT",
+        "ADDITIVE_LYRICAL_KNOWLEDGE",
+        "POINTER_BOUND_REHYDRATION"
+      ],
+      "backup": "backup/666tdi-nmi-r02-prechange-20261124",
+      "preserve_existing": true,
+      "foreign_writes": false,
+      "pointer_last": true,
+      "requires_direct_readback": true,
+      "automatic_promotion": false
     }
   }
 }

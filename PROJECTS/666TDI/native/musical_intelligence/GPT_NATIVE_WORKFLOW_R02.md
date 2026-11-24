@@ -1,0 +1,3 @@
+# NMI-R02 additive chat rehydration
+
+Read and verify all NMI-R01 bindings first; then all NMI-R02 bindings from productive Current. Apply R01 unchanged and use LYRICAL_INTELLIGENCE_R02.json as an optional context-sensitive extension of M06, M07, M09, M10. Do not replace any original lyrics or successful renderer phrasing. On direct native creative requests use the workflow when relevant, not as mandatory template. On feedback record actual creator-confirmed evidence; no automatic promotion. Missing sources or baseline remain PARTIAL/HOLD. No host trigger installation or code execution implied.
