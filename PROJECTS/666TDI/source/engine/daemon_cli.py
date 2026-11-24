@@ -4,6 +4,7 @@ Start: python -m engine.daemon_cli --port 8766
 Only localhost; no Suno API calls, no repository writes, no automatic track files.
 """
 from __future__ import annotations
+from . import semantic_reinforcement
 
 import argparse
 import json
@@ -88,6 +89,7 @@ def preanalysis(payload: dict) -> dict:
         "causal": causal,
         "preanalysis": preanalysis,
         "device_output": renderer,
+        "semantic_reinforcement": semantic_reinforcement.assess(intent),
         "menu": [
             {"id":"device", "label":"Gerät & Workflow", "status":"COMPLETE"},
             {"id":"intent", "label":"Track-Idee", "status":"COMPLETE"},
