@@ -331,5 +331,25 @@
     "automatic_promotion": false,
     "python_pc_deferred": true,
     "foreign_activation": false
+  },
+  "native_musical_intelligence_r03": {
+    "version": "NMI-R03",
+    "status": "TRACK_LOCAL_CREATOR_EVIDENCE_AND_NATIVE_SEMANTIC_REVIEW_SOURCE_VERIFIED_HOST_OPEN",
+    "base_commit": "c70f5c5b1166a869d4db48d9b1f78480d0ce508a",
+    "source_commit": "3654c37ba0824ec53a20f5f7dd5fde0610bc3d08",
+    "backup_branch": "backup/666tdi-nmi-r03-prechange-20261124",
+    "root": "PROJECTS/666TDI/native/musical_intelligence/",
+    "bindings": {
+      "SEMANTIC_REINFORCEMENT_R03.json": "ebb5ec8b2baa484a1703f825f643cbb171a18cee",
+      "RIDERS_CREATOR_FEEDBACK_R03.json": "b860f62d5182ded86aa448eca53ae079d5d156d2",
+      "GPT_NATIVE_WORKFLOW_R03.md": "3f07ae9505cd311d3135907439ee901ebcec269f"
+    },
+    "rehydration": "READ_R01_R02_THEN_R03; APPLY_CONTEXTUAL_SEMANTIC_OUTPUT_REVIEW; FEEDBACK_TRACK_LOCAL_ONLY",
+    "next_native_action": "Review emoji-only candidate with creator, distinguish vacuum from silence, compare actual Suno output with positive reported original; fresh-chat acceptance separately.",
+    "host_acceptance": "OPEN",
+    "musical_acceptance": "POSITIVE_CREATOR_REPORT_COMPARATIVE_HOLD",
+    "automatic_promotion": false,
+    "python_pc_deferred": true,
+    "foreign_activation": false
   }
 }
