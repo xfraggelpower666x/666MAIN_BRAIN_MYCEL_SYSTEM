@@ -311,5 +311,25 @@
     "r15_candidate_preserved": "0c5966a0136de308a0bbd78519c3c1c4936917f8",
     "host_acceptance": "OPEN",
     "musical_regression_acceptance": "OPEN"
+  },
+  "native_musical_intelligence_r02": {
+    "version": "NMI-R02",
+    "status": "ADDITIVE_LYRICAL_WORKFLOW_SOURCE_READBACK_VERIFIED_HOST_OPEN",
+    "base_commit": "34b14b973ff38b27fd6c3903a986df0db39e0c89",
+    "source_commit": "a723b95880572904775a282cf0b40a97abde9d95",
+    "backup_branch": "backup/666tdi-nmi-r02-prechange-20261124",
+    "root": "PROJECTS/666TDI/native/musical_intelligence/",
+    "bindings": {
+      "LYRICAL_INTELLIGENCE_R02.json": "49e78c31226bb50339d90e079ec77a6657401254",
+      "CHAT_CONTEXT_AUDIT_R02.json": "efe8185f3eba589746fd539cd3a46aa1632c136f",
+      "GPT_NATIVE_WORKFLOW_R02.md": "e2871184b3909f39502e19d58b9a4a9924ff5a3b"
+    },
+    "rehydration": "READ_AND_APPLY_R01_FIRST_THEN_R02_BOUND_FILES; EXISTING_TRIGGER_REGISTRY_UNCHANGED",
+    "next_native_action": "Fresh-chat readback both overlays; apply to a creator track with verified successful baseline; explicit outcome comparison; HOLD if baseline missing.",
+    "host_acceptance": "OPEN",
+    "musical_acceptance": "OPEN",
+    "automatic_promotion": false,
+    "python_pc_deferred": true,
+    "foreign_activation": false
   }
 }
