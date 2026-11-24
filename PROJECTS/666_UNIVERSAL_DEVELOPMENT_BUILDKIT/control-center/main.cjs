@@ -11,7 +11,7 @@ function isMainFrame(event) {
     event.senderFrame === mainWindow.webContents.mainFrame;
 }
 function launchAction(action) {
-  const ps = path.join(process.env.SystemRoot || 'C:\Windows','System32','WindowsPowerShell','v1.0','powershell.exe');
+  const ps = path.join(process.env.SystemRoot || 'C:\\Windows','System32','WindowsPowerShell','v1.0','powershell.exe');
   const script = path.join(root,'STARTEN.ps1');
   const child = spawn(ps,['-NoProfile','-ExecutionPolicy','Bypass','-NoExit','-File',script,'-Action',action],{
     cwd:root,detached:true,windowsHide:false,stdio:'ignore',shell:false
