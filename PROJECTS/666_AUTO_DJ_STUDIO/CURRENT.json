@@ -1,0 +1,32 @@
+{
+  "system": "666_AUTO_DJ_STUDIO",
+  "scope": "PROJECTS/666_AUTO_DJ_STUDIO",
+  "status": "PARTIAL_SOURCE_LIVE_BINARY_PENDING",
+  "revision": "R04_CONTINUITY_R06_1_ELECTRON_DIRECT_REPAIR",
+  "source_branch": "666MAIN_BRAIN",
+  "source_commit": "744333007f1cbec847d2323e1b1601f712fd3751",
+  "source_readback": "40_SOURCE_BLOBS_PRESENT_7_DIRECT_FILE_READBACK_3_BOM_EXACT",
+  "source_files_from_working_zip": 38,
+  "legacy_r04_provisioner_preserved": true,
+  "original_zip": "666_AUTO_DJ_STUDIO_CONTINUITY_ELECTRON_R06_1_DIRECT_REPAIR.zip",
+  "original_zip_sha256": "7b8f206eb1f4919324f49bbcc9c03f5ea2a06ecf873a18610a37d43972d4f17a",
+  "original_zip_entries": 69,
+  "windows_electron_development_start": "USER_CONFIRMED_2026_11_24_NO_INDEPENDENT_HOST_RECEIPT",
+  "local_regression": "21_OF_21_PYTHON_PASS_JS_SYNTAX_PASS",
+  "binary_assets": "31_OF_31_NOT_PUBLISHED_TO_GITHUB",
+  "binary_assets_manifest": "docs/BINARY_ASSETS_STATUS.md",
+  "ffmpeg": "ORIGINAL_IN_LOCAL_ZIP_SHA256_VERIFIED_NOT_PUBLISHED",
+  "covers": "29_OF_29_ORIGINAL_IN_LOCAL_ZIP_NOT_PUBLISHED",
+  "portable_exe": "NOT_BUILT_CONFIRMED",
+  "installer": "NOT_BUILT_CONFIRMED",
+  "complete_original_audio_parity": "NOT_VERIFIED",
+  "legacy_powershell": "SOURCE_BLOB_EXACT_dcf7ef1269a5658292089149f1570f8d55310fff",
+  "original_r04_reference": "1bc7eb56b659ad345a7cba7adf808772163e9520",
+  "backups": [
+    "backup/auto-dj-r04-source-before-recovery-20261124",
+    "backup/mainbrain-before-autodj-recovery-20261124"
+  ],
+  "non_destructive": true,
+  "next": "Upload original 31 binary assets with exact SHA-256 GitHub byte readback; then perform Windows portable/setup and audio E2E acceptance. Do not promote production freeze earlier.",
+  "pointer_publication": "LAST_MUTATION_OF_THIS_UPDATE"
+}
