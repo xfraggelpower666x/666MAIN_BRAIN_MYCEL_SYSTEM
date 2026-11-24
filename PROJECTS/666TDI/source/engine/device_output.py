@@ -4,6 +4,7 @@ Only translates creator-supplied content; not a composer, Suno control or provid
 R0.9–R1.2 musical intelligence stays device-independent and unchanged.
 """
 from __future__ import annotations
+from . import semantic_reinforcement
 import re
 
 SCHEMA="666TDI_DEVICE_OUTPUT_R13_V1"
@@ -122,6 +123,7 @@ def translate(intent, device, route_context=None):
           "not_a_render_guarantee":True},
   "guidance":guidance,
   "field_order":["title","extended","style","lyrics"],
+  "semantic_reinforcement_audit":semantic_reinforcement.audit(fields, semantic_reinforcement.assess(intent)),
   "copy_budget_claim":"CREATOR_REPORTED_REFERENCE_NOT_LIVE_PROVIDER_VERIFIED",
   "requires_creator_review":True,
   "all_nonempty_fields_within_reference_budget":all(v["within_reference_budget"] for v in fields.values()),
