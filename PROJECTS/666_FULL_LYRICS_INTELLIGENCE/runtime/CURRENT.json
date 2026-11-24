@@ -1,0 +1,15 @@
+{
+    "schema":  "666.full-lyrics-intelligence.project-current.v1",
+    "project":  "666_FULL_LYRICS_INTELLIGENCE",
+    "repository":  "xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM",
+    "branch":  "666MAIN_BRAIN",
+    "scope":  "PROJECTS/666_FULL_LYRICS_INTELLIGENCE/",
+    "state":  "SOURCE_PUBLISHED_USER_HOST_CONFIRMED",
+    "runtime_development_revision":  "R06.1",
+    "public_source_commit":  "6d1659353ce2284eb977df964f4c48ee1b41fc3a",
+    "public_source_files":  25,
+    "public_source_private_data_excluded":  true,
+    "windows_start":  "USER_CONFIRMED_RUNNING",
+    "tests":  "NOT_RERUN_PER_USER_REQUEST",
+    "note":  "Pointer last: source body read back before pointer write. Private backup stays offline."
+}
