@@ -1,4 +1,4 @@
-param([string]$Action = 'gui')
+﻿param([string]$Action = 'gui')
 $ErrorActionPreference = 'Stop'
 Set-Location -LiteralPath $PSScriptRoot
 $logDir = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) '666SOUNDsDESIGn\UniversalBuildkit\logs'
