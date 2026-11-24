@@ -286,5 +286,30 @@
     "http_test_harness": "HTTPConnection.putrequest_skip_host_SUPPORTED",
     "duplicate_host_coverage": true,
     "browser_acceptance": "OPEN"
+  },
+  "native_musical_intelligence_r01": {
+    "status": "ADDITIVE_GPT_NATIVE_CONTRACT_SOURCE_READBACK_VERIFIED_HOST_ACCEPTANCE_OPEN",
+    "version": "NMI-R01",
+    "source_commit": "cc262a229061f38271fca53304a2f5942d8b0a94",
+    "base_commit": "5bcea08c9dec3b2c96891ca29c9bb3075bd16475",
+    "backup_branch": "backup/666tdi-native-dna-prechange-20261124",
+    "root": "PROJECTS/666TDI/native/musical_intelligence/",
+    "bindings": {
+      "CONTRACT.json": "669972d67be88ce9b5b6cb6e467d715fcbbda3e0",
+      "CAPABILITY_MATRIX.json": "bd6842ec0fa5f72710a512125b26a4e9eb735151",
+      "RESEARCH_MATRIX.json": "17ce732707e46524ff23a9f7c69ddfe6c2af909b",
+      "REGRESSION_GUARD.json": "10106e5811accb5bcf0b474d1f745ca38e99e267",
+      "GPT_NATIVE_WORKFLOW.md": "e8cd9a91d2bb86f959888a79e11f1ec67c6f027a"
+    },
+    "rehydration": "READ_ALL_BOUND_FILES_ON_NATIVE_SYSTEMSTART_OR_REHYDRATION; APPLY_GPT_NATIVE_WORKFLOW; NO_NEW_TRIGGER",
+    "next_native_action": "Fresh-chat rehydrate NMI-R01, apply to representative creator track with protected successful baseline, record explicit comparison feedback; missing baseline remains OPEN.",
+    "existing_next_action_preserved": true,
+    "python_pc_deferred": true,
+    "automatic_promotion": false,
+    "audio_optional": true,
+    "foreign_activation": false,
+    "r15_candidate_preserved": "0c5966a0136de308a0bbd78519c3c1c4936917f8",
+    "host_acceptance": "OPEN",
+    "musical_regression_acceptance": "OPEN"
   }
 }
