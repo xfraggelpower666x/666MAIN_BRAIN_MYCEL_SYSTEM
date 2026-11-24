@@ -10,3 +10,65 @@ body.overlay{background:transparent}body.overlay #shell{min-height:0;background:
 .control-card input[type=number]{width:100px;max-width:100%;padding:7px;background:#202535;color:var(--text);border:1px solid var(--violet);border-radius:6px}
 
 .classic-indicator{font-size:52px;line-height:1.2;text-shadow:0 0 14px currentColor}
+
+/* R19 Electron neon polish — R06.1-inspired visual refinement, NOT a cross-project copy.
+   All existing IDs, tab handlers, data flows and transparent overlay behavior preserved. */
+body:not(.overlay){
+  background:
+    radial-gradient(ellipse at 75% -20%,rgba(168,85,255,.22),transparent 53%),
+    radial-gradient(circle at 4% 68%,rgba(53,224,255,.07),transparent 45%),
+    var(--bg);
+}
+body:not(.overlay) #shell{max-width:1720px;margin:auto;padding:clamp(16px,2.6vw,38px)}
+body:not(.overlay) header{
+  position:relative;align-items:center;flex-wrap:wrap;min-height:85px;
+  padding:12px 20px 20px;border:1px solid rgba(168,85,255,.24);
+  border-radius:16px;background:linear-gradient(125deg,rgba(36,26,60,.78),rgba(15,24,40,.84));
+  box-shadow:0 16px 42px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.055);
+  overflow:hidden;
+}
+body:not(.overlay) header::after{content:"";position:absolute;bottom:0;left:0;width:48%;height:2px;
+  background:linear-gradient(90deg,var(--pink),var(--violet),var(--cyan),transparent)}
+body:not(.overlay) header strong{font-size:clamp(18px,1.8vw,27px);line-height:1.2;
+  background:linear-gradient(95deg,var(--cyan),#eaf7ff 56%,var(--pink));color:transparent;
+  background-clip:text;-webkit-background-clip:text;text-shadow:0 0 22px rgba(53,224,255,.12)}
+body:not(.overlay) header span{padding:7px 11px;border:1px solid rgba(168,85,255,.33);
+  background:rgba(168,85,255,.12);border-radius:999px}
+body:not(.overlay) nav{gap:10px;margin:22px 0;padding:7px;background:rgba(14,19,32,.55);
+  border:1px solid rgba(168,85,255,.13);border-radius:14px}
+body:not(.overlay) nav button{flex:1 1 auto;min-height:43px;border-color:transparent;background:transparent;
+  font-size:12px;font-weight:700;letter-spacing:.35px;transition:background .15s ease,box-shadow .15s ease}
+body:not(.overlay) nav button:hover{background:rgba(53,224,255,.075)}
+body:not(.overlay) nav button.active{background:linear-gradient(110deg,rgba(255,79,216,.16),rgba(53,224,255,.12));
+  border-color:rgba(53,224,255,.56);box-shadow:inset 3px 0 var(--pink),0 0 19px rgba(53,224,255,.12)}
+body:not(.overlay) main{min-width:0}
+body:not(.overlay) main h1{font-size:clamp(18px,2vw,25px);margin:14px 0 12px;
+  letter-spacing:1px}
+body:not(.overlay) #notice{padding:9px 13px;min-height:36px;
+  background:rgba(20,30,46,.72);border:1px solid rgba(53,224,255,.16);
+  border-radius:9px;overflow-wrap:anywhere}
+body:not(.overlay) .drive,body:not(.overlay) .control-card{background:
+  linear-gradient(155deg,rgba(32,39,57,.96),rgba(21,26,39,.96));
+  box-shadow:0 14px 34px rgba(0,0,0,.17),inset 0 1px rgba(255,255,255,.035)}
+body:not(.overlay) .drive{padding:18px;border-radius:15px;
+  transition:border-color .18s ease,transform .18s ease,box-shadow .18s ease}
+body:not(.overlay) .drive:hover{transform:translateY(-2px);
+  box-shadow:0 18px 35px rgba(0,0,0,.24),0 0 24px rgba(168,85,255,.075)}
+body:not(.overlay) .drive h2{color:#e5eaff;letter-spacing:.3px}
+body:not(.overlay) .track{height:10px;background:#111e30}
+body:not(.overlay) .fill.read{background:linear-gradient(90deg,#177d97,var(--cyan))}
+body:not(.overlay) .fill.write{background:linear-gradient(90deg,#9a2676,var(--pink))}
+body:not(.overlay) button:focus-visible,body:not(.overlay) select:focus-visible,
+body:not(.overlay) input:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+body:not(.overlay) #statustext{overflow-wrap:anywhere}
+@media(max-width:780px){
+  body:not(.overlay) nav{padding:6px}
+  body:not(.overlay) nav button{flex:1 1 145px}
+  body:not(.overlay) .meter-row{grid-template-columns:45px minmax(35px,1fr) 92px}
+  body:not(.overlay) footer{flex-wrap:wrap}
+  body:not(.overlay) #drives{grid-template-columns:minmax(0,1fr)}
+}
+@media(prefers-reduced-motion:reduce){
+  body:not(.overlay) .drive,body:not(.overlay) nav button{transition:none}
+  body:not(.overlay) .drive:hover{transform:none}
+}

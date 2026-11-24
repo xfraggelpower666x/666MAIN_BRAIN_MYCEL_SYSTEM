@@ -87,6 +87,25 @@ function Ensure-Dependencies {
   Push-Location $App
   try { Run 'npm.cmd' @('ci','--no-audit','--no-fund') }
   finally { Pop-Location }
+  Repair-ElectronPathMarker
+}
+# R06.1 source-proven Electron path.txt ENOENT guard. Never download or replace runtimes here.
+function Repair-ElectronPathMarker {
+  $electronPkg = Join-Path $App 'node_modules\electron'
+  $exe = Join-Path $electronPkg 'dist\electron.exe'
+  $marker = Join-Path $electronPkg 'path.txt'
+  if (-not (Test-Path -LiteralPath $exe -PathType Leaf)) { return }
+  if (-not (Test-Path -LiteralPath $marker -PathType Leaf)) { return }
+  $raw = [System.IO.File]::ReadAllText($marker)
+  if ($raw -ceq 'electron.exe') { return }
+  if ($raw.Trim() -cne 'electron.exe') {
+    throw 'BUILD_BLOCKED: unexpected Electron runtime marker. Refusing automatic path rewrite.'
+  }
+  Log 'Repairing Electron path.txt CRLF/whitespace without replacing runtime.'
+  [System.IO.File]::WriteAllText($marker,'electron.exe',[System.Text.Encoding]::ASCII)
+  if ([System.IO.File]::ReadAllText($marker) -cne 'electron.exe') {
+    throw 'BUILD_BLOCKED: Electron path marker readback mismatch.'
+  }
 }
 function Build-Engine {
   Ensure-Source
