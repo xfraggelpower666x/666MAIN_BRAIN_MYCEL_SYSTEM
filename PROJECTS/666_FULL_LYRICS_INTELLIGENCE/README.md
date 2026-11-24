@@ -81,3 +81,11 @@ der Starter konkrete Download-/Proxy-Hinweise statt einer pauschalen Meldung.
 
 ### R06.1
 Gezielte Korrektur des nachweisbaren Electron-ENOENT-Fehlers durch CRLF in `node_modules/electron/path.txt`. Der Starter bereinigt vorhandene Marker ohne erneuten Runtime-Download.
+
+
+## Electron Desktop UI polish — R06.1 additive presentation update
+
+- R06.1 ist bereits eine Electron-Desktop-Anwendung (main/preload + HTML/CSS/JS renderer); kein Frameworkwechsel.
+- Neues neon-cyber Desktop-Metaband, aktueller R06.1-Schriftzug statt altem R03-Label, Kontrast-/Fokusverbesserungen und responsive Layoutanpassungen.
+- Keine IPC-, Datenbank-, Import-, Archiv-, Starter- oder Build-Verhaltensänderungen. Alle bestehenden HTML-Element-IDs und Event-Handler bleiben erhalten.
+- Bestehende erfolgreiche Windows-R06.1-Bestätigung gilt für die unveränderte Laufzeitbasis; die UI-Erweiterung ist noch nicht am Windows-Host abgenommen.
