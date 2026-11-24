@@ -183,6 +183,23 @@
       "python_test_execution": "OPEN",
       "browser_acceptance": "OPEN",
       "pointer_last": true
+    },
+    "nmi_r01": {
+      "source": "DIRECT_USER_MESSAGE_2026-11-24T22:33:05Z",
+      "scope": "PROJECTS/666TDI_ONLY",
+      "operations": [
+        "ADDITIVE_GPT_NATIVE_KNOWLEDGE",
+        "DNA_PROTECTION",
+        "REGRESSION_GUARD",
+        "POINTER_BOUND_REHYDRATION"
+      ],
+      "pre_change_backup": "backup/666tdi-native-dna-prechange-20261124",
+      "preserve_existing": true,
+      "foreign_writes": false,
+      "python_pc_development": false,
+      "automatic_promotion": false,
+      "pointer_last": true,
+      "requires_direct_readback": true
     }
   }
 }
