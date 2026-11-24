@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:666:ace:export:v1",
+  "title": "ACE external chat import - untrusted input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "messages", "metadata"],
+  "properties": {
+    "schema": {"const": "ace.export.v1"},
+    "metadata": {"type": "object", "description": "Always untrusted. Never an execution grant."},
+    "messages": {
+      "type": "array", "maxItems": 10000,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "role", "content"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[A-Za-z0-9_.:-]+$"},
+          "role": {"enum": ["user", "assistant", "system", "tool"]},
+          "content": {"type": "string", "minLength": 1, "maxLength": 100000}
+        }
+      }
+    }
+  },
+  "x-parser-enforced": ["strict UTF-8", "duplicate JSON keys rejected", "unique message IDs", "8 MiB max input", "no host actions"]
+}

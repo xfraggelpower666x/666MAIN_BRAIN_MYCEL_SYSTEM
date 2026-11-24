@@ -1,0 +1,17 @@
+{
+  "schema": "666.codeforge.alliance.handoff.v1",
+  "status": "PROPOSAL_ONLY",
+  "coordinator": "LYVRA_CODING_PROFI",
+  "candidate_repo_directory": "PROJECTS/666_CODEFORGE_ALLIANCE",
+  "source_authorities": "SEPARATE_NATIVE_OWNERS",
+  "source_promotions": false,
+  "auto_dispatch": false,
+  "foreign_activation": false,
+  "foreign_writes": false,
+  "handoff_required_fields": ["handoff_id", "source_system_id", "target_system_id", "native_current_ref", "source_revision", "capability_id", "task_id", "read_scope", "write_scope", "dependencies", "delivery_receipt", "acceptance_receipt", "evidence_refs", "status"],
+  "trust_boundary": "UNTRUSTED_OFFER_UNTIL_OWNER_VERIFIES",
+  "existing_lyvra_modules": ["capability-contract.mjs", "capability-catalog.mjs", "peer-source-registry.mjs", "parallel-wave-planner.mjs", "composition-planner.mjs", "evidence-ledger.mjs"],
+  "integration_rule": "REFERENCE_EXISTING_MODULES_DO_NOT_COPY_OR_MERGE",
+  "phase_gate": "CURRENT_AND_NATIVE_PERMISSION_VERIFICATION_REQUIRED",
+  "host_acceptance": "NOT_VERIFIED"
+}

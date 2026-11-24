@@ -1,0 +1,55 @@
+{
+  "schema": "CODEFORGE_ALLIANCE_SOURCE_MANIFEST_R01",
+  "scope": "PROJECTS/666_CODEFORGE_ALLIANCE",
+  "source_only": true,
+  "host_acceptance": "OPEN",
+  "plugin_writes": false,
+  "foreign_activation": false,
+  "files": [
+    {
+      "path": "ACE_INPUT_SCHEMA.json",
+      "bytes": 1032,
+      "sha256": "bac68c3d76b5d4422010aeb0d19be90ea62c56dd32dc1873d336bbcceac74172"
+    },
+    {
+      "path": "ACE_RECEIPT_SCHEMA.json",
+      "bytes": 1202,
+      "sha256": "063308dd01e8dad1346b9ef7a16814e02a8524868c680610f4cccf458cb25cdd"
+    },
+    {
+      "path": "ALLIANCE_HANDOFF_CONTRACT.json",
+      "bytes": 1048,
+      "sha256": "009fd4474e090249a9b5bbb3aede013c21c666477e6098a27a589074f9a5cff3"
+    },
+    {
+      "path": "HANDOFF_R01.md",
+      "bytes": 2032,
+      "sha256": "57de4a7c724ae4eef1cfcf8d05d1dd391119e16e886513e4a8e3cda9a3d93b0a"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2929,
+      "sha256": "a769f2bf8fae592a6f5db14bae9dc7bbbd4ff2b8b8d749ce6c120e3996003fa3"
+    },
+    {
+      "path": "ace_contract.py",
+      "bytes": 4088,
+      "sha256": "e8e2226c5201143847546e430df518ef930795272d4afe147402d6738e402b61"
+    },
+    {
+      "path": "alliance_review.py",
+      "bytes": 1768,
+      "sha256": "9c5e8a8231b9cf8d6998fdd73f5951c1fdad5666524ce58989f6b235cffaec80"
+    },
+    {
+      "path": "test_ace_contract.py",
+      "bytes": 2424,
+      "sha256": "2c9cc1eb4f76cd1281b3fbb14c264b6c0a0115357f7a6a9fe55395ed2a9cc508"
+    },
+    {
+      "path": "test_alliance_review.py",
+      "bytes": 1281,
+      "sha256": "9c5b160cd9a6da643cfb44c868e9db889dd2411af2bd7405b5ec46157b52b67b"
+    }
+  ]
+}

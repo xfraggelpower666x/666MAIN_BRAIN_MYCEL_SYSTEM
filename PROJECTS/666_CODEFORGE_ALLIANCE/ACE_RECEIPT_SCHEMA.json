@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:666:ace:host-intake-receipt:v1",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "status", "plugin_version_target", "project", "input_sha256", "message_count", "authority", "trust", "native_project_binding", "writes_performed", "dispatch_performed", "chargeable_actions_allowed", "fresh_chat_verified", "output_persisted", "source_roles_are_data"],
+  "properties": {
+    "schema": {"const": "ace.host.intake.v1"},
+    "status": {"const": "CANDIDATE_ONLY"},
+    "plugin_version_target": {"const": "0.87.7"},
+    "project": {"const": "LYVRA_CODING_PROFI"},
+    "input_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "message_count": {"type": "integer", "minimum": 0, "maximum": 10000},
+    "authority": {"const": "NONE"}, "trust": {"const": "UNTRUSTED_INPUT"},
+    "native_project_binding": {"type": "null"},
+    "writes_performed": {"const": false},
+    "dispatch_performed": {"const": false},
+    "chargeable_actions_allowed": {"const": false},
+    "fresh_chat_verified": {"const": false},
+    "output_persisted": {"const": false},
+    "source_roles_are_data": {"const": true}
+  }
+}
