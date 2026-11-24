@@ -31,18 +31,26 @@ class DaemonHttpGuardTests(unittest.TestCase):
         self.addCleanup(self.server.shutdown)
         self.port = self.server.server_port
 
-    def request(self, method, path, *, host=None, origin=None, payload=None):
+    def request(self, method, path, *, host=None, origin=None, payload=None, extra_hosts=()):
         headers = {"Host": host if host is not None else "127.0.0.1:%s" % self.port}
         if origin is not None:
             headers["Origin"] = origin
         if payload is not None:
             headers["Content-Type"] = "application/json"
             body = json.dumps(payload).encode("utf-8")
+            headers["Content-Length"] = str(len(body))
         else:
             body = None
         conn = http.client.HTTPConnection("127.0.0.1", self.port, timeout=3)
         try:
-            conn.request(method, path, body=body, headers=headers, skip_host=True)
+            # HTTPConnection.request() has no skip_host argument; use putrequest
+            # to send deliberately controlled Host headers for security tests.
+            conn.putrequest(method, path, skip_host=True)
+            for name, value in headers.items():
+                conn.putheader(name, value)
+            for value in extra_hosts:
+                conn.putheader("Host", value)
+            conn.endheaders(body)
             response = conn.getresponse()
             status = response.status
             raw = response.read()
@@ -74,6 +82,12 @@ class DaemonHttpGuardTests(unittest.TestCase):
                 code, data = self.request("GET", "/", host=host)
                 self.assertEqual(code, 403)
                 self.assertEqual(data["error"], "HOST_NOT_ALLOWED")
+
+    def test_duplicate_host_headers_are_rejected(self):
+        code, data = self.request("GET", "/api/status",
+                                  extra_hosts=("127.0.0.1:%s" % self.port,))
+        self.assertEqual(code, 403)
+        self.assertEqual(data["error"], "HOST_NOT_ALLOWED")
 
     def test_untrusted_host_cannot_write_feedback(self):
         code, data = self.request("POST", "/api/feedback",
