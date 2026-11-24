@@ -1,0 +1,34 @@
+{
+  "schema": "CODING_PROFI_THREE_LAYER_LIVE_BACKUP_R03",
+  "owner": "L.Y.V.R.A. CODING PROFI",
+  "plugin_authority": {
+    "plugin_id": "plugins_6af753996b5c81918daadc40df266ce7",
+    "version": "0.87.7",
+    "release_id": "pluginrel_6b044ff155b481918869cf4d8f68d807",
+    "mutation": "NONE"
+  },
+  "development": {
+    "repo": "xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM",
+    "branch": "666MAIN_BRAIN",
+    "path": "PROJECTS/LYVRA_CODING_PROFI/",
+    "expected_tree_sha": "944e1b5a75ad2d21d28d3cabe96496c4b18820b8"
+  },
+  "backup": {
+    "repo": "xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM",
+    "branch": "666MAIN_BRAIN",
+    "path": "PROJECTS/666_CODEFORGE_ALLIANCE/CODING_PROFI_LIVE/",
+    "expected_tree_sha": "944e1b5a75ad2d21d28d3cabe96496c4b18820b8",
+    "format": "UNPACKED_GIT_TREE_IDENTICAL"
+  },
+  "source_owner": "CODING_PROFI",
+  "alliance_role": "INTEGRATED_DEVELOPMENT_FUNCTION",
+  "authority_transfer": false,
+  "source_tree_mirror": "SAME_TREE_OBJECT",
+  "status_before_publish": "READBACK_PENDING",
+  "auto_event_hook": "NOT_CONFIGURED",
+  "plugin_host": "NOT_VERIFIED",
+  "peer_dispatch": "NOT_PERFORMED",
+  "recovery_anchor": "backup/coding-profi-3layer-pre-r03-20261125-7a9e6df7",
+  "scope": "SOURCE_ONLY_NO_FOREIGN_WRITES",
+  "notes": "Only external direct GitHub readback may establish synchronization of the published commit. On later authorized changes, repeat same-tree publication and direct readback. Plugin releases require their own guarded lifecycle."
+}

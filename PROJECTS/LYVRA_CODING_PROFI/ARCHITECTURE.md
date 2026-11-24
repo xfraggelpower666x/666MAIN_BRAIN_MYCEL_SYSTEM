@@ -23,3 +23,10 @@ Preserve original plugin identity, branding, existing facets, UI/App bindings, c
 `PLUGIN_RELEASE_PASS` = actual plugin update and direct source/metadata readback.
 `HOST_ACCEPTANCE_PASS` = observed actual fresh-host behavior.
 One stage never implies the next.
+
+## Three-stage ownership and non-authoritative live backup R03
+1. **ONE AUTHORITY:** the installed CODING PROFI plugin remains the sole operational plugin authority. No other native identity, pointer, release or runtime can be promoted by a backup copy.
+2. **ONE DEVELOPMENT WORKSPACE:** `PROJECTS/LYVRA_CODING_PROFI/` owns source development and the embedded 666 CODEFORGE ALLIANCE cooperation function. Existing integration files remain preserved.
+3. **ONE UNPACKED BACKUP:** `PROJECTS/666_CODEFORGE_ALLIANCE/CODING_PROFI_LIVE/` mirrors the full development Git tree exactly in the same Git commit, preserving history and existing independent R01 evidence.
+
+Source-owner updates must carry this copy forward atomically; a fresh commit with only an updated primary development tree and an unchanged backup is incomplete. The read-only verifier at `integration/live_backup_r03/live_backup.py` validates exact tree/commit equality using authenticated GitHub readbacks. No automatic plugin release, remote event hook, foreign activation or paid action is implied.

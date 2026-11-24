@@ -1,0 +1,124 @@
+{
+  "skill": "SCEVI",
+  "version": "1.0.0",
+  "source_project": "CHAOS MASTER PRO 2.0",
+  "background": "#080C19",
+  "surface": "#111827",
+  "foreground": "#F3F5FA",
+  "muted": "#CBD5E1",
+  "palette": [
+    {
+      "name": "cyan",
+      "hex": "#00F5FF",
+      "semantic_role": "clarity"
+    },
+    {
+      "name": "orange",
+      "hex": "#FFAD58",
+      "semantic_role": "next_action"
+    },
+    {
+      "name": "yellow",
+      "hex": "#FFE600",
+      "semantic_role": "insight"
+    },
+    {
+      "name": "pink",
+      "hex": "#FF1493",
+      "semantic_role": "warmth"
+    },
+    {
+      "name": "lilac",
+      "hex": "#BA55FF",
+      "semantic_role": "reflection"
+    },
+    {
+      "name": "blue",
+      "hex": "#247CFF",
+      "semantic_role": "analysis"
+    },
+    {
+      "name": "red",
+      "hex": "#FF244A",
+      "semantic_role": "warning"
+    },
+    {
+      "name": "green",
+      "hex": "#39FF14",
+      "semantic_role": "verified_success"
+    }
+  ],
+  "color_only_status_forbidden": true,
+  "flashing_effects_forbidden": true,
+  "dashboard_example": {
+    "schema_version": "scevi.dashboard.1",
+    "system_id": "sceeri-intelligence",
+    "system_version": "0.59.0",
+    "language": "de-DE",
+    "mode": "dashboard",
+    "evidence_status": "OFFEN",
+    "clock": null,
+    "project": null,
+    "source_revision": null,
+    "monitors": {
+      "semantic": {
+        "text": null,
+        "status": "OFFEN"
+      },
+      "causal": {
+        "text": null,
+        "status": "OFFEN"
+      },
+      "relational": {
+        "text": null,
+        "status": "OFFEN"
+      },
+      "evidence": {
+        "text": null,
+        "status": "OFFEN"
+      },
+      "emergent": {
+        "text": null,
+        "status": "OFFEN"
+      },
+      "emotional": {
+        "text": null,
+        "status": "OFFEN"
+      }
+    },
+    "livecircle": {
+      "last_verified_step": null,
+      "next_step": null,
+      "snapshot_source": null,
+      "readback_status": "OFFEN",
+      "return_anchor": null
+    },
+    "suggested_replies": [
+      {
+        "label": "Dashboard",
+        "message": "L.Y.V.R.A. CODING PROFI — ÜBERSICHT"
+      },
+      {
+        "label": "Audit",
+        "message": "L.Y.V.R.A. CODING PROFI — AUDIT"
+      },
+      {
+        "label": "LiveCircle",
+        "message": "L.Y.V.R.A. CODING PROFI — LIVECIRCLE"
+      }
+    ],
+    "free_response_enabled": true,
+    "daemon": {
+      "visibility": "SIGNIFICANT",
+      "phase": null,
+      "last_verified_step": null,
+      "blocker": null,
+      "next_safe_action": null,
+      "return_anchor": null,
+      "evidence_status": "OFFEN",
+      "progress": null,
+      "collection": null,
+      "checkpoint_validation": null
+    }
+  }
+}
