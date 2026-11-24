@@ -1,4 +1,4 @@
-# 666 AUTO-DJ STUDIO - scoped Electron runtime recovery
+﻿# 666 AUTO-DJ STUDIO - scoped Electron runtime recovery
 # Adapted from the user's 666 FULL LYRICS INTELLIGENCE R06.1 installer.
 # Does not change system Node.js, global npm config or any AutoDJ source/audio assets.
 [CmdletBinding()]
