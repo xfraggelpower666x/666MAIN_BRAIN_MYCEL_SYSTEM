@@ -1,0 +1,86 @@
+{
+  "schema": "666TDI_TRACK_LOCAL_CREATOR_EVIDENCE_V1",
+  "system_id": "666TDI-001",
+  "track_reference": "Riders of the Psychedelic Asylum / NMI-R01-R02 chat experiment",
+  "track_id": null,
+  "source": "DIRECT_CREATOR_FEEDBACK_2026-11-24T22:52:31Z",
+  "draft_source": "CHAT_2026-11-24T22:47:03Z",
+  "native_base": "c70f5c5b1166a869d4db48d9b1f78480d0ce508a",
+  "fields": {
+    "title": "Riders of the Psychedelic Asylum",
+    "extended": "A relentless psychedelic night ride through controlled madness. Begin with 2.5 seconds of silence, then establish a DJ-mixable rolling motor. A cold ritual narrator summons the Riders; short vocal chants trigger answering acid and metallic FM signals. Let the responses become tighter, stranger and more interconnected while the kick and mono bass remain authoritative. Build pressure through rhythmic contrast, spectral movement and transformed mantra returns. Strip the field into a brief vacuum, then unleash a violent psychedelic reactivation. Target 6:10-6:40. Fake ending followed by one final instrumental thrust. End all vocals before the terminal sequence. Decisive final stop, 2.5 seconds of silence. No vocal re-entry, pop chorus or generic EDM climax.",
+    "style": "148 BPM Dark Full-On Psytrance, Dark Forest, twisted Dark Goa, relentless short dry kick, knattering rolling 1/16 mono psybass, deep controlled sub pressure, marching psychedelic propulsion, metallic FM zaps, mutated acid spirals, organic creature FX, interlocking synth responses, evolving asymmetric percussion, dark ritual atmosphere, cybernetic textures, sharp transient attacks, rotating upper-frequency signals around a stable low-end, explosive contrast drops, deep dry male ritual voice, short distorted background vocal responses, intelligible foreground chants, controlled psychedelic chaos, hypnotic forward motion, DJ-safe intro and outro, no hard-techno drift, no pop gloss, no festival supersaws.",
+    "lyrics": "[Opening Silence]\n\n[DJ Intro - Instrumental]\n[Dry kick, rolling mono psybass, distant metallic signals]\n\n[Deep Male Spoken Voice]\nBeyond the walls,\nbeneath the noise,\nsomething moves\nwithout a choice.\n\n[Instrumental Build - Acid and FM Dialogue]\n\n[Deep Ritual Chant]\nRiders of the Psychedelic Asylum!\n\n[Instrumental Response]\n\nStorm!\nStorm!\nPsycho!\nStorm!\n\n[Drop - Relentless Rolling Psytrance]\n[Interlocking acid and metallic FM responses]\n\n[Instrumental Development]\n[Mutating psychedelic percussion and rotating signal fragments]\n\n[Deep Male Spoken Voice]\nI feel the thunder\ninside my chest.\nNo empty promise.\nNo need for rest.\n\n[Pressure Build]\n\nRiders of the Psychedelic Asylum!\n\nStorm!\nStorm!\nPsycho!\nStorm!\n\n[Instrumental Chaos Core]\n[Increasingly tight synth responses above a stable rolling motor]\n\n[Vacuum Breakdown]\n\n[Close Whisper]\nThe silence breaks.\nThe pulse remains.\n\n[Short Instrumental Tension]\n\n[Deep Male Ritual Voice]\nThe asylum knows the power of Psytrance.\n\n[Explosive Psychedelic Reactivation]\n\nStorm!\nStorm!\nPsycho!\nStorm!\n\n[Instrumental Peak - Directed Chaos]\n[Acid mutations, metallic signals and organic FX converge]\n\n[Final Ritual Declaration]\nRiders of the Psychedelic Asylum!\n\n[ALL VOCALS END HERE]\n\n[Extended Instrumental Pressure]\n[Controlled reduction into a false ending]\n\n[Fake Ending - Brief Vacuum]\n\n[Final Instrumental Reactivation]\n[Full rolling motor, concentrated psychedelic signal exchange]\n\n[Final Convergence]\n[Withdraw upper layers, preserve DJ-mixable motor]\n\n[Terminal Landing]\n[Decisive Final Stop]\n\n[Complete Silence]"
+  },
+  "utf16_counts": {
+    "title": 32,
+    "extended": 763,
+    "style": 710,
+    "lyrics": 1568
+  },
+  "renderer_model": null,
+  "device": null,
+  "actual_submitted_prompt_verified": false,
+  "audio_artifact": null,
+  "ratings": {
+    "Kick-Bass-Druck": "gut",
+    "Psychedelische Klangkommunikation": "stark",
+    "Vocal-Verständlichkeit": "gut",
+    "Musikalische Dynamik": "gut",
+    "Drop-Wirkung": "gut",
+    "Eigenständige Musik-DNA": "stark",
+    "Suno-Übersetzung": "gut",
+    "Finales Track-Ende": "gut"
+  },
+  "creator_observation": "du hast die semantoischen emojis vergessen",
+  "assessment": "POSITIVE_CREATOR_REPORTED_OUTCOME; exact submitted fields, device, model and controlled A/B not verified",
+  "regression_gate": "HOLD_COMPARATIVE_ACCEPTANCE",
+  "global_promotion": false,
+  "livecircle_mutation": false,
+  "repair_candidate": {
+    "status": "PROPOSED_NOT_CREATOR_APPROVED_OR_RENDERED",
+    "patches": [
+      {
+        "original": "[Opening Silence]",
+        "replacement": "[Opening Silence 🔇]"
+      },
+      {
+        "original": "[Instrumental Build - Acid and FM Dialogue]",
+        "replacement": "[Instrumental Build - Acid and FM Dialogue ⚡]"
+      },
+      {
+        "original": "[Instrumental Chaos Core]",
+        "replacement": "[Instrumental Chaos Core 🌀⚡]"
+      },
+      {
+        "original": "[Vacuum Breakdown]",
+        "replacement": "[Vacuum Breakdown 🔇]"
+      },
+      {
+        "original": "[Explosive Psychedelic Reactivation]",
+        "replacement": "[Explosive Psychedelic Reactivation 💥]"
+      },
+      {
+        "original": "[Decisive Final Stop]",
+        "replacement": "[Decisive Final Stop 🛑🔚]"
+      },
+      {
+        "original": "[Complete Silence]",
+        "replacement": "[Complete Silence 🔇]"
+      }
+    ],
+    "fields": {
+      "title": "Riders of the Psychedelic Asylum",
+      "extended": "A relentless psychedelic night ride through controlled madness. Begin with 2.5 seconds of silence, then establish a DJ-mixable rolling motor. A cold ritual narrator summons the Riders; short vocal chants trigger answering acid and metallic FM signals. Let the responses become tighter, stranger and more interconnected while the kick and mono bass remain authoritative. Build pressure through rhythmic contrast, spectral movement and transformed mantra returns. Strip the field into a brief vacuum, then unleash a violent psychedelic reactivation. Target 6:10-6:40. Fake ending followed by one final instrumental thrust. End all vocals before the terminal sequence. Decisive final stop, 2.5 seconds of silence. No vocal re-entry, pop chorus or generic EDM climax.",
+      "style": "148 BPM Dark Full-On Psytrance, Dark Forest, twisted Dark Goa, relentless short dry kick, knattering rolling 1/16 mono psybass, deep controlled sub pressure, marching psychedelic propulsion, metallic FM zaps, mutated acid spirals, organic creature FX, interlocking synth responses, evolving asymmetric percussion, dark ritual atmosphere, cybernetic textures, sharp transient attacks, rotating upper-frequency signals around a stable low-end, explosive contrast drops, deep dry male ritual voice, short distorted background vocal responses, intelligible foreground chants, controlled psychedelic chaos, hypnotic forward motion, DJ-safe intro and outro, no hard-techno drift, no pop gloss, no festival supersaws.",
+      "lyrics": "[Opening Silence 🔇]\n\n[DJ Intro - Instrumental]\n[Dry kick, rolling mono psybass, distant metallic signals]\n\n[Deep Male Spoken Voice]\nBeyond the walls,\nbeneath the noise,\nsomething moves\nwithout a choice.\n\n[Instrumental Build - Acid and FM Dialogue ⚡]\n\n[Deep Ritual Chant]\nRiders of the Psychedelic Asylum!\n\n[Instrumental Response]\n\nStorm!\nStorm!\nPsycho!\nStorm!\n\n[Drop - Relentless Rolling Psytrance]\n[Interlocking acid and metallic FM responses]\n\n[Instrumental Development]\n[Mutating psychedelic percussion and rotating signal fragments]\n\n[Deep Male Spoken Voice]\nI feel the thunder\ninside my chest.\nNo empty promise.\nNo need for rest.\n\n[Pressure Build]\n\nRiders of the Psychedelic Asylum!\n\nStorm!\nStorm!\nPsycho!\nStorm!\n\n[Instrumental Chaos Core 🌀⚡]\n[Increasingly tight synth responses above a stable rolling motor]\n\n[Vacuum Breakdown 🔇]\n\n[Close Whisper]\nThe silence breaks.\nThe pulse remains.\n\n[Short Instrumental Tension]\n\n[Deep Male Ritual Voice]\nThe asylum knows the power of Psytrance.\n\n[Explosive Psychedelic Reactivation 💥]\n\nStorm!\nStorm!\nPsycho!\nStorm!\n\n[Instrumental Peak - Directed Chaos]\n[Acid mutations, metallic signals and organic FX converge]\n\n[Final Ritual Declaration]\nRiders of the Psychedelic Asylum!\n\n[ALL VOCALS END HERE]\n\n[Extended Instrumental Pressure]\n[Controlled reduction into a false ending]\n\n[Fake Ending - Brief Vacuum]\n\n[Final Instrumental Reactivation]\n[Full rolling motor, concentrated psychedelic signal exchange]\n\n[Final Convergence]\n[Withdraw upper layers, preserve DJ-mixable motor]\n\n[Terminal Landing]\n[Decisive Final Stop 🛑🔚]\n\n[Complete Silence 🔇]"
+    },
+    "utf16_counts": {
+      "title": 32,
+      "extended": 763,
+      "style": 710,
+      "lyrics": 1591
+    },
+    "caveat": "Vacuum breakdown may retain atmosphere; silence emoji requires explicit intended silence, review before use. No acoustic guarantee."
+  }
+}

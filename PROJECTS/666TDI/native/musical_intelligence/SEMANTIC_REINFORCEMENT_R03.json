@@ -1,0 +1,45 @@
+{
+  "schema": "666TDI_NATIVE_SEMANTIC_REINFORCEMENT_R03_V1",
+  "system_id": "666TDI-001",
+  "authority": "666TDI_ONLY",
+  "extends": [
+    "NMI-R01",
+    "NMI-R02"
+  ],
+  "source": {
+    "commit": "0c5966a0136de308a0bbd78519c3c1c4936917f8",
+    "path": "PROJECTS/666TDI/source/engine/semantic_reinforcement.py",
+    "blob": "6c719ca908cde377004bba807609fa1b99a5bd7e",
+    "mode": "READ_ONLY_CONCEPT_REFERENCE_NO_MERGE"
+  },
+  "finding": "Creator confirmed omitted semantic emojis in positive track draft. Existing candidate R1.5 was not integrated.",
+  "workflow": [
+    "Before final renderer output review positive semantic anchors in Extended, Style and Lyrics; match intended function and scope, not decoration.",
+    "Examples: fire 🔥, rotation 🌀, electrical signal ⚡, explosion 💥, final stop 🛑🔚, complete silence 🔇. Context-dependent, no fixed quota, no forced use in every field.",
+    "Retain exact original words, lyric role and negation; never insert in unrelated or negated instructions. Distinguish vacuum/space from complete silence.",
+    "For an existing successful draft offer an additive exact-span variant with creator review; no automatic overwrite. In new drafts make context-justified proposals visible and explicitly check omissions.",
+    "Check symbol survival at anchor, UTF16 budgets and terminal vocal guard; never truncate. Bracketed instruction roles stay distinct from sung words.",
+    "No acoustic guarantee, no fixed emoji intensity scale, no auto promotion; evidence from controlled creator-reviewed comparison remains track-local."
+  ],
+  "status": "NATIVE_WORKFLOW_CONTRACT_NOT_RUNTIME_TESTED",
+  "regression_cases": [
+    {
+      "case": "Original draft roundtrip after candidate patch reversal",
+      "actual": true
+    },
+    {
+      "case": "All seven source anchors occur exactly once",
+      "actual": true
+    },
+    {
+      "case": "Reference field budgets",
+      "actual": true
+    },
+    {
+      "case": "Post-vocal-end only bracketed directions",
+      "actual": true
+    }
+  ],
+  "host_acceptance": "OPEN",
+  "renderer_acceptance": "OPEN"
+}

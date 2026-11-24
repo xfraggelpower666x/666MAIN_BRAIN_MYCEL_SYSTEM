@@ -215,6 +215,21 @@
       "pointer_last": true,
       "requires_direct_readback": true,
       "automatic_promotion": false
+    },
+    "nmi_r03": {
+      "source": "DIRECT_USER_UPDATE_2026-11-24T22:53:32Z",
+      "scope": "PROJECTS/666TDI_ONLY",
+      "operations": [
+        "TRACK_LOCAL_CREATOR_EVIDENCE",
+        "NATIVE_SEMANTIC_REINFORCEMENT_REVIEW",
+        "POINTER_BOUND_REHYDRATION"
+      ],
+      "backup": "backup/666tdi-nmi-r03-prechange-20261124",
+      "preserve_existing": true,
+      "foreign_writes": false,
+      "pointer_last": true,
+      "requires_direct_readback": true,
+      "automatic_promotion": false
     }
   }
 }
