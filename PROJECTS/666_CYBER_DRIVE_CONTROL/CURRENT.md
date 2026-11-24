@@ -88,4 +88,16 @@ R19_WINDOWS_ARTIFACT_READBACK: both EXEs downloaded from GitHub Actions and inde
 R19_WINDOWS_RELEASE_EVIDENCE: docs/R19_WINDOWS_BUILD_VERIFIED_2026-11-23.md
 R19_WINDOWS_REMAINING: clean Windows desktop GUI/installer acceptance; complete Classic parity; dependency lockfile/pinning
 
+
+R19_R061_PEER_AUDIT: SOURCE_VERIFIED 2026-11-25
+R19_R061_PEER_SOURCE: PROJECTS/666_FULL_LYRICS_INTELLIGENCE R06.1; current HEAD checked independently
+R19_R061_PEER_ACTUAL_FIX: Electron path.txt CRLF/whitespace marker -> spawn ENOENT; .NET WriteAllText no newline
+R19_R061_IMPLEMENTATION_COMMIT: 39a2469df4d0932c4bb977c249cbe85eb504354e
+R19_R061_ELECTRON_GUARD: BUILD/BUILD_CONTROL.ps1 verifies and repairs only existing electron.exe marker; unexpected contents fail closed
+R19_R061_DESKTOP_POLISH: additive neon cyber CSS to R19 only, original IDs/IPC/R18 source retained, transparent overlay not intentionally changed
+R19_R061_DOC: docs/R19_R061_ELECTRON_COMPARE_AND_POLISH.md
+R19_R061_GITHUB_SOURCE_READBACK: 3/3 files verified after implementation
+R19_R061_WINDOWS_CI_RUN: 45507052942; status IN_PROGRESS at initial readback, no success claimed
+R19_R061_HOST_GATE: Windows updated binary and interactive visual/overlay/installer acceptance OPEN; old Windows CI release applies to its old commit only
+
 NEXT_EXECUTABLE: run clean Windows graphical acceptance on verified CI Portable/Setup executables, test setup destination selection/uninstall, tray/overlay/USB hotplug and Classic parity; binary hashes already verified
