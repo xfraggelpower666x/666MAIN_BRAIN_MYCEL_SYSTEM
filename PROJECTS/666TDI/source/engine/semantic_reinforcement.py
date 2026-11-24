@@ -35,7 +35,53 @@ def assess(intent):
        "bpm":intent.get("bpm"),"hardness_from_bpm":False,
        "chaos":{"candidate":"LOW anchor; reactive MID/HIGH events; micro contrast; macro direction",
                 "functions":functions,"protect_voice":True,"melody_not_dominant_by_default":True},
+       "lyric_relations":lyric_relations(intent.get("lyrics","") or ""),
        "read_only":True,"global_promotion":False,"audio_verified":False}
+def lyric_relations(text):
+    """Recognize explicit roles without treating every parenthesis as an echo."""
+    rows=[]
+    terminal=False
+    for i,line in enumerate(text.splitlines(),1):
+        s=line.strip()
+        if not s: continue
+        if s.startswith("[") and s.endswith("]"):
+            command=s[1:-1].casefold()
+            if "all vocals end here" in command: terminal=True
+            rows.append({"line":i,"role":"COMMAND","text":s,"after_vocal_end":terminal})
+        elif s.startswith("(") and s.endswith(")"):
+            rows.append({"line":i,"role":"RESPONSE_CANDIDATE","text":s,"after_vocal_end":terminal})
+        else:
+            rows.append({"line":i,"role":"LYRIC","text":s,"after_vocal_end":terminal})
+    return {"rows":rows,"vocal_end_present":terminal,
+            "post_end_vocal_candidates":[x["line"] for x in rows if x["after_vocal_end"] and x["role"]!="COMMAND"],
+            "review_required":any(x["after_vocal_end"] and x["role"]!="COMMAND" for x in rows)}
+
+def apply_reviewed_bindings(text, bindings, budget):
+    """Apply only exact, explicitly approved span bindings, never truncate."""
+    if not isinstance(text,str) or not isinstance(bindings,list) or type(budget) is not int or budget<0:
+        raise ValueError("INVALID_BINDING_INPUT")
+    out=text
+    positions=set()
+    for b in sorted(bindings,key=lambda b:b["end"],reverse=True):
+        start,end=b["start"],b["end"]
+        anchor,symbol=b["anchor"],b["symbol"]
+        if b.get("creator_approved") is not True or type(start) is not int or type(end) is not int:
+            raise ValueError("BINDING_APPROVAL_REQUIRED")
+        if not isinstance(anchor,str) or not anchor or not isinstance(symbol,str) or not symbol or not 0<=start<end<=len(text):
+            raise ValueError("INVALID_BINDING_SPAN")
+        if text[start:end]!=anchor or end in positions:
+            raise ValueError("STALE_OR_DUPLICATE_BINDING")
+        # Only documented candidate symbols; repetition is contextual and approved.
+        allowed={s for _,s,_ in RELATIONS}
+        if not any(symbol==s*n for s in allowed for n in range(1,9)):
+            raise ValueError("UNSUPPORTED_SYMBOL")
+        positions.add(end)
+        if not text[end:].lstrip().startswith(symbol):
+            out=out[:end]+" "+symbol+out[end:]
+    if len(out.encode("utf-16-le"))//2>budget:
+        raise ValueError("OVER_REFERENCE_BUDGET_NO_TRUNCATION")
+    return out
+
 def audit(fields, analysis):
     # Audit candidate anchors only; never silently alter creator text or block an unrelated track.
     rows=[]
