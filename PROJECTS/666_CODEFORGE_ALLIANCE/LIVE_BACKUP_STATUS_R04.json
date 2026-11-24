@@ -1,0 +1,22 @@
+{
+  "schema": "CODING_PROFI_LIVE_BACKUP_AUTOSYNC_R04",
+  "owner": "L.Y.V.R.A. CODING PROFI",
+  "authority": {
+    "plugin_id": "plugins_6af753996b5c81918daadc40df266ce7",
+    "version": "0.87.8",
+    "release_id": "pluginrel_6b061b356f988191aa4728df7df7af76",
+    "plugin_release_mutation": false
+  },
+  "source_path": "PROJECTS/LYVRA_CODING_PROFI/",
+  "backup_path": "PROJECTS/666_CODEFORGE_ALLIANCE/CODING_PROFI_LIVE/",
+  "snapshot_tree_sha": "062cdd02f7407f3940c450af79b3c558430c4c38",
+  "trigger": "GITHUB_PUSH_SAME_REPOSITORY_SOURCE_PATH_AND_WORKFLOW_DISPATCH",
+  "workflow": ".github/workflows/coding-profi-live-backup.yml",
+  "workflow_publication": "CANDIDATE_NOT_YET_OBSERVED",
+  "workflow_execution": "PENDING_INDEPENDENT_GITHUB_RUN_READBACK",
+  "plugin_only_changes_automatic": "NOT_SUPPORTED_SOURCE_RELEASE_SYNC_REQUIRED",
+  "repository_update_cost": "STANDARD_PUBLIC_RUNNER_NO_ADDITIONAL_CHARGE",
+  "backup_role": "SECONDARY_ONLY_NO_NATIVE_AUTHORITY",
+  "scope": "NO_FOREIGN_ACTIVATION_NO_PLUGIN_RELEASE_WRITES",
+  "not_zip": true
+}

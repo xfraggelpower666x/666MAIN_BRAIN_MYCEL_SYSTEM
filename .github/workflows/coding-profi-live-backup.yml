@@ -1,0 +1,33 @@
+name: Coding Profi - unpacked live backup mirror
+
+on:
+  push:
+    branches: ['666MAIN_BRAIN']
+    paths:
+      - 'PROJECTS/LYVRA_CODING_PROFI/**'
+      - '.github/workflows/coding-profi-live-backup.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: coding-profi-live-backup-666MAIN_BRAIN
+  cancel-in-progress: false
+
+jobs:
+  sync-exact-git-tree:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout source repository
+        uses: actions/checkout@v4
+        with:
+          ref: 666MAIN_BRAIN
+          persist-credentials: false
+      - name: Validate local sync contract
+        run: node --test PROJECTS/LYVRA_CODING_PROFI/integration/live_backup_r04/test-sync-live-backup.mjs
+      - name: Synchronize complete source tree
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node PROJECTS/LYVRA_CODING_PROFI/integration/live_backup_r04/sync-live-backup.mjs

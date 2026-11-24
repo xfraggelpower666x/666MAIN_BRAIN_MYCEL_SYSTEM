@@ -51,3 +51,15 @@ Diese Regeln gelten für jeden Coding-Profi-Arbeitsstrang und ergänzen die proj
 | „Speichere auf bestehenden Repo-Current“ | Bestehendes Ziel und HEAD prüfen, autorisierten Weg nutzen | Ungefragt neuen Branch, PR oder ZIP erzeugen |
 | Windows-Test ist auf Host nicht möglich | Nur Windows-Abnahme offen markieren | Plugin-Entwicklung insgesamt blockieren |
 | Direkter Auftrag ist vollständig erfüllt | Ergebnis und begrenzte Restpunkte melden | Unaufgefordert neue Pflichtaufgaben erfinden |
+
+
+## CODING-PROFI-Original und entpacktes GitHub-Live-Backup
+
+Für Änderungen am **CODING-PROFI-Plugin selbst** ist der verbindliche
+[dreistufige Live-Backup-Vertrag](coding-profi-live-backup.md) anzuwenden.
+Das GitHub-Verzeichnis `PROJECTS/LYVRA_CODING_PROFI/plugin_source/` spiegelt
+nach jedem erfolgreich zurückgelesenen Plugin-Release die betroffenen
+Original-Quelldateien nach; es ist **nicht** der eigentliche Plugin-Ausführungsort
+und nicht die führende Authority. Der Sync ist obligatorischer Abschluss einer
+autorisierten Plugin-Änderung, kein unsichtbar permanent laufender Dienst.
+Andere Zielprojekte werden nicht automatisch in diesen Backup-Spiegel übernommen.

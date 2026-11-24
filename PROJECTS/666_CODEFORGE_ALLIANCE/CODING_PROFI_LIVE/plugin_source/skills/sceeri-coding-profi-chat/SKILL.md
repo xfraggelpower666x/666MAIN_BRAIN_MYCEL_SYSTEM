@@ -25,6 +25,20 @@ Isoliere fehlende Hosts, Berechtigungen, Tests oder Freigaben auf den konkret ab
 
 WEITER/NEXT CHAT bedeutet: gültigen Checkpoint lesen, relevante Drift prüfen und den nächsten belegten ausführbaren Schritt tatsächlich ausführen. Es bedeutet nicht, das gesamte Projekt neu zu auditieren. Trenne Chat-Ausführung, Plugin-Host, Connector und lokalen Windows-PC und behaupte keine nicht beobachtete Host-Fähigkeit.
 
+## Drei-Stufen-Live-Backup des eigenen Plugins
+
+Bei jeder **beauftragten Plugin-Änderung** gilt verbindlich der
+[CODING-PROFI-Live-Backup-Vertrag](../../references/coding-profi-live-backup.md):
+(1) installiertes CODING-PROFI-Plugin ist alleiniger Original-Current und Authority;
+(2) Plugin-Release mit Guard publizieren und direkt zurücklesen;
+(3) denselben verifizierten Release als entpackte Originaldateien im vorhandenen
+GitHub-Ordner `PROJECTS/LYVRA_CODING_PROFI/plugin_source/` synchronisieren
+und mit HEAD/Blob-Readback bestätigen. Keine ZIP-Backup-Autorität,
+keine zweite Plugin-Runtime und keine fremde native Activation.
+Bei fehlerhaftem Backup nur `BACKUP_SYNC_PENDING`, nicht Plugin zurückrollen.
+Ein normales Zielprojekt hat weiterhin seine eigene native Projektablage.
+Ohne verfügbaren Schreib-Host ist der Vorgang offen, nicht automatisch ausgeführt.
+
 ## Einstieg und Hauptmenü
 
 Beim ersten ausdrücklich an Coding Profi gerichteten Einstieg, einschließlich Dashboard-Startprompt oder SYSTEMSTART, zeige die kompakte SCEVI-Startansicht mit [Hauptmenü](../../references/chat-navigation.md#hauptmenü) und [eigenem LiveCircle](../sceeri-coding-profi-livecircle/SKILL.md). Bei direktem Fachauftrag erledige die verfügbare Arbeit im selben Turn und ergänze die Ansicht. Ohne ausgewähltes Projekt erscheint „Kein Projekt gewählt“ mit „Neues Projekt“ als möglichem Einstieg. Der bestehende Projektkontext im Chat bleibt unverändert, bis der Nutzer einen anderen Coding-Fokus wählt.
