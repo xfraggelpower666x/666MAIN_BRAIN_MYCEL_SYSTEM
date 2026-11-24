@@ -1,0 +1,48 @@
+{
+  "schema": "666CLS_CURES_R08_SOURCE_VERIFICATION_CHECKPOINT_V1",
+  "checkpoint_date": "2026-11-25",
+  "owner": "666CLS-CORE-001",
+  "scope": "PROJECTS/666CLS/continuity",
+  "provenance_type": "LOCAL_CANDIDATE_VERIFICATION_NOT_NATIVE_CURES_PROMOTION",
+  "original_archive": "666CURES_ISOLATED_CANDIDATE_R08.zip",
+  "archive_sha256": "c3190fb8f94c77546aafb7cd2dc3a01cd8675cc34118215594178b33aed4ff6d",
+  "original_archive_entries": 53,
+  "manifest_path": "R08_FILE_MANIFEST.json",
+  "manifest_sha256": "4d7f5180dcf7d93f2a1a6caa8cf8cece2a69fe009e8cb91e7f5239383cdcf3aa",
+  "manifest_members_verified": 52,
+  "zip_crc": "PASS",
+  "source_security_scan": "NO_KNOWN_SECRET_PATTERNS_DETECTED_NOT_COMPLETE_SECURITY_AUDIT",
+  "tests": {
+    "candidate_unittest": {
+      "command": "python -m unittest discover -s tests -v",
+      "passed": 139,
+      "failed": 0
+    },
+    "contract_unittest": {
+      "command": "python -m unittest discover -s R01_CONTRACT/tests -v",
+      "passed": 6,
+      "failed": 0
+    },
+    "smoke": {
+      "command": "python R01_CONTRACT/tools/check_candidate.py candidate/cures_candidate.py",
+      "cases": 10,
+      "failed": 0
+    }
+  },
+  "native_ref_checkpoint": "CURES_R08_NONEXECUTING_REFERENCE_20261123",
+  "native_reference_blob": "4b61dd57114f11de4406e700d6862f4e8fceb442",
+  "native_acceptance_blob": "ade957283ad54c78a2c121521402812fd7049392",
+  "existing_facets_preserved": true,
+  "actual_github_source_tree_52_files": "NOT_PUBLISHED",
+  "historical_engine_recovered": false,
+  "runtime_activation": false,
+  "cross_system_merge": false,
+  "pfs_repo": "xfraggelpower666x/666PFS_CSM",
+  "pfs_head": "08989d5dc71259cbebf108c71d2e315aa9ac28a1",
+  "pfs_state": "HOLD_FUNCTIONAL_PAYLOAD_SOURCE_NOT_FOUND",
+  "pfs_autoload": "FORBIDDEN",
+  "no_foreign_repo_writes": true,
+  "prechange_backup": "backup/666cls-pre-cures-r08-provenance-20261125-39a2469",
+  "cls_source_head_before_change": "39a2469df4d0932c4bb977c249cbe85eb504354e",
+  "followup": "Publish full unpacked code only in separately authorized bounded source-storage scope, preserving immutable original artifact and PFS owner governance."
+}
