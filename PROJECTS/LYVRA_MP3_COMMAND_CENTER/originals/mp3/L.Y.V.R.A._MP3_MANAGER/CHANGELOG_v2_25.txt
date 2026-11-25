@@ -1,0 +1,8 @@
+L.Y.V.R.A. - MP3 MANAGER v2.25 — PERMANENT PROGRESS
+
+- Vier gemeinsame Fortschrittsbalken (Umbenennen, Metadaten, Audio, Gesamt) in allen drei Reitern sichtbar.
+- Footer und Fortschrittsfläche werden vor dem expandierenden Reiterbereich fest unten reserviert.
+- Kopfzeilenbild platzsparend skaliert, Original-Asset nicht verändert.
+- Doppelte Metadatenanzeige im Monitor entfernt.
+- Bereits vorhandene Metadaten-Progress-Updates und Stopplogik beibehalten.
+- Windows-Laufzeitprüfung weiterhin offen.

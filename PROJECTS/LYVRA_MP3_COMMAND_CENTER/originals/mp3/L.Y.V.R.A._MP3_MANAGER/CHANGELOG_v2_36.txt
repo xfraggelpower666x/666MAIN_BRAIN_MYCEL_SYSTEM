@@ -1,0 +1,16 @@
+L.Y.V.R.A. - MP3 MANAGER v2.36 — PORTABLE QC / BROWSER SELECTION REPAIR
+Datum: 2026-11-06
+Basis: vollständiges v2.35 Original-ZIP; sämtliche vorhandenen Komponenten erhalten.
+
+1. Audio-Browser: Neue Ordner oder Eingabeformatwechsel setzen automatisch eine passende Auswahl;
+   absichtlich leere Auswahl bleibt bei reinen Refreshes leer. Keine Dateimutationen.
+2. Portable-Builder: Prüfung der finalen EXE-Struktur, Bilder, Anleitungen,
+   FFmpeg/FFprobe und libmp3lame. Der Build meldet kein READY bei fehlenden Dateien.
+3. Separater Portable-Hostprüfer PORTABLE_VERIFY.bat + .ps1 (PowerShell 5.1).
+   Prüft lokal unter Windows ohne Download. Nach Kopie auf einen anderen PC erneut ausführbar.
+4. Neue Regressionstests zu Ordnerwechsel, simuliertem Tk-Drop mit Leerzeichen,
+   fehlenden Portable-Bestandteilen und unabhängigem WAV/MP3-A/B-Messbericht.
+5. Original-Qualitätsprofile, Audio-Reparatur, Metadaten, vorhandene Tests und UI bewahrt.
+
+KEINE PFS-WRITES. KEIN Windows-EXE-BUILD oder echter Explorer-DnD-Test behauptet.
+AB-Prüfung: echter Suno-WAV-Ausschnitt, NICHT die unabhängige bestehende MP3 als Paar verwendet.

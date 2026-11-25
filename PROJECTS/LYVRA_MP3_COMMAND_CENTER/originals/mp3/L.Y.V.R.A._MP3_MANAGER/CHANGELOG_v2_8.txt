@@ -1,0 +1,13 @@
+666SOUNDsDESIGn MP3-Manager v2.8 – GUI WORKSPACE / PROGRESS
+
+- Basis: vollständige v2.7.3 Dependency-Repair-Version.
+- Vier klar getrennte Reiter: Dateien & Umbenennen, Metadaten, Audio Convert, System & EXE.
+- Originale Banner/Logo/Icon unverändert enthalten.
+- Drei feste Live-Fortschrittsbalken: Umbenennung, Audio, Gesamtprozess.
+- Dateizähler, Prozentangaben, Prozessebene mit Live-Status.
+- FFmpeg liefert den Umwandlungsfortschritt über -progress pipe:1 und ffprobe-Dauer.
+- Umbenennung: Fortschritt je bearbeitetem Song.
+- Gesamtbalken zeigt den Fortschritt des jeweils aktiv ausgeführten Vorgangs; keine automatische, kombinierte Batch-Pipeline.
+- Die dateibezogenen Operationen sind weiterhin manuell per Vorschau/Bestätigung getrennt.
+- Test unter Linux/Xvfb: GUI-Start, 4 Reiter, Collision Plans, Balkenwerte PASS.
+- Windows-native Laufzeit und EXE-Build noch OFFEN.

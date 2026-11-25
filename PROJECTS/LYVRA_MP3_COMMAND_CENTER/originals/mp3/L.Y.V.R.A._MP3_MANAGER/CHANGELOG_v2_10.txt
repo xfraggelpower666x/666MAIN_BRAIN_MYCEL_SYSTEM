@@ -1,0 +1,1 @@
+v2.10: (1), (2), ... am Dateinamen- und ID3-Titelende zu 1, 2, ... (Zahl bleibt). Kollisionen mit ungeklammerter Nummerierung. Keine sonstigen Funktionen ersetzt.
