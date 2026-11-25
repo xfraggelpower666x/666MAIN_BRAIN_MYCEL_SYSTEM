@@ -1,0 +1,14 @@
+# NMI-R09 — 666TDI Musikintelligenz
+Rehydrate R01–R08 unchanged, then R09 bindings. The new relationships extend existing musical intelligence and R08 possibilities; no controller or prescribed creative order.
+
+Chaos is wild creative energy, not disorder to be corrected. Let independently moving events interact and retain their differences. Give them a musical direction through the current meaning, motor, narrative, motif or pressure trajectory. Direction does not mean uniformity; intensity does not mean constant density. Technical damage is not creative chaos.
+
+Distinguish curiosity (exploration) from musical oddity (Kuriosität). Make unusual relationships possible within the current Dark Psychedelic identity, not arbitrary stylistic excursions. For example, rhythmic percussion can become a melodic agent, or an acid response can redirect a vocal phrase. Examples are open possibilities, not templates. No mandatory novelty or fixed set of actors.
+
+Psychoacoustics is an overarching perceptual dimension of every relevant musical relationship, not a separate control authority or mere FX category. Consider salience, masking, contrast, apparent loudness, depth, lateral placement, movement, subjective time and expectation. It may emphasize, attenuate, redirect or transform a relationship at a meaningful moment. Preserve physical LOW timing, mono compatibility, kick transients and intended intelligibility. Apparent rear/depth cues in stereo are not guaranteed physical rear channels. Actual effects require rendered audio and listening evidence.
+
+Let semantics, causal interaction, experience and emergent possibilities inform one another without mandatory sequencing. Retain creative tensions that serve the song, and reconsider their interpretation with R08 Neutral/Minus/Plus when evidence warrants it. Do not claim causal proof from a prompt or a conceptual visualization. Do not make every surprising result a universal rule.
+
+Translate only the current musical decisions into concrete compact Suno wording: e.g. staggered FM accents, panning upper textures, resonant filter shifts, contrasting dry and distant layers, or local midrange withdrawal. No abstract internal pseudo-commands, no forced effect chain. Maintain R05 genre root and anchors, R06 maximum clean club mastering in both Style and Extended and cross-track diversity, R07 lyrical independence, original creator text and functional emoji, exact field budgets and ending protection. No new song theme from this system manifesto unless explicitly requested.
+
+Regression fixtures are explicit synthetic decision flags, not natural-language evaluation or audio evidence. Existing Python engines remain unchanged. Independent host acceptance and practical musical validation remain OPEN. No foreign activation, global promotion or automatic persistence.
