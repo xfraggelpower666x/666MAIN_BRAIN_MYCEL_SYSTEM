@@ -455,5 +455,26 @@
     "python_pc_deferred": true,
     "automatic_promotion": false,
     "foreign_activation": false
+  },
+  "native_musical_intelligence_r09": {
+    "version": "NMI-R09",
+    "status": "ADDITIVE_GPT_NATIVE_MUSICAL_FORCES_SOURCE_VERIFIED_HOST_OPEN",
+    "base_commit": "d7ddbd7907c6eaa449c5f5fafabec388e5e57cb9",
+    "source_commit": "db511201ac47f2bc609d27cf9a7987e5b467f374",
+    "backup_branch": "backup/666tdi-nmi-r09-chaos-prechange-20261125",
+    "root": "PROJECTS/666TDI/native/musical_intelligence/",
+    "bindings": {
+      "DIRECTED_CHAOS_CURIOSITY_PSYCHOACOUSTIC_FIELD_R09.json": "2ecd7861730dc501c21f3650d71d1cdb918a26a5",
+      "GPT_NATIVE_WORKFLOW_R09.md": "dc379ae5c1dd486fef6fbc8eb596aca5298f3810",
+      "MUSICAL_FORCES_REGRESSION_R09.json": "8cfcf32b7ec41c65785521d08e8c6faca62c1664"
+    },
+    "rehydration": "READ_R01_THROUGH_R08_THEN_R09; APPLY_CONTEXTUAL_MUSICAL_FORCES_WITHOUT_FIXED_SEQUENCE",
+    "reference_regression": "14_OF_14_SYNTHETIC_EXPLICIT_FLAG_CASES_PASS",
+    "next_native_action": "Practical independent track creation; compare actual prompt and rendered audio with creator feedback; fresh-chat acceptance",
+    "host_acceptance": "OPEN",
+    "audio_acceptance": "OPEN",
+    "python_pc_deferred": true,
+    "automatic_promotion": false,
+    "foreign_activation": false
   }
 }
