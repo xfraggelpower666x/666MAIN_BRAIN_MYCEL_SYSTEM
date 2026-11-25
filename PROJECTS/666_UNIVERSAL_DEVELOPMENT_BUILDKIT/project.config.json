@@ -5,11 +5,7 @@
   "python_entry": "main.py",
   "python_args": [],
   "requirements_file": "requirements.txt",
-  "test_command": [
-    "-m",
-    "unittest",
-    "discover"
-  ],
+  "test_command": ["-m", "unittest", "discover"],
   "launch_mode": "python_backend",
   "backend_port": 8765,
   "backend_health_url": "http://127.0.0.1:8765/health",
