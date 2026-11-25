@@ -2,6 +2,7 @@
 const {app,BrowserWindow,ipcMain,dialog}=require('electron');
 const path=require('node:path'),fs=require('node:fs'),{spawn,execFile}=require('node:child_process'),{promisify}=require('node:util');
 const {AUDIO,canonical,output,selected}=require('./contracts.cjs');
+const {id3Fields}=require('./id3.cjs');
 const exec=promisify(execFile),root=path.resolve(__dirname,'..'),imp=path.join(root,'imports');
 const mp=path.join(imp,'mp3','ELECTRON_CANDIDATE','engine_bridge.py'),djRoot=path.join(imp,'dj','666_AUTO_DJ_STUDIO'),restore=path.join(imp,'restore','Restoration-Lab-main');
 const python=process.env.LYVRA_PYTHON||'python', ffmpeg=process.env.LYVRA_FFMPEG||'ffmpeg', ffprobe=process.env.LYVRA_FFPROBE||'ffprobe';
@@ -16,7 +17,7 @@ async function startup(){
  try{
   boot('QUELLEN PRÜFEN');
   for(const f of [mp,path.join(djRoot,'engine','worker.py'),path.join(restore,'realtime.py'),path.join(imp,'manifest.json')])if(!fs.existsSync(f))throw Error('Quellimport fehlt: '+path.basename(f));
-  boot('PYTHON / DSP PRÜFEN');await probe(python,['-c','import mutagen, numpy, scipy, soundfile, pywt, pyloudnorm']);
+  boot('PYTHON / DSP PRÜFEN');await probe(python,['-c','import mutagen, numpy, scipy, soundfile, pywt, pyloudnorm, sounddevice']);
   boot('FFMPEG / FFPROBE PRÜFEN');await probe(ffmpeg,['-version']);await probe(ffprobe,['-version']);
   boot('MP3 ENGINE PRÜFEN');const r=await exec(python,[path.join(root,'tools','probe_mp3.py'),mp],{windowsHide:true,timeout:20000});if(!r.stdout.includes('MP3_READY'))throw Error('MP3 Engine nicht bereit');
   boot('HUD INITIALISIEREN');await new Promise(r=>setTimeout(r,Math.max(0,8000-(Date.now()-started))));
@@ -40,10 +41,10 @@ handle('start',req=>{
  const files=[...new Set(req.files.map(f=>selected(f,approved)))],source=files[0];
  if(req.action==='inspect')return run('mp3',mp,[],{action:'inspect',source},true);
  if(!folder)throw Error('Ausgabeordner auswählen');
- if(req.action==='metadata'){if(path.extname(source).toLowerCase()!=='.mp3')throw Error('MP3 erforderlich');const fields={};for(const k of ['title','artist','album'])if(typeof req.fields?.[k]==='string'&&req.fields[k].length<=1000)fields[k]=req.fields[k];return run('mp3',mp,[],{action:'metadata_copy',source,destination:output(folder,req.name,'.mp3'),fields},true)}
+ if(req.action==='metadata'){if(path.extname(source).toLowerCase()!=='.mp3')throw Error('MP3 erforderlich');const fields=id3Fields(req.fields);return run('mp3',mp,[],{action:'metadata_copy',source,destination:output(folder,req.name,'.mp3'),fields},true)}
  if(req.action==='convert'){const ext=path.extname(req.name).toLowerCase();if(!['.mp3','.wav'].includes(ext))throw Error('Format nicht erlaubt');return run('mp3',mp,[],{action:'export',source,destination:output(folder,req.name,ext),stream:Number.isInteger(req.stream)&&req.stream>=0?req.stream:0},true)}
  if(req.action==='dj')return run('dj',path.join(djRoot,'engine','worker.py'),['--input-json','-','--ffmpeg',ffmpeg,'--ffprobe',ffprobe],{files,output:folder,profile:['stream','dj','custom'].includes(req.profile)?req.profile:'stream',bitrate:req.bitrate===320?320:256,export_m3u:!!req.m3u,block_mode:false,write_metadata:false,rotate_covers:false,export_stream_ready:false});
- if(req.action==='restore'){if(!['Off','STFT','Wavelet','Both'].includes(req.mode))throw Error('DSP-Modus ungültig');return run('restore',path.join(root,'tools','restore_worker.py'),[],{source,destination:output(folder,req.name,'.wav'),mode:req.mode,engine:restore})}
+ if(req.action==='restore'){if(!['.wav','.mp3'].includes(path.extname(source).toLowerCase()))throw Error('Restoration benötigt WAV oder MP3; zuerst konvertieren');if(!['Off','STFT','Wavelet','Both'].includes(req.mode))throw Error('DSP-Modus ungültig');return run('restore',path.join(root,'tools','restore_worker.py'),[],{source,destination:output(folder,req.name,'.wav'),mode:req.mode,engine:restore})}
  throw Error('Unbekannte Aktion');
 });
 handle('stop',()=>{if(!job)return false;if(!job.keepStdin)throw Error('Sicherer Abbruch für dieses Modul noch nicht integriert');job.child.stdin.write('CANCEL\n');return true});
