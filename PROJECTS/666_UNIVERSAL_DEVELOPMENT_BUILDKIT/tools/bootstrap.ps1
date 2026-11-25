@@ -1,4 +1,4 @@
-param([string]$Action = 'menu')
+﻿param([string]$Action = 'menu')
 $ErrorActionPreference = 'Stop'
 $Root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $Config = Get-Content -LiteralPath (Join-Path $Root 'project.config.json') -Raw -Encoding UTF8 | ConvertFrom-Json
