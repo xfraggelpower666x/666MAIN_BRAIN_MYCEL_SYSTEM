@@ -11,6 +11,19 @@ app.on('window-all-closed',()=>{if(process.platform!=='darwin')app.quit();});
 ipcMain.handle('files:choose',async()=>{const res=await dialog.showOpenDialog(windowRef,{properties:['openFile','multiSelections']});return res.canceled?[]:validated(res.filePaths);});
 ipcMain.handle('files:validate',(_,a)=>validated(a));
 ipcMain.handle('folder:choose',async()=>{const res=await dialog.showOpenDialog(windowRef,{properties:['openDirectory','createDirectory']});return res.canceled?null:res.filePaths[0];});
+// Read-only cover preview: no filesystem access is exposed to the renderer.
+ipcMain.handle('covers:inspect',async(_,folder)=>{
+ if(typeof folder!=='string'||!fs.existsSync(folder)||!fs.statSync(folder).isDirectory())return {count:0,filename:null,dataUrl:null,error:'Cover directory not accessible'};
+ const supported=new Set(['.jpg','.jpeg','.png','.webp']);
+ const entries=fs.readdirSync(folder,{withFileTypes:true}).filter(e=>e.isFile()&&supported.has(path.extname(e.name).toLowerCase())).sort((a,b)=>a.name.localeCompare(b.name));
+ for(const entry of entries){
+  const file=path.join(folder,entry.name),stat=fs.statSync(file);
+  if(stat.size<=0||stat.size>6*1024*1024)continue;
+  const ext=path.extname(entry.name).toLowerCase();const mime=ext==='.png'?'image/png':ext==='.webp'?'image/webp':'image/jpeg';
+  return {count:entries.length,filename:entry.name,dataUrl:`data:${mime};base64,${fs.readFileSync(file).toString('base64')}`};
+ }
+ return {count:entries.length,filename:null,dataUrl:null,error:entries.length?'No previewable cover under 6 MiB':'No compatible images in folder'};
+});
 ipcMain.handle('job:start',async(_,input)=>{
  if(job)return {ok:false,error:'A render is already running'};
  const files=validated(input?.files),output=input?.output;
