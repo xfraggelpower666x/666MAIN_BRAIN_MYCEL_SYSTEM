@@ -3,8 +3,9 @@ const {app,BrowserWindow,ipcMain,dialog}=require('electron');
 const path=require('node:path'),fs=require('node:fs'),{spawn,execFile}=require('node:child_process'),{promisify}=require('node:util');
 const {AUDIO,canonical,output,selected}=require('./contracts.cjs');
 const {id3Fields}=require('./id3.cjs');
-const exec=promisify(execFile),root=path.resolve(__dirname,'..'),imp=path.join(root,'imports');
-const mp=path.join(imp,'mp3','ELECTRON_CANDIDATE','engine_bridge.py'),djRoot=path.join(imp,'dj','666_AUTO_DJ_STUDIO'),restore=path.join(imp,'restore','Restoration-Lab-main');
+const {resolveLayout}=require('./source-layout.cjs');
+const exec=promisify(execFile),root=path.resolve(__dirname,'..');
+let mp,djRoot,restore;
 const python=process.env.LYVRA_PYTHON||'python', ffmpeg=process.env.LYVRA_FFMPEG||'ffmpeg', ffprobe=process.env.LYVRA_FFPROBE||'ffprobe';
 let win,job=null,ready=false,folder=null;const approved=new Set();
 function auth(e){if(!win||e.sender!==win.webContents||e.senderFrame!==win.webContents.mainFrame)throw Error('IPC nicht autorisiert')}
@@ -13,16 +14,17 @@ function send(data){if(win&&!win.isDestroyed())win.webContents.send('cc:event',d
 function boot(text){if(win&&!win.isDestroyed())win.webContents.send('cc:boot',text)}
 async function probe(command,args){return exec(command,args,{windowsHide:true,timeout:20000,maxBuffer:1024*1024})}
 async function startup(){
- const started=Date.now();await win.loadFile(path.join(root,'renderer','boot.html'));win.show();
+ const started=Date.now();
  try{
-  boot('QUELLEN PRÜFEN');
-  for(const f of [mp,path.join(djRoot,'engine','worker.py'),path.join(restore,'realtime.py'),path.join(imp,'manifest.json')])if(!fs.existsSync(f))throw Error('Quellimport fehlt: '+path.basename(f));
+  const layout=resolveLayout(root);mp=layout.mp;djRoot=path.dirname(path.dirname(layout.dj));restore=path.dirname(layout.restore);
+  await win.loadFile(path.join(root,'renderer','boot.html'),{query:{source:layout.mode}});win.show();
+  boot('QUELLEN PRÜFEN: '+layout.mode);
   boot('PYTHON / DSP PRÜFEN');await probe(python,['-c','import mutagen, numpy, scipy, soundfile, pywt, pyloudnorm, sounddevice']);
   boot('FFMPEG / FFPROBE PRÜFEN');await probe(ffmpeg,['-version']);await probe(ffprobe,['-version']);
   boot('MP3 ENGINE PRÜFEN');const r=await exec(python,[path.join(root,'tools','probe_mp3.py'),mp],{windowsHide:true,timeout:20000});if(!r.stdout.includes('MP3_READY'))throw Error('MP3 Engine nicht bereit');
   boot('HUD INITIALISIEREN');await new Promise(r=>setTimeout(r,Math.max(0,8000-(Date.now()-started))));
   await win.loadFile(path.join(root,'renderer','index.html'));ready=true;
- }catch(e){boot('START BLOCKIERT: '+e.message);dialog.showErrorBox('LYVRA Start blockiert',e.message)}
+ }catch(e){if(!win.isVisible()){await win.loadFile(path.join(root,'renderer','boot.html'));win.show()}boot('START BLOCKIERT: '+e.message);dialog.showErrorBox('LYVRA Start blockiert',e.message)}
 }
 function run(module,script,args,data,keepStdin=false){
  if(job)throw Error('Ein Audioauftrag läuft bereits');

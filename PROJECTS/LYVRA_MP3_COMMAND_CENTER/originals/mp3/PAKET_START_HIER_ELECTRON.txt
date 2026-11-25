@@ -1,0 +1,9 @@
+L.Y.V.R.A. MP3 MANAGER v2.40.1 + ELECTRON MIGRATION C01
+
+ORIGINAL: MP3_MANAGER_START.bat (alter Tkinter-Start, unveraendert)
+ELECTRON: ELECTRON_CANDIDATE/START_ELECTRON_WINDOWS.bat
+ANLEITUNG: ELECTRON_CANDIDATE/README_START_HIER.md
+
+Electron Kandidat = zusaetzliche GUI und keine produktive Ersetzung.
+Ohne npm install und Python/FFmpeg startet der Kandidat nicht.
+Windows-Host und portable EXE sind noch nicht verifiziert.

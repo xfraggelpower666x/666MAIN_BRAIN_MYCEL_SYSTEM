@@ -1,0 +1,18 @@
+[
+  {
+    "path": "mp3/PAKET_START_HIER_ELECTRON.txt",
+    "sha": "03ee6ee7f86c55acad9fb6543af2a8edaa5527dc"
+  },
+  {
+    "path": "mp3/L.Y.V.R.A._MP3_MANAGER/requirements-build.txt",
+    "sha": "1bcde78ffdd5e1f7926a3c57bb99dfca6736e88f"
+  },
+  {
+    "path": "boot/666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01/electron/preload.js",
+    "sha": "5ca3d89ce15a8f8a85fc4f343d36dbdb97d294ce"
+  },
+  {
+    "path": "mp3/ELECTRON_CANDIDATE/electron/preload.cjs",
+    "sha": "ae9aa38dc12e6aaca39272fd5d41480d8b828347"
+  }
+]

@@ -1,11 +1,13 @@
 {
   "name": "lyvra-mp3-command-center",
-  "version": "0.2.1",
+  "version": "0.2.3",
   "private": true,
   "main": "electron/main.cjs",
   "scripts": {
     "start": "electron .",
-    "check": "node --check electron/main.cjs && node --check electron/preload.cjs && node --check renderer/app.js && node --test tests/*.test.cjs"
+    "check": "node --check electron/main.cjs && node --check electron/preload.cjs && node --check renderer/app.js && node --test tests/*.test.cjs",
+    "runtime:check": "node electron/runtime-marker.cjs",
+    "runtime:repair-marker": "node electron/runtime-marker.cjs --repair"
   },
   "devDependencies": {
     "electron": "35.7.5",
