@@ -1,0 +1,1084 @@
+{
+  "dj/666_AUTO_DJ_STUDIO/tools/ffmpeg/ffprobe.exe": {
+    "sha": "38d6912a7ba7b91cb5c1caddee21bb443af23aff",
+    "sha256": "54b944d6095c4588d7548424d7acd5118390a9d4f01b1c92f841547fc9a7429c",
+    "bytes": 100853248,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/tools/ffmpeg/ffprobe.exe",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "executable",
+    "pe_header": true,
+    "gpl_marker": true,
+    "nonfree_marker": false,
+    "reason": "Exact build provenance and redistribution terms unresolved"
+  },
+  "dj/666_AUTO_DJ_STUDIO/tools/ffmpeg/ffmpeg.exe": {
+    "sha": "3832221a7160091f4c34712dac94dd5d47fe150a",
+    "sha256": "1a65d5b0b10d8d9a81d2824a3538046a40ed3607c906b335a166add87613f705",
+    "bytes": 101060096,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/tools/ffmpeg/ffmpeg.exe",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "executable",
+    "pe_header": true,
+    "gpl_marker": true,
+    "nonfree_marker": false,
+    "reason": "Exact build provenance and redistribution terms unresolved"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 28.jpeg": {
+    "sha": "ca7387da39891d3282af32a10c75ce0ef92a1e21",
+    "sha256": "5293e0c0ed771f0056f089cc1189563ba9caf4496690c84428bd27a8d57b635b",
+    "bytes": 496974,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 28.jpeg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1012
+    ],
+    "metadata_keys": [
+      "dpi",
+      "exif",
+      "jfif",
+      "jfif_density",
+      "jfif_unit",
+      "jfif_version",
+      "photoshop"
+    ],
+    "exif_present": true,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 17.jpg": {
+    "sha": "17907643f7911c9c7e00362f5fe17138c7ff6f99",
+    "sha256": "161283946c49ebba02ce0ebec6c2ff5e7f815fba14ba9ac93b40c5a2c804957d",
+    "bytes": 152373,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 17.jpg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "metadata_keys": [
+      "dpi",
+      "jfif",
+      "jfif_density",
+      "jfif_unit",
+      "jfif_version"
+    ],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 23.jpg": {
+    "sha": "c385f1502ee54c89755767866dc333f5b76038c0",
+    "sha256": "4465921870a8735e24db2f5859134d952e8e49c7049ed33f90c3bc936b8e75be",
+    "bytes": 431239,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 23.jpg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "metadata_keys": [
+      "dpi",
+      "jfif",
+      "jfif_density",
+      "jfif_unit",
+      "jfif_version"
+    ],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 05.jpg": {
+    "sha": "cdcac27027de18bc1ced35a2cd2d82040c5ddeb0",
+    "sha256": "318d91f119fd84928a6a0388f170c0a594dc003f7de369a1264c592555124cc7",
+    "bytes": 426853,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 05.jpg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "metadata_keys": [
+      "dpi",
+      "jfif",
+      "jfif_density",
+      "jfif_unit",
+      "jfif_version"
+    ],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 12.jpg": {
+    "sha": "d0a4355f707a5565300d48a7c10fb1e0ba593183",
+    "sha256": "c92e7dbced96674297e67972b279d0be5d9a91069fe54f1384f4b968f13b4447",
+    "bytes": 877300,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 12.jpg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "metadata_keys": [
+      "adobe",
+      "adobe_transform",
+      "dpi",
+      "exif",
+      "icc_profile",
+      "photoshop",
+      "progression",
+      "progressive"
+    ],
+    "exif_present": true,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 27.jpg": {
+    "sha": "25c4e9ec151d70595445925ac5938fe5085dd76d",
+    "sha256": "7285fca4ae3d1c48417f8114ae60b306a4545bb37f6158da8e0361f3baec8309",
+    "bytes": 218623,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 27.jpg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "metadata_keys": [
+      "dpi",
+      "jfif",
+      "jfif_density",
+      "jfif_unit",
+      "jfif_version"
+    ],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 14.jpg": {
+    "sha": "4fd4e2e57adffe3bb510bd8705c25ef0a016c781",
+    "sha256": "d4d8b595414bfe6a5a1ca553928ef923272acc227c9deaada01bccc4ff63708b",
+    "bytes": 324877,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 14.jpg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "metadata_keys": [
+      "dpi",
+      "jfif",
+      "jfif_density",
+      "jfif_unit",
+      "jfif_version"
+    ],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 22.jpg": {
+    "sha": "4392021fe5301373305229538a9ffe416c28e628",
+    "sha256": "58ddcf0b8bb82c0572a3d8ad23303a5693f99da23be6d0de15a3dd077eabe9cb",
+    "bytes": 472503,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 22.jpg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "metadata_keys": [
+      "dpi",
+      "jfif",
+      "jfif_density",
+      "jfif_unit",
+      "jfif_version"
+    ],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 11.jpg": {
+    "sha": "f1856caa1b8152eb8888407a9bd3e9834f8a3e3a",
+    "sha256": "1704c8ebe18648064d417236189eec28d3ba11727b847c45a78ccef27d17cb60",
+    "bytes": 134057,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 11.jpg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "metadata_keys": [
+      "dpi",
+      "jfif",
+      "jfif_density",
+      "jfif_unit",
+      "jfif_version"
+    ],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 26.jpg": {
+    "sha": "8d11ea194cb1d40517acc56cc8ac7c87429d49e8",
+    "sha256": "caa09115cd52a40f01d7c548c207bc74c2a6845a01e4aefe93cba3fb0a895643",
+    "bytes": 140564,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 26.jpg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "metadata_keys": [
+      "dpi",
+      "jfif",
+      "jfif_density",
+      "jfif_unit",
+      "jfif_version"
+    ],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 16.jpg": {
+    "sha": "ddcda8749a3abc2d92ed8d8fd734442174c84218",
+    "sha256": "b6fdb6f68cada6a0735f320424fc81f7e195f0b9dff211cc6c2448ba4c31d6fc",
+    "bytes": 372532,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 16.jpg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "metadata_keys": [
+      "dpi",
+      "jfif",
+      "jfif_density",
+      "jfif_unit",
+      "jfif_version"
+    ],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 24.jpg": {
+    "sha": "d689decbb7c06e4c666dd747376bc7e0ec0ada8d",
+    "sha256": "95801756366420e731f47db43f31529b09a4690cae2b2b7c75856eb5de000133",
+    "bytes": 456852,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 24.jpg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "metadata_keys": [
+      "dpi",
+      "jfif",
+      "jfif_density",
+      "jfif_unit",
+      "jfif_version"
+    ],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 19.jpg": {
+    "sha": "45b712599f40f720af1ae0d1e85032be0b6b6e8e",
+    "sha256": "5ffdaccc88ca0e53cbc63b44aa8faac3b16556f59a2fce6b7502c653f1f82033",
+    "bytes": 295647,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 19.jpg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "metadata_keys": [
+      "dpi",
+      "jfif",
+      "jfif_density",
+      "jfif_unit",
+      "jfif_version"
+    ],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 25.jpg": {
+    "sha": "8111e58fda342f978a5bf1b40e16ec8be8567d8e",
+    "sha256": "31b56657c3547da984db841ca7ea1236cb7dafe1111ff2efb9130b314234d276",
+    "bytes": 421791,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 25.jpg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "metadata_keys": [
+      "dpi",
+      "jfif",
+      "jfif_density",
+      "jfif_unit",
+      "jfif_version"
+    ],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 01.jpg": {
+    "sha": "67bf03ba0235ce408356b6681cea86da484269fe",
+    "sha256": "8e713b57988151839eb7c88cce21b7991da9a422520cf72c4fe8975f179391b2",
+    "bytes": 808908,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 01.jpg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "metadata_keys": [
+      "adobe",
+      "adobe_transform",
+      "dpi",
+      "exif",
+      "icc_profile",
+      "photoshop",
+      "progression",
+      "progressive"
+    ],
+    "exif_present": true,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 10.jpg": {
+    "sha": "a22f2a51626c2b827cc9ff32ccc5abe9a6cca371",
+    "sha256": "69410ef92a92fddf63516b1999b4a0691d1c79f7e77c47e7c5f6bb335112f111",
+    "bytes": 420292,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 10.jpg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "metadata_keys": [
+      "dpi",
+      "jfif",
+      "jfif_density",
+      "jfif_unit",
+      "jfif_version"
+    ],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 00.jpg": {
+    "sha": "588b4ea9cb05e0aac041264009d7bed2bef7f7cf",
+    "sha256": "afdc5355444ef59bf318ab368fe207abd1c644c041f55f4ef286a028c8d0911f",
+    "bytes": 807991,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 00.jpg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "metadata_keys": [
+      "adobe",
+      "adobe_transform",
+      "dpi",
+      "exif",
+      "icc_profile",
+      "photoshop",
+      "progression",
+      "progressive"
+    ],
+    "exif_present": true,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 08.jpg": {
+    "sha": "b22bf03eeb12261d105f6bf4ebbd61c42cce2340",
+    "sha256": "457bcac56ba55698f80db56e20a41d3c24528b39df1b3b686120ad04657f4452",
+    "bytes": 211957,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 08.jpg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "metadata_keys": [
+      "dpi",
+      "jfif",
+      "jfif_density",
+      "jfif_unit",
+      "jfif_version"
+    ],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 06.jpg": {
+    "sha": "1c65003f956aad2b888be125b6a9f3fecef620cb",
+    "sha256": "abebdb1030872092a0c757bacff436979ee053ac1e2c6366dd2e5f92514cb3a0",
+    "bytes": 332178,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 06.jpg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "metadata_keys": [
+      "dpi",
+      "jfif",
+      "jfif_density",
+      "jfif_unit",
+      "jfif_version"
+    ],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 30.jpg": {
+    "sha": "da548bb6d72f03bae2250f4eae3e550999b5086b",
+    "sha256": "097a33f309f604aaec201fd92afe9aa4be9af7bd6ab0af975f8f3854d7ffad8b",
+    "bytes": 1024578,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 30.jpg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "metadata_keys": [
+      "adobe",
+      "adobe_transform",
+      "dpi",
+      "exif",
+      "icc_profile",
+      "photoshop",
+      "progression",
+      "progressive"
+    ],
+    "exif_present": true,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 15.jpg": {
+    "sha": "30bf1f41dcf0edbafda4ab1a5e310bc3d96cb51a",
+    "sha256": "952177b2548dd632a47296eb5777bd4c8ea2eef12e5c1d7a5fec69132c0a3292",
+    "bytes": 398082,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 15.jpg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "metadata_keys": [
+      "dpi",
+      "jfif",
+      "jfif_density",
+      "jfif_unit",
+      "jfif_version"
+    ],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 29.jpg": {
+    "sha": "cc7e16f2acae2b8cbad9efdd7405b83c2082fcc0",
+    "sha256": "3b95574e89071e4b9cea0f9b6c01bcc9807f3a0294bad3827d563e13cb176a55",
+    "bytes": 988387,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 29.jpg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "metadata_keys": [
+      "adobe",
+      "adobe_transform",
+      "dpi",
+      "exif",
+      "icc_profile",
+      "photoshop",
+      "progression",
+      "progressive"
+    ],
+    "exif_present": true,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 21.jpg": {
+    "sha": "bcb0319fa8520ca40fc57cf3b9f8c5a2c44503cb",
+    "sha256": "8f8e24d1dbdcf3b9e12b38afc860db4339c17db22e36aa9e4c89c62655a0bce3",
+    "bytes": 395066,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 21.jpg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "metadata_keys": [
+      "dpi",
+      "jfif",
+      "jfif_density",
+      "jfif_unit",
+      "jfif_version"
+    ],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 07.jpg": {
+    "sha": "fbfd61b499d00ce025c729795134a1fc0b750169",
+    "sha256": "35adb7b780e4816d67df81769a7ceedcc5c40e29270fb34c12bc952f4b47243e",
+    "bytes": 257224,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 07.jpg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "metadata_keys": [
+      "dpi",
+      "jfif",
+      "jfif_density",
+      "jfif_unit",
+      "jfif_version"
+    ],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 20.jpg": {
+    "sha": "492f1243edaba5656a4290a477d48d84f7df994a",
+    "sha256": "397670de86808c2ca121dbdf85f5bec62d0ee76a55f00de4dbd9796223df2d3d",
+    "bytes": 228493,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 20.jpg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "metadata_keys": [
+      "dpi",
+      "jfif",
+      "jfif_density",
+      "jfif_unit",
+      "jfif_version"
+    ],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 13.jpg": {
+    "sha": "0ffac28609cd0a9c7e3f10228c245fde6295015f",
+    "sha256": "396bf6a2ffe03f8daeed8e78d692f6e0ef03b5adaf04339c7b80be0529282ca9",
+    "bytes": 979842,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 13.jpg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "metadata_keys": [
+      "adobe",
+      "adobe_transform",
+      "dpi",
+      "exif",
+      "icc_profile",
+      "photoshop",
+      "progression",
+      "progressive"
+    ],
+    "exif_present": true,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 03.jpg": {
+    "sha": "44f005ce0d85316e15d3673eda0207958e5d1f5f",
+    "sha256": "e5c313e9c0f627c7cb41cca17c496aecb9c6911f1931d9215edd6e45bd2d428f",
+    "bytes": 327721,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 03.jpg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "metadata_keys": [
+      "dpi",
+      "exif",
+      "jfif",
+      "jfif_density",
+      "jfif_unit",
+      "jfif_version"
+    ],
+    "exif_present": true,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 18.jpg": {
+    "sha": "7575ae0ccbe4044396779f6a5b2b98681a2b20c8",
+    "sha256": "6d0ad242e587aae80638a962bbdb33bb34956e64e3af7eb24bed89c731575913",
+    "bytes": 396728,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 18.jpg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "metadata_keys": [
+      "dpi",
+      "jfif",
+      "jfif_density",
+      "jfif_unit",
+      "jfif_version"
+    ],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "dj/666_AUTO_DJ_STUDIO/legacy/covers/Cover 04.jpg": {
+    "sha": "271fb7b9060f9484bdb9c42fb5a285d79cf5eb44",
+    "sha256": "a506433e695b3c729b2164df322ca3d623164ff2191874e7e874dcd53e2cf786",
+    "bytes": 347820,
+    "archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY(1).zip",
+    "member": "666_AUTO_DJ_STUDIO/legacy/covers/Cover 04.jpg",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "metadata_keys": [
+      "dpi",
+      "jfif",
+      "jfif_density",
+      "jfif_unit",
+      "jfif_version"
+    ],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "restore/Restoration-Lab-main/verification-layout.log": {
+    "sha": "3d5d327727d5f8e7dbc106a7cb90c7b5c9cb4616",
+    "sha256": "499d293f946a6dac05ef5e02cb5b7acb73e05b4653bd02d05623e208e3a2763c",
+    "bytes": 457,
+    "archive": "Restoration-Lab-main-Windows-Workflow-Fix.zip",
+    "member": "Restoration-Lab-main/verification-layout.log",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "diagnostic",
+    "windows_path": false,
+    "credential_pattern": false,
+    "reason": "Original log requires manual privacy review"
+  },
+  "restore/Restoration-Lab-main/verification-tests.log": {
+    "sha": "0fc4cff8f1af2b3bdca7e69c1f18e2c78528d8af",
+    "sha256": "0fd205055ef26e27e1e38bfc6acb65417f0fa90487c1d19f02b46b718f20e05b",
+    "bytes": 6006,
+    "archive": "Restoration-Lab-main-Windows-Workflow-Fix.zip",
+    "member": "Restoration-Lab-main/verification-tests.log",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "diagnostic",
+    "windows_path": false,
+    "credential_pattern": false,
+    "reason": "Original log requires manual privacy review"
+  },
+  "restore/Restoration-Lab-main/START_DIAGNOSE.log": {
+    "sha": "a1c6b4aca5b6a66794a720b88853d00e2a841cbf",
+    "sha256": "a76a9cb6663afceb95f4be2736cc391ecd62fa118bc09b2a9c45d4e0b8a3ce53",
+    "bytes": 604,
+    "archive": "Restoration-Lab-main-Windows-Workflow-Fix.zip",
+    "member": "Restoration-Lab-main/START_DIAGNOSE.log",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "diagnostic",
+    "windows_path": false,
+    "credential_pattern": false,
+    "reason": "Original log requires manual privacy review"
+  },
+  "restore/Restoration-Lab-main/verification-gui.log": {
+    "sha": "c2a0d5cdb8fef39aca442b1edb6f73b4247faf8a",
+    "sha256": "066ee61bf768247dfc4bc288edd2f4cb58a4ebf6ea1821748a493549719f3124",
+    "bytes": 437,
+    "archive": "Restoration-Lab-main-Windows-Workflow-Fix.zip",
+    "member": "Restoration-Lab-main/verification-gui.log",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "diagnostic",
+    "windows_path": false,
+    "credential_pattern": false,
+    "reason": "Original log requires manual privacy review"
+  },
+  "mp3/L.Y.V.R.A._MP3_MANAGER/START_DIAGNOSE.log": {
+    "sha": "96bf91b7383629fbd56c9a3ed8fe6852bbc36a2d",
+    "sha256": "f3aa2be02bbe1dd1291f80cd40e4b108055f8ff9cc5adbd0b73647d8ff59cbdc",
+    "bytes": 1037,
+    "archive": "LYVRA_MP3_MANAGER_v2_40_1_ELECTRON_C02_ID3_PARITY_SOURCE.zip",
+    "member": "L.Y.V.R.A._MP3_MANAGER/START_DIAGNOSE.log",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "diagnostic",
+    "windows_path": true,
+    "credential_pattern": false,
+    "reason": "Original log requires manual privacy review"
+  },
+  "mp3/L.Y.V.R.A._MP3_MANAGER/assets/app.ico": {
+    "sha": "69bcf9bc56b8a41e44e92423df508526012132cf",
+    "sha256": "7a061c05ba2ef2aeb5544290bd12dffb8fac9a5d596c85d99da141ea7cfe879c",
+    "bytes": 198382,
+    "archive": "LYVRA_MP3_MANAGER_v2_40_1_ELECTRON_C02_ID3_PARITY_SOURCE.zip",
+    "member": "L.Y.V.R.A._MP3_MANAGER/assets/app.ico",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "ICO",
+    "dimensions": [
+      256,
+      256
+    ],
+    "metadata_keys": [
+      "sizes"
+    ],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "mp3/L.Y.V.R.A._MP3_MANAGER/assets/banner.png": {
+    "sha": "c9906fceaf48308f8e23288d071533ee44f37bba",
+    "sha256": "72379307948bb4ef5a2f74dbc165d51ff7b9524eec078ea2f736a362f6d400cf",
+    "bytes": 309421,
+    "archive": "LYVRA_MP3_MANAGER_v2_40_1_ELECTRON_C02_ID3_PARITY_SOURCE.zip",
+    "member": "L.Y.V.R.A._MP3_MANAGER/assets/banner.png",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      2048,
+      399
+    ],
+    "metadata_keys": [
+      "icc_profile",
+      "jfif",
+      "jfif_density",
+      "jfif_unit",
+      "jfif_version"
+    ],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "mp3/L.Y.V.R.A._MP3_MANAGER/assets/logo.png": {
+    "sha": "cccb54f860c5dca153345b98a5bfb00c61c2faec",
+    "sha256": "40b7085fbc049c5de3ec41b43f1afde944110352c0c59e8ff5e65a14e2f426ac",
+    "bytes": 2731139,
+    "archive": "LYVRA_MP3_MANAGER_v2_40_1_ELECTRON_C02_ID3_PARITY_SOURCE.zip",
+    "member": "L.Y.V.R.A._MP3_MANAGER/assets/logo.png",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "PNG",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "metadata_keys": [],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "mp3/ELECTRON_CANDIDATE/renderer/banner.png": {
+    "sha": "c9906fceaf48308f8e23288d071533ee44f37bba",
+    "sha256": "72379307948bb4ef5a2f74dbc165d51ff7b9524eec078ea2f736a362f6d400cf",
+    "bytes": 309421,
+    "archive": "LYVRA_MP3_MANAGER_v2_40_1_ELECTRON_C02_ID3_PARITY_SOURCE.zip",
+    "member": "ELECTRON_CANDIDATE/renderer/banner.png",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "JPEG",
+    "dimensions": [
+      2048,
+      399
+    ],
+    "metadata_keys": [
+      "icc_profile",
+      "jfif",
+      "jfif_density",
+      "jfif_unit",
+      "jfif_version"
+    ],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "boot/666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01/electron/renderer/assets/bootscreen-1920x1080.webp": {
+    "sha": "631920cc4e6aaaee44b61385ad03a004b1212896",
+    "sha256": "d6a557703b6ed51961d9aaa5c6337f635871c3e5baef534dd1a9068875c2e423",
+    "bytes": 627430,
+    "archive": "666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01_11_1_ELECTRON_SOURCE_PUBLISH.zip",
+    "member": "666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01/electron/renderer/assets/bootscreen-1920x1080.webp",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "WEBP",
+    "dimensions": [
+      1920,
+      1080
+    ],
+    "metadata_keys": [
+      "background",
+      "loop"
+    ],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "boot/666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01/electron/renderer/assets/bootscreen-1280x720.webp": {
+    "sha": "e489207891bfee4d6fad8a37978ec07b24be68d7",
+    "sha256": "b128ca6518400bd1aa25514623b454f7d6f95b0ec11796f53bad6159267f56f5",
+    "bytes": 366020,
+    "archive": "666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01_11_1_ELECTRON_SOURCE_PUBLISH.zip",
+    "member": "666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01/electron/renderer/assets/bootscreen-1280x720.webp",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "WEBP",
+    "dimensions": [
+      1280,
+      720
+    ],
+    "metadata_keys": [
+      "background",
+      "loop"
+    ],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "boot/666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01/electron/renderer/assets/bootscreen-original.png": {
+    "sha": "d7ff06e700d36abbd0e7ba66230fc2532a0cf497",
+    "sha256": "97aeb42d7b6c04ddb0504ae6ee1b0c68df435c70afa9522c6aa126371b3958d3",
+    "bytes": 3853354,
+    "archive": "666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01_11_1_ELECTRON_SOURCE_PUBLISH.zip",
+    "member": "666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01/electron/renderer/assets/bootscreen-original.png",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "PNG",
+    "dimensions": [
+      1671,
+      941
+    ],
+    "metadata_keys": [],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "boot/666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01/tools/assets/cyber-boot-artwork-original.png": {
+    "sha": "18b72603af0644a1e6cdc4f9d9d471c5938d3f3c",
+    "sha256": "6345a41e0a554c6ab26693039573852236bc383d0ded3d8a1eedf0078d0d837d",
+    "bytes": 3666433,
+    "archive": "666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01_11_1_ELECTRON_SOURCE_PUBLISH.zip",
+    "member": "666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01/tools/assets/cyber-boot-artwork-original.png",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "PNG",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "metadata_keys": [],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  },
+  "boot/666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01/tools/assets/cyber-boot-artwork.png": {
+    "sha": "6067c9c22054f05ec18091e84af293bf70d65f48",
+    "sha256": "a0689ff0cf24e45d90d5d389ec517849b134abc01259d3b25d9e6405ab2427ad",
+    "bytes": 3168361,
+    "archive": "666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01_11_1_ELECTRON_SOURCE_PUBLISH.zip",
+    "member": "666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01/tools/assets/cyber-boot-artwork.png",
+    "source_review": "PASS",
+    "public_release": false,
+    "rights_review": "HOLD",
+    "privacy_review": "HOLD",
+    "kind": "image",
+    "format": "PNG",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "metadata_keys": [],
+    "exif_present": false,
+    "reason": "Rights and visual/metadata privacy require review"
+  }
+}
