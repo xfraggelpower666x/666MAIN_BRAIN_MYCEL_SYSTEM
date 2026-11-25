@@ -13,12 +13,22 @@ function isMainFrame(event) {
 function launchAction(action) {
   const ps = path.join(process.env.SystemRoot || 'C:\\Windows','System32','WindowsPowerShell','v1.0','powershell.exe');
   const script = path.join(root,'STARTEN.ps1');
-  const child = spawn(ps,['-NoProfile','-ExecutionPolicy','Bypass','-NoExit','-File',script,'-Action',action],{
-    cwd:root,detached:true,windowsHide:false,stdio:'ignore',shell:false
+  return new Promise((resolve,reject)=>{
+    let settled=false;
+    let child;
+    try {
+      child=spawn(ps,['-NoProfile','-ExecutionPolicy','Bypass','-NoExit','-File',script,'-Action',action],{
+        cwd:root,detached:true,windowsHide:false,stdio:'ignore',shell:false
+      });
+    } catch(error){reject(error);return;}
+    child.once('error',error=>{if(!settled){settled=true;reject(error);}});
+    child.once('spawn',()=>{
+      if(settled)return;
+      settled=true;
+      child.unref();
+      resolve({started:true,action,pid:child.pid});
+    });
   });
-  child.on('error', err=>dialog.showErrorBox('Buildaktion konnte nicht starten',err.message));
-  child.unref();
-  return {started:true,action};
 }
 app.whenReady().then(()=>{
   mainWindow = new BrowserWindow({width:1280,height:820,minWidth:900,minHeight:650,
@@ -26,7 +36,14 @@ app.whenReady().then(()=>{
     webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,
       sandbox:true,nodeIntegration:false,webSecurity:true}});
   mainWindow.removeMenu();
-  mainWindow.loadFile(path.join(__dirname,'index.html'));
+  mainWindow.webContents.on('did-fail-load',(_event,code,description)=>{
+    dialog.showErrorBox('Electron Control Center',`Renderer konnte nicht geladen werden (${code}): ${description}`);
+    app.exit(1);
+  });
+  mainWindow.loadFile(path.join(__dirname,'index.html')).catch(error=>{
+    dialog.showErrorBox('Electron Control Center',String(error));
+    app.exit(1);
+  });
   mainWindow.once('ready-to-show',()=>mainWindow.show());
   mainWindow.webContents.setWindowOpenHandler(()=>({action:'deny'}));
   mainWindow.webContents.on('will-navigate',(event)=>event.preventDefault());
