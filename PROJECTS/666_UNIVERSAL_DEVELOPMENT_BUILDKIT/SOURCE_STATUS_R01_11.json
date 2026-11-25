@@ -1,11 +1,11 @@
 {
   "project_id": "666_UNIVERSAL_DEVELOPMENT_BUILDKIT",
-  "version": "R01.11.2",
-  "status": "SOURCE_PARTIAL_LOCAL_FREEZE_CANDIDATE",
+  "version": "R01.11.3",
+  "status": "GITHUB_SOURCE_PARTIAL_52_OF_58_BYTE_EXACT",
   "source_zip": "666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01_11_1_ELECTRON_SOURCE_PUBLISH.zip",
   "zip_sha256": "ae646788d0f55ad63100628ccc67d6bd12e20a242eb11fe95163bc26bb008b1c",
-  "local_manifest_entries": 50,
-  "local_python_tests": "21/21_PASS",
+  "local_manifest_entries": 58,
+  "local_python_tests": "25/25_PASS",
   "local_js_checks": "PASS",
   "windows_ui": "READBACK_PENDING",
   "portable_exe": "READBACK_PENDING",
@@ -34,9 +34,24 @@
   "local_source_zip": "666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01_11_2_AUDIT_REPAIR_FREEZE_CANDIDATE.zip",
   "local_zip_sha256": "8cadad8184d17ceb2198b3db7c2ef28e01dc392a8226544f8539b38d2ff2cd70",
   "source_freeze": "LOCAL_CANDIDATE_ONLY",
-  "production_freeze": "BLOCKED_WINDOWS_AND_FULL_GITHUB_READBACK",
+  "production_freeze": "BLOCKED_WINDOWS_ACCEPTANCE_AND_FULL_SOURCE",
   "github_candidate_repairs": [
     "control-center/main.cjs spawn acknowledgement and renderer fail handling",
     "tools/electron-runtime-r061.ps1 marker rollback"
-  ]
+  ],
+  "github_candidate_file_count": 56,
+  "github_source_exact_blob_count": 52,
+  "github_missing_original_assets": [
+    "electron/renderer/assets/bootscreen-1280x720.webp",
+    "electron/renderer/assets/bootscreen-1920x1080.webp",
+    "electron/renderer/assets/bootscreen-original.png",
+    "tools/assets/cyber-boot-artwork-original.png",
+    "tools/assets/cyber-boot-artwork.png"
+  ],
+  "github_original_readme_byte_exact": false,
+  "local_node_tests": "5/5_PASS",
+  "local_zip_sha256_verified": true,
+  "local_zip": "666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01_11_3_BUILD_MANAGER_APP_SETTINGS.zip",
+  "publication_status_note": "All functional cleartext code and tests were published as independent GitHub files. Local ZIP contains original graphics and README. Only GitHub candidate branch changed. Production branch not promoted.",
+  "missing_transfer": "Use locally supplied PUBLISH_SOURCE_TO_GITHUB.bat from the original extracted ZIP to push all 58 exact files, including binary artwork, with backup and FETCH_HEAD blob readback. Never claim full release until 58/58."
 }
