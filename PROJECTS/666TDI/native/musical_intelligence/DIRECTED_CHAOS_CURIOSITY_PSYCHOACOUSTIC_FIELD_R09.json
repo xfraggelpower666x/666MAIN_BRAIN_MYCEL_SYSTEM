@@ -1,0 +1,83 @@
+{
+  "schema": "666TDI_NMI_R09_MUSICAL_INTELLIGENCE_V1",
+  "system_id": "666TDI-001",
+  "authority": "666TDI_ONLY",
+  "name": "666TDI MUSIKINTELLIGENZ",
+  "extends": "NMI-R08",
+  "source": "Direct creator definition and authorized update 2026-11-25T22:31:13Z",
+  "native_relations": [
+    {
+      "path": "source/engine/creative_causal.py",
+      "blob": "bcfd39792e73ba55d06b2a096596978adde4ab48",
+      "role": "productive tension, stable core moving field, voice negotiation, transforming recurrence"
+    },
+    {
+      "path": "source/engine/track_preanalysis.py",
+      "blob": "3baa17192a8241ebca7dc202de06b30a6a4a45e4",
+      "role": "illustrative layer and chapter alternatives, never mandatory structure"
+    },
+    {
+      "path": "native/musical_intelligence/CAPABILITY_MATRIX.json",
+      "blob": "bd6842ec0fa5f72710a512125b26a4e9eb735151",
+      "role": "M02 M03 M04 M05 M09 M10"
+    }
+  ],
+  "forces": {
+    "chaos": {
+      "meaning": "Wild, impetuous, unruly creative force that wants to break out; not synonymous with disorder or technical damage",
+      "direction": "Give related events a musical trajectory without ironing out their differences. Preserve unexpected interactions, local asymmetry and creative plurality.",
+      "examples": [
+        "interacting rhythmic accents",
+        "mutating timbres",
+        "unexpected instrumental handoffs"
+      ],
+      "not_required": "No constant maximal density, no compulsory chaos in every section"
+    },
+    "curiosity": {
+      "meaning": "Neugier explores; Kuriosität creates unusual relations within current Dark Psychedelic identity",
+      "examples": [
+        "percussion assumes melodic function",
+        "acid phrase answers vocal rhythm",
+        "drop changes the meaning of its preparation"
+      ],
+      "boundary": "Unusual does not justify unrelated genre drift or arbitrary novelty. Current meaning determines whether an oddity belongs."
+    },
+    "direction": {
+      "meaning": "Shared musical purpose, not uniformity or mandatory linear order",
+      "possible_carriers": [
+        "motor",
+        "narrative",
+        "motif",
+        "pressure trajectory",
+        "perceptual movement"
+      ]
+    },
+    "psychoacoustics": {
+      "role": "Cross-cutting perceptual relationship affecting all musical possibilities, not just an FX family or new controller",
+      "dimensions": [
+        "salience and masking",
+        "apparent loudness and contrast",
+        "left/right localization",
+        "apparent near/far and front/back depth",
+        "spectral focus",
+        "perceived motion and time",
+        "expectation and surprise",
+        "timely emphasis and attenuation"
+      ],
+      "examples": [
+        "briefly reduce competing mids to expose a voice",
+        "move upper textures across stereo field while keeping LOW anchored",
+        "withdraw selected layers before a focal event",
+        "use dry/wet and spectral contrast for apparent proximity"
+      ],
+      "limits": "Stereo playback does not guarantee literal rear localization; actual perception depends on rendered signal, playback and listener. No claim of DSP or Suno execution. Preserve mono sub, kick transients, intelligibility and mixability."
+    }
+  },
+  "relation_policy": "Meaning selects relevant possibilities; causal relationships may mutually reinforce, inhibit, redirect or transform them. Evidence informs reinterpretation; emergent interactions remain hypotheses until observed. No fixed order, ranking, mandatory combination, preset rotation, genre roulette or forced novelty.",
+  "renderer": "Resolve creative intent first; translate only relevant relationships to concrete musical language (rhythmic accents, FM modulation, filtered movement, panning, near/distant vocal contrast, layer withdrawal, etc.). Do not emit abstract internal labels as renderer commands. Preserve R05 positive leading genre anchors, R06 clean club mastering in Style and Extended, R07 independent stories and R08 contextual learning, actual UTF16 limits and meaningful emoji.",
+  "evidence_policy": "Creator intent is confirmed by direct request; musical examples are design candidates, not measured results. Compare actual output, preserve counterexamples and provenance, reconsider with Neutral/Minus/Plus. No automatic global promotion.",
+  "preserve": "NMI-R01–R08, all previous files and identities, R1.4 program source, isolated R1.5 candidate",
+  "foreign_activation": false,
+  "new_controller": false,
+  "implementation": "GPT-native additive knowledge and workflow; existing Python source unchanged"
+}
