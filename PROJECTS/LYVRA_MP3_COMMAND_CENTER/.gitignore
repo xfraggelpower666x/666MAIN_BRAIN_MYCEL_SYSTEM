@@ -1,0 +1,8 @@
+node_modules/
+imports/
+.venv/
+dist/
+__pycache__/
+*.zip
+*.exe
+*.log
