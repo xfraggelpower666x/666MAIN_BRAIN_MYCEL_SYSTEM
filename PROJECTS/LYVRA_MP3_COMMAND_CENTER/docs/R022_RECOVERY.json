@@ -1,0 +1,593 @@
+{
+  "base": "510fc49a4221a8eb7da8e89980913a15fef99e5d",
+  "method": "local original git blob hash matched to existing repository tree; no historic authority promotion",
+  "files": [
+    {
+      "path": "restore/Restoration-Lab-main/Build Mac App.command",
+      "sha": "375e8535dcb2a69fb873392020c6a92fabcc3c1b",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/Build Mac App.command"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/Build-Windows.ps1",
+      "sha": "559c02c411d256f20e8b1f599af3c481c3e55e34",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/Build-Windows.ps1"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/Create GitHub Release.command",
+      "sha": "7a804d5767e9467b427aaa87fcc0d3e7ddf48fce",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/Create GitHub Release.command"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/DISTRIBUTING.md",
+      "sha": "53359efeb6a5d805e1c2ea0825b5c8197eb7a9a4",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/DISTRIBUTING.md"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/ENV_CHECK.py",
+      "sha": "bcfa8af0508656aa67a110e9944ece2515ded283",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/ENV_CHECK.py"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/GUI_README.md",
+      "sha": "53359efeb6a5d805e1c2ea0825b5c8197eb7a9a4",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/DISTRIBUTING.md"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/MASTERING_DESIGN.md",
+      "sha": "efe93b495b9269a693edb447bc797426bae825da",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/MASTERING_DESIGN.md"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/README.md",
+      "sha": "57e0215f30bac15333ea990353786418c3e9bcae",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/README.md"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/READ_ME_FIRST.md",
+      "sha": "650d8fc2ac59e26f0cfbde85e453bee356d80651",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/READ_ME_FIRST.md"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/RELEASE_NOTES.md",
+      "sha": "5543ec17ea4f939ed8525410eeb030e87a07a4d7",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/RELEASE_NOTES.md"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/RestorationLab.spec",
+      "sha": "6e726bfa3c64ab6bef79fb587d69a095555e0dde",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/RestorationLab.spec"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/RestorationLabWindows.spec",
+      "sha": "4f716545f1bbb2be51e31bf8f1e9aba4f43511fb",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/RestorationLabWindows.spec"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/Restoration_Lab_3.0_Preview.png",
+      "sha": "9360a85c0ac812c45a0574e46f620a85177fcdab",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/Restoration_Lab_3.0_Preview.png"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/Restoration_Lab_Metal_Preview.png",
+      "sha": "69cc36117a135ce1e000a48954e39968d84c3dd6",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/Restoration_Lab_Metal_Preview.png"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/Start.command",
+      "sha": "7caf373e3f3ecc2c9191d1a557513f2452f7151b",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/Start.command"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/VERIFICATION.md",
+      "sha": "c5455e9afd33864dd5972c62fea8f9fc20149d30",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/VERIFICATION.md"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/Version_3_Compressor.png",
+      "sha": "fa9e176736a7f102890b21b5ac0db732fc6becaa",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/Version_3_Compressor.png"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/Version_3_EQ.png",
+      "sha": "401fd969972d06055c97e8ee651021597be40572",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/Version_3_EQ.png"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/Version_3_Stereo_Loudness.png",
+      "sha": "94f37ac1c92e297be2d75cb46910a8c0e3a2a408",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/Version_3_Stereo_Loudness.png"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/WINDOWS_README.md",
+      "sha": "53359efeb6a5d805e1c2ea0825b5c8197eb7a9a4",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/DISTRIBUTING.md"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/WINDOWS_VALIDATION.txt",
+      "sha": "215a5658eea7a8738e5881d1771e3237039355fe",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/WINDOWS_VALIDATION.txt"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/app.py",
+      "sha": "d7d49b686c07dd63afcf2476f1347f4b0931625a",
+      "source": {
+        "ref": "d30eb04cdeefe21b31b5239112a1daf514f35348",
+        "path": "PROJECTS/Restoration-Lab-main/app.py"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/assets/RestorationLab.icns",
+      "sha": "f6720f6d3096c5789f04dbb98b14d9331c476507",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/assets/RestorationLab.icns"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/assets/RestorationLab.ico",
+      "sha": "e338f876636d0711eb97c3fcc5d3d425beae50b2",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/assets/RestorationLab.ico"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/assets/RestorationLab.png",
+      "sha": "888df0ec2fffc275b116b7f815f0e0cbd911d284",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/assets/RestorationLab.png"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/assets/User_Guide.html",
+      "sha": "4b36778e3ed3b59980fcaf4043c3e3cb8def9ca0",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/assets/User_Guide.html"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/audio_input.py",
+      "sha": "c7b3a514bfe73f03ddb21b7687ad4bfa5da8dee0",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/audio_input.py"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/benchmark.py",
+      "sha": "d8ecb8339b030c74cac024d2f8a92488779c7609",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/benchmark.py"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/installer-components.plist",
+      "sha": "6aac4591a5e754c5d240b7606ffad10e0d8975f2",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/installer-components.plist"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/legacy_app.py",
+      "sha": "2ee72ed96786b224cc213f092853161301e171d8",
+      "source": {
+        "ref": "d30eb04cdeefe21b31b5239112a1daf514f35348",
+        "path": "PROJECTS/Restoration-Lab-main/legacy_app.py"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/mac_entry.py",
+      "sha": "335044c195a9eea4e94e6042f298214f01fbf547",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/mac_entry.py"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/manual.py",
+      "sha": "9c7694fff041491f0c82d70f17821bea47f4d701",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/manual.py"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/mastering_tools.py",
+      "sha": "2a4959131579b7708353302d5f593cb333b4b531",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/mastering_tools.py"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/metal_ui.py",
+      "sha": "d52131cee1dc212a9429d43d555cc08effb703c2",
+      "source": {
+        "ref": "d30eb04cdeefe21b31b5239112a1daf514f35348",
+        "path": "PROJECTS/Restoration-Lab-main/metal_ui.py"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/prepare_release_assets.py",
+      "sha": "d20c5c7fad6d4b12958a8370b1941862f47ccffd",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/prepare_release_assets.py"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/preview_gui.py",
+      "sha": "64577cace9ac4549fbe45b3703a81f4cbc321304",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/preview_gui.py"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/realtime.py",
+      "sha": "f358da474a0c5d69c13fd338204e0641b1e7acbd",
+      "source": {
+        "ref": "d30eb04cdeefe21b31b5239112a1daf514f35348",
+        "path": "PROJECTS/Restoration-Lab-main/realtime.py"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/reference_engine.py",
+      "sha": "eedd6ec2ee0c9e0b84c4a5c3b0f4b34d4fae7942",
+      "source": {
+        "ref": "d30eb04cdeefe21b31b5239112a1daf514f35348",
+        "path": "PROJECTS/Restoration-Lab-main/reference_engine.py"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/requirements.txt",
+      "sha": "5f63756025da7b36bb18592d460dc786ec510080",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/requirements.txt"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/studio_tools.py",
+      "sha": "9562b04e916b45cf4521087fd1704116a123940a",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/studio_tools.py"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/studio_ui.py",
+      "sha": "f9a3594b6f5990d8992c2d48092dfa6b3a356014",
+      "source": {
+        "ref": "d30eb04cdeefe21b31b5239112a1daf514f35348",
+        "path": "PROJECTS/Restoration-Lab-main/studio_ui.py"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/test_assets/decoder_check.mp3",
+      "sha": "aec909ae403cc6b178c3d59ed10e5be9aba7c7e4",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/test_assets/decoder_check.mp3"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/test_audio_input.py",
+      "sha": "5cc376bbe07ba2ce1234d3799f4bec75d9957d09",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/test_audio_input.py"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/test_gui.py",
+      "sha": "e139242d4cbde37243317bc2be6e83219b90d64f",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/test_gui.py"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/test_mastering.py",
+      "sha": "15d9513a08163e87390833789b51ec17bb54945c",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/test_mastering.py"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/test_multiband_loudness.py",
+      "sha": "a913b517f3c087743af7bfae057445658373f36a",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/test_multiband_loudness.py"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/test_realtime.py",
+      "sha": "f80afaf1d2cfbfd8701c26b31185c582482cc617",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/test_realtime.py"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/test_studio_ui.py",
+      "sha": "90a77840093e2f1e8a2b40bbbcd6b56c7c4187e4",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/test_studio_ui.py"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/test_v2.py",
+      "sha": "051531248493d39e4d9ec21a40db6a4159646107",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/test_v2.py"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/test_v2_controls.py",
+      "sha": "04a8707a163ab2ffbc07ab0d6db85fe01e3a0976",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/test_v2_controls.py"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/test_v3_studio.py",
+      "sha": "651c5c0028c6e42b8d03ca39574e6c3b37975d0a",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/test_v3_studio.py"
+      }
+    },
+    {
+      "path": "restore/Restoration-Lab-main/windows_entry.py",
+      "sha": "d69e4e3f6f4ce498d51fa43249236aec0660301b",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/windows_entry.py"
+      }
+    },
+    {
+      "path": "mp3/Restoration-Lab-main/README.md",
+      "sha": "57e0215f30bac15333ea990353786418c3e9bcae",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/README.md"
+      }
+    },
+    {
+      "path": "mp3/Restoration-Lab-main/__init__.py",
+      "sha": "040eb2f9c5b01ab9541906f0f4620dada69b9f22",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/__init__.py"
+      }
+    },
+    {
+      "path": "mp3/Restoration-Lab-main/assets/RestorationLab.png",
+      "sha": "888df0ec2fffc275b116b7f815f0e0cbd911d284",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/assets/RestorationLab.png"
+      }
+    },
+    {
+      "path": "mp3/Restoration-Lab-main/audio_input.py",
+      "sha": "c7b3a514bfe73f03ddb21b7687ad4bfa5da8dee0",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/audio_input.py"
+      }
+    },
+    {
+      "path": "mp3/Restoration-Lab-main/manual.py",
+      "sha": "9c7694fff041491f0c82d70f17821bea47f4d701",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/manual.py"
+      }
+    },
+    {
+      "path": "mp3/Restoration-Lab-main/mastering_tools.py",
+      "sha": "2a4959131579b7708353302d5f593cb333b4b531",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/mastering_tools.py"
+      }
+    },
+    {
+      "path": "mp3/Restoration-Lab-main/realtime.py",
+      "sha": "a3f3df7b49fbb588b45e164e4a26e22c8cf55e77",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/realtime.py"
+      }
+    },
+    {
+      "path": "mp3/Restoration-Lab-main/reference_engine.py",
+      "sha": "3ac9260026aaaa4e3387b22deee45c3a0bf010bb",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/reference_engine.py"
+      }
+    },
+    {
+      "path": "mp3/Restoration-Lab-main/studio_tools.py",
+      "sha": "9562b04e916b45cf4521087fd1704116a123940a",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/Restoration-Lab-main/studio_tools.py"
+      }
+    },
+    {
+      "path": "mp3/L.Y.V.R.A._MP3_MANAGER/requirements.txt",
+      "sha": "c6c26f393e349a114f57d7e9213e7eb0adfca563",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/L.Y.V.R.A._MP3_MANAGER/requirements.txt"
+      }
+    },
+    {
+      "path": "mp3/L.Y.V.R.A._MP3_MANAGER/.gitignore",
+      "sha": "43ae0e2a6c6d8fca34872506ca0f2e64194fec7c",
+      "source": {
+        "ref": "85baeaf54c9da1d7649201922264f82c008b1199",
+        "path": "PROJECTS/666TDH/.gitignore"
+      }
+    },
+    {
+      "path": "boot/666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01/STARTEN.ps1",
+      "sha": "e22a1ad052a341018b4e435a3e92d4ad697895e2",
+      "source": {
+        "ref": "cfa37736391ad03bca66717e28b8e8c2220df49d",
+        "path": "PROJECTS/666_UNIVERSAL_DEVELOPMENT_BUILDKIT/STARTEN.ps1"
+      }
+    },
+    {
+      "path": "boot/666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01/control-center/main.cjs",
+      "sha": "a8cb366fc804fb8b69319a42ac532a2207ba0f61",
+      "source": {
+        "ref": "cfa37736391ad03bca66717e28b8e8c2220df49d",
+        "path": "PROJECTS/666_UNIVERSAL_DEVELOPMENT_BUILDKIT/control-center/main.cjs"
+      }
+    },
+    {
+      "path": "boot/666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01/control-center/index.html",
+      "sha": "f4fb84dbe8a058a211a495cffd714c6530a4074e",
+      "source": {
+        "ref": "cfa37736391ad03bca66717e28b8e8c2220df49d",
+        "path": "PROJECTS/666_UNIVERSAL_DEVELOPMENT_BUILDKIT/control-center/index.html"
+      }
+    },
+    {
+      "path": "boot/666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01/control-center/control.js",
+      "sha": "abacd77d899e0aedf03f892a41db694dc82c715a",
+      "source": {
+        "ref": "cfa37736391ad03bca66717e28b8e8c2220df49d",
+        "path": "PROJECTS/666_UNIVERSAL_DEVELOPMENT_BUILDKIT/control-center/control.js"
+      }
+    },
+    {
+      "path": "boot/666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01/control-center/preload.cjs",
+      "sha": "0ea19157428a825e559da4723212ebe8e0a43a16",
+      "source": {
+        "ref": "cfa37736391ad03bca66717e28b8e8c2220df49d",
+        "path": "PROJECTS/666_UNIVERSAL_DEVELOPMENT_BUILDKIT/control-center/preload.cjs"
+      }
+    },
+    {
+      "path": "boot/666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01/control-center/package.json",
+      "sha": "b7212d9fb77c352f4bc18d46bf468aa7d8fe9893",
+      "source": {
+        "ref": "cfa37736391ad03bca66717e28b8e8c2220df49d",
+        "path": "PROJECTS/666_UNIVERSAL_DEVELOPMENT_BUILDKIT/control-center/package.json"
+      }
+    },
+    {
+      "path": "boot/666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01/tools/electron-runtime-r061.ps1",
+      "sha": "8713745170566f66d951dab66db96da3a92a51ac",
+      "source": {
+        "ref": "cfa37736391ad03bca66717e28b8e8c2220df49d",
+        "path": "PROJECTS/666_UNIVERSAL_DEVELOPMENT_BUILDKIT/tools/electron-runtime-r061.ps1"
+      }
+    },
+    {
+      "path": "boot/666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01/tools/menu-electron.ps1",
+      "sha": "5fbc0236372e7051f1fcf45d7b3afa05576aad4e",
+      "source": {
+        "ref": "cfa37736391ad03bca66717e28b8e8c2220df49d",
+        "path": "PROJECTS/666_UNIVERSAL_DEVELOPMENT_BUILDKIT/tools/menu-electron.ps1"
+      }
+    }
+  ],
+  "missing": [
+    [
+      "mp3/Restoration-Lab-main/app.py",
+      "7af2caafdabe51556e9177fa90dd32eae02f6977"
+    ],
+    [
+      "mp3/Restoration-Lab-main/legacy_app.py",
+      "3e89c33c11d34b6655dac2618c824b4d6329fe82"
+    ],
+    [
+      "mp3/Restoration-Lab-main/metal_ui.py",
+      "d7d6f78eb289563bc32c663690c40aa03c89c975"
+    ],
+    [
+      "mp3/Restoration-Lab-main/studio_ui.py",
+      "6518e41368bbcc4acddf69b110835fdc95b62d06"
+    ]
+  ],
+  "scope": "partial original source recovery; logs and executables not transferred"
+}
