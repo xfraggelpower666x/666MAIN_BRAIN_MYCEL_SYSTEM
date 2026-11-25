@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Starting · Development Tools</title>
+<style>
+:root{color-scheme:dark;font-family:Segoe UI,Arial,sans-serif}*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#05050c;color:#fff}
+.stage{position:fixed;inset:0;display:grid;place-items:center;background:#05050c}
+.art{display:block;width:100%;height:100%;object-fit:contain;object-position:center;user-select:none;-webkit-user-drag:none}
+.status{position:absolute;left:50%;bottom:clamp(12px,2.1vh,32px);transform:translateX(-50%);width:min(420px,47vw);padding:9px 17px 10px;border-radius:12px;background:rgba(7,7,20,.89);box-shadow:0 0 16px #00e5ff55;border:1px solid #2ee8ff88;text-align:center;pointer-events:none}
+.label{font-size:clamp(9px,1.3vw,13px);letter-spacing:.16em;font-weight:700;text-shadow:0 0 8px #00e5ff;color:#c7faff}
+.bar{margin-top:7px;height:3px;overflow:hidden;border-radius:4px;background:#1d1b2a}
+.bar::after{content:'';display:block;width:32%;height:100%;background:linear-gradient(90deg,#ff33ba,#9b5cff,#26eeff);animation:slide 1.6s ease-in-out infinite alternate}
+@keyframes slide{to{transform:translateX(212%)}}
+@media (max-width:700px){.status{width:min(350px,70vw);padding:6px 12px}.label{letter-spacing:.07em}}
+@media (prefers-reduced-motion:reduce){.bar::after{animation:none;width:100%}}
+</style></head><body><main class="stage" aria-label="Development Tools starting">
+<picture style="width:100%;height:100%;display:block">
+<source media="(max-width:1366px)" srcset="assets/bootscreen-1280x720.webp" type="image/webp">
+<img class="art" src="assets/bootscreen-1920x1080.webp" alt="666SOUNDsDESIGn Development Tools cyberpunk launch screen">
+</picture>
+<div class="status" role="status" aria-live="polite"><div class="label">INITIALIZING SYSTEM</div><div class="bar"></div></div>
+</main></body></html>
