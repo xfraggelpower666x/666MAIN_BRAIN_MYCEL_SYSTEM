@@ -13,6 +13,7 @@ function isMainFrame(event) {
 function launchAction(action) {
   const ps = path.join(process.env.SystemRoot || 'C:\\Windows','System32','WindowsPowerShell','v1.0','powershell.exe');
   const script = path.join(root,'STARTEN.ps1');
+  // Report success only once the OS has actually started the subprocess.
   return new Promise((resolve,reject)=>{
     let settled=false;
     let child;
