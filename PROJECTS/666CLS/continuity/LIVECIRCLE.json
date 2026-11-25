@@ -10,7 +10,7 @@
     "666CLS WEITER": "continue",
     "666CLS UPDATE": "update"
   },
-  "next_step": "CLS R08 CURES reference accepted as read-only candidate; preserve PFS CURES-16001 HOLD, no autoload or adoption. Continue only with CLS-owned independently verifiable source candidates and scoped functional development; do not restart foreign recovery loops.",
+  "next_step": "CURES R08 original candidate source is now independently published as an isolated, immutable, non-executing CLS evidence tree (53 Git blobs; 52 manifest-bound files) at isolated_candidates/CURES_R08/source, recorded by source_publication_checkpoint CURES_R08_ISOLATED_FULL_SOURCE_20261125. Next: validate CLS-owned current rehydration and regression against this newer checkpoint; retain PFS CURES-16001 HOLD, do not autoload, import, promote, or activate the candidate; any owner adoption requires separate PFS-native approval.",
   "resume_mode": "REREAD_CURRENT",
   "checkpoint_scope": "SYSTEM_AND_RELEASE"
 }
