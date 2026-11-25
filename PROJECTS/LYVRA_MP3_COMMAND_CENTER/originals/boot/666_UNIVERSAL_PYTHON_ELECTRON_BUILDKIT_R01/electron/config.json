@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "project_name": "My Python Application",
+  "project_directory": "..",
+  "python_entry": "main.py",
+  "python_args": [],
+  "requirements_file": "requirements.txt",
+  "test_command": ["-m", "unittest", "discover"],
+  "launch_mode": "python_backend",
+  "backend_port": 8765,
+  "backend_health_url": "http://127.0.0.1:8765/health",
+  "backend_ui_url": "http://127.0.0.1:8765/",
+  "electron": {
+    "fullscreen": true,
+    "kiosk": false,
+    "app_id": "local.universal.python.app",
+    "product_name": "My Python Application"
+  },
+  "boot_image": "assets/bootscreen.png",
+  "install_policy": "prompt",
+  "update_existing_tools": false,
+  "build_policy": "fail_closed",
+  "notes": "Adjust entry and backend settings to your actual Python project. Backend must provide HTTP UI and health route."
+}

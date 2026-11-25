@@ -1,0 +1,21 @@
+L.Y.V.R.A. - MP3 MANAGER v2.33 — AUDIO QUALITY GUARD
+
+Änderungen ausschließlich additiv zur v2.32:
+- Maximum Quality und Original Preserve behalten KEINE Normalisierung.
+- Konvertierungsstart blockiert bei widersprüchlicher aktivierter Normalisierung in diesen beiden Presets (kein stiller Eingriff).
+- Neuer abschaltbarer Post-Encode-Audio-QC (Standard EIN): vollständige MP3-Dekodierung mit FFmpeg und Ausgabe-Laufzeitprüfung via FFprobe.
+- Qualitätskontrolle erfolgt NACH endgültiger Dateinamenvergabe, Audiokodierung und ID3-Readback; Fehler entfernen nur den neu entstandenen Export.
+- Der bisherige Fortschritt zeigt nun die QC-Phase an.
+- Quell-WAV/MP3 werden nicht verändert; Qualitäts- und Presetfelder, portable Struktur, weitere Tabs bleiben erhalten.
+
+GRENZEN:
+- MP3 ist verlustbehaftet; Decoder-QC erkennt technische Schäden, nicht alle psychoakustischen Zwitscher-/Metall-Artefakte.
+- Balanced Radio behält seine optionale EBU-R128-Normalisierung, deren dynamischer Fallback bleibt unverändert (separate künftige Prüfung).
+- Windows-EXE/DPI-Tests stehen weiterhin aus. Kein PFS-Write.
+
+TESTS (Linux FFmpeg, synthetisches Audio):
+- Test-WAV 48 kHz Stereo zu libmp3lame 320 kbit/s: PASS.
+- Vollständiges Dekodieren, Laufzeitprüfung: PASS.
+- Defekte MP3 und falsche Laufzeit erkannt: PASS.
+- Vollständiger Konvertierungsablauf inklusive Dateiname/ID3/Quellhash: PASS.
+- Python-Syntax und ZIP-CRC: PASS.

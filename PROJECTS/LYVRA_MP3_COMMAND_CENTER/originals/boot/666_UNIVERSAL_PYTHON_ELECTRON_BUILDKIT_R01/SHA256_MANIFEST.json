@@ -1,0 +1,250 @@
+{
+  "release": "R01.11.1",
+  "files": [
+    {
+      "path": ".gitignore",
+      "sha256": "7103dc275362eb81913abaf5782311e2d6c290910083ebec04ce175bf9ec3043",
+      "size": 151
+    },
+    {
+      "path": "PUBLISH_SOURCE_TO_GITHUB.bat",
+      "sha256": "ecf79cce05f84306f7d70d6665a3ef5d7efd4aa8f38d36d7b30e5d594ea66d2d",
+      "size": 198
+    },
+    {
+      "path": "README.md",
+      "sha256": "2fdf0f1cd41b60d2630bcfcf43c26f49cc3b7b13f4c073ccd6efae9eec22f6b7",
+      "size": 8791
+    },
+    {
+      "path": "STARTEN.bat",
+      "sha256": "d8ab6cccf1140a5fc52e8701efaa7000244ad4677a194038fc835a7529ef13c6",
+      "size": 290
+    },
+    {
+      "path": "STARTEN.ps1",
+      "sha256": "8c3e61d3ca68b3a1f3a09c99e3f44f2ae51dd570f4b7e51abbf18187a33890c2",
+      "size": 2526
+    },
+    {
+      "path": "STARTEN.vbs",
+      "sha256": "ce2694174c07598a62b0f6332baad1799836e5c5198f0b8c595eef62d1ec5332",
+      "size": 1121
+    },
+    {
+      "path": "control-center/control.js",
+      "sha256": "7bc68fa2e8060bc9e39a29ff196d35ca68f90e5421660c815751538be5307913",
+      "size": 674
+    },
+    {
+      "path": "control-center/index.html",
+      "sha256": "f03283ea1b39afc0699731b7caa671423bf12ee278567aac5d87a7ca4767a474",
+      "size": 3746
+    },
+    {
+      "path": "control-center/main.cjs",
+      "sha256": "6c2155be73b5d926bdf54b7677ef90d6c81f794efbd4a971de44b15356b996c5",
+      "size": 2351
+    },
+    {
+      "path": "control-center/package.json",
+      "sha256": "00218e321f4d9456439e3df0c8456087f3ccf665675d83570f1471341c193dda",
+      "size": 109
+    },
+    {
+      "path": "control-center/preload.cjs",
+      "sha256": "017e827a7b502be4af9e25e2074e4c531491c0fb02b8ea0441402f5fff3c9a47",
+      "size": 223
+    },
+    {
+      "path": "docs/ABNAHME.md",
+      "sha256": "f5bbce7a5e955cc8efe4f302144420d18ba0beedbefb2dfca55f714e43845e57",
+      "size": 820
+    },
+    {
+      "path": "docs/N\u00c4CHSTE_SCHRITTE.md",
+      "sha256": "bbb617a9b1028d0b8f9326dbcd1ae976e6baa936a21432043f6229e164bccfba",
+      "size": 485
+    },
+    {
+      "path": "docs/R01_10_2_CLEAN_ARTWORK_REPLACEMENT.md",
+      "sha256": "ecf65855cb13e78b5fc3aa5cc9de789a6a87b0761eaa84d032d28496176af647",
+      "size": 481
+    },
+    {
+      "path": "docs/R01_10_3_REGRESSION_AND_UI_SYNC.md",
+      "sha256": "6874d7d452f7c5e03bccf72ad4f96182e6e89aa725659cdf894acb8aed17e09b",
+      "size": 1095
+    },
+    {
+      "path": "docs/R01_10_4_HIDDEN_CONSOLE_LAUNCHER.md",
+      "sha256": "4b24757777189a777a610b2ba55e7f31bdd5700c1cb6750253212e360ef82d7e",
+      "size": 930
+    },
+    {
+      "path": "docs/R01_10_5_MENU_RECOVERY.md",
+      "sha256": "fc979ac6cf37ad71dc5ebf277d8cc862415468db09f8b665f6ee00311f66e92d",
+      "size": 682
+    },
+    {
+      "path": "docs/R01_10_BOOT_SINGLE_SURFACE_REPAIR.md",
+      "sha256": "70c250a766709e6d86f507d2238dff02508c6780126cbd1b54dca467a301822a",
+      "size": 1065
+    },
+    {
+      "path": "docs/R01_11_1_GITHUB_SOURCE_PUBLICATION.md",
+      "sha256": "037b19d2c70123010f27ccddc21f5bb9a695126deef9b6c6ffe39217185df36f",
+      "size": 1070
+    },
+    {
+      "path": "docs/R01_11_ELECTRON_R06_1_ADOPTION.md",
+      "sha256": "cce6678cd36b1bf5a9816b9acc238e1830edae871cf9b9d643fd983cc8ba176e",
+      "size": 1468
+    },
+    {
+      "path": "docs/R01_2_REPAIR.md",
+      "sha256": "006a4c7bbae4834d86d74c05295ceebdb9fd51636d7eadfe7db84b80463e9cec",
+      "size": 949
+    },
+    {
+      "path": "docs/R01_3_GUI.md",
+      "sha256": "621ed1887f84feab2ab35bb5181d6e6109e622a6c1896f9d0a9f6b6371902d77",
+      "size": 718
+    },
+    {
+      "path": "docs/R01_4_CYBER_BOOT.md",
+      "sha256": "20753e26197ea993ec21ba1bc7f9a11c851d4f445921304a1ab8acd852a2973f",
+      "size": 1183
+    },
+    {
+      "path": "docs/R01_5_BOOT_TIMING.md",
+      "sha256": "020b173c338c71a713264ba437be79bcebfb430b8384daaf39de1f1ce81e2d7c",
+      "size": 1055
+    },
+    {
+      "path": "docs/R01_6_BOOT_WINFORMS_REPAIR.md",
+      "sha256": "6c97871e4d1c367f2afbd9106379918994e6ddba8c331784434e126ce69b1d93",
+      "size": 1122
+    },
+    {
+      "path": "docs/R01_7_HANG_REPAIR.md",
+      "sha256": "8e3df6b265fd43d065021b79af53bb8bc2f5a909261d9dfabdc1397cd10bc845",
+      "size": 312
+    },
+    {
+      "path": "docs/R01_8_SMOOTH_BOOT_REPAIR.md",
+      "sha256": "e09e50e6f4619b5c96be87b8b56850d940dd84dd3fbe4cb97da159068c5863a5",
+      "size": 776
+    },
+    {
+      "path": "docs/R01_9_BOOT_VISUAL_REPAIR.md",
+      "sha256": "fc819c5e832814c7c1ae79eff1fed01af848162df7b933e316007fb11f8b4b66",
+      "size": 895
+    },
+    {
+      "path": "electron/config.json",
+      "sha256": "261626bafb6ff23da2538f7a6be5a3799c068f482d0d344894c2655ee16b8f3d",
+      "size": 811
+    },
+    {
+      "path": "electron/main.js",
+      "sha256": "d014d62dd521b90b5841422dae9eacaac73c5e623d2ee737b79de3316e98b163",
+      "size": 3172
+    },
+    {
+      "path": "electron/package.json",
+      "sha256": "d5227e3145d7811d372b4a3e0ccf12449e4c38af2d8318a534d373f5a96f1105",
+      "size": 910
+    },
+    {
+      "path": "electron/preload.js",
+      "sha256": "cec0682a8c7df854a0718d2d66044fac13a627eb46ae7b4f39d6c3eb85680cee",
+      "size": 56
+    },
+    {
+      "path": "electron/renderer/assets/bootscreen-1280x720.webp",
+      "sha256": "b128ca6518400bd1aa25514623b454f7d6f95b0ec11796f53bad6159267f56f5",
+      "size": 366020
+    },
+    {
+      "path": "electron/renderer/assets/bootscreen-1920x1080.webp",
+      "sha256": "d6a557703b6ed51961d9aaa5c6337f635871c3e5baef534dd1a9068875c2e423",
+      "size": 627430
+    },
+    {
+      "path": "electron/renderer/assets/bootscreen-original.png",
+      "sha256": "97aeb42d7b6c04ddb0504ae6ee1b0c68df435c70afa9522c6aa126371b3958d3",
+      "size": 3853354
+    },
+    {
+      "path": "electron/renderer/boot.html",
+      "sha256": "0bf385ba49710046e926bcb8265450976831073d4dd63f6c8540de7cb5ab93b5",
+      "size": 1960
+    },
+    {
+      "path": "examples/example_backend.py",
+      "sha256": "fded86f85e64f71694a57187a93d16965885cb21d60dd37920aa3b85d988268f",
+      "size": 882
+    },
+    {
+      "path": "project.config.json",
+      "sha256": "261626bafb6ff23da2538f7a6be5a3799c068f482d0d344894c2655ee16b8f3d",
+      "size": 811
+    },
+    {
+      "path": "tests/test_toolkit.py",
+      "sha256": "f4ed4c247c46009ec89ac60cc66ebb1946f8aa735a2723baf0f9126fd2ffc0c6",
+      "size": 7676
+    },
+    {
+      "path": "tools/assets/cyber-boot-artwork-original.png",
+      "sha256": "6345a41e0a554c6ab26693039573852236bc383d0ded3d8a1eedf0078d0d837d",
+      "size": 3666433
+    },
+    {
+      "path": "tools/assets/cyber-boot-artwork.png",
+      "sha256": "a0689ff0cf24e45d90d5d389ec517849b134abc01259d3b25d9e6405ab2427ad",
+      "size": 3168361
+    },
+    {
+      "path": "tools/bootstrap.ps1",
+      "sha256": "b3462c05b27f6bbbd25c179e66267af754106bc60e5777c49fa909cfc1d351a0",
+      "size": 8993
+    },
+    {
+      "path": "tools/cyber-boot.ps1",
+      "sha256": "f32d0a5e6e53ef94a54a767755232710ed4ae742d2374543f7a9fe388642c67f",
+      "size": 9186
+    },
+    {
+      "path": "tools/diagnose.py",
+      "sha256": "2b59ca1d7afa9e348fed92eb434968a4540ea95711bfa78b8ad93ca7964b47ea",
+      "size": 2554
+    },
+    {
+      "path": "tools/electron-runtime-r061.ps1",
+      "sha256": "6dca0b5c038cea74948ce7082ed13c1ee61ddb90e88f3228651200f4f417d3a7",
+      "size": 3027
+    },
+    {
+      "path": "tools/menu-electron.ps1",
+      "sha256": "5844e02adf07e463f100735b47a8cede759f97c47b0bb37d5eb2dad5687d8983",
+      "size": 1033
+    },
+    {
+      "path": "tools/menu-gui.ps1",
+      "sha256": "82265ff7d4f5004603764dc667958e8c96788f2cd7bacc7c8f3a2c6d96b78d44",
+      "size": 5028
+    },
+    {
+      "path": "tools/pack_backend.py",
+      "sha256": "e58aabdc6f696fa86f66d892a0042be4ade58d7f12859834d078f68d6ab0fdec",
+      "size": 960
+    },
+    {
+      "path": "tools/publish-source-to-github.ps1",
+      "sha256": "326d86151f69451b97d3a92a8c0eb8dadcdb2eba31d0a833a075f088f6279a3e",
+      "size": 4771
+    }
+  ]
+}

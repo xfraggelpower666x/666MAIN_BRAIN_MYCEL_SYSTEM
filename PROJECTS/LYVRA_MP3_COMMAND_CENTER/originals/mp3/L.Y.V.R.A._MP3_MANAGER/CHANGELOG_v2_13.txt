@@ -1,0 +1,7 @@
+L.Y.V.R.A. - MP3 MANAGER v2.13
+- Kompakte Reiter, einheitliche Aktions- und Nebenbuttons
+- Dauerhaft sichtbare, platzsparende Prozessbalken einschließlich aktiver Datei
+- Statusmonitor-Start direkt in der Prozessleiste
+- Maximierter Start und neuer LYVRA-Header bleiben erhalten
+- Audio-, ID3-, Rename-, System- und Build-Logik unverändert
+- Codeforge/Supercodeforge: keine eigenständigen Tools verfügbar; kein externer Prüfstatus behauptet

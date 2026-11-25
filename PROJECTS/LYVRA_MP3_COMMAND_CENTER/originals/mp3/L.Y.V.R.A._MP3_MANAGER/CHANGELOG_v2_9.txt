@@ -1,0 +1,1 @@
+2.9: Sichtbarer Startknopf Nur Umbenennen (ID3 unangetastet); Dateifortschritt mit FFmpeg-Echtzeit; Gesamtstatus; frei beweglicher Statusmonitor fuer zweiten Bildschirm. Originale Assets, Audio- und ID3-Funktionen erhalten. Windows Abnahme offen.

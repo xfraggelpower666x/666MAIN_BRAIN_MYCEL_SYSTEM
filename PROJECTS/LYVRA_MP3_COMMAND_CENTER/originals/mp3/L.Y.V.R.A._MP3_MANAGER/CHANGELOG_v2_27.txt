@@ -1,0 +1,7 @@
+L.Y.V.R.A. - MP3 MANAGER v2.27 — Audio Workspace Layout Repair
+- Audio-Reiter in horizontale, verschiebbare Teilfenster aufgeteilt
+- Dateibrowser nutzt volle verfügbare Höhe rechts
+- Audio-Einstellungen links platzsparend angeordnet
+- Einzeltrack-Status links und globaler Vierfach-Fortschritt unten bleiben erhalten
+- Dateiauswahl, Drag & Drop und Konvertierungslogik unverändert
+- Externe Portable-EXE-Buildroutine bleibt extern
