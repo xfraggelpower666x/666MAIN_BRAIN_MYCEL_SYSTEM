@@ -52,5 +52,27 @@
     "unpacked_source_published": false,
     "native_cures_engine_adopted": false,
     "pfs_hold_preserved": true
+  },
+  "source_publication_checkpoint": {
+    "id": "CURES_R08_ISOLATED_FULL_SOURCE_20261125",
+    "role": "IMMUTABLE_CANDIDATE_SOURCE_NOT_NATIVE_RUNTIME",
+    "source_root": "isolated_candidates/CURES_R08/source",
+    "source_tree_sha": "6f5a24be3080037b4d461508c6b726daa68c433d",
+    "source_files": 53,
+    "manifest_bound_files": 52,
+    "source_archive_sha256": "c3190fb8f94c77546aafb7cd2dc3a01cd8675cc34118215594178b33aed4ff6d",
+    "verified_body_commit": "e1ec91366068541c8d5fbe4ee51b6806a17bb770",
+    "receipt": "isolated_candidates/CURES_R08/PUBLICATION_RECEIPT.json",
+    "receipt_blob": "45941cb32f4d88b572e43f777644dc48e01b8b85",
+    "boundary": "isolated_candidates/CURES_R08/BOUNDARY.json",
+    "boundary_blob": "0438b4269daeb60dda392717517eb8e9789c2f37",
+    "prechange_backup": "backup/666cls-pre-cures-r08-source-20261125-9b10005",
+    "cls_version_preserved": "1.24.11",
+    "cures_owner": "666PFS-CURES-001",
+    "pfs_hold_preserved": true,
+    "autoload": false,
+    "runtime_promotion": false,
+    "foreign_writes": false,
+    "host_acceptance": false
   }
 }
