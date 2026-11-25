@@ -1,0 +1,9 @@
+L.Y.V.R.A. - MP3 MANAGER v2.14 · ID3-BEREINIGUNG REPAIR
+- ID3-Titel entfernt nun Zeitblöcke [0m00s-4m56s] unabhängig von bereits bereinigten Dateinamen.
+- (1), (2) usw. werden zu 1, 2; Zeichenfolgen wie (Live) bleiben erhalten.
+- Auswahl standardmäßig Alle Dateien im Ordner.
+- Zwei explizite Aktionen: NUR DATEINAMEN UMBENENNEN bzw. DATEINAMEN + ID3-TITEL BEREINIGEN.
+- C2PA-Schutz, Sicherungskopien, Kollisionsschutz und vorhandene Audiofunktionen beibehalten.
+- Kein stilles Überschreiben von Quelldaten.
+
+TEST: Python-Syntax PASS; Titel- und Zeitblockregeln PASS. Windows-Laufzeit OFFEN.
