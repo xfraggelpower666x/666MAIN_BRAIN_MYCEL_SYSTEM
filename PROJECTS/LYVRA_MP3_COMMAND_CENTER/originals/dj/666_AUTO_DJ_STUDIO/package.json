@@ -1,0 +1,65 @@
+{
+  "name": "666-auto-dj-studio",
+  "version": "0.5.0",
+  "private": true,
+  "main": "app/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist:portable": "electron-builder --win portable --x64",
+    "dist:setup": "electron-builder --win nsis --x64",
+    "dist:all": "electron-builder --win portable nsis --x64"
+  },
+  "devDependencies": {
+    "electron": "35.7.5",
+    "electron-builder": "26.0.12"
+  },
+  "build": {
+    "appId": "com.sixsixsixsoundsdesign.autodj",
+    "productName": "666 AUTO DJ STUDIO",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "app/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "build/runtime/autodj-engine.exe",
+        "to": "engine/autodj-engine.exe"
+      },
+      {
+        "from": "tools/ffmpeg/ffmpeg.exe",
+        "to": "ffmpeg/ffmpeg.exe"
+      },
+      {
+        "from": "tools/ffmpeg/ffprobe.exe",
+        "to": "ffmpeg/ffprobe.exe"
+      },
+      {
+        "from": "legacy/covers",
+        "to": "legacy/covers"
+      },
+      {
+        "from": "legacy/metadata.json",
+        "to": "legacy/metadata.json"
+      }
+    ],
+    "win": {
+      "target": [
+        "portable",
+        "nsis"
+      ]
+    },
+    "portable": {
+      "artifactName": "666_AUTO_DJ_STUDIO_${version}_${arch}_PORTABLE.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "artifactName": "666_AUTO_DJ_STUDIO_${version}_${arch}_SETUP.${ext}"
+    }
+  }
+}

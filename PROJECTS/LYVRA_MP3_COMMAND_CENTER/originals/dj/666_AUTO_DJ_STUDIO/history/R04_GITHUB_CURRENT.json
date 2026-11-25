@@ -1,0 +1,16 @@
+{
+  "system": "666_AUTO_DJ_STUDIO",
+  "scope": "PROJECTS/666_AUTO_DJ_STUDIO",
+  "status": "PARTIAL",
+  "revision": "R04_BLOCK_RENDER_SOURCE_LIVE",
+  "source_commit": "589d8b0a5143a21cd38327150c779227474a1b3c",
+  "source_branch": "666MAIN_BRAIN",
+  "readback": "R04_SOURCE_FILES_READBACK_VERIFIED",
+  "windows_build": "PENDING",
+  "portable": "NOT_BUILT",
+  "installer": "NOT_BUILT",
+  "legacy_parity": "INCOMPLETE",
+  "production_freeze": "BLOCKED",
+  "block_planner": "WIRED_TO_ENGINE_AND_ELECTRON",
+  "single_track": "PRESERVED_DEFAULT"
+}
