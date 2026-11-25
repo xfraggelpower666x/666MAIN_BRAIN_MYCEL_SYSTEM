@@ -22,7 +22,9 @@ function launchAction(action) {
         cwd:root,detached:true,windowsHide:false,stdio:'ignore',shell:false
       });
     } catch(error){reject(error);return;}
-    child.once('error',error=>{if(!settled){settled=true;reject(error);}});
+    child.once('error',error=>{
+      if(!settled){settled=true;reject(error);}
+    });
     child.once('spawn',()=>{
       if(settled)return;
       settled=true;
@@ -31,6 +33,7 @@ function launchAction(action) {
     });
   });
 }
+
 app.whenReady().then(()=>{
   mainWindow = new BrowserWindow({width:1280,height:820,minWidth:900,minHeight:650,
     fullscreen:true,autoHideMenuBar:true,backgroundColor:'#080a14',show:false,
