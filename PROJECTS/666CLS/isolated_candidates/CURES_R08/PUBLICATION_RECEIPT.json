@@ -1,0 +1,28 @@
+{
+  "schema": "666CLS_CURES_R08_SOURCE_PUBLICATION_RECEIPT_V1",
+  "owner": "666CLS-CORE-001",
+  "original_archive": "666CURES_ISOLATED_CANDIDATE_R08.zip",
+  "archive_sha256": "c3190fb8f94c77546aafb7cd2dc3a01cd8675cc34118215594178b33aed4ff6d",
+  "archive_file_entries": 53,
+  "manifest_bound_files": 52,
+  "archive_crc": "PASS",
+  "sha256_manifest": "52/52_PASS",
+  "git_sha1_blobs": "53/53_PASS",
+  "source_git_tree_sha": "6f5a24be3080037b4d461508c6b726daa68c433d",
+  "source_git_tree_path": "PROJECTS/666CLS/isolated_candidates/CURES_R08/source",
+  "test_results": {
+    "candidate_tests": "139/139_PASS",
+    "contract_tests": "6/6_PASS",
+    "smoke_cases": "10/10_PASS"
+  },
+  "test_scope": "LOCAL_CANDIDATE_NOT_REMOTE_EXECUTION",
+  "baseline_head": "9b1000512924f1294eb73227746ac4b27f5d27f6",
+  "backup_branch": "backup/666cls-pre-cures-r08-source-20261125-9b10005",
+  "pfs_native_owner": "666PFS-CURES-001",
+  "pfs_hold": "HOLD_FUNCTIONAL_PAYLOAD_SOURCE_NOT_FOUND",
+  "operational_runtime_imported": false,
+  "ci_host_acceptance": "NOT_PERFORMED",
+  "pointer_status": "PENDING_FINAL_COMMIT",
+  "approval": "DIRECT_666CLS_UPDATE_CONTEXT",
+  "declaration": "All 53 original ZIP entries are preserved as individual Git blobs. Original engine identity is not claimed."
+}

@@ -1,0 +1,23 @@
+test_fixture_coverage (test_contract.ContractSelfTests.test_fixture_coverage) ... ok
+test_fixture_requirements (test_contract.ContractSelfTests.test_fixture_requirements) ... ok
+test_identity (test_contract.ContractSelfTests.test_identity) ... ok
+test_manifest_source_integrity_evidence (test_contract.ContractSelfTests.test_manifest_source_integrity_evidence) ... ok
+test_no_authority_change (test_contract.ContractSelfTests.test_no_authority_change) ... ok
+test_no_unverified_promotion (test_contract.ContractSelfTests.test_no_unverified_promotion) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.001s
+
+OK
+CANDIDATE_SMOKE_TEST: 10 fixtures, 0 failures; semantic review still mandatory
+test_all_ten_cases_without_mutations (test_candidate_r02.CandidateRegression.test_all_ten_cases_without_mutations) ... ok
+test_bad_payload_rejected (test_candidate_r02.CandidateRegression.test_bad_payload_rejected) ... ok
+test_injected_commands_are_only_data (test_candidate_r02.CandidateRegression.test_injected_commands_are_only_data) ... ok
+test_stateless_repeatability (test_candidate_r02.CandidateRegression.test_stateless_repeatability) ... ok
+test_unknown_not_verified_not_upgraded (test_candidate_r02.CandidateRegression.test_unknown_not_verified_not_upgraded) ... ok
+test_unknown_relation_is_not_causality (test_candidate_r02.CandidateRegression.test_unknown_relation_is_not_causality) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.001s
+
+OK

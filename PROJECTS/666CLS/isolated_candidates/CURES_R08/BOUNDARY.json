@@ -1,0 +1,20 @@
+{
+  "schema": "666CLS_CURES_R08_ISOLATED_SOURCE_BOUNDARY_V1",
+  "owner": "666CLS-CORE-001",
+  "subject": "666CURES-R08-ISOLATED-CANDIDATE",
+  "type": "IMMUTABLE_SOURCE_ARCHIVE_CANDIDATE_NOT_RUNTIME",
+  "current_owner": "666PFS-CURES-001",
+  "source_subtree": "source",
+  "autoload": false,
+  "executable": false,
+  "native_promotion": false,
+  "foreign_triggers_inert": true,
+  "declared_cli_commands_are_source_data_only": true,
+  "cls_integration": "REFERENCE_ONLY",
+  "pfs_state": "HOLD_FUNCTIONAL_PAYLOAD_SOURCE_NOT_FOUND",
+  "owner_approval": "NOT_GRANTED",
+  "execution_authority": "PFS_NATIVE_OWNER_ONLY",
+  "no_cross_system_merge": true,
+  "no_registry_override": true,
+  "current_cls_release": "1.24.11"
+}

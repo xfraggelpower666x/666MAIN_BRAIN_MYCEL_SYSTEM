@@ -1,0 +1,17 @@
+[
+  {
+    "command": "python -m unittest discover -s tests -p test_candidate_*.py -q",
+    "exit_code": 0,
+    "output": "----------------------------------------------------------------------\nRan 61 tests in 0.012s\n\nOK"
+  },
+  {
+    "command": "python -m unittest discover -s R01_CONTRACT/tests -p test_contract.py -q",
+    "exit_code": 0,
+    "output": "----------------------------------------------------------------------\nRan 6 tests in 0.000s\n\nOK"
+  },
+  {
+    "command": "python R01_CONTRACT/tools/check_candidate.py candidate/cures_candidate.py",
+    "exit_code": 0,
+    "output": "CANDIDATE_SMOKE_TEST: 10 fixtures, 0 failures; semantic review still mandatory"
+  }
+]

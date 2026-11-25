@@ -1,0 +1,11 @@
+test_fixture_coverage (test_contract.ContractSelfTests.test_fixture_coverage) ... ok
+test_fixture_requirements (test_contract.ContractSelfTests.test_fixture_requirements) ... ok
+test_identity (test_contract.ContractSelfTests.test_identity) ... ok
+test_manifest_source_integrity_evidence (test_contract.ContractSelfTests.test_manifest_source_integrity_evidence) ... ok
+test_no_authority_change (test_contract.ContractSelfTests.test_no_authority_change) ... ok
+test_no_unverified_promotion (test_contract.ContractSelfTests.test_no_unverified_promotion) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.000s
+
+OK

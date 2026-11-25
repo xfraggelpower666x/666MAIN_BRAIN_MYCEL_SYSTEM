@@ -1,0 +1,59 @@
+{
+  "source_archive": "666CURES__CURES-16001-20261122T111459Z-1-001.zip",
+  "source_archive_sha256": "140fd87c1bbcb80d90fcbcd4aa4da52761eb043ea36a7090c50346f339da3241",
+  "nested_archive": "666CURES__CURES-16001/666CURES_v0.1.0_CURES-16001_CANONICAL_PACKAGE.zip",
+  "nested_sha256": "b5b142310ea75f946a049b6bca21e23e643912dff4bf2b3ed162ea2cb95ee6a2",
+  "canonical_source": "666CURES_SYSTEM_v0.1.0.md",
+  "purpose_source": "666CURES__CURES-16001/666CURES_PURPOSE_AUTHORITY_v0.1.1_2026-08-16_CANONICAL.docx",
+  "manifest_source_hash_pass": 8,
+  "manifest_files": [
+    {
+      "path": "666CURES_AUDIT_v0.1.0.md",
+      "expected": "83ffda61f1cef7664e81fea2cd6960cd5881ed491aa7d35d0c35dc1b017cddc9",
+      "actual": "83ffda61f1cef7664e81fea2cd6960cd5881ed491aa7d35d0c35dc1b017cddc9"
+    },
+    {
+      "path": "666CURES_FREEZE_v0.1.0.md",
+      "expected": "8ceddb2b559fc73c0aa5e934ad4da6996e7b973105bbd104b40d586cd90a1fba",
+      "actual": "8ceddb2b559fc73c0aa5e934ad4da6996e7b973105bbd104b40d586cd90a1fba"
+    },
+    {
+      "path": "666CURES_IDENTITY_v0.1.0.md",
+      "expected": "18891379654c17c9816f0ea8e1e6fd165762ee8bec4ec872075c64aa9e3994cf",
+      "actual": "18891379654c17c9816f0ea8e1e6fd165762ee8bec4ec872075c64aa9e3994cf"
+    },
+    {
+      "path": "666CURES_SYSTEM_v0.1.0.md",
+      "expected": "bfcc1bd4db1ca881c904378ef2861aaf6a51e4448bead17b5771433c0b999782",
+      "actual": "bfcc1bd4db1ca881c904378ef2861aaf6a51e4448bead17b5771433c0b999782"
+    },
+    {
+      "path": "SOURCE_PROVENANCE/666CURES_CHILD_RECOVERY_STATE_v0.2.0.md",
+      "expected": "b3aaa5afe521d057494a465af4fe1b9408f74a1a1cec382e8322436f0cac7af6",
+      "actual": "b3aaa5afe521d057494a465af4fe1b9408f74a1a1cec382e8322436f0cac7af6"
+    },
+    {
+      "path": "SOURCE_PROVENANCE/666CURES_CHILD_SYSTEM_HANDOFF_v0.1.0.md",
+      "expected": "8cb2f85809d14a0e3db55d3a8f863cee9cbc140b01fe802864bb848bb786a043",
+      "actual": "8cb2f85809d14a0e3db55d3a8f863cee9cbc140b01fe802864bb848bb786a043"
+    },
+    {
+      "path": "SOURCE_PROVENANCE/666CURES_NEW_CHAT_FORCE_GOOGLE_DRIVE_TEST_HANDOFF_2026-08-11.md",
+      "expected": "1a41288879081991f438a5ef5ed255e6c8966a25db988f6745892c76043c90e6",
+      "actual": "1a41288879081991f438a5ef5ed255e6c8966a25db988f6745892c76043c90e6"
+    },
+    {
+      "path": "SOURCE_PROVENANCE/TRIGGER_CORRECTION.md",
+      "expected": "4dec10d46482345c6b4ed8cec19ff6a07b1fd6b6d9ef729f20be97fae581de0b",
+      "actual": "4dec10d46482345c6b4ed8cec19ff6a07b1fd6b6d9ef729f20be97fae581de0b"
+    }
+  ],
+  "native_pfs_readbacks": {
+    "repo": "xfraggelpower666x/666PFS_CSM",
+    "branch": "main",
+    "verified_head": "08989d5dc71259cbebf108c71d2e315aa9ac28a1",
+    "path": "children/CURES-16001/REHYDRATION.md",
+    "state": "HOLD_FUNCTIONAL_PAYLOAD_SOURCE_NOT_FOUND"
+  },
+  "classification": "HISTORICAL_SOURCE_NOT_CURRENT_EXECUTABLE_RUNTIME"
+}

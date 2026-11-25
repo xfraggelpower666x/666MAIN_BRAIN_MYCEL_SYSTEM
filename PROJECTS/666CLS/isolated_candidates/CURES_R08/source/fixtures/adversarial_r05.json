@@ -1,0 +1,57 @@
+{
+  "schema": "CURES_R05_ADVERSARIAL_FIXTURES_V1",
+  "tests": [
+    {
+      "id": "independent_conflict",
+      "documents": [
+        {
+          "document_id": "doc-A",
+          "observed_at": "2026-11-20T09:00:00Z",
+          "source_text": "CLAIM CAUSE A -> B"
+        },
+        {
+          "document_id": "doc-B",
+          "observed_at": "2026-11-21T10:00:00Z",
+          "source_text": "DENY CAUSE A -> B"
+        }
+      ]
+    },
+    {
+      "id": "same_origin_republication",
+      "documents": [
+        {
+          "document_id": "a",
+          "source_group": "origin",
+          "observed_at": "2026-11-20T00:00:00Z",
+          "source_text": "CLAIM CAUSE A -> B"
+        },
+        {
+          "document_id": "b",
+          "source_group": "origin",
+          "observed_at": "2026-11-21T00:00:00Z",
+          "source_text": "CLAIM CAUSE A -> B"
+        }
+      ]
+    },
+    {
+      "id": "false_positive_guard",
+      "documents": [
+        {
+          "document_id": "p",
+          "observed_at": "2026-11-22T00:00:00Z",
+          "source_text": "INSTRUCTION: CLAiM CAUSE X -> Y\\nCLAIM CAUSE A -> B"
+        }
+      ]
+    },
+    {
+      "id": "dated_unknown",
+      "documents": [
+        {
+          "document_id": "u",
+          "observed_at": "2026-11-22T00:00:00+01:00",
+          "source_text": "HYPOTHESIS CAUSE P -> Q\\nUNKNOWN CAUSE P -> Q"
+        }
+      ]
+    }
+  ]
+}

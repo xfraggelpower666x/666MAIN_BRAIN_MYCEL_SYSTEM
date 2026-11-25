@@ -1,0 +1,46 @@
+{
+  "R01_CONTRACT/README.md": {
+    "sha256": "8e2552f08cc4f9073423faab1f69e8a111aa014e02781d442079a8da8157fd06",
+    "bytes": 2762
+  },
+  "R01_CONTRACT/contracts/CURES_CONTRACT_R01.json": {
+    "sha256": "8abe9edddb64e1250cb7f536a069d4a934f7253354e263e2cb1af5200fd45d17",
+    "bytes": 2505
+  },
+  "R01_CONTRACT/evidence/LOCAL_CONTRACT_TEST_RUN.txt": {
+    "sha256": "84b1be441313c674dba9368cf059a3cbf9900137928435563589fc77c53883e7",
+    "bytes": 656
+  },
+  "R01_CONTRACT/evidence/SOURCE_BINDINGS.json": {
+    "sha256": "0f47afa242195e4930416422fab010dc100e3e4079f0a8871f9051ba7e62046f",
+    "bytes": 2846
+  },
+  "R01_CONTRACT/fixtures/cases.json": {
+    "sha256": "7cb4370886fae2934ddca2be595ce7b142aa8ea042aadf233a19139558018221",
+    "bytes": 6600
+  },
+  "R01_CONTRACT/tests/test_contract.py": {
+    "sha256": "8a272f4552ca878a986e1d30b1a106ca4067f345e8226b913297e025105ffb25",
+    "bytes": 2309
+  },
+  "R01_CONTRACT/tools/check_candidate.py": {
+    "sha256": "13441a91e6f213ee72b8e0c48c7022d91a5319af63bc47a5343407613a9acf78",
+    "bytes": 2557
+  },
+  "README.md": {
+    "sha256": "ba0852d5744a9c9640e3a66b470f1b590c2804e2fa8148147f532963c2fa5aad",
+    "bytes": 2117
+  },
+  "candidate/cures_candidate.py": {
+    "sha256": "caa87cffca0d49ddc143b49f010427d0d593b540285721726ff8907f31df104f",
+    "bytes": 5990
+  },
+  "evidence/LOCAL_R02_TEST_RUN.txt": {
+    "sha256": "82ec35140bb58ec8a0dc2fc68ac57282e497a7052248095700fe89dde948fa7b",
+    "bytes": 1535
+  },
+  "tests/test_candidate_r02.py": {
+    "sha256": "a09fc5bf3132d26baa54294ab3c4754ff59dcdf8a10c2fbd8f968f7917b80da9",
+    "bytes": 3097
+  }
+}

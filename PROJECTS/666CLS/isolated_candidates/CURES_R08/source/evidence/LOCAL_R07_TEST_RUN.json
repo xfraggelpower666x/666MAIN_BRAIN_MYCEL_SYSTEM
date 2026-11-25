@@ -1,0 +1,30 @@
+{
+  "schema": "666CURES_R07_LOCAL_TEST_RUN_V1",
+  "run_utc": "2026-11-22T14:30:44.728722+00:00",
+  "environment": "isolated Python local host",
+  "cryptography_version": "46.0.4",
+  "results": [
+    {
+      "command": "python -m unittest discover -s tests -p test_candidate_r*.py -q",
+      "exit_code": 0,
+      "output": "----------------------------------------------------------------------\nRan 102 tests in 0.027s\n\nOK"
+    },
+    {
+      "command": "python -m unittest discover -s R01_CONTRACT/tests -p test_*.py -q",
+      "exit_code": 0,
+      "output": "----------------------------------------------------------------------\nRan 6 tests in 0.000s\n\nOK"
+    },
+    {
+      "command": "python R01_CONTRACT/tools/check_candidate.py /mnt/data/666CURES_ISOLATED_CANDIDATE_R07/candidate/cures_candidate.py",
+      "exit_code": 0,
+      "output": "CANDIDATE_SMOKE_TEST: 10 fixtures, 0 failures; semantic review still mandatory"
+    }
+  ],
+  "candidate_tests": 102,
+  "contract_tests": 6,
+  "smoke_fixtures": 10,
+  "external_identity_attested": false,
+  "live_pfs_adoption": false,
+  "cls_native_integration": false,
+  "pfs_hold_preserved": true
+}

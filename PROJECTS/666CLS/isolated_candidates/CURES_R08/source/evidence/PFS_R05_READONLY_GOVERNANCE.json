@@ -1,0 +1,14 @@
+{
+  "system": "666PFS-CURES-001",
+  "repository": "xfraggelpower666x/666PFS_CSM",
+  "branch": "main",
+  "last_direct_read_head": "08989d5dc71259cbebf108c71d2e315aa9ac28a1",
+  "identity_blob": "3f6c38fbff54709e511bace3a0962c03853d53cb",
+  "rehydration_blob": "ff5c4364a6fdb59966c3e7865bf3893b302a38c0",
+  "current_state": "HOLD_FUNCTIONAL_PAYLOAD_SOURCE_NOT_FOUND",
+  "autoload": "FORBIDDEN",
+  "R05": "LOCAL_NEW_CANDIDATE_NOT_ORIGINAL_ENGINE",
+  "owner_approval": "NOT_REQUESTED",
+  "native_write": "NONE",
+  "production_promotion": "NONE"
+}

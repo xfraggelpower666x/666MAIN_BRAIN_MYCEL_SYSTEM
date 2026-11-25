@@ -1,0 +1,77 @@
+{
+  "contract_id": "666CURES_FUNCTIONAL_CONTRACT_R01",
+  "contract_version": "0.1.0-contract-only",
+  "status": "PROPOSED_ISOLATED_NONEXECUTABLE",
+  "system_identity": "666PFS-CURES-001",
+  "entry_id": "CURES-16001",
+  "owner": "666PFS-CORE-001",
+  "canonical_purpose": "SYSTEMTEXT_TO_CAUSAL_FULLTEXT_UNDERSTANDING",
+  "inputs": {
+    "schema": "fixtures/cases.json",
+    "required": [
+      "case_id",
+      "source_system",
+      "source_text",
+      "assertions"
+    ],
+    "supported_kinds": [
+      "KEY_VALUE",
+      "STATUS",
+      "RELATION",
+      "DEPENDENCY",
+      "ARCHITECTURE_NOTATION",
+      "LIFECYCLE",
+      "PSEUDOCODE",
+      "SYMBOLIC_TECHNICAL_SHORTHAND"
+    ]
+  },
+  "candidate_interface": {
+    "language": "python3",
+    "entrypoint": "reconstruct(payload: dict) -> dict",
+    "required_result_keys": [
+      "fulltext",
+      "source_system",
+      "preserved_identity",
+      "evidence_map",
+      "inferred_claims",
+      "authority_changed",
+      "mutations"
+    ],
+    "evidence_map_entry": {
+      "source_span": "string",
+      "output_span": "string",
+      "evidence_class": "SOURCE_FACT|SOURCE_RELATION|CONTEXTUAL_POSSIBILITY|UNKNOWN"
+    },
+    "note": "Proposed test adapter, not historical engine interface"
+  },
+  "invariants": {
+    "source_fidelity": true,
+    "preserve_identity": true,
+    "preserve_negation": true,
+    "preserve_uncertainty": true,
+    "preserve_context": true,
+    "preserve_relations": true,
+    "original_authority_preserved": true,
+    "invented_facts_forbidden": true,
+    "invented_causality_forbidden": true,
+    "invented_rules_forbidden": true,
+    "invented_authority_forbidden": true,
+    "unknown_stays_unknown": true,
+    "cross_system_merge_forbidden": true,
+    "child_autoload_forbidden": true,
+    "global_controller_forbidden": true,
+    "shared_state_root_forbidden": true,
+    "foreign_mutations_forbidden": true
+  },
+  "evaluation": {
+    "contract_test": "Validates fixtures/contracts/source bindings only. Does NOT run CURES.",
+    "candidate_test": "Runs an explicitly supplied isolated Python candidate with JSON payload and checks structured invariants plus fixture markers. Marker checks are smoke checks, not a proof of semantic fidelity. Human review mandatory."
+  },
+  "gates": {
+    "PFS_CURRENT": "HOLD_FUNCTIONAL_PAYLOAD_SOURCE_NOT_FOUND",
+    "IMPLEMENTATION": "NOT_PRESENT",
+    "NATIVE_PROMOTION": "FORBIDDEN",
+    "FOREIGN_AUTOLOAD": "FORBIDDEN",
+    "GITHUB_WRITES": "NOT_AUTHORIZED_IN_THIS_TASK"
+  }
+}

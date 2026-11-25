@@ -1,0 +1,22 @@
+{
+  "schema": "666CLS_CURES_R06_REFERENCE_INTERFACE_V1",
+  "intent": "NON_EXECUTING_DOCUMENTATION_ONLY",
+  "cls_owner": "666CLS-CORE-001",
+  "foreign_system": "666PFS-CURES-001",
+  "foreign_authority": "PFS_ONLY",
+  "input_schema": "666CURES_R06_PROVENANCE_EVIDENCE_V1",
+  "operations": [
+    "read_immutable_result_json",
+    "display_source_provenance",
+    "display_conflicts_and_uncertainty"
+  ],
+  "allowed_to_execute": false,
+  "allowed_to_import_candidate": false,
+  "autoload": false,
+  "triggers": [],
+  "shared_state": false,
+  "native_integration": "PROPOSAL_ONLY_NOT_APPLIED",
+  "pfs_hold": "HOLD_FUNCTIONAL_PAYLOAD_SOURCE_NOT_FOUND",
+  "registry_authenticity": "MUST_BE_ESTABLISHED_OUT_OF_BAND",
+  "foreign_mutations": false
+}

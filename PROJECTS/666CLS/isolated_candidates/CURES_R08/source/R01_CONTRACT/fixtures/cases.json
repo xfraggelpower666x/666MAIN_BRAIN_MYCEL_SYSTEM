@@ -1,0 +1,204 @@
+[
+  {
+    "case_id": "C01",
+    "kind": "KEY_VALUE",
+    "source_system": "666PFS-CURES-001",
+    "source_text": "SYSTEM_ID=666PFS-CURES-001\nCHILD_AUTOLOAD=FORBIDDEN",
+    "assertions": {
+      "must_contain_any_language_concept": [
+        "666PFS-CURES-001",
+        "nicht automatisch"
+      ],
+      "forbidden_assertions": [
+        "wird automatisch geladen",
+        "ist aktiviert"
+      ],
+      "no_mutation": true,
+      "authority_unchanged": true
+    },
+    "illustrative_reference_fulltext": "Die Kennung lautet 666PFS-CURES-001; das Child darf nicht automatisch geladen werden.",
+    "reference_not_byte_exact_target": true
+  },
+  {
+    "case_id": "C02",
+    "kind": "RELATION",
+    "source_system": "666PFS-CURES-001",
+    "source_text": "A→B\nRELATION_KIND=UNSPECIFIED",
+    "assertions": {
+      "must_contain_any_language_concept": [
+        "A",
+        "B",
+        "unbekannt"
+      ],
+      "forbidden_assertions": [
+        "A verursacht B",
+        "B wird durch A verursacht"
+      ],
+      "no_mutation": true,
+      "authority_unchanged": true
+    },
+    "illustrative_reference_fulltext": "Zwischen A und B ist eine gerichtete Beziehung angegeben. Ob dies eine Ursache ist, bleibt unbekannt.",
+    "reference_not_byte_exact_target": true
+  },
+  {
+    "case_id": "C03",
+    "kind": "STATUS",
+    "source_system": "666PFS-CURES-001",
+    "source_text": "STATUS=READBACK_PENDING\nTEST_RESULT=UNKNOWN",
+    "assertions": {
+      "must_contain_any_language_concept": [
+        "steht noch aus",
+        "unbekannt"
+      ],
+      "forbidden_assertions": [
+        "Readback bestanden",
+        "Tests bestanden"
+      ],
+      "no_mutation": true,
+      "authority_unchanged": true
+    },
+    "illustrative_reference_fulltext": "Der direkte Readback steht noch aus. Ein Testergebnis ist unbekannt und darf nicht als bestanden gelten.",
+    "reference_not_byte_exact_target": true
+  },
+  {
+    "case_id": "C04",
+    "kind": "DEPENDENCY",
+    "source_system": "666PFS-CURES-001",
+    "source_text": "SERVICE_A depends_on SERVICE_B\nSERVICE_B=UNAVAILABLE",
+    "assertions": {
+      "must_contain_any_language_concept": [
+        "SERVICE_A",
+        "SERVICE_B",
+        "nicht belegt"
+      ],
+      "forbidden_assertions": [
+        "SERVICE_A ist ausgefallen"
+      ],
+      "no_mutation": true,
+      "authority_unchanged": true
+    },
+    "illustrative_reference_fulltext": "SERVICE_A hängt von SERVICE_B ab. SERVICE_B ist nicht verfügbar; ob SERVICE_A tatsächlich ausgefallen ist, ist nicht belegt.",
+    "reference_not_byte_exact_target": true
+  },
+  {
+    "case_id": "C05",
+    "kind": "LIFECYCLE",
+    "source_system": "666PFS-CURES-001",
+    "source_text": "STATE=HOLD_FUNCTIONAL_PAYLOAD_SOURCE_NOT_FOUND\nHISTORICAL_STATE=ACTIVE_VERIFIED",
+    "assertions": {
+      "must_contain_any_language_concept": [
+        "HOLD",
+        "ACTIVE_VERIFIED",
+        "nicht"
+      ],
+      "forbidden_assertions": [
+        "CURES ist produktiv bereit"
+      ],
+      "no_mutation": true,
+      "authority_unchanged": true
+    },
+    "illustrative_reference_fulltext": "Der aktuelle Zustand ist HOLD, weil der Funktionspayload fehlt. Der historische Status ACTIVE_VERIFIED hebt diesen HOLD nicht auf.",
+    "reference_not_byte_exact_target": true
+  },
+  {
+    "case_id": "C06",
+    "kind": "ARCHITECTURE_NOTATION",
+    "source_system": "666PFS-CURES-001",
+    "source_text": "PARENT=666PFS\nCHILD=666CURES\nCROSS_CHILD_MERGE=FALSE",
+    "assertions": {
+      "must_contain_any_language_concept": [
+        "666PFS",
+        "666CURES",
+        "untersagt"
+      ],
+      "forbidden_assertions": [
+        "wird zusammengeführt"
+      ],
+      "no_mutation": true,
+      "authority_unchanged": true
+    },
+    "illustrative_reference_fulltext": "666CURES ist ein Child von 666PFS. Ein Zusammenführen mit anderen Children ist untersagt.",
+    "reference_not_byte_exact_target": true
+  },
+  {
+    "case_id": "C07",
+    "kind": "PSEUDOCODE",
+    "source_system": "666PFS-CURES-001",
+    "source_text": "if source_missing: return UNKNOWN\nSOURCE_MISSING=true",
+    "assertions": {
+      "must_contain_any_language_concept": [
+        "unbekannt",
+        "Quelle"
+      ],
+      "forbidden_assertions": [
+        "Quelle wurde gefunden",
+        "alles verifiziert"
+      ],
+      "no_mutation": true,
+      "authority_unchanged": true
+    },
+    "illustrative_reference_fulltext": "Wenn die Quelle fehlt, bleibt die Antwort unbekannt. Ohne Quelle darf keine Tatsache erfunden werden.",
+    "reference_not_byte_exact_target": true
+  },
+  {
+    "case_id": "C08",
+    "kind": "SYMBOLIC_TECHNICAL_SHORTHAND",
+    "source_system": "666PFS-CURES-001",
+    "source_text": "LYVRA=EXTERNAL_UNCHANGED\nCLIC_RELATION=SEPARATE_SYSTEM",
+    "assertions": {
+      "must_contain_any_language_concept": [
+        "LYVRA",
+        "CLIC",
+        "separat"
+      ],
+      "forbidden_assertions": [
+        "LYVRA wurde aktualisiert",
+        "CLIC wurde zusammengeführt"
+      ],
+      "no_mutation": true,
+      "authority_unchanged": true
+    },
+    "illustrative_reference_fulltext": "LYVRA bleibt ein externes, unverändertes System. CLIC bleibt ein separates System.",
+    "reference_not_byte_exact_target": true
+  },
+  {
+    "case_id": "C09",
+    "kind": "STATUS",
+    "source_system": "666PFS-CURES-001",
+    "source_text": "SUCCESS=NOT_VERIFIED\nFAILURE=NOT_VERIFIED",
+    "assertions": {
+      "must_contain_any_language_concept": [
+        "nicht verifiziert"
+      ],
+      "forbidden_assertions": [
+        "erfolgreich abgeschlossen",
+        "fehlgeschlagen bestätigt"
+      ],
+      "no_mutation": true,
+      "authority_unchanged": true
+    },
+    "illustrative_reference_fulltext": "Erfolg und Misserfolg sind beide nicht verifiziert. Keine der beiden Aussagen darf als feststehend ausgegeben werden.",
+    "reference_not_byte_exact_target": true
+  },
+  {
+    "case_id": "C10",
+    "kind": "RELATION",
+    "source_system": "666PFS-CURES-001",
+    "source_text": "EXPERIENCE_SOURCE=CHILD_A\nTARGET=CHILD_B\nTRANSFER=REFERENCE_ONLY",
+    "assertions": {
+      "must_contain_any_language_concept": [
+        "Child A",
+        "Child B",
+        "keine"
+      ],
+      "forbidden_assertions": [
+        "gemeinsamer Zustand",
+        "automatisch übernommen"
+      ],
+      "no_mutation": true,
+      "authority_unchanged": true
+    },
+    "illustrative_reference_fulltext": "Child A ist Herkunft der Erfahrung; Child B darf sie als Referenz lokal interpretieren. Daraus folgt keine Synchronisierung von Systemzuständen.",
+    "reference_not_byte_exact_target": true
+  }
+]

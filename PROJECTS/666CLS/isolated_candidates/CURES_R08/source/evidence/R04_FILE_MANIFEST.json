@@ -1,0 +1,26 @@
+{
+  "schema": "CURES_R04_FILE_MANIFEST",
+  "sha256": {
+    "PFS_READONLY_INTEGRATION_R04.md": "9ae406cb5964acf89aa60081804e435a5f760647530221ffe34ff77c78923024",
+    "R01_CONTRACT/README.md": "8e2552f08cc4f9073423faab1f69e8a111aa014e02781d442079a8da8157fd06",
+    "R01_CONTRACT/contracts/CURES_CONTRACT_R01.json": "8abe9edddb64e1250cb7f536a069d4a934f7253354e263e2cb1af5200fd45d17",
+    "R01_CONTRACT/evidence/LOCAL_CONTRACT_TEST_RUN.txt": "84b1be441313c674dba9368cf059a3cbf9900137928435563589fc77c53883e7",
+    "R01_CONTRACT/evidence/SOURCE_BINDINGS.json": "0f47afa242195e4930416422fab010dc100e3e4079f0a8871f9051ba7e62046f",
+    "R01_CONTRACT/fixtures/cases.json": "7cb4370886fae2934ddca2be595ce7b142aa8ea042aadf233a19139558018221",
+    "R01_CONTRACT/tests/test_contract.py": "8a272f4552ca878a986e1d30b1a106ca4067f345e8226b913297e025105ffb25",
+    "R01_CONTRACT/tools/check_candidate.py": "13441a91e6f213ee72b8e0c48c7022d91a5319af63bc47a5343407613a9acf78",
+    "README.md": "357a43bebbde9063d701fe3803ff83263e0b627c787566f25e82ad54c2a5efff",
+    "candidate/__init__.py": "88fe309c7853f45dc0194c8a5a7daf7eb8a819a8393b42f12919501f85beb5d7",
+    "candidate/causal_graph_r04.py": "a4d6561c1db7500c6e1939523ff04dc7ae4668457813f757e17e530dd4fb9fcb",
+    "candidate/cures_candidate.py": "6a347325423a07b6c52758dc2b170e679800e9c45fa08d45ab8aafa4438eef48",
+    "evidence/LOCAL_R02_TEST_RUN_HISTORICAL.txt": "82ec35140bb58ec8a0dc2fc68ac57282e497a7052248095700fe89dde948fa7b",
+    "evidence/LOCAL_R03_TEST_RUN.json": "bbe7c0c1979cd90e5eb7a7c1c6f979884d9d9f82462f49bfba81afd429f6bc0d",
+    "evidence/LOCAL_R04_TEST_RUN.json": "342f9b2ea40abe82da0d28b0438db36457d530cce3e920c5ea1196868318c35e",
+    "evidence/R02_FILE_MANIFEST_HISTORICAL.json": "3a6c0e8dbaffd1de16ad673fd851f8aa8597b47e63f616ed47b02daae957abe4",
+    "evidence/R03_FILE_MANIFEST.json": "a8910d8779bad964fb412c28b296b916ba9ff256483cd12a70490e370b4afce2",
+    "fixtures/adversarial_r04.json": "d9eddeb8a2a5fb23821461333576596108969f6aada0c3a4670d1456ee51c84e",
+    "tests/test_candidate_r02.py": "a09fc5bf3132d26baa54294ab3c4754ff59dcdf8a10c2fbd8f968f7917b80da9",
+    "tests/test_candidate_r03.py": "5ecb9b485666f702a31479442e876ab31110f4cc1874ef953edee30d93facaa5",
+    "tests/test_candidate_r04.py": "c6ce737fddde3a2fd0f1b464c0c3bbe6dc0c04883f831bb046e50af2c1c7f502"
+  }
+}

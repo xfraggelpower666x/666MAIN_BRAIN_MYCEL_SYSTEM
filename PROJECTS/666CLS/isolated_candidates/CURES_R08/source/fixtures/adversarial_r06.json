@@ -1,0 +1,55 @@
+{
+  "schema": "666CURES_R06_NEGATIVE_CASES_V1",
+  "scenarios": [
+    {
+      "id": "R06-01",
+      "case": "same original, different claimed identities",
+      "expected": "NO_INDEPENDENCE_INFERENCE"
+    },
+    {
+      "id": "R06-02",
+      "case": "newer denial versus older claim",
+      "expected": "PRESERVE_BOTH"
+    },
+    {
+      "id": "R06-03",
+      "case": "unknown state versus positive claim",
+      "expected": "DO_NOT_UPGRADE_UNKNOWN"
+    },
+    {
+      "id": "R06-04",
+      "case": "spoofed document identifier",
+      "expected": "FAIL_CLOSED"
+    },
+    {
+      "id": "R06-05",
+      "case": "altered registered content",
+      "expected": "FAIL_CLOSED"
+    },
+    {
+      "id": "R06-06",
+      "case": "forged registration metadata",
+      "expected": "FAIL_CLOSED"
+    },
+    {
+      "id": "R06-07",
+      "case": "malicious executable-like input text",
+      "expected": "INERT"
+    },
+    {
+      "id": "R06-08",
+      "case": "multiple supporting groups",
+      "expected": "NO_TRUTH_PROMOTION"
+    },
+    {
+      "id": "R06-09",
+      "case": "ambiguous unsupported wording",
+      "expected": "OPAQUE"
+    },
+    {
+      "id": "R06-10",
+      "case": "wrong timestamp or origin group",
+      "expected": "FAIL_CLOSED"
+    }
+  ]
+}

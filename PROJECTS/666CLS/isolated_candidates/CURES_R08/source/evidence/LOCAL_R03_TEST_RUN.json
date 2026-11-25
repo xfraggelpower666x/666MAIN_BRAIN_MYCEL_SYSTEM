@@ -1,0 +1,23 @@
+[
+  {
+    "name": "R01_CONTRACT",
+    "exit_code": 0,
+    "command": "python -m unittest discover -s R01_CONTRACT/tests -v",
+    "stdout": "",
+    "stderr": "test_fixture_coverage (test_contract.ContractSelfTests.test_fixture_coverage) ... ok\ntest_fixture_requirements (test_contract.ContractSelfTests.test_fixture_requirements) ... ok\ntest_identity (test_contract.ContractSelfTests.test_identity) ... ok\ntest_manifest_source_integrity_evidence (test_contract.ContractSelfTests.test_manifest_source_integrity_evidence) ... ok\ntest_no_authority_change (test_contract.ContractSelfTests.test_no_authority_change) ... ok\ntest_no_unverified_promotion (test_contract.ContractSelfTests.test_no_unverified_promotion) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.001s\n\nOK\n"
+  },
+  {
+    "name": "R01_SMOKE",
+    "exit_code": 0,
+    "command": "python R01_CONTRACT/tools/check_candidate.py candidate/cures_candidate.py",
+    "stdout": "CANDIDATE_SMOKE_TEST: 10 fixtures, 0 failures; semantic review still mandatory\n",
+    "stderr": ""
+  },
+  {
+    "name": "R02_R03_REGRESSION",
+    "exit_code": 0,
+    "command": "python -m unittest discover -s tests -v",
+    "stdout": "",
+    "stderr": "test_all_ten_cases_without_mutations (test_candidate_r02.CandidateRegression.test_all_ten_cases_without_mutations) ... ok\ntest_bad_payload_rejected (test_candidate_r02.CandidateRegression.test_bad_payload_rejected) ... ok\ntest_injected_commands_are_only_data (test_candidate_r02.CandidateRegression.test_injected_commands_are_only_data) ... ok\ntest_stateless_repeatability (test_candidate_r02.CandidateRegression.test_stateless_repeatability) ... ok\ntest_unknown_not_verified_not_upgraded (test_candidate_r02.CandidateRegression.test_unknown_not_verified_not_upgraded) ... ok\ntest_unknown_relation_is_not_causality (test_candidate_r02.CandidateRegression.test_unknown_relation_is_not_causality) ... ok\ntest_claim_and_denial_are_conflict (test_candidate_r03.SemanticR03.test_claim_and_denial_are_conflict) ... ok\ntest_conflicting_status_values_not_silently_overwritten (test_candidate_r03.SemanticR03.test_conflicting_status_values_not_silently_overwritten) ... ok\ntest_counterexample_keeps_provenance (test_candidate_r03.SemanticR03.test_counterexample_keeps_provenance) ... ok\ntest_different_pairs_not_combined (test_candidate_r03.SemanticR03.test_different_pairs_not_combined) ... ok\ntest_directional_counterexample_not_mixed (test_candidate_r03.SemanticR03.test_directional_counterexample_not_mixed) ... ok\ntest_evidence_map_one_to_one (test_candidate_r03.SemanticR03.test_evidence_map_one_to_one) ... ok\ntest_explicit_causality_does_not_prove_causality (test_candidate_r03.SemanticR03.test_explicit_causality_does_not_prove_causality) ... ok\ntest_hypothesis_is_not_promoted (test_candidate_r03.SemanticR03.test_hypothesis_is_not_promoted) ... ok\ntest_input_is_inert (test_candidate_r03.SemanticR03.test_input_is_inert) ... ok\ntest_observation_is_not_cause (test_candidate_r03.SemanticR03.test_observation_is_not_cause) ... ok\ntest_repeatability (test_candidate_r03.SemanticR03.test_repeatability) ... ok\ntest_same_value_not_conflict (test_candidate_r03.SemanticR03.test_same_value_not_conflict) ... ok\ntest_transitive_not_inferred (test_candidate_r03.SemanticR03.test_transitive_not_inferred) ... ok\ntest_unknown_notation_not_interpreted (test_candidate_r03.SemanticR03.test_unknown_notation_not_interpreted) ... ok\ntest_unknown_stays_unknown (test_candidate_r03.SemanticR03.test_unknown_stays_unknown) ... ok\n\n----------------------------------------------------------------------\nRan 21 tests in 0.002s\n\nOK\n"
+  }
+]

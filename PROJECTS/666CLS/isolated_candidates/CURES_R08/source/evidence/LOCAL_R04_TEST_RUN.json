@@ -1,0 +1,17 @@
+[
+  {
+    "suite": "R02_R03_R04",
+    "exit_code": 0,
+    "output": "----------------------------------------------------------------------\nRan 36 tests in 0.007s\n\nOK\n"
+  },
+  {
+    "suite": "R01_CONTRACT",
+    "exit_code": 0,
+    "output": "----------------------------------------------------------------------\nRan 6 tests in 0.000s\n\nOK\n"
+  },
+  {
+    "suite": "R01_SMOKE",
+    "exit_code": 0,
+    "output": "CANDIDATE_SMOKE_TEST: 10 fixtures, 0 failures; semantic review still mandatory\n"
+  }
+]

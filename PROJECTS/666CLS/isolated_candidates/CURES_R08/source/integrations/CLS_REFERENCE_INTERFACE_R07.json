@@ -1,0 +1,24 @@
+{
+  "schema": "666CLS_CURES_R07_REFERENCE_INTERFACE_V1",
+  "cls_owner": "666CLS-CORE-001",
+  "external_native_owner": "666PFS-CURES-001",
+  "foreign_authority": "PFS_ONLY",
+  "intent": "READ_ONLY_NON_EXECUTING_REFERENCE",
+  "input_schema": "666CURES_R07_SIGNED_PROVENANCE_V1",
+  "operations": [
+    "read_immutable_result_json",
+    "display_signed_registry_validation",
+    "display_revocation_status",
+    "display_temporal_revision_forks",
+    "display_unverified_trust_anchor_identity"
+  ],
+  "allowed_to_execute": false,
+  "allowed_to_import_candidate": false,
+  "autoload": false,
+  "shared_state": false,
+  "triggers": [],
+  "native_integration": "PROPOSAL_ONLY_NOT_APPLIED",
+  "requires_direct_update": "666CLS UPDATE",
+  "pfs_hold": "HOLD_FUNCTIONAL_PAYLOAD_SOURCE_NOT_FOUND",
+  "foreign_mutations": false
+}
