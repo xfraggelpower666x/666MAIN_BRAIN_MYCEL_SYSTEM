@@ -1,0 +1,36 @@
+L.Y.V.R.A. - MP3 MANAGER v2.34 — SOURCE-BASED AUDIO REPAIR
+2026-11-06
+
+ERHALTEN: komplette v2.33-GUI, drei Qualitätspresets, Datei-/ID3-Logik,
+Cover, Fortschrittsanzeigen, Drag & Drop, portable Onedir-Buildskripte.
+
+NEU:
+- Im vorhandenen Reiter AUDIO CONVERT: WAV → MP3 REPAIR (A/B).
+- Saubere WAV und problematische MP3 auswählen; beide Originale unverändert.
+- Nur WAV wird neu nach MP3 codiert; verlustbehaftete MP3 wird nicht rekodiert.
+- Ausgabe in _666MP3_REPAIR als 'TRACK REPAIRED.mp3'.
+- Benutzergesteuerte Plausibilitätskontrolle bei unterschiedlichen Tracknamen.
+- Reparatur hart auf Maximum Quality: 48 kHz, 320 kbit/s, fltp,
+  Stereo, libmp3lame, compression_level 0, KEINE Normalisierung.
+- Vollständige Dekodierung und Laufzeitprüfung der neuen MP3.
+- Exklusiv angelegter Qualitätsbericht pro exportierter MP3 (*.mp3.quality.json),
+  mit Quell- und Ausgabe-SHA256, Preset, Normalisierung, QC-Nachweis,
+  bei Reparatur auch unveränderter Referenz-MP3-SHA256.
+- Vor Encoderstart Prüfung des tatsächlich vorhandenen libmp3lame.
+- Berichte machen keine Behauptung über subjektive Artefaktfreiheit.
+
+TESTS:
+- Testkonvertierung aus echtem vom Nutzer bereitgestelltem WAV-Ausschnitt,
+  original vollständige Quelldatei durch SHA256 unverändert.
+- Vollständige Integration: WAV -> Dateiname -> ID3 -> Decode-QC -> Bericht.
+- Reparaturtest mit künstlich beschädigter Referenzdatei, keine Quelle verändert.
+- Vorhandene v2.33-Audio-QC/Metadaten-Regression bestanden.
+- Tk/Xvfb GUI-Smoke bei 1024x680, 1450x900 und 1920x1080 bestanden.
+- Bereits bereitgestellte reale MP3 technisch vollständig dekodiert, Quelle unverändert.
+
+OFFEN: echte A/B-Hörprüfung mit WAV und MP3 desselben vollständigen
+Suno-Tracks; subjektives Warbling/Pre-Echo lässt sich nicht durch reine
+Decode- oder Hash-Tests sicher diagnostizieren. Nativer Windows-EXE-Build
+und Mehrmonitor-/DPI-Test sind hier nicht erfolgt.
+
+Keine PFS-/GitHub-Writes, keine Fremdsystem-Mutation.

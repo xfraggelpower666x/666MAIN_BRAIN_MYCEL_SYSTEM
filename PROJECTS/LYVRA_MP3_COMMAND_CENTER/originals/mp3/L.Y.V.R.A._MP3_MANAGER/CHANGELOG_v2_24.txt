@@ -1,0 +1,7 @@
+L.Y.V.R.A. - MP3 MANAGER v2.24
+- System/EXE-Reiter aus GUI entfernt; externer BUILD_PORTABLE_EXE.bat bleibt im Quellpaket
+- Metadaten-Startknopf im oberen sichtbaren Bereich der Dateiauswahl
+- Songtitel-Schreibfeld und manuelle Checkbox deaktiviert bei Dateiname→Titel bzw. Titel→Dateiname
+- Wechsel zurück auf manuelle Bearbeitung reaktiviert die Eingabe, ohne den Haken automatisch zu setzen
+- Defensive Konfliktsperre auch im per-Datei-Planer
+- Vorhandene Sicherungs-, C2PA- und Cover-Logik unverändert
