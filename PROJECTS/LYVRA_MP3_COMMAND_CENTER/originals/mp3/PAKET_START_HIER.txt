@@ -1,0 +1,12 @@
+L.Y.V.R.A. - MP3 MANAGER v2.40
+
+1. ZIP speichern und im Explorer mit Alle extrahieren vollstaendig entpacken.
+2. Im entpackten Ordner MP3_MANAGER_START.bat doppelklicken.
+3. Fuer den Quellstart Menuepunkt 1 waehlen. Der Starter verwendet stabiles Python 3.11 bis 3.14.
+   Fuer Audioexport werden FFmpeg und FFprobe benoetigt. Menuepunkt 4 prueft die Audio-Tools.
+4. Fuer eine portable Windows-EXE zuerst Menuepunkt 4 pruefen, dann Menuepunkt 3 verwenden.
+
+Medienwerkzeuge findest du im Audio-Browser.
+Beide Projektordner zusammen lassen. Dieses Quellpaket enthaelt keine vorgefertigte EXE.
+Startdiagnose: L.Y.V.R.A._MP3_MANAGER\START_DIAGNOSE.log
+GitHub-Basis v2.38: bd12cfc1e7a6f828f27c48c0c416d860dffe543f
