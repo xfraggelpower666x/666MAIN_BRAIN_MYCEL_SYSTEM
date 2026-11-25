@@ -1,4 +1,4 @@
-# Neon-Menü für Windows PowerShell 5.1; trennt Darstellung und bestehende Build-Engine.
+﻿# Neon-Menü für Windows PowerShell 5.1; trennt Darstellung und bestehende Build-Engine.
 $ErrorActionPreference = 'Stop'
 $Root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $Engine = Join-Path $Root 'STARTEN.ps1'
