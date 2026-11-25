@@ -38,8 +38,15 @@ try {
   if(-not (Test-Path (Join-Path $staged 'electron.exe'))){throw 'Electron-Archiv enthaelt keine electron.exe'}
   $dist=Join-Path $Pkg 'dist';$backup=Join-Path $Pkg ('dist.before-repair-'+[Guid]::NewGuid().ToString('N'))
   if(Test-Path $dist){Move-Item $dist $backup}
+  $previousMarker=if(Test-Path $Marker){[IO.File]::ReadAllBytes($Marker)}else{$null}
   try{Move-Item $staged $dist;[IO.File]::WriteAllText($Marker,'electron.exe',[Text.Encoding]::ASCII)}
-  catch{if(Test-Path $dist){Remove-Item $dist -Recurse -Force};if(Test-Path $backup){Move-Item $backup $dist};throw}
+  catch{
+    if(Test-Path $dist){Remove-Item $dist -Recurse -Force}
+    if(Test-Path $backup){Move-Item $backup $dist}
+    if($null -eq $previousMarker){if(Test-Path $Marker){Remove-Item -LiteralPath $Marker -Force}}
+    else{[IO.File]::WriteAllBytes($Marker,$previousMarker)}
+    throw
+  }
   Write-Host 'Offizielle Electron-Runtime SHA256-verifiziert installiert. Alte Dist bleibt als Backup.'
   Write-Output (Join-Path $dist 'electron.exe')
 }finally{if(Test-Path $tmp){Remove-Item $tmp -Force -Recurse -ErrorAction SilentlyContinue}}
