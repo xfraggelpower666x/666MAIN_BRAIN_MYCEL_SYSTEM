@@ -476,5 +476,27 @@
     "python_pc_deferred": true,
     "automatic_promotion": false,
     "foreign_activation": false
+  },
+  "native_musical_intelligence_r10": {
+    "version": "NMI-R10",
+    "status": "ADDITIVE_GPT_NATIVE_GENRE_MOTOR_DJ_SOURCE_VERIFIED_HOST_OPEN",
+    "base_commit": "e09b7a420a9bd7c8c36af137a0f19b98d56a8a98",
+    "source_commit": "85f914b6bb72da06f0457515bc00222cb7e167dc",
+    "backup_branch": "backup/666tdi-nmi-r10-motor-prechange-20261125",
+    "root": "PROJECTS/666TDI/native/musical_intelligence/",
+    "bindings": {
+      "GENRE_FRONT_MOTOR_MID_HIGH_R10.json": "4750e7cda4d5e4bf3bd360200b48597fb361cfe8",
+      "GPT_NATIVE_WORKFLOW_R10.md": "16643529462e8ad5b40660781ba75d1c60feb97a",
+      "GENRE_MOTOR_DJ_REGRESSION_R10.json": "36d19a0d14164e8de3d19b022e6f75b4d4821991"
+    },
+    "rehydration": "READ_R01_THROUGH_R09_THEN_R10; APPLY_THREE_GENRE_FRONT_AND_DJ_STABLE_MOTOR_RETURN",
+    "reference_regression": "15_OF_15_BOUNDED_TEXT_AND_DECLARED_METADATA_CASES_PASS",
+    "next_native_action": "Practical independent track creation; verify final prompts and actual entry/exit beatgrid and tempo on rendered audio; fresh-chat acceptance",
+    "host_acceptance": "OPEN",
+    "audio_acceptance": "OPEN",
+    "dj_sync_acceptance": "UNVERIFIED",
+    "python_pc_deferred": true,
+    "automatic_promotion": false,
+    "foreign_activation": false
   }
 }
