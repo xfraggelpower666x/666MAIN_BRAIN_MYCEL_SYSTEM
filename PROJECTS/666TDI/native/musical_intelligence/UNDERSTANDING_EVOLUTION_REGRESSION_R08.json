@@ -1,0 +1,254 @@
+{
+  "schema": "666TDI_NMI_R08_REFERENCE_REGRESSION_V1",
+  "scope": "Synthetic explicit flags only; reference logic executed in JS tool environment, not native host or musical analysis",
+  "fixtures": [
+    {
+      "id": "retain_valid",
+      "supported": true,
+      "expected": [
+        "NEUTRAL"
+      ]
+    },
+    {
+      "id": "narrow_generalization",
+      "overgeneralized": true,
+      "expected": [
+        "MINUS"
+      ]
+    },
+    {
+      "id": "new_relation_hypothesis",
+      "newRelation": true,
+      "expected": [
+        "PLUS"
+      ]
+    },
+    {
+      "id": "combined_reinterpretation",
+      "supported": true,
+      "overgeneralized": true,
+      "newRelation": true,
+      "expected": [
+        "NEUTRAL",
+        "MINUS",
+        "PLUS"
+      ]
+    },
+    {
+      "id": "no_forced_novelty",
+      "expected": []
+    },
+    {
+      "id": "conflicting_context",
+      "contradiction": true,
+      "expected": [],
+      "expectedStatus": "HOLD"
+    },
+    {
+      "id": "different_conditions",
+      "supported": true,
+      "differentConditions": true,
+      "expected": [
+        "NEUTRAL"
+      ]
+    },
+    {
+      "id": "hypothesis_not_audio",
+      "newRelation": true,
+      "expected": [
+        "PLUS"
+      ],
+      "expectedStatus": "CANDIDATE"
+    },
+    {
+      "id": "textbook_deviation",
+      "conventionDeviation": true,
+      "supported": true,
+      "expected": [
+        "NEUTRAL"
+      ]
+    },
+    {
+      "id": "technical_damage_not_artistic_freedom",
+      "technicalDamage": true,
+      "newRelation": true,
+      "expected": [
+        "PLUS"
+      ],
+      "expectedStatus": "HOLD"
+    },
+    {
+      "id": "context_leak",
+      "themeLeak": true,
+      "expected": [],
+      "expectedStatus": "HOLD"
+    },
+    {
+      "id": "root_or_mastering_loss",
+      "productionGuardFail": true,
+      "expected": [],
+      "expectedStatus": "HOLD"
+    }
+  ],
+  "results": [
+    {
+      "id": "retain_valid",
+      "actual": {
+        "effects": [
+          "NEUTRAL"
+        ],
+        "status": "REVIEW",
+        "automaticPromotion": false,
+        "audioVerified": false,
+        "preserveOriginalEvidence": true
+      },
+      "pass": true
+    },
+    {
+      "id": "narrow_generalization",
+      "actual": {
+        "effects": [
+          "MINUS"
+        ],
+        "status": "REVIEW",
+        "automaticPromotion": false,
+        "audioVerified": false,
+        "preserveOriginalEvidence": true
+      },
+      "pass": true
+    },
+    {
+      "id": "new_relation_hypothesis",
+      "actual": {
+        "effects": [
+          "PLUS"
+        ],
+        "status": "CANDIDATE",
+        "automaticPromotion": false,
+        "audioVerified": false,
+        "preserveOriginalEvidence": true
+      },
+      "pass": true
+    },
+    {
+      "id": "combined_reinterpretation",
+      "actual": {
+        "effects": [
+          "NEUTRAL",
+          "MINUS",
+          "PLUS"
+        ],
+        "status": "CANDIDATE",
+        "automaticPromotion": false,
+        "audioVerified": false,
+        "preserveOriginalEvidence": true
+      },
+      "pass": true
+    },
+    {
+      "id": "no_forced_novelty",
+      "actual": {
+        "effects": [],
+        "status": "REVIEW",
+        "automaticPromotion": false,
+        "audioVerified": false,
+        "preserveOriginalEvidence": true
+      },
+      "pass": true
+    },
+    {
+      "id": "conflicting_context",
+      "actual": {
+        "effects": [],
+        "status": "HOLD",
+        "automaticPromotion": false,
+        "audioVerified": false,
+        "preserveOriginalEvidence": true
+      },
+      "pass": true
+    },
+    {
+      "id": "different_conditions",
+      "actual": {
+        "effects": [
+          "NEUTRAL"
+        ],
+        "status": "REVIEW",
+        "automaticPromotion": false,
+        "audioVerified": false,
+        "preserveOriginalEvidence": true
+      },
+      "pass": true
+    },
+    {
+      "id": "hypothesis_not_audio",
+      "actual": {
+        "effects": [
+          "PLUS"
+        ],
+        "status": "CANDIDATE",
+        "automaticPromotion": false,
+        "audioVerified": false,
+        "preserveOriginalEvidence": true
+      },
+      "pass": true
+    },
+    {
+      "id": "textbook_deviation",
+      "actual": {
+        "effects": [
+          "NEUTRAL"
+        ],
+        "status": "REVIEW",
+        "automaticPromotion": false,
+        "audioVerified": false,
+        "preserveOriginalEvidence": true
+      },
+      "pass": true
+    },
+    {
+      "id": "technical_damage_not_artistic_freedom",
+      "actual": {
+        "effects": [
+          "PLUS"
+        ],
+        "status": "HOLD",
+        "automaticPromotion": false,
+        "audioVerified": false,
+        "preserveOriginalEvidence": true
+      },
+      "pass": true
+    },
+    {
+      "id": "context_leak",
+      "actual": {
+        "effects": [],
+        "status": "HOLD",
+        "automaticPromotion": false,
+        "audioVerified": false,
+        "preserveOriginalEvidence": true
+      },
+      "pass": true
+    },
+    {
+      "id": "root_or_mastering_loss",
+      "actual": {
+        "effects": [],
+        "status": "HOLD",
+        "automaticPromotion": false,
+        "audioVerified": false,
+        "preserveOriginalEvidence": true
+      },
+      "pass": true
+    }
+  ],
+  "passed": 12,
+  "total": 12,
+  "method": "function review(f){let effects=[];if(f.supported)effects.push(\"NEUTRAL\");if(f.overgeneralized)effects.push(\"MINUS\");if(f.newRelation)effects.push(\"PLUS\");return {effects,status:f.contradiction||f.technicalDamage||f.themeLeak||f.productionGuardFail?\"HOLD\":f.newRelation?\"CANDIDATE\":\"REVIEW\",automaticPromotion:false,audioVerified:false,preserveOriginalEvidence:true}}",
+  "limitations": [
+    "No natural-language interpretation tested",
+    "No actual card selection or generated music tested",
+    "No full Python regression or host acceptance",
+    "Guard flags are supplied, not independently inferred"
+  ]
+}
