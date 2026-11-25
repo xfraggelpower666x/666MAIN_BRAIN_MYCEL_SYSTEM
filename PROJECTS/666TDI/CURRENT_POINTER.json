@@ -392,5 +392,26 @@
     "automatic_promotion": false,
     "python_pc_deferred": true,
     "foreign_activation": false
+  },
+  "native_musical_intelligence_r06": {
+    "version": "NMI-R06",
+    "status": "ADDITIVE_GPT_NATIVE_PRODUCTION_QUALITY_SOURCE_VERIFIED_HOST_OPEN",
+    "base_commit": "a895612708b2f0863dd70358525c4958cc083a3f",
+    "source_commit": "494ac5aae1f64d5c1c0c28111ae9f3608d5317c4",
+    "backup_branch": "backup/666tdi-nmi-r06-quality-prechange-20261125",
+    "root": "PROJECTS/666TDI/native/musical_intelligence/",
+    "bindings": {
+      "PRODUCTION_QUALITY_ANTI_SAMENESS_R06.json": "9a6170b412015191f7e58755f3e1a4e1ce81c4cb",
+      "GPT_NATIVE_WORKFLOW_R06.md": "efd704940a714a258ff6aa8334bd564e3142653c"
+    },
+    "rehydration": "READ_R01_THROUGH_R05_THEN_R06; APPLY_CROSS_TRACK_AND_MASTERING_PREFLIGHT",
+    "next_native_action": "Fresh-chat acceptance with actual prior prompt pairs; run regression fixtures and comparative audio; separately locate historical named guard",
+    "historical_named_guard": "NOT_LOCATED",
+    "automated_regression": "NOT_EXECUTED",
+    "host_acceptance": "OPEN",
+    "audio_acceptance": "OPEN",
+    "automatic_promotion": false,
+    "python_pc_deferred": true,
+    "foreign_activation": false
   }
 }
