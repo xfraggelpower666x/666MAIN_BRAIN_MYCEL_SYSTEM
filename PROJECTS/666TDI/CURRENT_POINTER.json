@@ -413,5 +413,26 @@
     "automatic_promotion": false,
     "python_pc_deferred": true,
     "foreign_activation": false
+  },
+  "native_musical_intelligence_r07": {
+    "version": "NMI-R07",
+    "status": "ADDITIVE_GPT_NATIVE_CONTEXT_INDEPENDENCE_SOURCE_VERIFIED_HOST_OPEN",
+    "base_commit": "f93a500293dea6247caaea8d784a9fad7dae7caf",
+    "source_commit": "05cfd2ca563ce4731f7a9a45faa2385ec1f82ae1",
+    "backup_branch": "backup/666tdi-nmi-r07-context-prechange-20261125",
+    "root": "PROJECTS/666TDI/native/musical_intelligence/",
+    "bindings": {
+      "SEMANTIC_CREATIVE_INDEPENDENCE_R07.json": "faf747ac5ec0f186965bdaf7627b540d545e70f1",
+      "GPT_NATIVE_WORKFLOW_R07.md": "da1fa85dd710d4346fb78c8eabda23c61b4f015c",
+      "CONTEXT_ISOLATION_REGRESSION_R07.json": "d21f25946226964d89eaaf38f99584c4f4ecf1da"
+    },
+    "rehydration": "READ_R01_THROUGH_R06_THEN_R07; APPLY_INDEPENDENT_CONTEXT_AND_FINAL_LYRIC_MUSIC_REVIEW",
+    "next_native_action": "Fresh-chat acceptance with unrelated sequential themes and explicit scoped continuation; compare actual final lyrics and prompts; retain separate audio review",
+    "reference_regression": "10_OF_10_SYNTHETIC_EXPLICIT_LABEL_CASES_PASS",
+    "host_acceptance": "OPEN",
+    "audio_acceptance": "OPEN",
+    "automatic_promotion": false,
+    "python_pc_deferred": true,
+    "foreign_activation": false
   }
 }
