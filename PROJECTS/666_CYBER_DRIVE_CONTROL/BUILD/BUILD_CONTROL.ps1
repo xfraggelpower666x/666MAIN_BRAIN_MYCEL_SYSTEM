@@ -150,6 +150,8 @@ function Build-Target([string]$target) {
   Verify-R18
   # Validate the real R19 renderer preview contract before any packaging.
   Run 'node' @('--test',(Join-Path $Root 'tests\test_r19_renderer_contract.cjs'))
+  # Buildkit R01.11.3 persistent app-settings regression, independent of build manager.
+  Run 'node' @('--test',(Join-Path $Root 'tests\test_r19_app_settings.cjs'))
   # Run R19 D/E integration unit tests against the same R18 sources.
   $savedPythonPath = $env:PYTHONPATH
   try {
@@ -219,6 +221,7 @@ function Show-Menu {
   Write-Host '7  Kompilierte portable EXE sofort starten/testen'
   Write-Host '8  Build- und Quellstatus anzeigen'
   Write-Host '9  Git-R18-Quellen verifizieren + Tests + Portable und Setup bauen'
+  Write-Host '10 Grafischen Universal-Build-Manager öffnen (Entwicklerbereich)'
   Write-Host '0  Beenden'
 }
 Log "Build host started; project $Root"
@@ -249,6 +252,11 @@ while ($true) {
         Log 'R18 original sources are versioned in GitHub. No ZIP input is required.'
         Build-Target 'both'
         Log 'Build finished. Clean Windows host acceptance and installer validation still required.'
+      }
+      '10' {
+        $gui=Join-Path $Root 'BUILD\BUILD_MANAGER_GUI.ps1'
+        Start-Process -FilePath 'powershell.exe' -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-STA','-File',('"' + $gui + '"')) -WorkingDirectory $Root
+        Log 'Separate developer-only Build Manager GUI launch requested.'
       }
       '0' { Log 'Exit'; exit 0 }
       default { Write-Host 'Unknown option.' }
