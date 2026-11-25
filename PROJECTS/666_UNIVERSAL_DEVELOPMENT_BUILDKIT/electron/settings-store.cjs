@@ -24,6 +24,7 @@ function createStore(directory){
       return validate(JSON.parse(fs.readFileSync(filename,'utf8')));
     }catch(error){
       if(error.code==='ENOENT')return {...DEFAULTS};
+      // Corrupt or invalid user data is not silently overwritten; report a safe fallback.
       return {...DEFAULTS};
     }
   }
@@ -33,6 +34,8 @@ function createStore(directory){
     const tmp=path.join(directory,`settings.${process.pid}.${Date.now()}.tmp`);
     try{
       fs.writeFileSync(tmp,JSON.stringify(next,null,2)+'\n',{encoding:'utf8',flag:'wx',mode:0o600});
+      // Windows rename() cannot replace an existing target on some environments.
+      // Preserve previous settings until the new data has been fully written.
       if(process.platform==='win32' && fs.existsSync(filename)){
         const previous=filename+'.before-write';
         if(fs.existsSync(previous))fs.unlinkSync(previous);
