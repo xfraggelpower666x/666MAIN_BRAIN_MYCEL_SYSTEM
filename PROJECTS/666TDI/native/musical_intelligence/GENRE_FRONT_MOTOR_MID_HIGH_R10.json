@@ -95,5 +95,14 @@
   "preserve": "NMI-R01–R09 and prior files, R1.4 Python source, isolated R1.5 candidate, native identities",
   "foreign_activation": false,
   "automatic_promotion": false,
-  "implementation": "GPT-native additive contract; no Python or renderer execution claimed"
+  "implementation": "GPT-native additive contract; no Python or renderer execution claimed",
+  "dj_stable_motor": {
+    "source": "Direct creator clarification 2026-11-25T22:36:27Z",
+    "entry": "Establish original target BPM, meter, phase and readable grid in DJ entry zone.",
+    "interior": "Allow intentional musically motivated local motor or pulse variation; distinguish articulation and apparent speed from actual tempo or meter changes. No uncontrolled tempo drift. Actual tempo excursions only if explicitly intended, restricted to nonmixing interior, with deliberate recovery.",
+    "exit": "Restore original entry BPM, meter, beat/downbeat phase and readable stable motor before DJ exit mix window; maintain through final beat-bearing exit. No tempo drift, rubato, unintended half-time or grid ambiguity in mix zones.",
+    "window": "Choose track-specific mixable phrase length, normally 16 or 32 bars when appropriate; not a fixed duration mandate.",
+    "prompt": "Include compact functional original BPM/grid and return-to-entry-tempo instruction in both Style and Extended; specify exit behavior in lyric arrangement cues when relevant.",
+    "audio_gate": "Prompt compliance is not DJ audio verification. Actual render needs beatgrid inspection, tempo comparison across entry/exit and listening; if unavailable AUDIO_UNVERIFIED/DJ_SYNC_UNVERIFIED. No invented tolerance or guarantee."
+  }
 }
