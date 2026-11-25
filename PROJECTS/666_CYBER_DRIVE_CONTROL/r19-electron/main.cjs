@@ -2,7 +2,9 @@
 const {app, BrowserWindow, ipcMain, Tray, Menu, nativeImage} = require('electron');
 const {spawn} = require('node:child_process');
 const path = require('node:path');
+const {createStore} = require('./app-settings-store.cjs');
 let mainWindow = null, overlay = null, tray = null, worker = null, pending = '';
+let settingsWindow = null, settingsStore = null, appSettings = null;
 const pendingReplies = new Map();
 let nextRequestId = 0;
 let latest = {protocol:'cyber-drive.metrics.v2',status:'starting', volumes:[], timestamp:null, error:null};
@@ -27,9 +29,51 @@ function workspaceCommand(action,payload) {
   });
 }
 const send = () => { for (const w of [mainWindow, overlay]) if (w && !w.isDestroyed()) w.webContents.send('metrics', latest); };
+function settingsSender(event){
+  return settingsWindow&&!settingsWindow.isDestroyed()&&event.sender===settingsWindow.webContents&&
+    event.senderFrame===settingsWindow.webContents.mainFrame;
+}
+function openSettings(){
+  if(settingsWindow&&!settingsWindow.isDestroyed()){settingsWindow.focus();return;}
+  settingsWindow=new BrowserWindow({width:690,height:520,minWidth:540,minHeight:440,show:false,
+    parent:mainWindow||undefined,backgroundColor:'#0b0c1b',autoHideMenuBar:true,
+    webPreferences:{preload:path.join(__dirname,'app-settings-preload.cjs'),contextIsolation:true,
+      nodeIntegration:false,sandbox:true,webSecurity:true}});
+  settingsWindow.removeMenu();
+  settingsWindow.webContents.setWindowOpenHandler(()=>({action:'deny'}));
+  settingsWindow.webContents.on('will-navigate',e=>e.preventDefault());
+  settingsWindow.loadFile(path.join(__dirname,'app-settings','settings.html')).catch(e=>{settingsWindow?.close();});
+  settingsWindow.once('ready-to-show',()=>settingsWindow.show());
+  settingsWindow.on('closed',()=>{settingsWindow=null;});
+}
+ipcMain.handle('app-settings:load',event=>{
+  if(!settingsSender(event))throw new Error('Unauthorized settings sender');
+  return {...appSettings};
+});
+ipcMain.handle('app-settings:save',(event,value)=>{
+  if(!settingsSender(event))throw new Error('Unauthorized settings sender');
+  const saved=settingsStore.save(value);appSettings=saved;
+  if(mainWindow&&!mainWindow.isDestroyed())mainWindow.setFullScreen(saved.fullscreen);
+  return {...saved};
+});
+ipcMain.handle('app-settings:open',event=>{
+  if(!mainWindow||mainWindow.isDestroyed()||event.sender!==mainWindow.webContents||
+     event.senderFrame!==mainWindow.webContents.mainFrame)throw new Error('Unauthorized settings open');
+  openSettings();return true;
+});
 function createWindow() {
-  mainWindow = new BrowserWindow({width:1250,height:820,minWidth:800,minHeight:500,backgroundColor:'#11141A',
+  mainWindow = new BrowserWindow({width:1250,height:820,minWidth:800,minHeight:500,
+    fullscreen:appSettings?.fullscreen===true,backgroundColor:'#11141A',
     webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
+  mainWindow.webContents.on('before-input-event',(event,input)=>{
+    if(input.type!=='keyDown'||input.isAutoRepeat)return;
+    if(input.key==='F10'||(input.control&&input.key===',')){event.preventDefault();openSettings();}
+    else if(input.key==='F11'){
+      event.preventDefault();const next=!mainWindow.isFullScreen();
+      const saved=settingsStore.save({...appSettings,fullscreen:next});appSettings=saved;
+      mainWindow.setFullScreen(next);
+    }
+  });
   mainWindow.loadFile(path.join(__dirname,'index.html'));
   mainWindow.on('closed',()=>{mainWindow=null;});
 }
@@ -104,6 +148,6 @@ ipcMain.handle('set-visual-binding',(_event,led,device,mode,threshold_kib)=>{
 });
 ipcMain.handle('overlay-toggle',()=>{toggleOverlay();return Boolean(overlay);});
 ipcMain.handle('show-main',()=>{if(mainWindow)mainWindow.show();});
-app.whenReady().then(()=>{createWindow();startTray();startSampler();});
+app.whenReady().then(()=>{settingsStore=createStore(app.getPath('userData'));appSettings=settingsStore.load();createWindow();startTray();startSampler();});
 app.on('window-all-closed',()=>{/* tray app continues until explicit Exit */});
-app.on('before-quit',()=>{if(worker){worker.kill();worker=null;}if(tray){tray.destroy();tray=null;}});
+app.on('before-quit',()=>{if(settingsWindow&&!settingsWindow.isDestroyed())settingsWindow.close();if(worker){worker.kill();worker=null;}if(tray){tray.destroy();tray=null;}});

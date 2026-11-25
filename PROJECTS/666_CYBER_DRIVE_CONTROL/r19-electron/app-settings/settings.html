@@ -1,0 +1,18 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Cyber Drive · Einstellungen</title><style>
+:root{font-family:Segoe UI,Arial,sans-serif;color-scheme:dark}*{box-sizing:border-box}body{margin:0;padding:28px;background:radial-gradient(ellipse at 15% 12%,#43174f,#0d1020 63%);color:#f2f3ff}
+h1{font-size:25px;color:#52ecfa;margin:0 0 6px}p{color:#bdb6dc;line-height:1.5}
+section{border:1px solid #7b50a7;border-radius:14px;padding:22px;margin-top:24px;background:#101426ee;display:grid;gap:18px}
+label{display:flex;justify-content:space-between;align-items:center;gap:20px;font-weight:600}
+input{accent-color:#ff4bd2;width:19px;height:19px}
+select{color:#fff;background:#201c39;border:1px solid #48dced;border-radius:8px;padding:9px;min-width:150px}
+button{color:#fff;background:#662e8c;border:1px solid #ff50d2;border-radius:10px;padding:11px 26px;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #52ecfa;outline-offset:3px}
+button:disabled{opacity:.5}#state{min-height:20px;color:#55ffcf}
+</style></head><body><h1>⚙ CYBER DRIVE · EINSTELLUNGEN</h1><p>Diese Einstellungen gehören ausschließlich zur Windows-Anwendung, nicht zum Build-Manager.</p>
+<section><label>Beim Start Vollbild anzeigen <input type="checkbox" id="fullscreen" checked></label>
+<label>Sprache <select id="language"><option value="de">Deutsch</option><option value="en">English</option></select></label>
+<label>Design <select id="theme"><option value="dark">Dark</option><option value="cyber">Cyber</option></select></label>
+<div><button id="save">Einstellungen speichern</button></div><output id="state" role="status"></output></section>
+<script src="settings.js"></script></body></html>

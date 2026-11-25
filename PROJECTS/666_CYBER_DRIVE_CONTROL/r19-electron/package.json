@@ -6,7 +6,7 @@
   "main": "main.cjs",
   "scripts": {
     "start": "electron .",
-    "check": "node --check main.cjs && node --check preload.cjs && node --check renderer.js",
+    "check": "node --check main.cjs && node --check preload.cjs && node --check renderer.js && node --check app-settings-store.cjs && node --check app-settings-preload.cjs && node --check app-settings/settings.js",
     "dist:portable": "electron-builder --win portable --x64",
     "dist:setup": "electron-builder --win nsis --x64",
     "dist:both": "electron-builder --win portable nsis --x64"
@@ -28,6 +28,9 @@
       "renderer.js",
       "index.html",
       "style.css",
+      "app-settings-store.cjs",
+      "app-settings-preload.cjs",
+      "app-settings/**/*",
       "package.json"
     ],
     "extraResources": [

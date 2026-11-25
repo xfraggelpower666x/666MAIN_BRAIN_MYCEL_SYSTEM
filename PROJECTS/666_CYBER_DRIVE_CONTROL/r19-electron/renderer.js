@@ -181,6 +181,7 @@ function draw(){
 }
 for(const b of document.querySelectorAll('[data-tab]'))b.addEventListener('click',()=>{tab=b.dataset.tab;document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));draw();});
 $('controls').addEventListener('focusout',()=>queueMicrotask(()=>{if(!$('controls').contains(document.activeElement))draw();}));
+$('settings-toggle').addEventListener('click',()=>window.cyber.openSettings());
 $('overlay-toggle').addEventListener('click',()=>window.cyber.toggleOverlay());
 window.cyber.onMetrics(data=>{last=data;draw();});
 window.cyber.readMetrics().then(data=>{last=data;draw();}).catch(e=>{$('notice').textContent=String(e);});
