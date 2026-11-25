@@ -19,9 +19,16 @@
   "original_artwork_preserved_in_local_zip": true,
   "reference_source": "PROJECTS/666_FULL_LYRICS_INTELLIGENCE/DELIVERY_R06_1.json",
   "no_cross_system_adoption": true,
-  "next_action": "Extract local full ZIP; run PUBLISH_SOURCE_TO_GITHUB.bat; approve JA; verify backup branch + 49 Git blobs and remote HEAD. Only then consider production promotion.",
+  "next_action": "Run bundled PUBLISH_SOURCE_TO_GITHUB.bat on authorized Windows host after reviewing its exact target; get 49/49 GitHub blob readback; no automatic 666MAIN_BRAIN promotion.",
   "github_candidate_files_readback": 11,
   "github_exact_new_code_blobs_readback": 8,
   "publication_transport": "PUBLISH_SOURCE_TO_GITHUB.bat + tools/publish-source-to-github.ps1 in LOCAL FULL ZIP",
-  "publication_requires_user_windows_git_and_explicit_approval": true
+  "publication_requires_user_windows_git_and_explicit_approval": true,
+  "last_recheck_date": "2026-11-25",
+  "last_recheck_receipt": "docs/RECHECK_2026-11-25_R01_11_1.md",
+  "last_recheck_zip_sha256": "ae646788d0f55ad63100628ccc67d6bd12e20a242eb11fe95163bc26bb008b1c",
+  "last_recheck_manifest_sha256": "49/49_PASS",
+  "last_recheck_regression": "17/17_PASS",
+  "last_recheck_node_syntax": "3/3_PASS",
+  "production_promotion": "NOT_PERFORMED"
 }
