@@ -1,0 +1,25 @@
+{
+  "name": "lyvra-mp3-manager-electron-candidate",
+  "version": "2.40.1-candidate.1",
+  "private": true,
+  "description": "Additive Electron interface for the original L.Y.V.R.A. MP3 Manager",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "check": "node --check electron/main.cjs && node --check electron/preload.cjs && node --check renderer/app.js && python tests/test_bridge.py",
+    "build:win": "electron-builder --win dir --x64"
+  },
+  "devDependencies": {"electron":"35.7.5","electron-builder":"26.0.12"},
+  "build": {
+    "appId":"com.666soundsdesign.lyvra.mp3manager.candidate",
+    "productName":"L.Y.V.R.A. - MP3 MANAGER Electron Candidate",
+    "asar":true,
+    "directories":{"output":"dist-electron"},
+    "files":["electron/**/*","renderer/**/*","package.json"],
+    "extraResources":[
+      {"from":"../L.Y.V.R.A._MP3_MANAGER","to":"lyvra-original"},
+      {"from":"engine_bridge.py","to":"engine_bridge.py"}
+    ],
+    "win":{"target":["dir"],"icon":"../L.Y.V.R.A._MP3_MANAGER/assets/app.ico"}
+  }
+}
