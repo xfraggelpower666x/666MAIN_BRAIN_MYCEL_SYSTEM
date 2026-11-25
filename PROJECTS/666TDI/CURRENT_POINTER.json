@@ -371,5 +371,26 @@
     "automatic_promotion": false,
     "python_pc_deferred": true,
     "foreign_activation": false
+  },
+  "native_musical_intelligence_r05": {
+    "version": "NMI-R05",
+    "status": "ADDITIVE_PRODUCTION_GUARD_SOURCE_VERIFIED_HOST_OPEN",
+    "base_commit": "ecea73da8a4d046db86f88f4dbf8abb4fd900f60",
+    "source_commit": "2cb6fcf372e321d56c6e66bb0fcd76411cab94d4",
+    "backup_branch": "backup/666tdi-nmi-r05-dark-dna-prechange-20261125",
+    "root": "PROJECTS/666TDI/native/musical_intelligence/",
+    "bindings": {
+      "DARK_PSYCHEDELIC_PRODUCTION_GUARD_R05.json": "6a92e3718db86ab27b75a501d38b05d48a2af739",
+      "GPT_NATIVE_WORKFLOW_R05.md": "2ea953a9f97723214a6e43558e1908f449f3def2"
+    },
+    "rehydration": "READ_R01_R02_R03_R04_THEN_R05; APPLY_PRODUCTION_PREFLIGHT_BEFORE_COPY_READY_OUTPUT",
+    "next_native_action": "Fresh-chat host acceptance and comparative render of unchanged lyrics using repaired Dark Psychedelic prompts; audit 012–021 before radio rotation.",
+    "host_acceptance": "OPEN",
+    "automated_regression": "NOT_EXECUTED",
+    "musical_acceptance": "OPEN",
+    "audio_release": "SEPARATE_UNVERIFIED",
+    "automatic_promotion": false,
+    "python_pc_deferred": true,
+    "foreign_activation": false
   }
 }
