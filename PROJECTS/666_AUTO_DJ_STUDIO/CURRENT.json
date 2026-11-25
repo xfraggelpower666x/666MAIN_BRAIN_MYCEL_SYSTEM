@@ -1,17 +1,17 @@
 {
   "system": "666_AUTO_DJ_STUDIO",
   "scope": "PROJECTS/666_AUTO_DJ_STUDIO",
-  "status": "PARTIAL_SOURCE_LIVE_BINARY_PENDING",
-  "revision": "R04_CONTINUITY_R06_1_ELECTRON_DIRECT_REPAIR",
+  "status": "PARTIAL_R07_UI_SOURCE_LIVE_BINARY_PENDING",
+  "revision": "R07_NEON_UI_CONTINUITY_SOURCE_LIVE",
   "source_branch": "666MAIN_BRAIN",
-  "source_commit": "744333007f1cbec847d2323e1b1601f712fd3751",
+  "source_commit": "22d90c469915cd3aa0d2632b4afeeb034753be9b",
   "source_readback": "40_SOURCE_BLOBS_PRESENT_7_DIRECT_FILE_READBACK_3_BOM_EXACT",
   "source_files_from_working_zip": 38,
   "legacy_r04_provisioner_preserved": true,
   "original_zip": "666_AUTO_DJ_STUDIO_CONTINUITY_ELECTRON_R06_1_DIRECT_REPAIR.zip",
   "original_zip_sha256": "7b8f206eb1f4919324f49bbcc9c03f5ea2a06ecf873a18610a37d43972d4f17a",
   "original_zip_entries": 69,
-  "windows_electron_development_start": "USER_CONFIRMED_2026_11_24_NO_INDEPENDENT_HOST_RECEIPT",
+  "windows_electron_development_start": "R06_1_USER_CONFIRMED_2026_11_24_R07_NOT_YET_TESTED",
   "local_regression": "21_OF_21_PYTHON_PASS_JS_SYNTAX_PASS",
   "binary_assets": "31_OF_31_NOT_PUBLISHED_TO_GITHUB",
   "binary_assets_manifest": "docs/BINARY_ASSETS_STATUS.md",
@@ -27,6 +27,11 @@
     "backup/mainbrain-before-autodj-recovery-20261124"
   ],
   "non_destructive": true,
-  "next": "Upload original 31 binary assets with exact SHA-256 GitHub byte readback; then perform Windows portable/setup and audio E2E acceptance. Do not promote production freeze earlier.",
-  "pointer_publication": "LAST_MUTATION_OF_THIS_UPDATE"
+  "next": "Verify R07 Electron UI on Windows and cover preview; publish original 31 binary assets with exact SHA256 readback; then portable/setup and audio E2E acceptance. No production freeze.",
+  "pointer_publication": "LAST_MUTATION_OF_THIS_UPDATE",
+  "ui_source_readback": "6_OF_6_BLOBS_EXACT_AND_4_PROTECTED_READBACK_PASS",
+  "ui_local_validation": "21_OF_21_PYTHON_PASS_3_JS_SYNTAX_PASS_ZIP_INTEGRITY_PASS",
+  "r07_source_archive": "666_AUTO_DJ_STUDIO_R07_NEON_UI_CONTINUITY.zip",
+  "r07_source_archive_sha256": "61eedae4460d5aba6630c81ce80d4b35dbc497bdf74241521b135113bd9b7b4f",
+  "r07_windows_ui_host": "PENDING"
 }
