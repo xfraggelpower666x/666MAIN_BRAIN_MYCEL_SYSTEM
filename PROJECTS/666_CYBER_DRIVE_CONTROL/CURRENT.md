@@ -100,4 +100,21 @@ R19_R061_GITHUB_SOURCE_READBACK: 3/3 files verified after implementation
 R19_R061_WINDOWS_CI_RUN: 45507052942; status IN_PROGRESS at initial readback, no success claimed
 R19_R061_HOST_GATE: Windows updated binary and interactive visual/overlay/installer acceptance OPEN; old Windows CI release applies to its old commit only
 
+
+R19_BUILDKIT_R01113_INTEGRATION: SOURCE_VERIFIED_PARTIAL_HOST
+R19_BUILDKIT_SOURCE_ARCHIVE: user uploaded 666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01_11_3_BUILD_MANAGER_APP_SETTINGS(2).zip
+R19_BUILDKIT_ARCHIVE_SHA256: 9a221b23f2d9248ad361a82eb6132066694a12591e67fe266f6240b2867bd027
+R19_BUILDKIT_SOURCE_INVENTORY: 59 original ZIP files CRC PASS
+R19_BUILDKIT_ORIGINAL_TESTS: Python unittest 25/25 PASS; Node settings 5/5 PASS on Linux
+R19_BUILDKIT_APP_SETTINGS_COMMIT: 31048b9b739e256a1fb28c8f7c73a5d13b9908a4
+R19_BUILDKIT_BUILD_MANAGER_COMMIT: be25a5c0d94bb767cae2ac5e21556c614359ec06
+R19_BUILDKIT_SETTINGS: fullscreen default, F11 persistence, F10/Ctrl+, separate guarded IPC settings window, per-user settings file
+R19_BUILDKIT_GUI: BUILD/BUILD_MANAGER_GUI.ps1 developer-only via original START_BUILD_WINDOWS.bat menu 10; original BuildBoth remains execution authority
+R19_BUILDKIT_REGRESSION: tests/test_r19_app_settings.cjs; 5 cases registered before BuildBoth
+R19_BUILDKIT_SOURCE_READBACK: 12 changed/new files fetched and checked; JavaScript syntax PASS
+R19_BUILDKIT_NOT_IMPORTED: external Python HTTP backend, second compiler pipeline, original kit artwork; original kit 59 files separately preserved, not all 59 in live GitHub
+R19_BUILDKIT_LANGUAGE_THEME: settings persisted but actual application translation/theme switching NOT YET CONNECTED
+R19_BUILDKIT_WINDOWS_CI_RUN: 45719694412; pending at latest readback
+R19_BUILDKIT_HOST_GATE: Windows CI tests/EXE artifacts and native GUI/settings/dialog acceptance READBACK_PENDING
+
 NEXT_EXECUTABLE: run clean Windows graphical acceptance on verified CI Portable/Setup executables, test setup destination selection/uninstall, tray/overlay/USB hotplug and Classic parity; binary hashes already verified
