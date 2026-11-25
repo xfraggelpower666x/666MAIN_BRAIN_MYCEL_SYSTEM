@@ -1,0 +1,29 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "author": {
+    "email": "dirk.meereis@t-online.de",
+    "name": "FRAGGLEPOWER666"
+  },
+  "description": "Repository-first 666TDI music design, native continuity, visual intelligence and governed triple-surface evolution.",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "capabilities": [
+          "Interactive"
+        ],
+        "category": "Productivity",
+        "defaultPrompt": [
+          "666TDI SYSTEMSTART",
+          "666TDI TRACKDESIGN",
+          "666TDI STATUS"
+        ],
+        "developerName": "FRAGGLEPOWER666",
+        "displayName": "666T.D.I. MUSIC DESIGN",
+        "longDescription": "Native 666TDI skills with repository-first rehydration, musical design, LiveCircle and evidence-led visual guidance.",
+        "shortDescription": "Native Music Intelligence"
+      }
+    }
+  },
+  "name": "666tdi-music-design",
+  "version": "0.1.0"
+}
