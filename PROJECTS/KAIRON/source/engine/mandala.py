@@ -20,6 +20,18 @@ def arrange(report):
                             'relation':item.get('relation'), 'effect':item.get('effect'),
                             'counterfactual':item.get('counterfactual'),
                             'status':'CREATOR_REVIEW_REQUIRED'})
-    return {'causal_transitions':transitions,
+    # Dynamische Kanten: nur tatsächlich aktive Funktionen verbinden.
+    ring_by_function={key:name for name,keys in roles for key in keys if key in active}
+    edges=[]
+    for rel in report.get('functional_relations', []):
+        left,right=rel.get('from'),rel.get('to')
+        if left in active and right in active:
+            edges.append({'from':left,'to':right,'from_ring':ring_by_function[left],
+                          'to_ring':ring_by_function[right],'relation':rel['relation'],
+                          'effect':rel.get('impact'),'status':'REVIEW_ONLY'})
+    occupied=[name for name,keys in roles if active.intersection(keys)]
+    return {'dynamic_rings':occupied,'functional_edges':edges,
+            'transformation_options':transitions,
+            'causal_transitions':transitions,
             'counterevidence':causal.get('counterevidence', []),
             'status':'REVIEW_ONLY','rings':[{'ring':name,'functions':[k for k in keys if k in active]} for name,keys in roles], 'gates':['BUILD','BREAK','RETURN'] if 'DYNAMICS' in active else [], 'low_stable':True,'audio_measured':False,'automatic_promotion':False}

@@ -69,7 +69,23 @@ def derive(intent, sem, ca):
     # Emotional and response candidates are reviewable even without wildness.
     if status=='REVIEW' and possibilities:
         status='CANDIDATE'
-    return {'system_id':'666TDI-001','revision':'R19.9','status':status,'evidence':evidence,'possibilities':possibilities,'flags':flags,'audio_verified':False,'automatic_promotion':False,'mandatory_sequence':False,'read_only':True}
+    # R21.3: gemeinsame funktionale Kanten statt zusätzlicher Genre-Schablonen.
+    edges=[]
+    for left,right,kind in [('wild','direction','CHAOS_TRAJECTORY'),
+                            ('perceptual','lowStable','SPATIAL_ANCHOR'),
+                            ('emotion','perceptual','EMOTIONAL_SPACE'),
+                            ('emotion','direction','EMOTIONAL_TRAJECTORY')]:
+        if left in evidence and right in evidence:
+            edges.append({'from':left,'to':right,'relation':kind,
+                          'evidence':{left:evidence[left],right:evidence[right]},
+                          'status':'HOLD' if status=='HOLD' else 'CREATOR_REVIEW_REQUIRED',
+                          'audio_measured':False})
+    if 'DYNAMIC_CONTRAST' in active and 'perceptual' in evidence:
+        edges.append({'from':'DYNAMIC_CONTRAST','to':'perceptual',
+                      'relation':'CONTRAST_SPATIAL_MOVEMENT',
+                      'evidence':{'DYNAMIC_CONTRAST':active['DYNAMIC_CONTRAST'],'perceptual':evidence['perceptual']},
+                      'status':'HOLD' if status=='HOLD' else 'CREATOR_REVIEW_REQUIRED','audio_measured':False})
+    return {'functional_edges':edges,'system_id':'666TDI-001','revision':'R19.9','status':status,'evidence':evidence,'possibilities':possibilities,'flags':flags,'audio_verified':False,'automatic_promotion':False,'mandatory_sequence':False,'read_only':True}
 
 
 def assess(intent, total_bars=None):

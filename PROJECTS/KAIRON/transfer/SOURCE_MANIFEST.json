@@ -1,6 +1,6 @@
 {
   "system_id": "666TDI-001",
-  "source_file_count": 118,
+  "source_file_count": 119,
   "source_files": {
     "README.md": "e19ce33fac348c8e7a3c4d6c2e2c0e9e0958f9906012025cb17ac483abcdb498",
     "START_666TDI_DAEMON.bat": "9bc36ce36725a7a6c3cc492c7ceb0b348154379f24d16fe9877870d84eb2264c",
@@ -47,14 +47,14 @@
     "engine/evolution_cli.py": "0313589fa6a2eb62842bde5e7850a40b88a5fe825b78d96b9aa5d3f6a2900813",
     "engine/heritage.py": "7d2c8b0d77faaa3c72f2b4edff72c48330344a0c0302dfd3f7719018d9ee2105",
     "engine/heritage_cli.py": "6a9184b3cf227cb0cfa88ce22b54af724a92f2dab4352a04d71caa175944515f",
-    "engine/mandala.py": "7db7675e5a20dc9b4b82777bcc64faf82e34f9c1337d94115fd0d6a0d33b2dfb",
+    "engine/mandala.py": "d0cc2b0e6ab84085dfe60f6529415332a83a4c26171728df133af94edc5b406c",
     "engine/motor_intelligence.py": "3c97ce102a72fe76230faf7912379de831e7e0c215cae758182303d5f1b4bf21",
     "engine/music_memory.py": "a066f3b2edd07783604b14325515fe5c452ba83c1f89396302ca141d8ea010af",
-    "engine/musical_forces.py": "1cae57c5df0fbe18992feb3c651a226efcb9d13caf9076fcf1ba938e48a65652",
+    "engine/musical_forces.py": "7423f1378494940c98059f311b76d8a0e8b1f91b55dd518b063b7e80adc84e3f",
     "engine/pattern_cli.py": "3ced409958adf5d321cfdf714e456f65c125c572eb9550f5cdf4cf94ef78d3f8",
     "engine/pattern_relations.py": "ba353a67868293beedd1942ab375f82c64f1b245a6bc0038386bdb3c6272a45b",
     "engine/portable.py": "646e996df19a17853e18f90ec42f7d666c0a1124b8fc2f7e530abfd7e9f96e5b",
-    "engine/preset_evidence.py": "e9da2b6432f843ecc1813817a3b3a15cb7b6b6271daf30d769151c5f509e808c",
+    "engine/preset_evidence.py": "e3df6f456f5e252f220dec44da733df64f7559a877651f6470a2b45caabe17cf",
     "engine/production_quality.py": "fc43387f2d9f98af9e9ba5018985167660064b9670be1e0548e225d29b37feeb",
     "engine/relational.py": "1db708640cdcd4ae0a37abca43ebaeb87f00adecc44d4da00118617afb7df0d0",
     "engine/relational_cli.py": "519c445cf5c77522bc957b560e6b0b7fac1d3f791d0ecf5169763311ba17bd16",
@@ -119,7 +119,8 @@
     "tests/test_semantic_reinforcement.py": "194fc85022485adcfe4060dcf5a6d02831011c6c7eb5ba856179c79f58b3005d",
     "tests/test_source_adapters.py": "00e8dde49017bda1e29467bbdad51cc78803567bd47749e8a92e08a5b11daaab",
     "tests/test_track_preanalysis.py": "a15d36e6367f27738ab835083be46a65c8ac5916369c1b949869c5ef46328a96",
-    "tests/test_native_consumer_r213.py": "9840ec03fdee0622ac6ed649f9c2faeb78e7e2d598c0db999da5eb2538cc2ff9"
+    "tests/test_native_consumer_r213.py": "9840ec03fdee0622ac6ed649f9c2faeb78e7e2d598c0db999da5eb2538cc2ff9",
+    "tests/test_emergent_evolution_r213.py": "91f7ca755f728c97675104e66d4edd955b997dc1b1887320844191867775304c"
   },
   "source_git_sha1": {
     "README.md": "83577b17ef012ce50061118b5fd8382796ad2da2",
@@ -167,14 +168,14 @@
     "engine/evolution_cli.py": "84457bc24727c3d45c8e923a8827baa8f656f7b3",
     "engine/heritage.py": "6409cd48d9a7934cf6cdf14729f32e551124431d",
     "engine/heritage_cli.py": "ce41c39b2547d7bb52c7b488a359749e83adf8fe",
-    "engine/mandala.py": "645df006a5b3ebcb9cd99e58d7f8e5eeafd05b42",
+    "engine/mandala.py": "77d496f9ba3cbe901a05f1edcd9143f655f8073b",
     "engine/motor_intelligence.py": "a7a293a92784e70673ede5b007998586647ac895",
     "engine/music_memory.py": "6d005ac7269978e2a4660e50b993aa3e70eca494",
-    "engine/musical_forces.py": "6a9e90afeed345e6c92bb918e4655955fa9bdeb9",
+    "engine/musical_forces.py": "f28e1639d4ed6fb3543698ecf6899ff7c3d30f3b",
     "engine/pattern_cli.py": "b107ced6aad1662d41e72d449daa1a23c52be676",
     "engine/pattern_relations.py": "a3784ed2d865a37ce597d992c3e171b5e04a1a70",
     "engine/portable.py": "ded0ae68552e6bd90fd13f733b801c5b0a1dac94",
-    "engine/preset_evidence.py": "4824eb0c4a31318dd888fa475b309983be9eb266",
+    "engine/preset_evidence.py": "d7db32ff78163175a379762746606daf417ef8b1",
     "engine/production_quality.py": "9d54d063a4a5a2d3449f768d6d3bb8a8040e1e3f",
     "engine/relational.py": "7f925ae98b39144aace30baad8f450b3f634741e",
     "engine/relational_cli.py": "9ef64ca9cdb6867e02828b3d4b912332fc24ffda",
@@ -239,7 +240,8 @@
     "tests/test_semantic_reinforcement.py": "888eca0d628ec88402c9ecdcfa5ba17dedbde02c",
     "tests/test_source_adapters.py": "c57286fac4eb21b4abca8d00c6febd3c4edb541f",
     "tests/test_track_preanalysis.py": "e4e59f6a4739ee4020efa39c7ba826b32681564d",
-    "tests/test_native_consumer_r213.py": "bcae3516574685d06de5c32531fe87ba81d936d9"
+    "tests/test_native_consumer_r213.py": "bcae3516574685d06de5c32531fe87ba81d936d9",
+    "tests/test_emergent_evolution_r213.py": "fc8e059717cdab39c1b37ad0d044c9497f3d9c6e"
   },
   "source_archive_sha256": "4f0741ef3fdf438772fda6d406baaca02eddd4262ef9681bdc2517955c1703d1",
   "source_origin": "666TDI_v2.5_ADDITIVE_R08_PORTABLE.zip",
@@ -249,10 +251,10 @@
   ],
   "scope": "PROJECTS/KAIRON/source",
   "preserve_existing": true,
-  "source_manifest_revision": "R21.3-native-consumer",
-  "source_tree_base_commit": "de6e274559d5ddc7c156f6d724c0dbdabdc605d3",
+  "source_manifest_revision": "R21.3-emergent-evolution",
+  "source_tree_base_commit": "3e572a0b483e7d351116293a96bccc7d871b1873",
   "source_tree_base_sha": "e1e3e7fd77a0438690e8e0cbb1cf0418f2315e2e",
   "source_archive_sha256_semantics": "HISTORICAL_ORIGINAL_ARCHIVE_NOT_CURRENT_TREE",
   "integrity_method": "UNCHANGED_GIT_BLOB_REUSE; CHANGED_UTF8_SHA256_AND_CI_RAW_BYTES",
-  "previous_manifest_blob": "8ac79862e78ed479bf7284c57890d3f3d8a96f1b"
+  "previous_manifest_blob": "81b836f0ad2b7d55186fbc624ae7120405cc9c70"
 }
