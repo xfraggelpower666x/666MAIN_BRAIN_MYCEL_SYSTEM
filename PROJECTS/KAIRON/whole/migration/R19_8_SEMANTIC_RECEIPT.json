@@ -1,0 +1,40 @@
+{
+  "system_id": "666TDI-001",
+  "namespace": "KAIRON",
+  "revision": "R19.8",
+  "scope": "CANDIDATE_ONLY",
+  "base_commit": "ca3d671200c0e9dd9cdd42004ca854b7e4e89879",
+  "base_tree": "2db065c9416bd474e69385bd7575dc0ac10ed469",
+  "backup_branch": "backup/kairon-r198-semantic-pre-ca3d671",
+  "historical_commit": "0c5966a0136de308a0bbd78519c3c1c4936917f8",
+  "blobs": {
+    "source/engine/semantic_reinforcement.py": "6c719ca908cde377004bba807609fa1b99a5bd7e",
+    "source/tests/test_semantic_reinforcement.py": "888eca0d628ec88402c9ecdcfa5ba17dedbde02c",
+    "source/engine/device_output.py": "b80d719bf2975eca476ecccc8ded77955f22081d",
+    "source/engine/semantic_guard.py": "5f0d8e75445ea6c9c739f51e942887a4bf08b42e",
+    "source/tests/test_semantic_guard.py": "f52f22eefba985b6deefd4dc9a8b664ab01a9b1d",
+    "source/registry/additive_modules.json": "6b34e72b81ac6819ee70b3fa9e309d407e829a83",
+    "source/engine/semantic_intelligence.py": "51cbcd4cc26dd44425eccfcee1984935c624988f"
+  },
+  "baseline_failure": "10 PASS, 1 ERROR: missing semantic_reinforcement_audit key",
+  "regression": {
+    "python": "3.13.5",
+    "command": "python -m unittest discover -s tests -p 'test_semantic*.py' -v",
+    "original": 11,
+    "new": 12,
+    "existing": 12,
+    "failed": 0,
+    "log_blob": "f5e242c9f42730de52c218568dd80ef4bf03748c",
+    "log_sha256": "a2f738bc311584a8f114f35d722dd1193ca9727607437d5534ac766154e4f533"
+  },
+  "limitations": [
+    "Creator-reported renderer behavior not audio verified",
+    "Rule-based negation and vocal-command heuristic; no complete ending grammar",
+    "Explicit reviewed_variant is separate from translation; no automatic rewrite",
+    "Full device daemon suite, host acceptance and A07-A15 incomplete",
+    "R19.7 supervisor remains pinned to its prior contract and approved suites"
+  ],
+  "production_promotion": false,
+  "current_pointer": "WITHHELD",
+  "host_acceptance": "OPEN"
+}

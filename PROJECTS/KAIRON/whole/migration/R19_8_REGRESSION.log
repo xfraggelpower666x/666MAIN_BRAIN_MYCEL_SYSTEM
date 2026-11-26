@@ -1,0 +1,40 @@
+test_exact_positive (test_semantic_guard.GuardTests.test_exact_positive) ... ok
+test_instrumental (test_semantic_guard.GuardTests.test_instrumental) ... ok
+test_negated (test_semantic_guard.GuardTests.test_negated) ... ok
+test_negation_scope (test_semantic_guard.GuardTests.test_negation_scope) ... ok
+test_no_silent_rewrite (test_semantic_guard.GuardTests.test_no_silent_rewrite) ... ok
+test_overlap (test_semantic_guard.GuardTests.test_overlap) ... ok
+test_unapproved (test_semantic_guard.GuardTests.test_unapproved) ... ok
+test_utf16 (test_semantic_guard.GuardTests.test_utf16) ... ok
+test_vacuum_not_silence (test_semantic_guard.GuardTests.test_vacuum_not_silence) ... ok
+test_vocal_command (test_semantic_guard.GuardTests.test_vocal_command) ... ok
+test_wrong_line_symbol (test_semantic_guard.GuardTests.test_wrong_line_symbol) ... ok
+test_wrong_symbol (test_semantic_guard.GuardTests.test_wrong_symbol) ... ok
+test_arrangement_can_resolve_collision_candidate (test_semantic_intelligence.SemanticIntelligenceR09Tests.test_arrangement_can_resolve_collision_candidate) ... ok
+test_avoid_swing_is_constraint_not_support (test_semantic_intelligence.SemanticIntelligenceR09Tests.test_avoid_swing_is_constraint_not_support) ... ok
+test_constraint_field_never_supports_function (test_semantic_intelligence.SemanticIntelligenceR09Tests.test_constraint_field_never_supports_function) ... ok
+test_empty_input_is_not_invented (test_semantic_intelligence.SemanticIntelligenceR09Tests.test_empty_input_is_not_invented) ... ok
+test_function_explains_why (test_semantic_intelligence.SemanticIntelligenceR09Tests.test_function_explains_why) ... ok
+test_motor_and_bass_swing_collision (test_semantic_intelligence.SemanticIntelligenceR09Tests.test_motor_and_bass_swing_collision) ... ok
+test_negation_does_not_create_positive_support (test_semantic_intelligence.SemanticIntelligenceR09Tests.test_negation_does_not_create_positive_support) ... ok
+test_negation_scope_does_not_leak_to_next_clause (test_semantic_intelligence.SemanticIntelligenceR09Tests.test_negation_scope_does_not_leak_to_next_clause) ... ok
+test_positive_function_evidence (test_semantic_intelligence.SemanticIntelligenceR09Tests.test_positive_function_evidence) ... ok
+test_reject_non_object (test_semantic_intelligence.SemanticIntelligenceR09Tests.test_reject_non_object) ... ok
+test_track_local_read_only_contract (test_semantic_intelligence.SemanticIntelligenceR09Tests.test_track_local_read_only_contract) ... ok
+test_voice_and_dense_layers_collision (test_semantic_intelligence.SemanticIntelligenceR09Tests.test_voice_and_dense_layers_collision) ... ok
+test_bpm_independence (test_semantic_reinforcement.ReinforcementTests.test_bpm_independence) ... ok
+test_exact_words_and_utf16 (test_semantic_reinforcement.ReinforcementTests.test_exact_words_and_utf16) ... ok
+test_genre_order (test_semantic_reinforcement.ReinforcementTests.test_genre_order) ... ok
+test_negated_anchor (test_semantic_reinforcement.ReinforcementTests.test_negated_anchor) ... ok
+test_output_audit (test_semantic_reinforcement.ReinforcementTests.test_output_audit) ... ok
+test_positive_anchor (test_semantic_reinforcement.ReinforcementTests.test_positive_anchor) ... ok
+test_response_and_terminal (test_semantic_reinforcement.ReinforcementTests.test_response_and_terminal) ... ok
+test_stale_span (test_semantic_reinforcement.ReinforcementTests.test_stale_span) ... ok
+test_three_surfaces (test_semantic_reinforcement.ReinforcementTests.test_three_surfaces) ... ok
+test_unapproved (test_semantic_reinforcement.ReinforcementTests.test_unapproved) ... ok
+test_vocal_return (test_semantic_reinforcement.ReinforcementTests.test_vocal_return) ... ok
+
+----------------------------------------------------------------------
+Ran 35 tests in 0.023s
+
+OK

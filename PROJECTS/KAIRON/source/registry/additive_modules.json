@@ -195,6 +195,21 @@
       "no_audio_claim": true,
       "no_cross_system_learning": true,
       "no_autonomous_music_controller": true
+    },
+    "semantic_reinforcement_r198": {
+      "status": "CANDIDATE_LOCAL_REGRESSION_PASS_HOST_OPEN",
+      "scope": "KAIRON_TRACK_LOCAL_CREATOR_REVIEW",
+      "source": "engine/semantic_reinforcement.py",
+      "guard": "engine/semantic_guard.py",
+      "consumer": "engine/device_output.py",
+      "original_commit": "0c5966a0136de308a0bbd78519c3c1c4936917f8",
+      "original_blob": "6c719ca908cde377004bba807609fa1b99a5bd7e",
+      "original_test_blob": "888eca0d628ec88402c9ecdcfa5ba17dedbde02c",
+      "reviewed_variant_requires_creator_approval": true,
+      "no_auto_rewrite": true,
+      "no_audio_claim": true,
+      "no_global_learning": true,
+      "no_foreign_authority": true
     }
   }
 }
