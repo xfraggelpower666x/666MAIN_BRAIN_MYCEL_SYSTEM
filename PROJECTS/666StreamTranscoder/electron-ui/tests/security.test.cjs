@@ -52,7 +52,14 @@ test('the UI package does not claim to package the 3DX audio runtime', () => {
   assert.equal(typeof pkg.scripts.start, 'string');
   assert.equal(typeof pkg.scripts.check, 'string');
   assert.equal(typeof pkg.scripts.test, 'string');
-  assert.equal(pkg.build, undefined);
+  // A preview-only package is allowed, but it must NEVER claim audio integration.
+  assert.equal(pkg.build.productName, '666StreamTranscoder UI PREVIEW');
+  assert.equal(pkg.build.directories.output, 'dist-preview');
+  assert.ok(pkg.build.files.includes('status-contract.cjs'));
+  for (const forbidden of ['radiostreamer/**/*','../radiostreamer/**/*','ffmpeg.exe','RadioStreamer.py']) {
+    assert.ok(!pkg.build.files.includes(forbidden), 'Unexpected audio asset: ' + forbidden);
+  }
+  assert.match(pkg.scripts['build:windows-preview'], /electron-builder/);
 });
 
 
