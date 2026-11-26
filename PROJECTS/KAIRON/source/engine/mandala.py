@@ -9,4 +9,17 @@ def arrange(report):
     if 'MANTRA' not in active or not active.intersection({'SPACE','DYNAMICS'}):
         return None
     roles=[('CENTER', ('MANTRA',)), ('INNER', ('MOTION','VOICE')), ('MIDDLE', ('DYNAMICS','FX')), ('OUTER', ('SPACE',))]
-    return {'status':'REVIEW_ONLY','rings':[{'ring':name,'functions':[k for k in keys if k in active]} for name,keys in roles], 'gates':['BUILD','BREAK','RETURN'] if 'DYNAMICS' in active else [], 'low_stable':True,'audio_measured':False,'automatic_promotion':False}
+    # Native causal evidence is projected into functional transitions, not new rules.
+    causal=report.get('causal_evidence', {})
+    transitions=[]
+    for item in causal.get('candidates', []):
+        functions=item.get('functions', [])
+        if not functions or not item.get('evidence'):
+            continue
+        transitions.append({'id':item['id'], 'functions':list(functions),
+                            'relation':item.get('relation'), 'effect':item.get('effect'),
+                            'counterfactual':item.get('counterfactual'),
+                            'status':'CREATOR_REVIEW_REQUIRED'})
+    return {'causal_transitions':transitions,
+            'counterevidence':causal.get('counterevidence', []),
+            'status':'REVIEW_ONLY','rings':[{'ring':name,'functions':[k for k in keys if k in active]} for name,keys in roles], 'gates':['BUILD','BREAK','RETURN'] if 'DYNAMICS' in active else [], 'low_stable':True,'audio_measured':False,'automatic_promotion':False}
