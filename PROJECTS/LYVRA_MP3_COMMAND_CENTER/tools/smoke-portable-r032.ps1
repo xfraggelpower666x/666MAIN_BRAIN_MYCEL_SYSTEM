@@ -14,8 +14,8 @@ try{
  foreach($name in @('LYVRA_PYTHON','LYVRA_FFMPEG','LYVRA_FFPROBE','PYTHONHOME','PYTHONPATH','VIRTUAL_ENV')){Remove-Item "Env:$name" -ErrorAction SilentlyContinue}
  $proc=Start-Process -FilePath $exe -ArgumentList '--lyvra-smoke' -WorkingDirectory $dist -PassThru
  if(!$proc.WaitForExit(120000)){Stop-Process -Id $proc.Id -Force;throw 'GUI timeout'}
- if($proc.ExitCode -ne 0){throw "GUI exit $($proc.ExitCode)"}
  $receipt=Join-Path ([IO.Path]::GetTempPath()) "lyvra-r032-$($proc.Id).json"
+ if($proc.ExitCode -ne 0){if(Test-Path $receipt){Get-Content -LiteralPath $receipt -Raw | Write-Host};throw "GUI exit $($proc.ExitCode)"}
  if(!(Test-Path $receipt)){throw 'GUI receipt fehlt'}
  $data=Get-Content -LiteralPath $receipt -Raw | ConvertFrom-Json
  if($data.status -ne 'PASS' -or !$data.packaged -or !$data.visible){throw 'GUI receipt ungültig'}

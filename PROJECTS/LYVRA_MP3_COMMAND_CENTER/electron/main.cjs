@@ -15,7 +15,8 @@ function auth(e){if(!win||e.sender!==win.webContents||e.senderFrame!==win.webCon
 function handle(name,fn){ipcMain.handle('cc:'+name,(e,...args)=>{auth(e);if(!ready)throw Error('System nicht bereit');return fn(...args)})}
 function send(data){if(win&&!win.isDestroyed())win.webContents.send('cc:event',data)}
 function boot(text){if(win&&!win.isDestroyed())win.webContents.send('cc:boot',text)}
-async function probe(command,args){return exec(command,args,{windowsHide:true,timeout:20000,maxBuffer:1024*1024})}
+function workerEnv(){const dirs=[ffmpeg,ffprobe].filter(p=>path.isAbsolute(p)).map(p=>path.dirname(p));return {...process.env,PATH:[...new Set(dirs),process.env.PATH||''].join(path.delimiter),PYTHONUTF8:'1',LYVRA_FFMPEG:ffmpeg,LYVRA_FFPROBE:ffprobe}}
+async function probe(command,args){return exec(command,args,{windowsHide:true,timeout:20000,maxBuffer:1024*1024,env:workerEnv()})}
 async function startup(){
  const started=Date.now();
  try{
@@ -25,15 +26,15 @@ async function startup(){
   boot('QUELLEN PRÜFEN: '+layout.mode);
   boot('PYTHON / DSP PRÜFEN');await probe(python,['-c','import mutagen, numpy, scipy, soundfile, pywt, pyloudnorm; from importlib.metadata import version; version("sounddevice")']);
   boot('FFMPEG / FFPROBE PRÜFEN');await probe(ffmpeg,['-version']);await probe(ffprobe,['-version']);
-  boot('MP3 ENGINE PRÜFEN');const r=await exec(python,[path.join(workerRoot,'tools','probe_mp3.py'),mp],{windowsHide:true,timeout:20000});if(!r.stdout.includes('MP3_READY'))throw Error('MP3 Engine nicht bereit');
+  boot('MP3 ENGINE PRÜFEN');const r=await exec(python,[path.join(workerRoot,'tools','probe_mp3.py'),mp],{windowsHide:true,timeout:20000,env:workerEnv()});if(!r.stdout.includes('MP3_READY'))throw Error('MP3 Engine nicht bereit');
   boot('HUD INITIALISIEREN');await new Promise(r=>setTimeout(r,Math.max(0,8000-(Date.now()-started))));
   await win.loadFile(path.join(root,'renderer','index.html'));ready=true;
   if(smoke){const hud=await win.webContents.executeJavaScript("document.title==='LYVRA MP3 COMMAND CENTER' && !!document.querySelector('#choose') && !!document.querySelector('#restore')");if(!hud||!win.isVisible())throw Error('HUD nicht bereit');fs.writeFileSync(path.join(app.getPath('temp'),'lyvra-r032-'+process.pid+'.json'),JSON.stringify({status:'PASS',packaged:app.isPackaged,visible:win.isVisible(),workerRoot,python,ffmpeg,ffprobe}),{flag:'wx'});app.exit(0)}
- }catch(e){if(smoke){console.error(e);app.exit(1);return}if(!win.isVisible()){await win.loadFile(path.join(root,'renderer','boot.html'));win.show()}boot('START BLOCKIERT: '+e.message);dialog.showErrorBox('LYVRA Start blockiert',e.message)}
+ }catch(e){if(smoke){const detail={status:'FAIL',message:String(e.message),stderr:String(e.stderr||'').slice(-4000),stack:String(e.stack||'').slice(-4000)};fs.writeFileSync(path.join(app.getPath('temp'),'lyvra-r032-'+process.pid+'.json'),JSON.stringify(detail),{flag:'wx'});console.error(detail);app.exit(1);return}if(!win.isVisible()){await win.loadFile(path.join(root,'renderer','boot.html'));win.show()}boot('START BLOCKIERT: '+e.message);dialog.showErrorBox('LYVRA Start blockiert',e.message)}
 }
 function run(module,script,args,data,keepStdin=false){
  if(job)throw Error('Ein Audioauftrag läuft bereits');
- const child=spawn(python,['-u',script,...args],{cwd:path.dirname(script),windowsHide:true,stdio:['pipe','pipe','pipe'],env:{...process.env,LYVRA_FFMPEG:ffmpeg,LYVRA_FFPROBE:ffprobe,PATH:path.dirname(ffmpeg)+path.delimiter+path.dirname(ffprobe)+path.delimiter+process.env.PATH,PYTHONUTF8:'1'}});
+ const child=spawn(python,['-u',script,...args],{cwd:path.dirname(script),windowsHide:true,stdio:['pipe','pipe','pipe'],env:workerEnv()});
  job={child,module,keepStdin};let buffer='',failed=false;child.stdout.setEncoding('utf8');
  child.stdout.on('data',chunk=>{buffer+=chunk;if(buffer.length>8*1024*1024){failed=true;child.kill();return}let i;while((i=buffer.indexOf('\n'))>=0){const line=buffer.slice(0,i);buffer=buffer.slice(i+1);try{send({module,data:JSON.parse(line)})}catch{send({module,data:{message:line.slice(0,1000)}})}}});
  child.stderr.on('data',c=>send({module,data:{message:c.toString().slice(0,1000)}}));
