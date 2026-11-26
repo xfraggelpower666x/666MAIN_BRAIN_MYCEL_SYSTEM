@@ -78,7 +78,9 @@ def verify_source_checkpoint(root: Path, pointer: dict) -> dict:
             or receipt.get("manifest_bound_files") != checkpoint.get("manifest_bound_files")
             or receipt.get("operational_runtime_imported") is not False):
         raise ValueError("CLS candidate boundary/receipt mismatch")
-    manifest_path = candidate / "R08_FILE_MANIFEST.json"
+    manifest_path = (candidate / "R08_FILE_MANIFEST.json").resolve(strict=True)
+    if not manifest_path.is_relative_to(candidate) or not manifest_path.is_file():
+        raise ValueError("CLS candidate manifest escaped source root")
     manifest = _load_json(manifest_path)
     checksums = manifest.get("files_sha256")
     if (manifest.get("schema") != "666CURES_R08_LOCAL_FILE_MANIFEST_V1"

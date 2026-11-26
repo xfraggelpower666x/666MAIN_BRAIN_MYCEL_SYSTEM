@@ -81,6 +81,16 @@ class CheckpointTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'authority/boundary mismatch'):
             verify_source_checkpoint(self.root, self.ptr)
 
+    def test_manifest_symlink_escape_rejected(self):
+        original = self.src / 'R08_FILE_MANIFEST.json'
+        external = self.root.parent / (self.root.name + '_outside_manifest.json')
+        external.write_bytes(original.read_bytes())
+        self.addCleanup(external.unlink)
+        original.unlink()
+        original.symlink_to(external)
+        with self.assertRaisesRegex(ValueError, 'manifest escaped source root'):
+            verify_source_checkpoint(self.root, self.ptr)
+
     def test_missing_manifest_rejected(self):
         (self.src / 'R08_FILE_MANIFEST.json').unlink()
         with self.assertRaises(FileNotFoundError):
