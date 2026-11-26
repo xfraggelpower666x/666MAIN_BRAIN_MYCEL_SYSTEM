@@ -41,6 +41,13 @@ class CheckpointTests(unittest.TestCase):
             'archive_file_entries': 2, 'manifest_bound_files': 1,
             'operational_runtime_imported': False}), encoding='utf-8')
 
+        for filename, field in [('BOUNDARY.json', 'boundary_blob'),
+                                ('PUBLICATION_RECEIPT.json', 'receipt_blob')]:
+            data = (self.src.parent / filename).read_bytes()
+            self.ptr['source_publication_checkpoint'][field] = hashlib.sha1(
+                b'blob ' + str(len(data)).encode('ascii') + b'\0' + data
+            ).hexdigest()
+
     def test_valid_source(self):
         self.assertEqual(verify_source_checkpoint(self.root, self.ptr)['verified_files'], 1)
 
@@ -92,7 +99,14 @@ class CheckpointTests(unittest.TestCase):
         p = self.src.parent / 'PUBLICATION_RECEIPT.json'
         d = json.loads(p.read_text()); d['source_git_tree_sha'] = 'c' * 40
         p.write_text(json.dumps(d))
-        with self.assertRaisesRegex(ValueError, 'boundary/receipt mismatch'):
+        with self.assertRaisesRegex(ValueError, 'Git blob mismatch'):
+            verify_source_checkpoint(self.root, self.ptr)
+
+    def test_boundary_tampering_rejected(self):
+        p = self.src.parent / 'BOUNDARY.json'
+        d = json.loads(p.read_text()); d['no_cross_system_merge'] = False
+        p.write_text(json.dumps(d))
+        with self.assertRaisesRegex(ValueError, 'Git blob mismatch'):
             verify_source_checkpoint(self.root, self.ptr)
 
 

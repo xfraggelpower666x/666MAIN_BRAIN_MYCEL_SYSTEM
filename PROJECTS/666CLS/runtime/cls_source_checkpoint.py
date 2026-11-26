@@ -24,6 +24,11 @@ def _digest(path: Path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _git_blob(path: Path):
+    data = path.read_bytes()
+    return hashlib.sha1(b"blob " + str(len(data)).encode("ascii") + b"\0" + data).hexdigest()
+
+
 def verify_source_checkpoint(root: Path, pointer: dict) -> dict:
     """Fail-closed read-only manifest and ownership verification.
 
@@ -56,9 +61,9 @@ def verify_source_checkpoint(root: Path, pointer: dict) -> dict:
     for path in (receipt_path, boundary_path):
         if not path.is_relative_to(root_resolved) or not path.is_file():
             raise ValueError("CLS candidate checkpoint path invalid")
-    if (checkpoint.get("receipt_blob") is None
-            or checkpoint.get("boundary_blob") is None):
-        raise ValueError("CLS checkpoint source Git evidence missing")
+    if (checkpoint.get("receipt_blob") != _git_blob(receipt_path)
+            or checkpoint.get("boundary_blob") != _git_blob(boundary_path)):
+        raise ValueError("CLS checkpoint receipt/boundary Git blob mismatch")
     boundary = _load_json(boundary_path)
     receipt = _load_json(receipt_path)
     if (boundary.get("owner") != "666CLS-CORE-001"
