@@ -126,6 +126,9 @@ def analyze(track):
     out['analysis']['semantic_intelligence']=semantic.assess(out)
     from . import creative_causal as causal
     out['analysis']['creative_causal']=causal.assess(out)
+    # R20.9: lyric/context Guard-Audit-Trigger is advisory and preserves the native intent.
+    from . import context_preset
+    out['analysis']['context_preset']=context_preset.evaluate(out)
     out['analysis']['relations']=[{'from':'LOW','to':'MID/HIGH','reason':'Tempo/Phasenstabilität bei wahrnehmungsbezogener Bewegung','constraint':'LOW_STABLE'},
         {'from':'STORY','to':'ARRANGEMENT','reason':'Musikalische Ereignisse müssen eine nachvollziehbare Funktion haben','constraint':'NO_RANDOM_STORY_INVENTION'},
         {'from':'RENDERER','to':'INTENT','reason':'Renderer begrenzt Ausdruck, nicht musikalische Bedeutung','constraint':'NO_COMPOSITION_OVERRIDE'}]
