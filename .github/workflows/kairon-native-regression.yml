@@ -1,0 +1,51 @@
+name: KAIRON native regression
+on:
+  push:
+    branches: ['integration/kairon-r19-native-20261126']
+    paths:
+      - 'PROJECTS/KAIRON/**'
+      - '.github/workflows/kairon-native-regression.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: kairon-native-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  regression:
+    if: github.ref == 'refs/heads/integration/kairon-r19-native-20261126'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          sparse-checkout: PROJECTS/KAIRON
+      - name: Native source regression (nonzero test count)
+        working-directory: PROJECTS/KAIRON/source
+        run: |
+          python3 - <<'PY'
+          import unittest
+          suite = unittest.defaultTestLoader.discover('tests')
+          count = suite.countTestCases()
+          if count == 0:
+              raise SystemExit('ZERO_TESTS')
+          print('Discovered tests:', count, flush=True)
+          result = unittest.TextTestRunner(verbosity=2).run(suite)
+          raise SystemExit(0 if result.wasSuccessful() and result.testsRun else 1)
+          PY
+      - name: Whole daemon regression (nonzero test count)
+        working-directory: PROJECTS/KAIRON/whole/daemon
+        run: |
+          python3 - <<'PY'
+          import unittest
+          suite = unittest.defaultTestLoader.discover('.')
+          if not suite.countTestCases():
+              raise SystemExit('ZERO_TESTS')
+          result = unittest.TextTestRunner(verbosity=2).run(suite)
+          raise SystemExit(0 if result.wasSuccessful() and result.testsRun else 1)
+          PY
+      - name: Repository rehydration integrity
+        working-directory: PROJECTS/KAIRON
+        if: always()
+        run: python3 rehydration/rehydrate.py
