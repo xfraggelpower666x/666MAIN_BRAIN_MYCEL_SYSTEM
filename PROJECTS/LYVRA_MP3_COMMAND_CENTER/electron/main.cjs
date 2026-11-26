@@ -7,6 +7,8 @@ const {resolveLayout}=require('./source-layout.cjs');
 const exec=promisify(execFile),root=path.resolve(__dirname,'..');
 const workerRoot=app.isPackaged?path.join(process.resourcesPath,'workers'):root;
 const {locate}=require('./portable-runtime.cjs');
+const settings=require('./settings.cjs');
+const settingsFile=()=>path.join(app.getPath('userData'),'settings.json');
 let mp,djRoot,restore;
 let python,ffmpeg,ffprobe;
 const smoke=process.argv.includes('--lyvra-smoke');
@@ -42,6 +44,8 @@ function run(module,script,args,data,keepStdin=false){
  child.once('close',code=>{if(job?.child===child)job=null;send({module,data:{type:'ended',code:failed?1:code}})});
  child.stdin.write(JSON.stringify(data)+'\n');if(!keepStdin)child.stdin.end();return true;
 }
+handle('settings-read',()=>settings.load(settingsFile()));
+handle('settings-save',value=>{const s=settings.save(settingsFile(),value);win.setFullScreen(s.fullscreen);return s});
 handle('choose',async()=>{const r=await dialog.showOpenDialog(win,{properties:['openFile','multiSelections'],filters:[{name:'Audio',extensions:[...AUDIO].map(x=>x.slice(1))}]});if(r.canceled)return [];const files=r.filePaths.map(canonical).filter(p=>AUDIO.has(path.extname(p).toLowerCase())&&fs.statSync(p).isFile());files.forEach(p=>approved.add(p));return files});
 handle('folder',async()=>{if(job)throw Error('Auftrag läuft');const r=await dialog.showOpenDialog(win,{properties:['openDirectory','createDirectory']});if(!r.canceled)folder=canonical(r.filePaths[0]);return folder});
 handle('start',req=>{
@@ -56,5 +60,5 @@ handle('start',req=>{
  throw Error('Unbekannte Aktion');
 });
 handle('stop',()=>{if(!job)return false;if(!job.keepStdin)throw Error('Sicherer Abbruch für dieses Modul noch nicht integriert');job.child.stdin.write('CANCEL\n');return true});
-app.whenReady().then(()=>{win=new BrowserWindow({show:false,fullscreen:true,backgroundColor:'#08090f',autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,sandbox:true,nodeIntegration:false,webSecurity:true}});win.removeMenu();win.webContents.setWindowOpenHandler(()=>({action:'deny'}));win.webContents.on('will-navigate',e=>e.preventDefault());win.on('close',e=>{if(job){e.preventDefault();dialog.showMessageBox(win,{message:'Audioauftrag läuft. Bitte Abschluss abwarten oder MP3-Auftrag stoppen.'})}});startup()});
+app.whenReady().then(()=>{win=new BrowserWindow({show:false,fullscreen:(()=>{try{return settings.load(settingsFile()).fullscreen}catch{return true}})(),backgroundColor:'#08090f',autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,sandbox:true,nodeIntegration:false,webSecurity:true}});win.removeMenu();win.webContents.setWindowOpenHandler(()=>({action:'deny'}));win.webContents.on('will-navigate',e=>e.preventDefault());win.on('close',e=>{if(job){e.preventDefault();dialog.showMessageBox(win,{message:'Audioauftrag läuft. Bitte Abschluss abwarten oder MP3-Auftrag stoppen.'})}});startup()});
 app.on('window-all-closed',()=>app.quit());
