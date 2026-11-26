@@ -14,11 +14,13 @@ if($Action -eq 'check'){Write-Host 'Tool check passed. No installation performed
 & node --check renderer/app.js; if($LASTEXITCODE -ne 0){throw 'Renderer syntax failed'}
 if(-not (Test-Path node_modules/electron)){throw 'npm dependencies missing. Run npm ci (lockfile) or npm install explicitly.'}
 if($Action -eq 'run') { & npm start;exit $LASTEXITCODE }
+if($env:OS -ne 'Windows_NT'){throw 'Portable/NSIS builds require a Windows host. No cross-platform release claim.'}
 & $PythonCmd @PythonArgs -m PyInstaller --version | Out-Null
 if($LASTEXITCODE -ne 0){throw 'PyInstaller missing. Install explicitly with the selected Python interpreter (-m pip install pyinstaller)'}
 New-Item -ItemType Directory -Force build/runtime | Out-Null
-& $PythonCmd @PythonArgs -m PyInstaller --onefile --clean --noconfirm --name 666-catalog-bridge --distpath build/runtime --workpath build/pyi-work --specpath build/pyi-spec engine/bridge.py
+& $PythonCmd @PythonArgs -m PyInstaller --hidden-import pypdf --hidden-import docx --onefile --clean --noconfirm --name 666-catalog-bridge --distpath build/runtime --workpath build/pyi-work --specpath build/pyi-spec engine/bridge.py
 if($LASTEXITCODE -ne 0 -or -not (Test-Path build/runtime/666-catalog-bridge.exe)){throw 'Python bridge build failed'}
+if((Get-Item build/runtime/666-catalog-bridge.exe).Length -lt 1000000){throw 'Python bridge binary unexpectedly small'}
 $targets=@();switch($Action){portable{$targets=@('portable')};setup{$targets=@('nsis')};all{$targets=@('portable','nsis')}}
 foreach($target in $targets){& npx --no-install electron-builder --win $target --x64;if($LASTEXITCODE -ne 0){throw "Electron target $target failed"}}
 Write-Host 'Build artifacts in dist/. Verify both outputs on Windows before release.'
