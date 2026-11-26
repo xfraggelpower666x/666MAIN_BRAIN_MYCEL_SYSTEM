@@ -1,0 +1,42 @@
+{
+  "schema": "KAIRON_R21_3_ACCEPTANCE_RECEIPT_V1",
+  "system_id": "666TDI-001",
+  "scope": "CANDIDATE_ONLY",
+  "candidate_commit": "bbd7af91c7ce545a60cc9a74801ce58e4ff0745c",
+  "candidate_tree": "78533b5569d2eccfe2dc8839eeca1304113df495",
+  "backup": "backup/kairon-r213-acceptance-pre-bbd7af9",
+  "source_manifest": {
+    "blob": "b3e0a27e54d8c1f2d47915a15dbc9d966f99df90",
+    "entries": 122
+  },
+  "native_regression": {
+    "commit": "d3d85a263370d4e25b6d3c29d47ab6509608c867",
+    "run_id": 45901247580,
+    "source_tests": 339,
+    "daemon_tests": 91,
+    "conclusion": "success",
+    "rehydration": "CANDIDATE_INTEGRITY_VERIFIED",
+    "note": "Subsequent commit changed only browser runner workflow."
+  },
+  "browser": {
+    "commit": "bbd7af91c7ce545a60cc9a74801ce58e4ff0745c",
+    "run_id": 45901368235,
+    "job_id": 140187670254,
+    "conclusion": "success",
+    "test": "browser_acceptance.test_browser.BrowserAcceptance.test_mandala_forces_and_preset_lifecycle",
+    "runner": "ubuntu-24.04",
+    "playwright": "1.51.0"
+  },
+  "plugin": {
+    "version": "0.1.1",
+    "release_id": "pluginrel_6b086581e9ec81918a2fb88a690d9aa1",
+    "content_matches": 11,
+    "skills_delivered": 9,
+    "skills_repository": 14,
+    "extended_release": "OPEN",
+    "host_acceptance": "OPEN"
+  },
+  "windows": "OPTIONAL_BONUS_OPEN",
+  "production_promotion": false,
+  "current_pointer": "WITHHELD"
+}
