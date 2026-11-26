@@ -164,8 +164,8 @@
         "candidate_execution": false
       },
       "sha256": {
-        "runtime/cls_source_checkpoint.py": "21a9aa095b94ace04779852bcaac9edef17eefee98a308a39cb48271dedb036e",
-        "tests/test_cls_source_checkpoint.py": "687b6e4d587118ace05f2dcf6d148a93ae6f147d89195385f061389aade2a7be"
+        "runtime/cls_source_checkpoint.py": "ff16952486c0b131f6e66c7c8248ec05cc5ca0501d5a5fb2b71c9ed883baac30",
+        "tests/test_cls_source_checkpoint.py": "3ee7f4544687e3d0018de637c046f3f30dcb52e53467a0565bf6230746233ae1"
       }
     }
   ]
