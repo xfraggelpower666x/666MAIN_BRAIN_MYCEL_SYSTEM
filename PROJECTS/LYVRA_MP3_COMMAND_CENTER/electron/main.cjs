@@ -23,7 +23,7 @@ async function startup(){
   const layout=resolveLayout(workerRoot);mp=layout.mp;djRoot=path.dirname(path.dirname(layout.dj));restore=path.dirname(layout.restore);
   await win.loadFile(path.join(root,'renderer','boot.html'),{query:{source:layout.mode}});win.show();
   boot('QUELLEN PRÜFEN: '+layout.mode);
-  boot('PYTHON / DSP PRÜFEN');await probe(python,['-c','import mutagen, numpy, scipy, soundfile, pywt, pyloudnorm; from importlib.metadata import version; version('sounddevice')']);
+  boot('PYTHON / DSP PRÜFEN');await probe(python,['-c','import mutagen, numpy, scipy, soundfile, pywt, pyloudnorm; from importlib.metadata import version; version("sounddevice")']);
   boot('FFMPEG / FFPROBE PRÜFEN');await probe(ffmpeg,['-version']);await probe(ffprobe,['-version']);
   boot('MP3 ENGINE PRÜFEN');const r=await exec(python,[path.join(workerRoot,'tools','probe_mp3.py'),mp],{windowsHide:true,timeout:20000});if(!r.stdout.includes('MP3_READY'))throw Error('MP3 Engine nicht bereit');
   boot('HUD INITIALISIEREN');await new Promise(r=>setTimeout(r,Math.max(0,8000-(Date.now()-started))));
