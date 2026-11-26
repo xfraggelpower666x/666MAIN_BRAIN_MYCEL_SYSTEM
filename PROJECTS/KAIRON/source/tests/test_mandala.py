@@ -15,3 +15,17 @@ class MandalaTests(unittest.TestCase):
         r=evaluate({'lyrics':'mantra, orbit, drop'})
         self.assertEqual(r['mandala_arrangement']['status'],'REVIEW_ONLY')
         self.assertFalse(r['preset_auto_save'])
+
+    def test_causal_transitions_from_native_report(self):
+        from engine import creative_causal
+        track={'track_id':'mandala-proof','lyrics':'mantra, orbit','structure':'evolving transformation, drop'}
+        causal=creative_causal.assess(track)
+        result=evaluate(track,causal_report=causal)['mandala_arrangement']
+        self.assertIn('TRANSFORMING_RECURRENCE',[x['id'] for x in result['causal_transitions']])
+        self.assertFalse(result['automatic_promotion'])
+    def test_counterevidence_is_not_a_transition(self):
+        report=self.report(['MANTRA','SPACE'])
+        report['causal_evidence']={'candidates':[], 'counterevidence':[{'id':'blocked'}]}
+        result=arrange(report)
+        self.assertEqual(result['causal_transitions'],[])
+        self.assertEqual(result['counterevidence'],[{'id':'blocked'}])
