@@ -35,6 +35,8 @@ jobs:
           python-version: '3.11'
       - name: Check Python compilation
         run: python -m compileall -q radiostreamer tests/test_resin3_control_plane.py tests/test_resin3_modules.py tests/test_resin3_runtime_boundaries.py tests/test_crossfade_audio.py tests/test_pipe_lifecycle.py tests/test_device_routing.py tests/test_windows_endpoint_ids.py
+      - name: R13 desktop telemetry privacy and atomic-write tests
+        run: python -m unittest discover -s tests -p 'test_desktop_status.py' -v
       - name: Resin 3 contract suite (no audio device, no provider, no credentials)
         run: python -m unittest discover -s tests -p 'test_resin3_*.py' -v
       - name: Crossfade pure PCM tests
@@ -72,3 +74,24 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_windows_endpoint_ids.py' -v
       - name: Read-only IMMDevice enumeration on Windows runner
         run: python scripts/windows_hardware_probe.py --json
+
+  electron-readonly-status:
+    name: Electron R13 read-only contract tests (no broadcast)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: PROJECTS/666StreamTranscoder/electron-ui
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Electron code without installing packages
+        run: |
+          node --check main.cjs
+          node --check preload.cjs
+          node --check renderer.js
+          node --check status-contract.cjs
+      - name: Security and stale-status tests
+        run: node --test tests/*.test.cjs

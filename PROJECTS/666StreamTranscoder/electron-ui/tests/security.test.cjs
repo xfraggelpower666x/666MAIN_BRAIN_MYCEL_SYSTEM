@@ -24,7 +24,8 @@ test('preload exposes only disconnected read-only feature flags', () => {
   for (const value of ['engineConnected', 'canBroadcast', 'canMonitor', 'canChangeSettings']) {
     assert.match(preload, new RegExp(value + ':\\s*false'));
   }
-  assert.doesNotMatch(preload, /ipcRenderer|execFile|spawn/);
+  assert.match(preload, /ipcRenderer\.invoke\('stream:status'\)/);
+  assert.doesNotMatch(preload, /execFile|spawn|stream:command/);
 });
 
 test('all broadcast-affecting controls are disabled', () => {
@@ -52,4 +53,20 @@ test('the UI package does not claim to package the 3DX audio runtime', () => {
   assert.equal(typeof pkg.scripts.check, 'string');
   assert.equal(typeof pkg.scripts.test, 'string');
   assert.equal(pkg.build, undefined);
+});
+
+
+test('local status rejects malformed, stale and injected payloads', () => {
+  const {validateStatus} = require('../status-contract.cjs');
+  const now = 1000000;
+  const components = Object.fromEntries(['source','monitor','encoder','server','relay','error'].map(k => [k,'off']));
+  const good = {schema:'666.streamtranscoder.desktop-status.v1',timestamp_ms:now,
+    pid:123,status:'off',on_air:false,monitor_active:false,input_dbfs:null,
+    output_dbfs:-15,components};
+  assert.ok(validateStatus(good,now));
+  assert.equal(validateStatus({...good,timestamp_ms:now-6000},now),null);
+  assert.equal(validateStatus({...good,input_dbfs:Infinity},now),null);
+  assert.equal(validateStatus({...good,components:{...components,source:'<script>'}},now),null);
+  assert.equal(validateStatus({...good,on_air:true},now),null);
+  assert.equal(validateStatus({...good,providerPassword:'secret'},now).providerPassword,undefined);
 });
