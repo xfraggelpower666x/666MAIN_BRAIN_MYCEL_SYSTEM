@@ -23,7 +23,7 @@ concurrency:
 jobs:
   resin3-python-contracts:
     name: Resin 3 contract tests (headless)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     defaults:
       run:
