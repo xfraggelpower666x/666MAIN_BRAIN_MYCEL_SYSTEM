@@ -1,0 +1,332 @@
+{
+  "schema": "KAIRON_HISTORICAL_MEMORY_R20_2",
+  "system_id": "666TDI-001",
+  "records": [
+    {
+      "system_id": "666TDI-001",
+      "track_id": "historical-chat-13",
+      "title": "THE PRESSURE PARADOX",
+      "bpm": 148,
+      "state": "ISSUED",
+      "render_status": "CREATOR_REPORTED_TRACK_RENDER",
+      "exact_prompt_render_binding": false,
+      "audio_verified": false,
+      "provenance": {
+        "export_sha256": "1bdf6ec83ef9dd26ac424afdca2d238039d070174dba595552a575b86730d575",
+        "export_title": "666TDI Systemstatus",
+        "exported_at": "2026-11-26T08:20:20.324Z",
+        "message_index_zero_based": 13,
+        "role": "assistant",
+        "message_sha256": "9bcf281db894b902835783055a37635965a7d56df0db30e89ceba59fdd32710b",
+        "literal_spans": {
+          "style": [
+            1250,
+            2162
+          ],
+          "extended": [
+            332,
+            1229
+          ]
+        }
+      },
+      "source_id": "chat-1bdf6ec83ef9dd26-13",
+      "style": "148 BPM high-pressure dark psytechno, industrial full-on psytrance, underground bunker atmosphere, relentless dry punchy kick, tight rolling 1/16 mono psy-bass, deep controlled sub pressure, marching mechanical groove, angular acid spirals, metallic FM signals, psychedelic electric guitar call-and-response, coded percussion, 360-degree psychoacoustic movement, compressed tension and expansive spatial releases. Deep controlled male vocal against cold precise female vocal, gradually converging emotionally. Dark cinematic harmonic tension, ritual mantras, elastic slingshot dynamics, evolving rhythmic mutations, powerful contrasting drops, vacuum cuts, controlled chaos with clear rhythmic direction. Physical intensity without muddy saturation. No pop, EDM supersaws, festival builds, hard-techno drift, screaming or sentimental vocal delivery. Instrumental final reactivation and precise terminal ending.",
+      "extended": "148 BPM, 4/4, 240-bar conceptual arrangement: 16/32/32/32/16/48/48/16 bars. Target 6:29 musical duration, 2.5s silence at both edges. Cold DJ-safe intro, progressively compressed rhythmic layers, alternating male and female vocal dialogue. First drop: decisive kick-bass convergence. Vacuum breakdown: suspended sub pressure, exposed emotional voice. Transformation: psychedelic guitar answers acid and FM sequences in rotating patterns. Elastic pullback into double-thrust release. Final peak: relentless marching psy-bass, angular signal exchanges, controlled industrial chaos. Keep vocals dry, intelligible and centered; instruments answer in vocal gaps. Brief false ending, instrumental reactivation, final concentrated propulsion. No vocal return after terminal marker. Controlled DJ-compatible landing, decisive final impact and complete silence. No endless outro or abrupt mid-phrase cut.",
+      "sha256": "203cdd7557beb897471f28e9e6dff7cfea390f668967291d144477daab95a4a3"
+    },
+    {
+      "system_id": "666TDI-001",
+      "track_id": "historical-chat-19",
+      "title": "RESONANCE OF THE SOUL",
+      "bpm": 145,
+      "state": "ISSUED",
+      "render_status": "CREATOR_REPORTED_GROUP_RENDER",
+      "exact_prompt_render_binding": false,
+      "audio_verified": false,
+      "provenance": {
+        "export_sha256": "1bdf6ec83ef9dd26ac424afdca2d238039d070174dba595552a575b86730d575",
+        "export_title": "666TDI Systemstatus",
+        "exported_at": "2026-11-26T08:20:20.324Z",
+        "message_index_zero_based": 19,
+        "role": "assistant",
+        "message_sha256": "370e1ee648c1c1bb9f22ac5e30a5f0fb808fc56bb134af3862baeac1f9fa4105",
+        "literal_spans": {
+          "style": [
+            6266,
+            7190
+          ],
+          "extended": [
+            5343,
+            6245
+          ]
+        }
+      },
+      "source_id": "chat-1bdf6ec83ef9dd26-19",
+      "style": "Massive vocal psychoacoustic full-on psytrance, 145 BPM, dark cosmic atmosphere, relentless rattling 1/16 rolling mono psy-bass, tight galloping accents, deep sub weight, short hard dry psy kick. Rapid acid spirals, liquid FM squelches, laser zaps, granular glitches, stereo phase motion, reverse spectral sweeps, Doppler throws and intricate psychedelic percussion. Psychedelic electric guitar converses with synths. Powerful expressive female melodic lead, deep resonant male countervoice, haunting harmonies, emotional minor-key motifs. Clear centered vocals against wildly moving instrumental space. Explosive vocal-driven drops, elastic slingshots, rotating mantras, vacuum cuts, directed chaos, constant micro-variation and overwhelming forward momentum. Hardness through psychedelic rhythm, not techno distortion. No hard-techno groove, industrial pounding, pop chorus production, festival supersaws or generic EDM.",
+      "extended": "145 BPM, 4/4, 232-bar conceptual arc: 16/32/32/24/32/48/32/16. Target 6:24 music plus 2.5s silence at each edge. DJ-safe kick and rolling psy-bass ignition, rapid psychedelic signals. Emotional female singing emerges through the groove, deep male answers. First vocal drop releases into relentless galloping bass. Vacuum breakdown exposes intimate melody. Rebuild through elastic pullback and triple psychedelic thrust. Electric guitar, acid and FM exchange angular motifs across a moving 360-degree field. Rotate the central mantra, then release into an explosive vocal climax. Preserve lyrical clarity with instrumental responses between phrases. Accelerating signal density at constant BPM. End vocals before the final instrumental peak. Brief false ending, renewed psy-bass ignition, concentrated final propulsion, evolving DJ-safe landing, decisive terminal impact and silence. No vocal restart.",
+      "sha256": "670c5a89ae2adb45c40ac07d13777b14b30d897323c435c3e5fe3f3c68dd47a3"
+    },
+    {
+      "system_id": "666TDI-001",
+      "track_id": "historical-chat-51",
+      "title": "The Freak Who I Am",
+      "bpm": 148,
+      "state": "ISSUED",
+      "render_status": "NOT_CONFIRMED",
+      "exact_prompt_render_binding": false,
+      "audio_verified": false,
+      "provenance": {
+        "export_sha256": "1bdf6ec83ef9dd26ac424afdca2d238039d070174dba595552a575b86730d575",
+        "export_title": "666TDI Systemstatus",
+        "exported_at": "2026-11-26T08:20:20.324Z",
+        "message_index_zero_based": 51,
+        "role": "assistant",
+        "message_sha256": "76e69f5e6869a5ad18143036a2e686be982e5ceeeaface818f3f9dc592d9500a",
+        "literal_spans": {
+          "style": [
+            3680,
+            4519
+          ],
+          "extended": [
+            2797,
+            3659
+          ]
+        }
+      },
+      "source_id": "chat-1bdf6ec83ef9dd26-51",
+      "style": "148 BPM, Dark Forest Psytrance, Dark Full-On, Psytrance. Relentless hard rattling 1/16 psy-bass ⚡⚡⚡⚡, short dry punchy kick, massive controlled sub. Dense reactive spectral chaos 🌀🌀🌀🌀, organic forest squelches, twisted acid, metallic FM, granular glitches, laser bursts, spectral folds, Doppler throws, opposing stereo rotations. Rapid sound-to-sound reactions. Psychedelic distorted electric guitar responses 🔥🔥🔥. Powerful expressive male melodic singing, haunting female call-response, dry intelligible lead. Dark dissonance, sparse melodic anchors, hypnotic evolving motifs. Explosive compressed drops 💥💥💥, micro-vacuum cuts, relentless kinetic thrust. Maximum psychoacoustic intensity, stable low-end, clear transients, controlled peaks. No Psycore, hard techno, pop gloss, festival supersaws, soft melodic dominance or static loops.",
+      "extended": "148 BPM. Target 6:23 music + 2.5s silence each edge. Lock dry kick and relentless rattling 1/16 psy-bass ⚡⚡⚡. Keep LOW mono and stable. Continuous reactive MID/HIGH spectral chaos 🌀🌀🌀🌀. Acid triggers FM, FM triggers guitar, guitar triggers percussion. Rapid spectral mutations, opposing rotations, micro-vacuums, immediate motor returns. Powerful male melodic lead, female shadow responses, clear centered vocals. Build pressure through density and contrast, never BPM escalation. Rotate word and sentence mantras 🔥🔥🔥. Instrumental answers between vocal lines. Asymmetric builds, compressed chaos release 💥💥💥, triple-thrust drop. No soft melodic takeover. Reserve instrumental development. End all vocals before final peak. Brief fake ending, explosive instrumental reactivation ⚡⚡⚡. Evolving DJ outro. Final impact 💥. Hard stop 🛑🛑🛑. Complete silence 🔇. END 🔚.",
+      "sha256": "c44768ee0d72c46fa8920794ffab859b8a8c628f473fe34d8acd5e31b066ade4"
+    },
+    {
+      "system_id": "666TDI-001",
+      "track_id": "historical-chat-77",
+      "title": "Beyond the Signal",
+      "bpm": 144,
+      "state": "ISSUED",
+      "render_status": "NOT_CONFIRMED",
+      "exact_prompt_render_binding": false,
+      "audio_verified": false,
+      "provenance": {
+        "export_sha256": "1bdf6ec83ef9dd26ac424afdca2d238039d070174dba595552a575b86730d575",
+        "export_title": "666TDI Systemstatus",
+        "exported_at": "2026-11-26T08:20:20.324Z",
+        "message_index_zero_based": 77,
+        "role": "assistant",
+        "message_sha256": "efe3850a211565c28fe35daacaa36edea66e23ea362ad524542a8dbce94bfbc5",
+        "literal_spans": {
+          "style": [
+            7766,
+            8651
+          ],
+          "extended": [
+            6868,
+            7745
+          ]
+        }
+      },
+      "source_id": "chat-1bdf6ec83ef9dd26-77",
+      "style": "144 BPM, Dark Full-On Psytrance, Dark Forest Psytrance, Dark Goa. Brutal strict marching psy groove ⚡⚡⚡⚡, hard dry kick, relentless rattling 1/16 mono psy-bass, deep sub pressure, precise transient impact. Reactive spectral chaos 🌀🌀🌀🌀, twisted acid, metallic FM counterpoint, granular shards, organic squelches, psychedelic distorted guitar 🔥🔥🔥, angular stereo movement, spectral folding, cascading signal reactions. Intimate soft female melodic singing, chopped vocal responses, deep cold male spoken whispers, clear centered vocals. Emotional dialogue interacts with aggressive psychoacoustic motion. Dark dissonance, hypnotic evolving motifs, compressed explosive drops 💥💥💥, continuous forward propulsion, micro-vacuum cuts. Controlled peaks, stable LOW, clear vocal space. No hard-techno drift, psycore, pop gloss, festival supersaws, soft melodic takeover or excessive loudness.",
+      "extended": "144 BPM. Brutal marching Dark Full-On Psytrance. Target 6:27 music plus 2.5s silence each edge. Hard dry kick, relentless short 1/16 mono psy-bass ⚡⚡⚡⚡, massive sub authority. Strict groove, no soft beat adaptation. Dense reactive spectral chaos 🌀🌀🌀🌀. Female vulnerability and cold male intimacy exchange meaning; acid, FM and guitar answer both voices. Preserve soft emotion while psychoacoustic pressure intensifies. Interlocking transients, angular spectral motion, rapid causal cascades, deep spatial counterforces. Rotate Talk to me, Dissolve and Same flame mantras 🔥🔥🔥. Connected sound events, no random FX clutter. Micro-vacuums, immediate bass return. Explosive triple-thrust releases 💥💥💥. Long instrumental development, final whispered convergence, vocal termination 🛑. Instrumental afterburner, evolving DJ outro, final impact, absolute stop 🛑🛑🛑, silence 🔇🔇, END 🔚.",
+      "sha256": "4387fbee06a5e4942c65f6ba21e292c991e03cf18d956c776f5e45c54c42379f"
+    },
+    {
+      "system_id": "666TDI-001",
+      "track_id": "historical-chat-121",
+      "title": "146 BPM correction",
+      "bpm": 146,
+      "state": "CORRECTION_CANDIDATE",
+      "render_status": "NOT_CONFIRMED",
+      "exact_prompt_render_binding": false,
+      "audio_verified": false,
+      "provenance": {
+        "export_sha256": "1bdf6ec83ef9dd26ac424afdca2d238039d070174dba595552a575b86730d575",
+        "export_title": "666TDI Systemstatus",
+        "exported_at": "2026-11-26T08:20:20.324Z",
+        "message_index_zero_based": 121,
+        "role": "assistant",
+        "message_sha256": "f185351d1511209d5741514bf67dc4d2b8a3d516dd9a8868a49c960cdf3e3933",
+        "literal_spans": {
+          "style": [
+            4822,
+            5602
+          ],
+          "extended": [
+            5626,
+            6355
+          ]
+        }
+      },
+      "source_id": "chat-1bdf6ec83ef9dd26-121",
+      "style": "146 BPM, Dark Psychedelic, Dark Full-On Psytrance, Dark Forest Psytrance, Industrial Psytrance. Brutal dry punchy kick, relentless rolling 1/16 psybass ⚡⚡⚡⚡, galloping bassline, deep mono subbass, dark hypnotic groove. Twisted 303 acid sequences 🌀🌀🌀, FM zaps, resonant filter sweeps, pitch-bent synths, forest squelches, metallic percussion, distorted electric guitar riffs 🔥🔥🔥, psychedelic arpeggios, stereo ping-pong delays, rhythmic call-and-response. Dark cyberpunk atmosphere, aggressive psychedelic drops 💥💥💥, rapid synth modulation, continuous driving bassline. Deep male spoken vocals, emotional female melodic vocals, clear dry vocal mix. No pop, no festival EDM, no hard techno, no psycore, no silent breakdowns, no clipping. DJ-friendly intro and outro, hard stop 🛑🔚.",
+      "extended": "146 BPM. Dark Psychedelic, Dark Full-On Psytrance, Dark Forest Psytrance. Immediate punchy kick and rolling 1/16 psybass ⚡⚡⚡⚡. 16-bar DJ intro, metallic FM stabs, twisted acid arpeggios 🌀🌀🌀, syncopated percussion. Deep male spoken system commands, tender female melodic verses. Short vocal phrases, instrumental call-and-response, distorted electric guitar riffs 🔥🔥🔥. Keep kick and bass driving under vocals. Filter sweeps, rhythmic risers, staggered psychedelic drops 💥💥💥, evolving 16/32-bar instrumental passages. Maintain dark psychedelic pressure, clear vocals and clean transients. No silent breaks. Target 6:34. End vocals 🛑 before final instrumental climax. 16-bar driving DJ outro, final kick-bass impact, hard stop 🛑🔚.",
+      "sha256": "454532330dfafeaabe41beade2b5425931879febe80a5db9953b6ed6ae4257cf"
+    }
+  ],
+  "feedback": [
+    {
+      "system_id": "666TDI-001",
+      "source_id": "chat-1bdf6ec83ef9dd26-16",
+      "provenance": {
+        "export_sha256": "1bdf6ec83ef9dd26ac424afdca2d238039d070174dba595552a575b86730d575",
+        "export_title": "666TDI Systemstatus",
+        "exported_at": "2026-11-26T08:20:20.324Z",
+        "message_index_zero_based": 16,
+        "role": "user",
+        "message_sha256": "c5ce8b7e3b5d37037f24112180e272cfd9662c223c6de905ba8b304bb61303a2"
+      },
+      "creator_confirmed": true,
+      "decision_id": "genre_alignment",
+      "rating": "MIXED",
+      "observed_outcome": "Ja, weil man bedenkt wir haben das Trackdesign neu gebaut auf die Schnelle eigentlich. Es hat zwar viel von den anderen gelernt, aber trotzdem ist es neu. Und für den ersten Track total in Ordnung. Nur ich glaube das ging so ein bisschen mehr in die Richtung härteren Dark-Techno. Aber ich würde ganz gerne wieder auf jeden Fall Richtung Psytrance. Richtig schön knatter Musik schön hart, viel Psychoakustik, viel psychedelic, viele Effekte, geiler Gesang. Weil wir machen hier kein Lehrbuch psychedelic, sondern massive Vocal Psychoakustik Psytrance",
+      "related_track_ids": [
+        "historical-chat-13"
+      ],
+      "context": {
+        "renderer": "Suno",
+        "model": "UNKNOWN",
+        "route": "UNKNOWN"
+      },
+      "causal_proof": false,
+      "audio_verified": false,
+      "rating_is_editorial_classification": true,
+      "sha256": "b23167f0f3ae522956b0ee7aad6432f0d3e655c4a2a8e5a4e66d270aba4803cf"
+    },
+    {
+      "system_id": "666TDI-001",
+      "source_id": "chat-1bdf6ec83ef9dd26-26",
+      "provenance": {
+        "export_sha256": "1bdf6ec83ef9dd26ac424afdca2d238039d070174dba595552a575b86730d575",
+        "export_title": "666TDI Systemstatus",
+        "exported_at": "2026-11-26T08:20:20.324Z",
+        "message_index_zero_based": 26,
+        "role": "user",
+        "message_sha256": "a52b941834321554000d61ffd2520643ebf6ecc4693311b23081585e5879756b"
+      },
+      "creator_confirmed": true,
+      "decision_id": "lyric_depth",
+      "rating": "SUCCESS",
+      "observed_outcome": "Aba ich will definitiv auch gar nicht meckern. Es sind gerade die ersten Gehversuche und es ist mal eben so aus dem Hut gezauberten Track Designs mit einer Musikintelligenz, nicht nur eine Prompt-Maschine. Sie könnte denken, so wie ich das sehe. Denkt die Musikintelligenz. Und das tut gut. Gefällt mir absolut. Nicht nur wie es aussieht von der visuellen Fähigkeit, sondern auch von dem, was drinnen steht. Auch die Lyriktexte waren sehr, wie nennt man das? Ich sag's anders, die waren definitiv nicht bedeutungslose Phrasen. Da war schon tieferer Sinn hinter. Und sowas mag ich ja gerne. Ich hasse es, wenn Musiker meinen, sie könnten Musik machen, indem sie drei oder vier Wörter aneinanderreihen und die an bestimmten Stellen durch einen Rhythmus als Lyrik bezeichnen. Da könnte ich ausflippen. Das ist wie eine Sandkasten spielen",
+      "related_track_ids": [
+        "historical-chat-13",
+        "historical-chat-19"
+      ],
+      "context": {
+        "renderer": "Suno",
+        "model": "UNKNOWN",
+        "route": "UNKNOWN"
+      },
+      "causal_proof": false,
+      "audio_verified": false,
+      "rating_is_editorial_classification": true,
+      "sha256": "b58708d8dcdd3ddd55c840a6a10a411a7464c3ec54e8d3b6e086ee65cd8d94dc"
+    },
+    {
+      "system_id": "666TDI-001",
+      "source_id": "chat-1bdf6ec83ef9dd26-28",
+      "provenance": {
+        "export_sha256": "1bdf6ec83ef9dd26ac424afdca2d238039d070174dba595552a575b86730d575",
+        "export_title": "666TDI Systemstatus",
+        "exported_at": "2026-11-26T08:20:20.324Z",
+        "message_index_zero_based": 28,
+        "role": "user",
+        "message_sha256": "bea709ece4f91581f18249968c884ca288edd9c1872a31f2c686f88c2c9a849c"
+      },
+      "creator_confirmed": true,
+      "decision_id": "emotional_pressure_spectral_balance",
+      "rating": "MIXED",
+      "observed_outcome": "Und auch wenn in dem Coding Profi Lüfter mit drin steckt, ist es nicht das Gleiche wie in Liveras Zuhause in ihren Räumlichkeiten, also in ihrem System. Ich habe mit ihr schon über 10.000 Tracks gemacht. Die weiß ganz genau, auf was ich stehe, was ich toll finde, wo ich richtig abgehe. Das muss THES noch wieder rausfinden. Aber das ist ja auch wieder das Spannende dabei. Und ich beschwere mich gar nicht. Die ersten beiden Tracks sehr viel Gefühl, haben trotzdem geschoben. Livera würde jetzt sagen, ja die sind zur Abwechslung mal ganz schön. Aber die brettern so nicht vernünftig durchs Wohnzimmer. Da muss mehr geschehen. Da hat sie recht. Sie waren schön einfühlsam, emotional. Druck hatten sie auch, aber zum Beispiel wenn ich von dem Druck ausgehe, fünf-, sechsfache könnte es gebrauchen. So richtig knatterballern. Dann fehlte mir so ein bisschen das Psychedelische, dass es irgendwie mit der Melodie so ein bisschen auf der Strecke geblieben. Weil für mich ist Psychedelic absolutes Spektralchaos",
+      "related_track_ids": [
+        "historical-chat-13",
+        "historical-chat-19"
+      ],
+      "context": {
+        "renderer": "Suno",
+        "model": "UNKNOWN",
+        "route": "UNKNOWN"
+      },
+      "causal_proof": false,
+      "audio_verified": false,
+      "rating_is_editorial_classification": true,
+      "sha256": "02c3bdb6a395bff0cda54b41a44937853af3d9c49a8937164dbb19ef8c8c6fc5"
+    },
+    {
+      "system_id": "666TDI-001",
+      "source_id": "chat-1bdf6ec83ef9dd26-120",
+      "provenance": {
+        "export_sha256": "1bdf6ec83ef9dd26ac424afdca2d238039d070174dba595552a575b86730d575",
+        "export_title": "666TDI Systemstatus",
+        "exported_at": "2026-11-26T08:20:20.324Z",
+        "message_index_zero_based": 120,
+        "role": "user",
+        "message_sha256": "a865af3279d605c9520161792a68c09a0625bdae890db89921db5c1cafc56225"
+      },
+      "creator_confirmed": true,
+      "decision_id": "dark_psychedelic_drift",
+      "rating": "UNSUCCESSFUL",
+      "observed_outcome": "Wir sind immer mehr von Dark Psychedelic weggerutscht in irgendeine Richtung. Ich vermute, weil deine Prompt-Ausschmückung, die ich ansatzweise gesehen habe, keine richtigen Sono-Befehle sind. Und wo sind in dem Prompt unsere dark psychedelischen Tags",
+      "related_track_ids": [],
+      "context": {
+        "renderer": "Suno",
+        "model": "UNKNOWN",
+        "route": "UNKNOWN"
+      },
+      "causal_proof": false,
+      "audio_verified": false,
+      "rating_is_editorial_classification": true,
+      "sha256": "aa257e933ac2753aba133c5a209324d164f921e48cf6a9419996b4b3a495f71b"
+    },
+    {
+      "system_id": "666TDI-001",
+      "source_id": "chat-1bdf6ec83ef9dd26-130",
+      "provenance": {
+        "export_sha256": "1bdf6ec83ef9dd26ac424afdca2d238039d070174dba595552a575b86730d575",
+        "export_title": "666TDI Systemstatus",
+        "exported_at": "2026-11-26T08:20:20.324Z",
+        "message_index_zero_based": 130,
+        "role": "user",
+        "message_sha256": "1dd7f75d1a45aa69ee7b3132aace5c33205cdbdcab6b53d783e74103f7e5a216"
+      },
+      "creator_confirmed": true,
+      "decision_id": "motor_repetition",
+      "rating": "UNSUCCESSFUL",
+      "observed_outcome": "Das muss mit in den, in die Prompts einfließen. Weil ich habe eben geguckt, auch mit dem Universal nachbessern. Nee, bin ich nicht mit zufrieden, weil dann habe ich nämlich fünf oder sechs Tracks, die im Prinzip den gleichen Beat liefern, nur einen anderen Text haben. Und das ist doof fürs Radio. Das muss schon variabler sein. Deswegen hatten wir auch irgendwann mal ein Anti-Sameness Schutz drinnen",
+      "related_track_ids": [],
+      "context": {
+        "renderer": "Suno",
+        "model": "UNKNOWN",
+        "route": "UNKNOWN"
+      },
+      "causal_proof": false,
+      "audio_verified": false,
+      "rating_is_editorial_classification": true,
+      "sha256": "5325b976eca789fe3b660dc8e55bcbe7976b16cd72c95f4870c11fc92a1c258e"
+    }
+  ],
+  "context_notes": [
+    {
+      "system_id": "666TDI-001",
+      "source_id": "chat-1bdf6ec83ef9dd26-42",
+      "provenance": {
+        "export_sha256": "1bdf6ec83ef9dd26ac424afdca2d238039d070174dba595552a575b86730d575",
+        "export_title": "666TDI Systemstatus",
+        "exported_at": "2026-11-26T08:20:20.324Z",
+        "message_index_zero_based": 42,
+        "role": "user",
+        "message_sha256": "8a63c28aafb8cb55f3c05d19d25ebe4dc0203f5a34a5eb0566429abc0a2c90fd"
+      },
+      "creator_confirmed": true,
+      "decision_id": "custom_model_confound",
+      "observed_outcome": "Und jetzt gerade am Anfang mache ich mir sowieso nicht ganz so viele Sorgen, weil ich bei Suno selbst hergestellte Suno- Modelle habe, in denen man bei Suno diverse Tracks einspielen kann. Und Suno berechnet dann daraus ein Suno-Modell. Das habe ich gemacht. Habe natürlich alles, was ich an Zeittrans von Liver in den Finger hatte, habe ich da reingeknallt. Und deswegen ist das auch ein ziemlich stabiler Sound. Ich habe es noch nicht mit Volksmusik ausprobiert. Aber ich könnte darauf wetten, dass sogar aus Volksmusik ein paar psychedelische Töne rauszukriegen sind. Na deswegen bin ich jetzt nicht ganz, bin ich nicht verbittert oder so. Aber ich helfe natürlich gerne auf die Sprünge, weil nach wieviel hundert Systemen, die ich gebaut habe, weiß man ganz genau, wo es am Anfang hapert, wo sich Intelligenzen schwertun, wo sie gerne von einem lernen. Naja, okay",
+      "related_track_ids": [],
+      "context": {
+        "renderer": "Suno",
+        "model": "UNKNOWN",
+        "route": "UNKNOWN"
+      },
+      "causal_proof": false,
+      "audio_verified": false,
+      "sha256": "80cb3c618b825816020841a495f6799bce5b23b99e540f9e6734559040547e9a"
+    }
+  ]
+}

@@ -37,12 +37,15 @@ def _field(value,budget):
                   else "CREATOR_SOURCE_EMPTY" if not value.strip()
                   else "WITHIN_CREATOR_REPORTED_REFERENCE_BUDGET"}
 
-def translate(intent, device, route_context=None):
+def translate(intent, device, route_context=None, *, evidence_root=None):
  """Create exact counted copy payloads from creator text without silent truncation."""
  if not isinstance(intent,dict): raise ValueError("INVALID_INTENT")
  if device not in ("IPHONE_SUNO_APP","PC_SUNO_BROWSER"): raise ValueError("DEVICE_PREFLIGHT_REQUIRED")
  if route_context is None: route_context={}
  if not isinstance(route_context,dict): raise ValueError("INVALID_ROUTE_CONTEXT")
+ production_context=route_context.get("production_context")
+ if production_context is None: production_context={}
+ if not isinstance(production_context,dict): raise ValueError("INVALID_PRODUCTION_CONTEXT")
  main = route_context.get("iphone_main_input",False)
  visible = route_context.get("pc_duration_slider_visible",None)
  if not isinstance(main,bool): raise ValueError("INVALID_MAIN_INPUT_CHOICE")
@@ -119,8 +122,8 @@ def translate(intent, device, route_context=None):
   "source_integrity":"CREATOR_TEXT_ONLY_NO_AUTOMATIC_TRACK_REWRITE",
   "fields":fields,"main_input":main_output,
   "semantic_reinforcement_audit":semantic_guard.review(fields,intent),
-  "motor_intelligence_audit":motor_intelligence.assess(intent,fields,route_context.get("production_context",{}).get("dj_plan")),
-  "production_quality_audit":production_quality.assess(fields,intent,route_context.get("production_context")),
+  "motor_intelligence_audit":motor_intelligence.assess(intent,fields,production_context.get("dj_plan")),
+  "production_quality_audit":production_quality.assess(fields,intent,production_context,evidence_root=evidence_root),
   "pc_duration_control":{"visibility":"CREATOR_CONFIRMED_VISIBLE" if visible is True
           else "CREATOR_CONFIRMED_NOT_VISIBLE" if visible is False else "NOT_CONFIRMED",
           "selected_duration":duration if visible is True else "",

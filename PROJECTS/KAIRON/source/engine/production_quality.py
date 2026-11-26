@@ -1,7 +1,7 @@
 """R20.1: track-local prompt evidence, not audio similarity or autonomous composition."""
 import re
 import hashlib
-from . import motor_intelligence, semantic_guard
+from . import motor_intelligence, semantic_guard, creator_learning
 
 # Function witnesses, not exhaustive genre or arrangement prescriptions.
 AXES = {
@@ -65,19 +65,23 @@ def duration(plan):
     if any(type(x) not in (int,float) or not 0<=x<=60 for x in (start,end)): return {'status':'REVIEW','audio_verified':False}
     return {'status':'THEORETICAL','seconds':round(bars*240/bpm+start+end,2),'audio_verified':False}
 
-def assess(fields,intent,context=None):
+def assess(fields,intent,context=None,*,evidence_root=None):
     context={} if context is None else context
     if not isinstance(context,dict): raise ValueError('INVALID_PRODUCTION_CONTEXT')
     pair={k:fields[k]['text'] for k in ('style','extended')}
     history=context.get('prompt_history',[])
     if not isinstance(history,list): raise ValueError('INVALID_HISTORY')
+    memory=None
+    if evidence_root is not None:
+        memory=creator_learning.music_memory_audit(evidence_root,context.get('music_context',{}),context.get('current_track'))
+        history=history+memory['prompt_history']
     comparisons=[]; seen=set()
     for item in reversed(history):
         if not isinstance(item,dict) or not all(isinstance(item.get(k),str) and item[k].strip() for k in pair): continue
         if item.get('system_id','666TDI-001')!='666TDI-001': continue
         key=hashlib.sha256((item['style']+'\0'+item['extended']).encode()).hexdigest()
         if key in seen: continue
-        seen.add(key); comparisons.append({'reference_sha256':key,**compare(pair,item)})
+        seen.add(key); comparisons.append({'reference_sha256':key,'native_evidence_id':item.get('source_id') if memory is not None and item in memory['prompt_history'] else None,**compare(pair,item)})
         if len(comparisons)==6: break
     motor=motor_intelligence.assess(intent,fields,context.get('dj_plan'))
     master=mastering(pair)
@@ -88,4 +92,5 @@ def assess(fields,intent,context=None):
     if any(x['status']=='HOLD' for x in comparisons): reasons.append('REPEATED_MOTOR')
     if end['review_required']: reasons.append('VOCAL_END_REVIEW')
     if not all(f['within_reference_budget'] for f in fields.values()): reasons.append('BUDGET_HOLD')
-    return {'revision':'R20.1','status':'HOLD' if reasons else 'CREATOR_REVIEW','reasons':reasons,'history_status':'PARTIAL_REFERENCE' if len(comparisons)<5 else 'REFERENCE_AVAILABLE','reference_count':len(comparisons),'comparisons':comparisons,'mastering':master,'duration':duration(context.get('duration_plan')),'motor':motor,'endguard':end,'audio_verified':False,'production_authorized':False,'no_automatic_rewrite':True}
+    if memory and any(r['status']=='CONTRADICTION_REVIEW' for r in memory['relations']): reasons.append('CREATOR_EVIDENCE_CONTRADICTION')
+    return {'music_memory':memory,'revision':'R20.2','status':'HOLD' if reasons else 'CREATOR_REVIEW','reasons':reasons,'history_status':'PARTIAL_REFERENCE' if len(comparisons)<5 else 'REFERENCE_AVAILABLE','reference_count':len(comparisons),'comparisons':comparisons,'mastering':master,'duration':duration(context.get('duration_plan')),'motor':motor,'endguard':end,'audio_verified':False,'production_authorized':False,'no_automatic_rewrite':True}

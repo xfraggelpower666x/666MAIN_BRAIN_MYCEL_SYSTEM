@@ -8,6 +8,7 @@ import hashlib,json,os,re,tempfile
 from threading import RLock
 from datetime import datetime,timezone
 from pathlib import Path
+from . import music_memory
 
 SYSTEM_ID="666TDI-001"
 SCHEMA="666TDI_CREATOR_EVIDENCE_R14_V1"
@@ -42,11 +43,25 @@ def _validate_input(payload):
  if artifact and not re.fullmatch(r"[a-fA-F0-9]{64}",artifact):raise ValueError("INVALID_ARTIFACT_SHA256")
  surface=_text(payload.get("device_route","UNKNOWN"),"DEVICE_ROUTE",64)
  if surface not in ("UNKNOWN","IPHONE_CUSTOM_NO_MAIN","IPHONE_CUSTOM_WITH_MAIN","PC_BROWSER"):raise ValueError("INVALID_DEVICE_ROUTE")
- return {"system_id":SYSTEM_ID,"schema":SCHEMA,"track_id":track_id,"decision_id":decision,
+ item={"system_id":SYSTEM_ID,"schema":SCHEMA,"track_id":track_id,"decision_id":decision,
          "category":category,"rating":rating,"intent_summary":expected,"observed_outcome":outcome,
          "creator_note":review,"artifact_sha256":artifact.lower(),"device_route":surface,
          "evidence_type":"CREATOR_REPORTED_OUTCOME","creator_confirmed":True,
          "audio_measured_by_tdi":False,"causal_proof":False,"global_rule":False}
+ # A10: optional exact prompt evidence, preserving the legacy record schema.
+ if "prompt_pair" in payload:
+  pair=payload["prompt_pair"]
+  if not isinstance(pair,dict) or set(pair)!={"style","extended"} or not all(isinstance(v,str) and v.strip() and len(v.encode("utf-16-le"))//2<=1000 for v in pair.values()):
+   raise ValueError("INVALID_PROMPT_PAIR")
+  if payload.get("prompt_state") not in ("ISSUED","CORRECTION_CANDIDATE"):
+   raise ValueError("INVALID_PROMPT_STATE")
+  item.update(prompt_pair=dict(pair),prompt_state=payload["prompt_state"])
+ if "music_context" in payload:
+  ctx=payload["music_context"]
+  if not isinstance(ctx,dict) or not ctx or not all(isinstance(k,str) and isinstance(v,str) and k.strip() and v.strip() for k,v in ctx.items()):
+   raise ValueError("INVALID_MUSIC_CONTEXT")
+  item["music_context"]=dict(ctx)
+ return item
 
 def prepare(payload,*,now=None):
  item=_validate_input(payload)
@@ -127,3 +142,38 @@ def assess(root,track_id):
   "global_promotion":False,"causal_proof":False,"read_only":True,
   "limitations":["CREATOR_FEEDBACK_NOT_VERIFIED_AUDIO","NO_CROSS_TRACK_GENERALIZATION",
    "NO_AUTOMATIC_GLOBAL_RULE","CONTRADICTIONS_PRESERVED"]}
+
+
+def music_memory_audit(root, context, current_track=None):
+ """Read native verified feedback; never write or infer a rendered prompt."""
+ if current_track is not None: current_track=_track(current_track)
+ records=[]; feedback=[]; rows=[]
+ directory=Path(root).resolve()/"creator_evidence"
+ for file in sorted(directory.glob("*.jsonl")):
+  if file.is_symlink(): raise ValueError("EVIDENCE_SYMLINK")
+  rows.extend(_load(root,file.stem))
+ for row in sorted(rows,key=lambda r:(r["created_utc"],r["id"])):
+  if row["track_id"]==current_track: continue
+  base={"system_id":SYSTEM_ID,"track_id":row["track_id"],"source_id":row["id"],"source_hash":row["content_hash"]}
+  if "prompt_pair" in row:
+   record={**base,**row["prompt_pair"],"state":row["prompt_state"]}
+   record["sha256"]=music_memory.digest(record); records.append(record)
+  if "music_context" in row and row.get("creator_confirmed") is True:
+   record={**base,"context":row["music_context"],"creator_confirmed":True,"decision_id":row["category"]+":"+row["decision_id"],"rating":row["rating"],"observed_outcome":row["observed_outcome"]}
+   record["sha256"]=music_memory.digest(record); feedback.append(record)
+ historical=Path(root).resolve()/"historical_music_memory.json"
+ observations=[]; notes=[]
+ if historical.exists():
+  if historical.is_symlink(): raise ValueError("HISTORICAL_SYMLINK")
+  data=json.loads(historical.read_text(encoding="utf-8"))
+  if data.get("schema")!="KAIRON_HISTORICAL_MEMORY_R20_2" or data.get("system_id")!=SYSTEM_ID: raise ValueError("HISTORICAL_SCOPE")
+  for key in ("records","feedback","context_notes"):
+   for item in data[key]:
+    if item.get("system_id")!=SYSTEM_ID or item.get("sha256")!=music_memory.digest(item): raise ValueError("HISTORICAL_INTEGRITY")
+  records=data["records"]+records
+  observations=[x for x in data["feedback"] if current_track is None or current_track not in x["related_track_ids"]]
+  notes=data["context_notes"]
+  feedback=observations+feedback
+ result=music_memory.audit(records,feedback,context,current_track)
+ result.update(historical_observations=observations,historical_context_notes=notes)
+ return result
