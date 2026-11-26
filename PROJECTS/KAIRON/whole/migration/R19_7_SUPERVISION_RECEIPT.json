@@ -1,0 +1,59 @@
+{
+  "system_id": "666TDI-001",
+  "namespace": "KAIRON",
+  "revision": "R19.7",
+  "scope": "CANDIDATE_ONLY",
+  "base_commit": "f95229f549196522142e1b59a83c7d3d9a64ae6d",
+  "base_tree": "8ffb909e2db0a6f9d00bca3d9a7081957634486c",
+  "backup_branch": "backup/kairon-r197-supervision-pre-f95229f",
+  "backup_readback": "MATCHES_BASE_COMMIT",
+  "source_blobs": {
+    "whole/daemon/runtime_supervision.py": "a16f404881422f4f2c744993f417585fea4113c7",
+    "whole/daemon/test_runtime_supervision.py": "66ccfef050d20b6f7b886f79fc8e90acf6b9f4c0",
+    "whole/daemon/CONTRACT.json": "4df47fdd3818f1de2117407b38a3e219f919cdd7"
+  },
+  "runtime": {
+    "python": "3.13.5",
+    "node": "22.16.0",
+    "platform": "linux"
+  },
+  "new_regression": {
+    "command": "python -m unittest -v test_runtime_supervision",
+    "passed": 13,
+    "failed": 0,
+    "log_sha256": "a91a29aab9821a01690fc6ae38f45a1fac7834f7010bb6eccd29fea1223e03be"
+  },
+  "original_engine_replay": {
+    "tested_commit": "2f374738359feaff564e73fd90c5b52766b26529",
+    "test": "source/tests/test_creative_causal.py",
+    "passed": 9,
+    "exit_code": 0,
+    "membership_status": "COMMIT_TREE_BLOB_VERIFIED",
+    "receipt_ref": "sha256:eb780a2abbaa1f168d24003f9d6477531faf31f0d7221c266b50cc0aa0177571",
+    "full_receipt_sha256": "99b01f04b0af10930a4dd63bbfee053e0c93d24e8583b80b49dce29542e64f74"
+  },
+  "observed": {
+    "r17": "PARTIAL",
+    "r17_verified_kind": "REGRESSION_PASS",
+    "r17_missing": [
+      "SOURCE_WRITE",
+      "DIRECT_READBACK",
+      "HOST_ACCEPTANCE"
+    ],
+    "r18": "READBACK_PENDING",
+    "guidance": "PARTIAL",
+    "forged_host_receipt_accepted": false,
+    "custom_gate_preserved": true,
+    "state_mutated": false
+  },
+  "prior_r196_43_tests": "PRESERVED_NOT_ADDED_TO_NEW_COUNT",
+  "limitations": [
+    "R18 recovery cannot be completed without native Current.",
+    "Receipt is local process evidence, not an independent host attestation.",
+    "Pinned snapshot and reviewed local runtime only; no automatic connector dispatch or OS sandbox.",
+    "A06-A15 and complete ChatBackup audit remain open."
+  ],
+  "production_promotion": false,
+  "current_pointer": "WITHHELD_UNCHANGED",
+  "host_acceptance": "OPEN"
+}

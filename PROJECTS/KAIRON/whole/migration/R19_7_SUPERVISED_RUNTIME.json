@@ -1,0 +1,136 @@
+{
+  "revision": "R19.7",
+  "status": "CANDIDATE_REGRESSION_VERIFIED",
+  "integration_base": "f95229f549196522142e1b59a83c7d3d9a64ae6d",
+  "tested_commit": "2f374738359feaff564e73fd90c5b52766b26529",
+  "receipt_ref": "sha256:eb780a2abbaa1f168d24003f9d6477531faf31f0d7221c266b50cc0aa0177571",
+  "execution": {
+    "test_count": 9,
+    "system_id": "666TDI-001",
+    "commit": "2f374738359feaff564e73fd90c5b52766b26529",
+    "test": "source/tests/test_creative_causal.py",
+    "blobs": {
+      "whole/daemon/execution_bridge.py": "5441a8baccbb61a0211002bb5a01b3381e108c1f",
+      "source/engine/semantic_intelligence.py": "51cbcd4cc26dd44425eccfcee1984935c624988f",
+      "source/engine/creative_causal.py": "bcfd39792e73ba55d06b2a096596978adde4ab48",
+      "source/engine/__init__.py": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "source/tests/test_semantic_intelligence.py": "f75689c91ecd3830e33e29257197c734b8dcb7a9",
+      "source/tests/test_creative_causal.py": "69cc2a5dd947c4d21e77e580ed05f49e4e36b422"
+    },
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "test_arrangement_does_not_claim_audio_resolution (test_creative_causal.CreativeCausalR10Tests.test_arrangement_does_not_claim_audio_resolution) ... ok\ntest_empty_input_does_not_invent (test_creative_causal.CreativeCausalR10Tests.test_empty_input_does_not_invent) ... ok\ntest_expectation_payoff (test_creative_causal.CreativeCausalR10Tests.test_expectation_payoff) ... ok\ntest_invalid_input (test_creative_causal.CreativeCausalR10Tests.test_invalid_input) ... ok\ntest_low_anchor_and_spatial_motion_complement (test_creative_causal.CreativeCausalR10Tests.test_low_anchor_and_spatial_motion_complement) ... ok\ntest_motor_and_contrast_emerge (test_creative_causal.CreativeCausalR10Tests.test_motor_and_contrast_emerge) ... ok\ntest_read_only_track_local (test_creative_causal.CreativeCausalR10Tests.test_read_only_track_local) ... ok\ntest_transforming_recurrence (test_creative_causal.CreativeCausalR10Tests.test_transforming_recurrence) ... ok\ntest_voice_layer_tension_not_error (test_creative_causal.CreativeCausalR10Tests.test_voice_layer_tension_not_error) ... ok\n\n----------------------------------------------------------------------\nRan 9 tests in 0.011s\n\nOK\n",
+    "status": "PROCESS_EXIT_ZERO",
+    "production_release": false,
+    "host_acceptance": "OPEN",
+    "membership_evidence": {
+      "commit": "2f374738359feaff564e73fd90c5b52766b26529",
+      "tree": "4e51f81b5a28b23a7a75785beef0db368d792472",
+      "blobs": {
+        "whole/daemon/execution_bridge.py": "5441a8baccbb61a0211002bb5a01b3381e108c1f",
+        "source/engine/semantic_intelligence.py": "51cbcd4cc26dd44425eccfcee1984935c624988f",
+        "source/engine/creative_causal.py": "bcfd39792e73ba55d06b2a096596978adde4ab48",
+        "source/engine/__init__.py": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "source/tests/test_semantic_intelligence.py": "f75689c91ecd3830e33e29257197c734b8dcb7a9",
+        "source/tests/test_creative_causal.py": "69cc2a5dd947c4d21e77e580ed05f49e4e36b422"
+      },
+      "status": "COMMIT_TREE_BLOB_VERIFIED"
+    }
+  },
+  "supervision": {
+    "r17": {
+      "status": "PARTIAL",
+      "missing": [
+        "SOURCE_WRITE",
+        "DIRECT_READBACK",
+        "HOST_ACCEPTANCE"
+      ],
+      "verified": [
+        {
+          "kind": "REGRESSION_PASS",
+          "ref": "sha256:eb780a2abbaa1f168d24003f9d6477531faf31f0d7221c266b50cc0aa0177571",
+          "verified": true
+        }
+      ],
+      "planning_only": true,
+      "independently_verified": false,
+      "release_authorized": false,
+      "next_options": [
+        {
+          "kind": "SOURCE_WRITE",
+          "action": "OBTAIN_AUTHORIZED_EVIDENCE"
+        },
+        {
+          "kind": "DIRECT_READBACK",
+          "action": "OBTAIN_AUTHORIZED_EVIDENCE"
+        },
+        {
+          "kind": "HOST_ACCEPTANCE",
+          "action": "OBTAIN_AUTHORIZED_EVIDENCE"
+        }
+      ]
+    },
+    "r18": {
+      "status": "READBACK_PENDING",
+      "mutation": false
+    }
+  },
+  "guidance": {
+    "system_id": "666TDI-001",
+    "name": "KAIRON",
+    "status": "PARTIAL",
+    "missing": [],
+    "open_gates": [
+      "CUSTOM_GATE",
+      "SOURCE_WRITE",
+      "DIRECT_READBACK",
+      "HOST_ACCEPTANCE",
+      "NATIVE_CURRENT_WITHHELD"
+    ],
+    "menu": [
+      {
+        "id": "identity",
+        "trigger": "KAIRON CHARAKTER"
+      },
+      {
+        "id": "track",
+        "trigger": "KAIRON TRACKDESIGN"
+      },
+      {
+        "id": "analytics",
+        "trigger": "KAIRON MUSIC ANALYTICS"
+      },
+      {
+        "id": "memory",
+        "trigger": "KAIRON MUSIC MEMORY"
+      },
+      {
+        "id": "continuity",
+        "trigger": "KAIRON LIVECIRCLE"
+      },
+      {
+        "id": "codeforge",
+        "trigger": "KAIRON CODEFORGE"
+      },
+      {
+        "id": "supercodeforge",
+        "trigger": "KAIRON SUPERCODEFORGE"
+      },
+      {
+        "id": "audit",
+        "trigger": "KAIRON AUDIT"
+      },
+      {
+        "id": "development",
+        "trigger": "KAIRON UPDATE"
+      }
+    ],
+    "next_action": null,
+    "dispatch_performed": false,
+    "evidence_independently_verified": false
+  },
+  "release_authorized": false,
+  "production_promotion": false,
+  "automatic_dispatch": false,
+  "host_acceptance": "OPEN"
+}

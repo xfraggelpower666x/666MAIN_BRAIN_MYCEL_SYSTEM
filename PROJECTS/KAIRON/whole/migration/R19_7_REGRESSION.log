@@ -1,0 +1,18 @@
+test_approval (test_runtime_supervision.SupervisionTests.test_approval) ... ok
+test_base (test_runtime_supervision.SupervisionTests.test_base) ... ok
+test_context (test_runtime_supervision.SupervisionTests.test_context) ... ok
+test_digest (test_runtime_supervision.SupervisionTests.test_digest) ... ok
+test_failure (test_runtime_supervision.SupervisionTests.test_failure) ... ok
+test_foreign (test_runtime_supervision.SupervisionTests.test_foreign) ... ok
+test_membership (test_runtime_supervision.SupervisionTests.test_membership) ... ok
+test_pins (test_runtime_supervision.SupervisionTests.test_pins) ... ok
+test_real_chain (test_runtime_supervision.SupervisionTests.test_real_chain) ... ok
+test_skips (test_runtime_supervision.SupervisionTests.test_skips) ... ok
+test_source_set (test_runtime_supervision.SupervisionTests.test_source_set) ... ok
+test_suite (test_runtime_supervision.SupervisionTests.test_suite) ... ok
+test_zero_tests (test_runtime_supervision.SupervisionTests.test_zero_tests) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 1.121s
+
+OK

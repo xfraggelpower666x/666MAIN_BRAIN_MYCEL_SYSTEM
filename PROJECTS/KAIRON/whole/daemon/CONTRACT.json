@@ -108,5 +108,18 @@
     "local_native_regression": "21_OF_21_PASS",
     "host_acceptance": "OPEN",
     "production_promotion": false
+  },
+  "adaptive_runtime_supervision": {
+    "revision": "R19.7",
+    "module": "whole/daemon/runtime_supervision.py",
+    "tests": "whole/daemon/test_runtime_supervision.py",
+    "receipt": "whole/migration/R19_7_SUPERVISION_RECEIPT.json",
+    "original_supervision": "whole/daemon/supervision.mjs",
+    "original_guidance": "whole/daemon/guidance.py",
+    "explicit_execution_required": true,
+    "external_receipts_accepted": false,
+    "production_promotion": false,
+    "host_acceptance": "OPEN",
+    "native_current": "WITHHELD"
   }
 }
