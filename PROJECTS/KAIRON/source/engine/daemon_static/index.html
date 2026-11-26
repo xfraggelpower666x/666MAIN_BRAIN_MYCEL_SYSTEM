@@ -140,6 +140,16 @@ label{display:block;font-size:12px;color:#dce2f5;margin-bottom:6px;font-weight:6
    </article>
   </div>
  </section>
+ <section class="section card hide" id="evolution-section">
+  <h2>KAIRON · Emergent Musical Intelligence</h2>
+  <div id="mandala-view"></div><div id="forces-view"></div>
+  <div class="divider"></div><h3>Preset · Creator-Freigabe &amp; Versionshistorie</h3>
+  <label for="preset-id">Preset-ID</label><input id="preset-id" maxlength="80" autocomplete="off">
+  <label><input type="checkbox" id="preset-consent"> Funktionale Struktur ausdrücklich freigeben (keine Lyrics)</label>
+  <div class="controls"><button type="button" class="ghost" id="preset-read">Historie lesen</button>
+  <button type="button" class="primary" id="preset-save" disabled>Neue Version speichern</button></div>
+  <p id="preset-status" role="status"></p><div id="preset-history"></div>
+ </section>
  <section class="section card hide" id="forecast-section">
   <div class="step">R1.2 / MUSICAL CHAPTER INTELLIGENCE</div>
   <div class="forecast-top"><h2>Musikalische Kapitel & zeitliche Entwicklung</h2><span class="pill" id="forecast-duration">Keine Dauer abgeleitet</span></div>
@@ -216,7 +226,7 @@ const badge=(parent,value,cls="")=>el("span","tag "+cls,parent,value);
 function invalidateAnalysis(message){
  if(!selected.result)return;
  selected.result=null;selected.choices={};selected.editedFields={};
- for(const id of ["results-section","forecast-section","decisions-section","device-output-section","handoff-section"])$(id).classList.add("hide");
+ for(const id of ["results-section","forecast-section","decisions-section","device-output-section","handoff-section","evolution-section"])$(id).classList.add("hide");
  if(message)statusText(message,false);
  updateNav();
 }
@@ -263,7 +273,7 @@ document.querySelectorAll(".navitem").forEach(b=>b.addEventListener("click",()=>
 $("intent-form").addEventListener("input",()=>invalidateAnalysis("Eingaben geändert. Bitte Voranalyse erneut ausführen."));
 $("clear-button").addEventListener("click",()=>{
  fields.forEach(f=>$(f).value="");$("total-bars").value="";selected.result=null;selected.choices={};selected.editedFields={};
- for(const id of ["results-section","forecast-section","decisions-section","device-output-section","handoff-section"])$(id).classList.add("hide");
+ for(const id of ["results-section","forecast-section","decisions-section","device-output-section","handoff-section","evolution-section"])$(id).classList.add("hide");
  statusText(selected.device?"Eingaben geleert. Gerät bleibt ausgewählt.":"Wähle zuerst dein Gerät.",false);updateNav();
 });
 function readIntent(){
@@ -408,6 +418,59 @@ function suggestEvidenceChoices(data){
   intention.dataset.autoSuggestion="true";
  }
 }
+let presetVersion=null, presetReadId=null;
+function refreshPresetButton(){
+ $("preset-save").disabled=!(selected.result?.context_preset?.preset_candidate && $("preset-consent").checked && presetVersion!==null && presetReadId===$("preset-id").value.trim());
+}
+function renderEvolution(data){
+ $("evolution-section").classList.remove("hide");
+ const mand=$("mandala-view"), forces=$("forces-view");
+ mand.replaceChildren();forces.replaceChildren();
+ el("h3","",mand,"Emergent Mandala");
+ const arrangement=data.context_preset?.mandala_arrangement;
+ if(!arrangement)el("p","subtle",mand,"Keine belegte Mandala-Kandidatur.");
+ else{
+  for(const ring of arrangement.rings||[]){
+   if(ring.functions.length)el("div","relation",mand,ring.ring+" · "+ring.functions.join(" ↔ "));
+  }
+  for(const edge of arrangement.functional_edges||[])el("p","meta",mand,edge.from_ring+" → "+edge.to_ring+" · "+edge.relation);
+  for(const item of arrangement.causal_transitions||[])el("p","subtle",mand,item.id+" · "+item.effect);
+ }
+ el("h3","",forces,"Directed Chaos · Psychoacoustics");
+ for(const edge of data.preanalysis?.musical_forces?.functional_edges||[]){
+  const card=el("div","relation",forces);
+  el("strong","",card,edge.from+" ↔ "+edge.to);badge(card,edge.status,"amber");
+  el("p","meta",card,edge.relation+" · Hypothese, nicht audioverifiziert");
+ }
+ presetVersion=null;presetReadId=null;$("preset-consent").checked=false;
+ $("preset-history").replaceChildren();text($("preset-status"),data.context_preset?.preset_candidate?"Preset-Kandidat · Historie zuerst lesen":"Keine Preset-Kandidatur");
+ refreshPresetButton();
+}
+$("preset-id").addEventListener("input",()=>{presetVersion=null;presetReadId=null;$("preset-consent").checked=false;$("preset-history").replaceChildren();refreshPresetButton();});
+$("preset-consent").addEventListener("change",refreshPresetButton);
+function showPresetHistory(data,id){
+ if(id!==$("preset-id").value.trim())return;
+ const root=$("preset-history");root.replaceChildren();
+ const rows=data.versions||[];presetVersion=rows.length;presetReadId=id;
+ for(const row of rows)el("div","relation",root,"Version "+row.version+" · "+row.functional_bundles.join(" / ")+" · "+row.sha256.slice(0,12));
+ text($("preset-status"),rows.length+" Versionen gelesen");refreshPresetButton();
+}
+$("preset-read").addEventListener("click",async()=>{
+ const id=$("preset-id").value.trim();
+ try{showPresetHistory(await evidenceRequest("/api/preset/read",{preset_id:id}),id);}
+ catch(e){presetVersion=null;presetReadId=null;text($("preset-status"),e.message);refreshPresetButton();}
+});
+$("preset-save").addEventListener("click",async()=>{
+ if($("preset-save").disabled||!selected.result)return;
+ const id=$("preset-id").value.trim(), result=selected.result, version=presetVersion;
+ $("preset-consent").checked=false;refreshPresetButton();
+ try{
+  const data=await evidenceRequest("/api/preset/save",{preset_id:id,creator_approved:true,expected_version:version,
+   review_sha256:result.preset_review_sha256,
+   analysis_request:{device:selected.device,intent:readIntent(),total_bars:$("total-bars").value,route_context:readRoute()}});
+  if(selected.result===result)showPresetHistory(data,id);
+ }catch(e){presetVersion=null;presetReadId=null;text($("preset-status"),e.message);refreshPresetButton();}
+});
 function render(data){
  selected.result=data;selected.choices={};
  $("results-section").classList.remove("hide");
@@ -422,7 +485,7 @@ function render(data){
  $("coverage-bar").style.width=Math.min(100,Math.round(data.semantic.functions.length/15*100))+"%";
  const tags=$("function-tags");tags.replaceChildren();
  for(const f of data.semantic.functions)badge(tags,f.id,f.status==="EXPLICITLY_CONSTRAINED"?"amber":"green");
- renderRelations(data);renderForecast(data);renderDecisions(data);renderDeviceOutput(data);suggestEvidenceChoices(data);updateNav();
+ renderEvolution(data);renderRelations(data);renderForecast(data);renderDecisions(data);renderDeviceOutput(data);suggestEvidenceChoices(data);updateNav();
  $("results-section").scrollIntoView({behavior:"smooth",block:"start"});
 }
 $("intent-form").addEventListener("submit",async event=>{

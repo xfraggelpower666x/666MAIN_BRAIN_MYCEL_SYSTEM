@@ -13,7 +13,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from . import creative_causal, semantic_intelligence, track_preanalysis, device_output, creator_learning
-from . import portable
+from . import portable, context_preset, preset_evidence
 
 SYSTEM_ID = "666TDI-001"
 DAEMON_SCHEMA = "666TDI_DAEMON_R11_LOCAL_V1"
@@ -71,6 +71,7 @@ def preanalysis(payload: dict) -> dict:
     semantic = semantic_intelligence.assess(intent)
     causal = creative_causal.assess(intent)
     preanalysis = track_preanalysis.assess(intent, semantic, causal, total_bars=bars)
+    context_report = context_preset.evaluate(intent, causal_report=causal)
     renderer = device_output.translate(intent, device, payload.get("route_context"),
                                        evidence_root=portable.DATA,
                                        historical_root=portable.ROOT / "evidence")
@@ -89,6 +90,8 @@ def preanalysis(payload: dict) -> dict:
         "semantic": semantic,
         "causal": causal,
         "preanalysis": preanalysis,
+        "context_preset": context_report,
+        "preset_review_sha256": portable.sha(context_report),
         "device_output": renderer,
         "menu": [
             {"id":"device", "label":"Gerät & Workflow", "status":"COMPLETE"},
@@ -105,6 +108,24 @@ def preanalysis(payload: dict) -> dict:
         "read_only": True,
         "no_global_learning": True,
     }
+
+
+def preset_request(payload, *, save=False):
+    """Recompute server-side from reviewed intent; never trust client reports."""
+    if not isinstance(payload, dict):
+        raise ValueError("INVALID_PRESET_REQUEST")
+    preset_id = payload.get("preset_id")
+    if not save:
+        return {"versions": preset_evidence.read_versions(portable.DATA, preset_id)}
+    if payload.get("creator_approved") is not True:
+        raise ValueError("CREATOR_APPROVAL_REQUIRED")
+    reviewed = preanalysis(payload.get("analysis_request"))
+    if payload.get("review_sha256") != reviewed["preset_review_sha256"]:
+        raise ValueError("STALE_PRESET_REVIEW")
+    row = preset_evidence.persist(portable.DATA, preset_id, reviewed["context_preset"],
+                                  creator_approved=True,
+                                  expected_version=payload.get("expected_version"))
+    return {"saved": row, "versions": preset_evidence.read_versions(portable.DATA, preset_id)}
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -187,7 +208,7 @@ class Handler(BaseHTTPRequestHandler):
         if not self._safe_host():
             self._json(403, {"error": "HOST_NOT_ALLOWED"})
             return
-        if self.path not in ("/api/preanalysis", "/api/feedback", "/api/learning/read"):
+        if self.path not in ("/api/preanalysis", "/api/feedback", "/api/learning/read", "/api/preset/read", "/api/preset/save"):
             self._json(404, {"error": "NOT_FOUND"})
             return
         if not self._safe_origin():
@@ -210,6 +231,8 @@ class Handler(BaseHTTPRequestHandler):
                 output = preanalysis(request)
             elif self.path == "/api/feedback":
                 output = creator_learning.record(portable.DATA, request)
+            elif self.path in ("/api/preset/read", "/api/preset/save"):
+                output = preset_request(request, save=self.path == "/api/preset/save")
             else:
                 if not isinstance(request, dict):
                     raise ValueError("INVALID_LEARNING_REQUEST")

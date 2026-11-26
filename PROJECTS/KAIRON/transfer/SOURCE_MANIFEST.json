@@ -1,6 +1,6 @@
 {
   "system_id": "666TDI-001",
-  "source_file_count": 119,
+  "source_file_count": 120,
   "source_files": {
     "README.md": "e19ce33fac348c8e7a3c4d6c2e2c0e9e0958f9906012025cb17ac483abcdb498",
     "START_666TDI_DAEMON.bat": "9bc36ce36725a7a6c3cc492c7ceb0b348154379f24d16fe9877870d84eb2264c",
@@ -40,8 +40,8 @@
     "engine/context_preset.py": "d3487c2919904e3953c55588740b8ba301143422901ad79edbcc190b8b5a16c1",
     "engine/creative_causal.py": "e0db34c3490c5ed3bdbda918ddc47fbd149db50d96fa973bd37d674e4239e796",
     "engine/creator_learning.py": "bcb7ea969dc02622e680f38d481ebdd363e714746ca61b430d69bf95e6fe2687",
-    "engine/daemon_cli.py": "79fead85da078b5ef98ef79f6aaf6e8775f70906e5fce423d167e285f4a23e5c",
-    "engine/daemon_static/index.html": "433f107720a3d256c9073088c0880ff5016d122092c16e399d0303680377713e",
+    "engine/daemon_cli.py": "b26ab16407502ae2b4b0c0a1031ac7cc9e46b063e52ffa8a7a8219785fa0724c",
+    "engine/daemon_static/index.html": "c1f6aa9fe69c5e08967c5d1b317f8922206c2cde0fc2cb77ca25b466807a741e",
     "engine/device_output.py": "fdc00183a9904a3e59f54405607a82b871ff0d33b010755dc37217c95c0cab61",
     "engine/evolution.py": "db6bd8a3ec87de2bd2c707d1e40d90ef55fa2b6d31e812ca6dc130afa2fab7f9",
     "engine/evolution_cli.py": "0313589fa6a2eb62842bde5e7850a40b88a5fe825b78d96b9aa5d3f6a2900813",
@@ -120,7 +120,8 @@
     "tests/test_source_adapters.py": "00e8dde49017bda1e29467bbdad51cc78803567bd47749e8a92e08a5b11daaab",
     "tests/test_track_preanalysis.py": "a15d36e6367f27738ab835083be46a65c8ac5916369c1b949869c5ef46328a96",
     "tests/test_native_consumer_r213.py": "9840ec03fdee0622ac6ed649f9c2faeb78e7e2d598c0db999da5eb2538cc2ff9",
-    "tests/test_emergent_evolution_r213.py": "91f7ca755f728c97675104e66d4edd955b997dc1b1887320844191867775304c"
+    "tests/test_emergent_evolution_r213.py": "91f7ca755f728c97675104e66d4edd955b997dc1b1887320844191867775304c",
+    "tests/test_preset_surface_r213.py": "a06e0a1ea710dd7c855279518b2265b8346cdda67efc85aea43640ef2c1b05a8"
   },
   "source_git_sha1": {
     "README.md": "83577b17ef012ce50061118b5fd8382796ad2da2",
@@ -161,8 +162,8 @@
     "engine/context_preset.py": "ab50e28455064b8e70ed06ee5d3654135b005de0",
     "engine/creative_causal.py": "7e00a5576b34b78474e9cb6b54ff1fcb82848dae",
     "engine/creator_learning.py": "f27bf9e7d850e861c10c48d5767f32c9a8a5c3aa",
-    "engine/daemon_cli.py": "347213036ab71a0dc4a561e297561d9e445794a9",
-    "engine/daemon_static/index.html": "4fd4cef446b8e6fae85f2b1be469fe938d755ee7",
+    "engine/daemon_cli.py": "e5ecacd3b932fd49a4a590b72e3692e840cf0306",
+    "engine/daemon_static/index.html": "bffec576d9b9e4d6499a8050868e42f15b97eac0",
     "engine/device_output.py": "2d072cd470165763cff77cb934bc97095f48efda",
     "engine/evolution.py": "9af80f2baab903448b95a7c7e48e7484519742df",
     "engine/evolution_cli.py": "84457bc24727c3d45c8e923a8827baa8f656f7b3",
@@ -241,7 +242,8 @@
     "tests/test_source_adapters.py": "c57286fac4eb21b4abca8d00c6febd3c4edb541f",
     "tests/test_track_preanalysis.py": "e4e59f6a4739ee4020efa39c7ba826b32681564d",
     "tests/test_native_consumer_r213.py": "bcae3516574685d06de5c32531fe87ba81d936d9",
-    "tests/test_emergent_evolution_r213.py": "fc8e059717cdab39c1b37ad0d044c9497f3d9c6e"
+    "tests/test_emergent_evolution_r213.py": "fc8e059717cdab39c1b37ad0d044c9497f3d9c6e",
+    "tests/test_preset_surface_r213.py": "5b38256028b6ca4415afbbf404c8d8e06adb63a3"
   },
   "source_archive_sha256": "4f0741ef3fdf438772fda6d406baaca02eddd4262ef9681bdc2517955c1703d1",
   "source_origin": "666TDI_v2.5_ADDITIVE_R08_PORTABLE.zip",
@@ -251,10 +253,10 @@
   ],
   "scope": "PROJECTS/KAIRON/source",
   "preserve_existing": true,
-  "source_manifest_revision": "R21.3-emergent-evolution",
-  "source_tree_base_commit": "3e572a0b483e7d351116293a96bccc7d871b1873",
+  "source_manifest_revision": "R21.3-native-ui",
+  "source_tree_base_commit": "ba09e65be5aa439d38dbd0f8c982203553b9991b",
   "source_tree_base_sha": "e1e3e7fd77a0438690e8e0cbb1cf0418f2315e2e",
   "source_archive_sha256_semantics": "HISTORICAL_ORIGINAL_ARCHIVE_NOT_CURRENT_TREE",
   "integrity_method": "UNCHANGED_GIT_BLOB_REUSE; CHANGED_UTF8_SHA256_AND_CI_RAW_BYTES",
-  "previous_manifest_blob": "81b836f0ad2b7d55186fbc624ae7120405cc9c70"
+  "previous_manifest_blob": "aedbff06bce9f0f37c27be94588611ead2807a33"
 }
