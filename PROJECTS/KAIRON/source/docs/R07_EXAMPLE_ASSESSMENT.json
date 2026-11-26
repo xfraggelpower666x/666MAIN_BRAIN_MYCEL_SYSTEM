@@ -1,0 +1,957 @@
+{
+  "example": "Existing bundled track, temporary copy only",
+  "result": {
+    "schema": "666TDI_PATTERN_RELATIONS_V1",
+    "system_id": "666TDI-001",
+    "identity": "666TDI",
+    "pronouns": "er/ihn/ihm",
+    "track_id": "track-72c377757ffe",
+    "graph_revision": 14,
+    "read_only": true,
+    "not_auto_applied": true,
+    "global_promotion": false,
+    "results": [
+      {
+        "candidate_id": "system_aligned_peak",
+        "candidate_type": "pattern",
+        "label": "System Aligned Peak",
+        "origin": "v5hybrid/PATTERNS/track_patterns_v1-0.json",
+        "status": "COUNTERRELATIONS_REQUIRE_REVIEW",
+        "matches": [
+          {
+            "trait": "strong drop",
+            "need": "impact",
+            "function": "SUPPORTS",
+            "witnesses": [
+              {
+                "ref": "n-34ae17f60a937eef",
+                "kind": "ENERGY",
+                "origin": "CURRENT_TRACK"
+              }
+            ],
+            "why": "Track source contains an explicit indicator for this musical function"
+          },
+          {
+            "trait": "strong drop",
+            "need": "contrast",
+            "function": "SUPPORTS",
+            "witnesses": [
+              {
+                "ref": "n-34ae17f60a937eef",
+                "kind": "ENERGY",
+                "origin": "CURRENT_TRACK"
+              },
+              {
+                "ref": "n-45df7c8f0cfb9947",
+                "kind": "SPACE",
+                "origin": "CURRENT_TRACK"
+              },
+              {
+                "ref": "field:structure",
+                "kind": "STRUCTURE",
+                "origin": "CURRENT_TRACK_FIELD"
+              }
+            ],
+            "why": "Track source contains an explicit indicator for this musical function"
+          },
+          {
+            "trait": "loop driven",
+            "need": "recurrent_motion",
+            "function": "SUPPORTS",
+            "witnesses": [
+              {
+                "ref": "n-653d5354d179d566",
+                "kind": "MID",
+                "origin": "CURRENT_TRACK"
+              }
+            ],
+            "why": "Track source contains an explicit indicator for this musical function"
+          }
+        ],
+        "counterrelations": [
+          {
+            "trait": "strong drop",
+            "risk": "unprepared_impact",
+            "witnesses": [
+              {
+                "ref": "n-34ae17f60a937eef",
+                "kind": "ENERGY"
+              }
+            ],
+            "reason": "Potential counterrelation; requires contextual review, not an observed defect"
+          },
+          {
+            "trait": "loop driven",
+            "risk": "static_repetition",
+            "witnesses": [
+              {
+                "ref": "n-653d5354d179d566",
+                "kind": "MID"
+              }
+            ],
+            "reason": "Potential counterrelation; requires contextual review, not an observed defect"
+          },
+          {
+            "risk": "TRACK_GRAPH_EXISTING_CONFLICT",
+            "edge_id": "e-76798bfb7a27b55d",
+            "reason": "Potential masking conflict: must be listened to"
+          }
+        ],
+        "unresolved": [
+          {
+            "trait": "minimal vocals",
+            "need": "sparse_voice",
+            "reason": "NO_TRACK_EVIDENCE_FOR_FUNCTION"
+          }
+        ],
+        "evidence_class": "TRACK_STRUCTURE_AND_RULE_BASED_HYPOTHESIS",
+        "adopted": false,
+        "audio_verified": false,
+        "renderer_verified": false,
+        "explanation": "Explicit musical function witnesses and counterrelations; review required before any track-local use"
+      },
+      {
+        "candidate_id": "emotional_multilayer",
+        "candidate_type": "pattern",
+        "label": "Emotional Multi-Layer",
+        "origin": "v5hybrid/PATTERNS/track_patterns_v1-0.json",
+        "status": "COUNTERRELATIONS_REQUIRE_REVIEW",
+        "matches": [
+          {
+            "trait": "instrument layering",
+            "need": "layered_arrangement",
+            "function": "SUPPORTS",
+            "witnesses": [
+              {
+                "ref": "n-653d5354d179d566",
+                "kind": "MID",
+                "origin": "CURRENT_TRACK"
+              }
+            ],
+            "why": "Track source contains an explicit indicator for this musical function"
+          },
+          {
+            "trait": "deep break",
+            "need": "contrast",
+            "function": "SUPPORTS",
+            "witnesses": [
+              {
+                "ref": "n-34ae17f60a937eef",
+                "kind": "ENERGY",
+                "origin": "CURRENT_TRACK"
+              },
+              {
+                "ref": "n-45df7c8f0cfb9947",
+                "kind": "SPACE",
+                "origin": "CURRENT_TRACK"
+              },
+              {
+                "ref": "field:structure",
+                "kind": "STRUCTURE",
+                "origin": "CURRENT_TRACK_FIELD"
+              }
+            ],
+            "why": "Track source contains an explicit indicator for this musical function"
+          }
+        ],
+        "counterrelations": [
+          {
+            "trait": "multi-voice",
+            "risk": "vocal_masking",
+            "witnesses": [
+              {
+                "ref": "n-359de58753c0d1c9",
+                "kind": "VOICE"
+              }
+            ],
+            "reason": "Potential counterrelation; requires contextual review, not an observed defect"
+          },
+          {
+            "trait": "instrument layering",
+            "risk": "frequency_masking",
+            "witnesses": [
+              {
+                "ref": "n-653d5354d179d566",
+                "kind": "MID"
+              }
+            ],
+            "reason": "Potential counterrelation; requires contextual review, not an observed defect"
+          },
+          {
+            "trait": "deep break",
+            "risk": "motor_discontinuity",
+            "witnesses": [
+              {
+                "ref": "n-101635c95da86112",
+                "kind": "MOTOR"
+              },
+              {
+                "ref": "n-34ae17f60a937eef",
+                "kind": "ENERGY"
+              },
+              {
+                "ref": "n-6ecf97c7c33c44a3",
+                "kind": "ENDING"
+              },
+              {
+                "ref": "field:genre",
+                "kind": "GENRE"
+              }
+            ],
+            "reason": "Potential counterrelation; requires contextual review, not an observed defect"
+          },
+          {
+            "risk": "TRACK_GRAPH_EXISTING_CONFLICT",
+            "edge_id": "e-76798bfb7a27b55d",
+            "reason": "Potential masking conflict: must be listened to"
+          }
+        ],
+        "unresolved": [
+          {
+            "trait": "multi-voice",
+            "need": "voice_dialogue",
+            "reason": "NO_TRACK_EVIDENCE_FOR_FUNCTION"
+          }
+        ],
+        "evidence_class": "TRACK_STRUCTURE_AND_RULE_BASED_HYPOTHESIS",
+        "adopted": false,
+        "audio_verified": false,
+        "renderer_verified": false,
+        "explanation": "Explicit musical function witnesses and counterrelations; review required before any track-local use"
+      },
+      {
+        "candidate_id": "triple_refrain_engine",
+        "candidate_type": "pattern",
+        "label": "Triple Refrain Engine",
+        "origin": "v5hybrid/PATTERNS/track_patterns_v1-0.json",
+        "status": "COUNTERRELATIONS_REQUIRE_REVIEW",
+        "matches": [
+          {
+            "trait": "3x refrain",
+            "need": "recurrent_hook",
+            "function": "SUPPORTS",
+            "witnesses": [
+              {
+                "ref": "field:avoid",
+                "kind": "AVOID",
+                "origin": "CURRENT_TRACK_FIELD"
+              }
+            ],
+            "why": "Track source contains an explicit indicator for this musical function"
+          }
+        ],
+        "counterrelations": [
+          {
+            "trait": "3x refrain",
+            "risk": "static_repetition",
+            "witnesses": [
+              {
+                "ref": "n-653d5354d179d566",
+                "kind": "MID"
+              }
+            ],
+            "reason": "Potential counterrelation; requires contextual review, not an observed defect"
+          },
+          {
+            "trait": "violin cello piano",
+            "risk": "genre_drift",
+            "witnesses": [
+              {
+                "ref": "n-101635c95da86112",
+                "kind": "MOTOR"
+              },
+              {
+                "ref": "field:genre",
+                "kind": "GENRE"
+              }
+            ],
+            "reason": "Potential counterrelation; requires contextual review, not an observed defect"
+          },
+          {
+            "risk": "TRACK_GRAPH_EXISTING_CONFLICT",
+            "edge_id": "e-76798bfb7a27b55d",
+            "reason": "Potential masking conflict: must be listened to"
+          }
+        ],
+        "unresolved": [
+          {
+            "trait": "violin cello piano",
+            "need": "acoustic_timbres",
+            "reason": "NO_TRACK_EVIDENCE_FOR_FUNCTION"
+          },
+          {
+            "trait": "voice variation",
+            "need": "voice_dialogue",
+            "reason": "NO_TRACK_EVIDENCE_FOR_FUNCTION"
+          }
+        ],
+        "evidence_class": "TRACK_STRUCTURE_AND_RULE_BASED_HYPOTHESIS",
+        "adopted": false,
+        "audio_verified": false,
+        "renderer_verified": false,
+        "explanation": "Explicit musical function witnesses and counterrelations; review required before any track-local use"
+      },
+      {
+        "candidate_id": "sexy_emotional_flow",
+        "candidate_type": "pattern",
+        "label": "Sexy Emotional Flow",
+        "origin": "v5hybrid/PATTERNS/track_patterns_v1-0.json",
+        "status": "COUNTERRELATIONS_REQUIRE_REVIEW",
+        "matches": [
+          {
+            "trait": "whisper vocals",
+            "need": "intimate_voice",
+            "function": "SUPPORTS",
+            "witnesses": [
+              {
+                "ref": "n-359de58753c0d1c9",
+                "kind": "VOICE",
+                "origin": "CURRENT_TRACK"
+              },
+              {
+                "ref": "n-5d12ef8d7f110985",
+                "kind": "LYRICS",
+                "origin": "CURRENT_TRACK"
+              }
+            ],
+            "why": "Track source contains an explicit indicator for this musical function"
+          },
+          {
+            "trait": "touch language",
+            "need": "human_intimacy",
+            "function": "SUPPORTS",
+            "witnesses": [
+              {
+                "ref": "n-61c1450bf7256662",
+                "kind": "STORY",
+                "origin": "CURRENT_TRACK"
+              },
+              {
+                "ref": "field:title",
+                "kind": "TITLE",
+                "origin": "CURRENT_TRACK_FIELD"
+              }
+            ],
+            "why": "Track source contains an explicit indicator for this musical function"
+          }
+        ],
+        "counterrelations": [
+          {
+            "trait": "whisper vocals",
+            "risk": "vocal_masking",
+            "witnesses": [
+              {
+                "ref": "n-359de58753c0d1c9",
+                "kind": "VOICE"
+              }
+            ],
+            "reason": "Potential counterrelation; requires contextual review, not an observed defect"
+          },
+          {
+            "trait": "slow groove",
+            "risk": "motor_discontinuity",
+            "witnesses": [
+              {
+                "ref": "n-101635c95da86112",
+                "kind": "MOTOR"
+              },
+              {
+                "ref": "n-34ae17f60a937eef",
+                "kind": "ENERGY"
+              },
+              {
+                "ref": "n-6ecf97c7c33c44a3",
+                "kind": "ENDING"
+              },
+              {
+                "ref": "field:genre",
+                "kind": "GENRE"
+              }
+            ],
+            "reason": "Potential counterrelation; requires contextual review, not an observed defect"
+          },
+          {
+            "trait": "touch language",
+            "risk": "unwanted_eroticization",
+            "witnesses": [
+              {
+                "ref": "n-61c1450bf7256662",
+                "kind": "STORY"
+              }
+            ],
+            "reason": "Potential counterrelation; requires contextual review, not an observed defect"
+          },
+          {
+            "risk": "TRACK_GRAPH_EXISTING_CONFLICT",
+            "edge_id": "e-76798bfb7a27b55d",
+            "reason": "Potential masking conflict: must be listened to"
+          }
+        ],
+        "unresolved": [
+          {
+            "trait": "slow groove",
+            "need": "relaxed_groove",
+            "reason": "NO_TRACK_EVIDENCE_FOR_FUNCTION"
+          }
+        ],
+        "evidence_class": "TRACK_STRUCTURE_AND_RULE_BASED_HYPOTHESIS",
+        "adopted": false,
+        "audio_verified": false,
+        "renderer_verified": false,
+        "explanation": "Explicit musical function witnesses and counterrelations; review required before any track-local use"
+      },
+      {
+        "candidate_id": "psy_hypnotic_loop",
+        "candidate_type": "pattern",
+        "label": "Psy Hypnotic Loop",
+        "origin": "v5hybrid/PATTERNS/track_patterns_v1-0.json",
+        "status": "COUNTERRELATIONS_REQUIRE_REVIEW",
+        "matches": [
+          {
+            "trait": "repetition",
+            "need": "recurrent_motion",
+            "function": "SUPPORTS",
+            "witnesses": [
+              {
+                "ref": "n-653d5354d179d566",
+                "kind": "MID",
+                "origin": "CURRENT_TRACK"
+              }
+            ],
+            "why": "Track source contains an explicit indicator for this musical function"
+          },
+          {
+            "trait": "rolling groove",
+            "need": "forward_motion",
+            "function": "SUPPORTS",
+            "witnesses": [
+              {
+                "ref": "n-101635c95da86112",
+                "kind": "MOTOR",
+                "origin": "CURRENT_TRACK"
+              },
+              {
+                "ref": "n-653d5354d179d566",
+                "kind": "MID",
+                "origin": "CURRENT_TRACK"
+              },
+              {
+                "ref": "field:genre",
+                "kind": "GENRE",
+                "origin": "CURRENT_TRACK_FIELD"
+              },
+              {
+                "ref": "field:avoid",
+                "kind": "AVOID",
+                "origin": "CURRENT_TRACK_FIELD"
+              }
+            ],
+            "why": "Track source contains an explicit indicator for this musical function"
+          }
+        ],
+        "counterrelations": [
+          {
+            "trait": "repetition",
+            "risk": "static_repetition",
+            "witnesses": [
+              {
+                "ref": "n-653d5354d179d566",
+                "kind": "MID"
+              }
+            ],
+            "reason": "Potential counterrelation; requires contextual review, not an observed defect"
+          },
+          {
+            "trait": "rolling groove",
+            "risk": "motor_discontinuity",
+            "witnesses": [
+              {
+                "ref": "n-101635c95da86112",
+                "kind": "MOTOR"
+              },
+              {
+                "ref": "n-34ae17f60a937eef",
+                "kind": "ENERGY"
+              },
+              {
+                "ref": "n-6ecf97c7c33c44a3",
+                "kind": "ENDING"
+              },
+              {
+                "ref": "field:genre",
+                "kind": "GENRE"
+              }
+            ],
+            "reason": "Potential counterrelation; requires contextual review, not an observed defect"
+          }
+        ],
+        "unresolved": [
+          {
+            "trait": "minimal text",
+            "need": "sparse_voice",
+            "reason": "NO_TRACK_EVIDENCE_FOR_FUNCTION"
+          }
+        ],
+        "evidence_class": "TRACK_STRUCTURE_AND_RULE_BASED_HYPOTHESIS",
+        "adopted": false,
+        "audio_verified": false,
+        "renderer_verified": false,
+        "explanation": "Explicit musical function witnesses and counterrelations; review required before any track-local use"
+      },
+      {
+        "candidate_id": "control_vs_chaos",
+        "candidate_type": "pattern",
+        "label": "Control vs Chaos",
+        "origin": "v5hybrid/PATTERNS/track_patterns_v1-0.json",
+        "status": "COUNTERRELATIONS_REQUIRE_REVIEW",
+        "matches": [
+          {
+            "trait": "contrast",
+            "need": "contrast",
+            "function": "SUPPORTS",
+            "witnesses": [
+              {
+                "ref": "n-34ae17f60a937eef",
+                "kind": "ENERGY",
+                "origin": "CURRENT_TRACK"
+              },
+              {
+                "ref": "n-45df7c8f0cfb9947",
+                "kind": "SPACE",
+                "origin": "CURRENT_TRACK"
+              },
+              {
+                "ref": "field:structure",
+                "kind": "STRUCTURE",
+                "origin": "CURRENT_TRACK_FIELD"
+              }
+            ],
+            "why": "Track source contains an explicit indicator for this musical function"
+          },
+          {
+            "trait": "build tension",
+            "need": "tension",
+            "function": "SUPPORTS",
+            "witnesses": [
+              {
+                "ref": "field:genre",
+                "kind": "GENRE",
+                "origin": "CURRENT_TRACK_FIELD"
+              }
+            ],
+            "why": "Track source contains an explicit indicator for this musical function"
+          }
+        ],
+        "counterrelations": [
+          {
+            "trait": "build tension",
+            "risk": "unresolved_tension",
+            "witnesses": [
+              {
+                "ref": "field:psychoacoustics",
+                "kind": "PSYCHOACOUSTICS"
+              }
+            ],
+            "reason": "Potential counterrelation; requires contextual review, not an observed defect"
+          },
+          {
+            "risk": "TRACK_GRAPH_EXISTING_CONFLICT",
+            "edge_id": "e-76798bfb7a27b55d",
+            "reason": "Potential masking conflict: must be listened to"
+          }
+        ],
+        "unresolved": [
+          {
+            "trait": "system voice",
+            "need": "narrator_voice",
+            "reason": "NO_TRACK_EVIDENCE_FOR_FUNCTION"
+          }
+        ],
+        "evidence_class": "TRACK_STRUCTURE_AND_RULE_BASED_HYPOTHESIS",
+        "adopted": false,
+        "audio_verified": false,
+        "renderer_verified": false,
+        "explanation": "Explicit musical function witnesses and counterrelations; review required before any track-local use"
+      },
+      {
+        "candidate_id": "birth_sequence",
+        "candidate_type": "pattern",
+        "label": "Birth Sequence",
+        "origin": "v5hybrid/PATTERNS/track_patterns_v1-0.json",
+        "status": "COUNTERRELATIONS_REQUIRE_REVIEW",
+        "matches": [
+          {
+            "trait": "intro heavy",
+            "need": "extended_intro",
+            "function": "SUPPORTS",
+            "witnesses": [
+              {
+                "ref": "field:structure",
+                "kind": "STRUCTURE",
+                "origin": "CURRENT_TRACK_FIELD"
+              }
+            ],
+            "why": "Track source contains an explicit indicator for this musical function"
+          },
+          {
+            "trait": "slow build",
+            "need": "tension",
+            "function": "SUPPORTS",
+            "witnesses": [
+              {
+                "ref": "field:genre",
+                "kind": "GENRE",
+                "origin": "CURRENT_TRACK_FIELD"
+              }
+            ],
+            "why": "Track source contains an explicit indicator for this musical function"
+          },
+          {
+            "trait": "final release",
+            "need": "terminal_resolution",
+            "function": "SUPPORTS",
+            "witnesses": [
+              {
+                "ref": "n-6ecf97c7c33c44a3",
+                "kind": "ENDING",
+                "origin": "CURRENT_TRACK"
+              },
+              {
+                "ref": "field:structure",
+                "kind": "STRUCTURE",
+                "origin": "CURRENT_TRACK_FIELD"
+              }
+            ],
+            "why": "Track source contains an explicit indicator for this musical function"
+          }
+        ],
+        "counterrelations": [
+          {
+            "trait": "intro heavy",
+            "risk": "dj_intro_conflict",
+            "witnesses": [
+              {
+                "ref": "n-6ecf97c7c33c44a3",
+                "kind": "ENDING"
+              },
+              {
+                "ref": "field:structure",
+                "kind": "STRUCTURE"
+              }
+            ],
+            "reason": "Potential counterrelation; requires contextual review, not an observed defect"
+          },
+          {
+            "trait": "slow build",
+            "risk": "unprepared_impact",
+            "witnesses": [
+              {
+                "ref": "n-34ae17f60a937eef",
+                "kind": "ENERGY"
+              }
+            ],
+            "reason": "Potential counterrelation; requires contextual review, not an observed defect"
+          },
+          {
+            "trait": "final release",
+            "risk": "unresolved_tension",
+            "witnesses": [
+              {
+                "ref": "field:psychoacoustics",
+                "kind": "PSYCHOACOUSTICS"
+              }
+            ],
+            "reason": "Potential counterrelation; requires contextual review, not an observed defect"
+          }
+        ],
+        "unresolved": [],
+        "evidence_class": "TRACK_STRUCTURE_AND_RULE_BASED_HYPOTHESIS",
+        "adopted": false,
+        "audio_verified": false,
+        "renderer_verified": false,
+        "explanation": "Explicit musical function witnesses and counterrelations; review required before any track-local use"
+      },
+      {
+        "candidate_id": "club_driver_minimal",
+        "candidate_type": "pattern",
+        "label": "Club Driver Minimal",
+        "origin": "v5hybrid/PATTERNS/track_patterns_v1-0.json",
+        "status": "COUNTERRELATIONS_REQUIRE_REVIEW",
+        "matches": [
+          {
+            "trait": "strong rhythm",
+            "need": "forward_motion",
+            "function": "SUPPORTS",
+            "witnesses": [
+              {
+                "ref": "n-101635c95da86112",
+                "kind": "MOTOR",
+                "origin": "CURRENT_TRACK"
+              },
+              {
+                "ref": "n-653d5354d179d566",
+                "kind": "MID",
+                "origin": "CURRENT_TRACK"
+              },
+              {
+                "ref": "field:genre",
+                "kind": "GENRE",
+                "origin": "CURRENT_TRACK_FIELD"
+              },
+              {
+                "ref": "field:avoid",
+                "kind": "AVOID",
+                "origin": "CURRENT_TRACK_FIELD"
+              }
+            ],
+            "why": "Track source contains an explicit indicator for this musical function"
+          },
+          {
+            "trait": "clean drop",
+            "need": "impact",
+            "function": "SUPPORTS",
+            "witnesses": [
+              {
+                "ref": "n-34ae17f60a937eef",
+                "kind": "ENERGY",
+                "origin": "CURRENT_TRACK"
+              }
+            ],
+            "why": "Track source contains an explicit indicator for this musical function"
+          }
+        ],
+        "counterrelations": [
+          {
+            "trait": "strong rhythm",
+            "risk": "motor_discontinuity",
+            "witnesses": [
+              {
+                "ref": "n-101635c95da86112",
+                "kind": "MOTOR"
+              },
+              {
+                "ref": "n-34ae17f60a937eef",
+                "kind": "ENERGY"
+              },
+              {
+                "ref": "n-6ecf97c7c33c44a3",
+                "kind": "ENDING"
+              },
+              {
+                "ref": "field:genre",
+                "kind": "GENRE"
+              }
+            ],
+            "reason": "Potential counterrelation; requires contextual review, not an observed defect"
+          },
+          {
+            "trait": "clean drop",
+            "risk": "unprepared_impact",
+            "witnesses": [
+              {
+                "ref": "n-34ae17f60a937eef",
+                "kind": "ENERGY"
+              }
+            ],
+            "reason": "Potential counterrelation; requires contextual review, not an observed defect"
+          },
+          {
+            "risk": "TRACK_GRAPH_EXISTING_CONFLICT",
+            "edge_id": "e-76798bfb7a27b55d",
+            "reason": "Potential masking conflict: must be listened to"
+          }
+        ],
+        "unresolved": [
+          {
+            "trait": "low vocals",
+            "need": "sparse_voice",
+            "reason": "NO_TRACK_EVIDENCE_FOR_FUNCTION"
+          }
+        ],
+        "evidence_class": "TRACK_STRUCTURE_AND_RULE_BASED_HYPOTHESIS",
+        "adopted": false,
+        "audio_verified": false,
+        "renderer_verified": false,
+        "explanation": "Explicit musical function witnesses and counterrelations; review required before any track-local use"
+      },
+      {
+        "candidate_id": "dark_to_light_transition",
+        "candidate_type": "pattern",
+        "label": "Dark to Light",
+        "origin": "v5hybrid/PATTERNS/track_patterns_v1-0.json",
+        "status": "COUNTERRELATIONS_REQUIRE_REVIEW",
+        "matches": [
+          {
+            "trait": "contrast",
+            "need": "contrast",
+            "function": "SUPPORTS",
+            "witnesses": [
+              {
+                "ref": "n-34ae17f60a937eef",
+                "kind": "ENERGY",
+                "origin": "CURRENT_TRACK"
+              },
+              {
+                "ref": "n-45df7c8f0cfb9947",
+                "kind": "SPACE",
+                "origin": "CURRENT_TRACK"
+              },
+              {
+                "ref": "field:structure",
+                "kind": "STRUCTURE",
+                "origin": "CURRENT_TRACK_FIELD"
+              }
+            ],
+            "why": "Track source contains an explicit indicator for this musical function"
+          },
+          {
+            "trait": "build evolution",
+            "need": "tension",
+            "function": "SUPPORTS",
+            "witnesses": [
+              {
+                "ref": "field:genre",
+                "kind": "GENRE",
+                "origin": "CURRENT_TRACK_FIELD"
+              }
+            ],
+            "why": "Track source contains an explicit indicator for this musical function"
+          },
+          {
+            "trait": "build evolution",
+            "need": "transformation",
+            "function": "SUPPORTS",
+            "witnesses": [
+              {
+                "ref": "n-653d5354d179d566",
+                "kind": "MID",
+                "origin": "CURRENT_TRACK"
+              },
+              {
+                "ref": "field:structure",
+                "kind": "STRUCTURE",
+                "origin": "CURRENT_TRACK_FIELD"
+              }
+            ],
+            "why": "Track source contains an explicit indicator for this musical function"
+          }
+        ],
+        "counterrelations": [
+          {
+            "trait": "build evolution",
+            "risk": "unresolved_tension",
+            "witnesses": [
+              {
+                "ref": "field:psychoacoustics",
+                "kind": "PSYCHOACOUSTICS"
+              }
+            ],
+            "reason": "Potential counterrelation; requires contextual review, not an observed defect"
+          },
+          {
+            "risk": "TRACK_GRAPH_EXISTING_CONFLICT",
+            "edge_id": "e-76798bfb7a27b55d",
+            "reason": "Potential masking conflict: must be listened to"
+          }
+        ],
+        "unresolved": [],
+        "evidence_class": "TRACK_STRUCTURE_AND_RULE_BASED_HYPOTHESIS",
+        "adopted": false,
+        "audio_verified": false,
+        "renderer_verified": false,
+        "explanation": "Explicit musical function witnesses and counterrelations; review required before any track-local use"
+      },
+      {
+        "candidate_id": "master_of_disaster_mode",
+        "candidate_type": "pattern",
+        "label": "Master of Disaster",
+        "origin": "v5hybrid/PATTERNS/track_patterns_v1-0.json",
+        "status": "COUNTERRELATIONS_REQUIRE_REVIEW",
+        "matches": [
+          {
+            "trait": "hard drop",
+            "need": "impact",
+            "function": "SUPPORTS",
+            "witnesses": [
+              {
+                "ref": "n-34ae17f60a937eef",
+                "kind": "ENERGY",
+                "origin": "CURRENT_TRACK"
+              }
+            ],
+            "why": "Track source contains an explicit indicator for this musical function"
+          },
+          {
+            "trait": "system control",
+            "need": "machine_narrative",
+            "function": "SUPPORTS",
+            "witnesses": [
+              {
+                "ref": "n-45df7c8f0cfb9947",
+                "kind": "SPACE",
+                "origin": "CURRENT_TRACK"
+              },
+              {
+                "ref": "n-5d12ef8d7f110985",
+                "kind": "LYRICS",
+                "origin": "CURRENT_TRACK"
+              },
+              {
+                "ref": "n-61c1450bf7256662",
+                "kind": "STORY",
+                "origin": "CURRENT_TRACK"
+              },
+              {
+                "ref": "field:title",
+                "kind": "TITLE",
+                "origin": "CURRENT_TRACK_FIELD"
+              }
+            ],
+            "why": "Track source contains an explicit indicator for this musical function"
+          }
+        ],
+        "counterrelations": [
+          {
+            "trait": "hard drop",
+            "risk": "unprepared_impact",
+            "witnesses": [
+              {
+                "ref": "n-34ae17f60a937eef",
+                "kind": "ENERGY"
+              }
+            ],
+            "reason": "Potential counterrelation; requires contextual review, not an observed defect"
+          },
+          {
+            "trait": "dominant voice",
+            "risk": "vocal_masking",
+            "witnesses": [
+              {
+                "ref": "n-359de58753c0d1c9",
+                "kind": "VOICE"
+              }
+            ],
+            "reason": "Potential counterrelation; requires contextual review, not an observed defect"
+          },
+          {
+            "risk": "TRACK_GRAPH_EXISTING_CONFLICT",
+            "edge_id": "e-76798bfb7a27b55d",
+            "reason": "Potential masking conflict: must be listened to"
+          }
+        ],
+        "unresolved": [
+          {
+            "trait": "dominant voice",
+            "need": "foreground_voice",
+            "reason": "NO_TRACK_EVIDENCE_FOR_FUNCTION"
+          }
+        ],
+        "evidence_class": "TRACK_STRUCTURE_AND_RULE_BASED_HYPOTHESIS",
+        "adopted": false,
+        "audio_verified": false,
+        "renderer_verified": false,
+        "explanation": "Explicit musical function witnesses and counterrelations; review required before any track-local use"
+      }
+    ]
+  }
+}

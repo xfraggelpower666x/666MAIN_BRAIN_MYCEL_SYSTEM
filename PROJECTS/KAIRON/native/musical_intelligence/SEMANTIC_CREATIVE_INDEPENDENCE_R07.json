@@ -1,0 +1,85 @@
+{
+  "schema": "666TDI_NMI_R07_SEMANTIC_CREATIVE_INDEPENDENCE_V1",
+  "system_id": "666TDI-001",
+  "authority": "666TDI_ONLY",
+  "extends": [
+    "NMI-R02",
+    "NMI-R06"
+  ],
+  "source": {
+    "creator": "Direct update 2026-11-25T22:20:00Z",
+    "audit": "Read-only LYVRA track design comparative audit",
+    "repository": "xfraggelpower666x/LYVRA-Living-Yielding-Vibration-and-Resonance-Architecture",
+    "head": "63c045fd55ada6e1511222c2eded03ff4e1079c2",
+    "references": {
+      "TRACK_DESIGN_WORK_MODES_AND_CONTEXT_ISOLATION.md": "42326f8422d480390fbc4e6d20a13b4b5c05f440",
+      "TRACK_DESIGN_RELATIONAL_CARD_INTELLIGENCE.md": "636a35c826aed598ad63ac06dfa9aaa7896d32c1",
+      "TRACK_DESIGN_CAUSAL_REMINDER_TOUCHPOINTS.md": "8b7e86c147d097bcc9bafd333e5cd0da16ff3679",
+      "SEMANTIC_CAUSAL_LYRIC_INTELLIGENCE.md": "d14b0687f048e1a4e8b615c36719d8331ad2a617",
+      "RENDERER_TRANSLATION_AND_OUTPUT_GUARD.md": "4ad0f7da305565b1353d405762717ef9ce80c8aa"
+    },
+    "role": "method evidence only; no runtime dependency or copied architecture"
+  },
+  "context": {
+    "default": "INDEPENDENT",
+    "continuation": "Only explicit current creator request naming or unambiguously selecting the earlier track; import only relevant authorized material; ambiguous target stays OPEN",
+    "persistent": [
+      "native DNA",
+      "general musical capabilities",
+      "generalized evidence with provenance",
+      "renderer knowledge",
+      "R05 and R06",
+      "creator-wide production constraints"
+    ],
+    "track_local": [
+      "theme",
+      "story",
+      "images",
+      "metaphors",
+      "characters",
+      "sung text",
+      "hook",
+      "mantra",
+      "voice cast",
+      "motif",
+      "instrumentation",
+      "arrangement",
+      "local tempo and FX"
+    ],
+    "rule": "Prior track-local material is comparison evidence, not a creative source unless current seed independently warrants it or explicit continuation authorizes it. Same chat and semantic resemblance do not authorize carryover. Do not erase previous records."
+  },
+  "lyrical": {
+    "review": [
+      "theme and story",
+      "images and metaphors",
+      "characters and speaker roles",
+      "hook and mantra",
+      "rhyme and stanza shape",
+      "narrative trajectory and ending",
+      "branding and manifesto"
+    ],
+    "hold": "Unjustified prior-theme import or repeated distinctive lyrical scaffolding: revise affected passage only. Ordinary shared vocabulary, intentionally recurring hooks within a song and creator-authored text are not automatic faults.",
+    "source_fidelity": "Preserve supplied lyrics; any requested transformation retains meaning; never delete creator-supplied words merely because previously used."
+  },
+  "musical": {
+    "reuse": "Recall previous voice timbre/cast, FX chain, spatial motion, kick/bass/groove, hook, build/drop and ending as contrast evidence under R06. Select based on current story and musical intent; no fixed cooldown interval or forced rotation.",
+    "checkpoints": [
+      "before forming identity",
+      "during voice/motor/FX decisions",
+      "after final renderer assembly"
+    ],
+    "renderer": "Translate fresh musical decisions into concrete compact Suno vocabulary; do not reuse generic command scaffolding without a current musical reason; preserve R05 anchors and R06 mastering in both fields and exact UTF16 limits."
+  },
+  "evidence": {
+    "creator_report": "Themes accumulate across independent tracks; unacceptable for radio",
+    "examples": [
+      "019 Strangers includes prior StyleDesign manifesto and branding",
+      "020 A.I. Madness carries prior manifesto",
+      "021 Universal Development Tools repeats earlier manifesto and identity blocks"
+    ],
+    "classification": "chat draft inspection and creator report; no audio or quantitative similarity claim"
+  },
+  "preserve": "All NMI-R01–R06, original tracks, R1.4 source, isolated R1.5, native authority and current output contract",
+  "foreign_activation": false,
+  "automatic_promotion": false
+}

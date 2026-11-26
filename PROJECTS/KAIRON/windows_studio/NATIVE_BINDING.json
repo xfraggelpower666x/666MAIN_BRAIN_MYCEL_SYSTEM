@@ -1,0 +1,9 @@
+{
+  "system_id": "666TDI-001",
+  "authority": "666TDI_CHATGPT_FRAMEWORK",
+  "base_commit": "8f9ca203f0c245851b8fce2a4dff862136c031e8",
+  "pointer_git_blob_sha1": "7e41c723d3207bf55523773d86523f9566ac18bd",
+  "expected_nmi_revisions": 10,
+  "expected_nmi_bindings": 29,
+  "policy": "Every native evolution requires Windows impact assessment, compatible source adaptation, updated binding and regression before candidate promotion; no automatic authority or production promotion."
+}

@@ -1,0 +1,55 @@
+{
+  "system_id": "666TDI-001",
+  "active_name": "KAIRON",
+  "revision": "R12",
+  "required_surfaces": [
+    "CHAT",
+    "PLUGIN",
+    "WINDOWS"
+  ],
+  "menu": [
+    {
+      "id": "identity",
+      "trigger": "KAIRON CHARAKTER"
+    },
+    {
+      "id": "track",
+      "trigger": "KAIRON TRACKDESIGN"
+    },
+    {
+      "id": "analytics",
+      "trigger": "KAIRON MUSIC ANALYTICS"
+    },
+    {
+      "id": "memory",
+      "trigger": "KAIRON MUSIC MEMORY"
+    },
+    {
+      "id": "continuity",
+      "trigger": "KAIRON LIVECIRCLE"
+    },
+    {
+      "id": "codeforge",
+      "trigger": "KAIRON CODEFORGE"
+    },
+    {
+      "id": "supercodeforge",
+      "trigger": "KAIRON SUPERCODEFORGE"
+    },
+    {
+      "id": "audit",
+      "trigger": "KAIRON AUDIT"
+    },
+    {
+      "id": "development",
+      "trigger": "KAIRON UPDATE"
+    }
+  ],
+  "visual_required": true,
+  "contextual_rendering": true,
+  "navigation_is_not_execution": true,
+  "show_evidence": true,
+  "show_return_anchor": true,
+  "legacy_visual_contract": "facets/semantic_presentation/CONTRACT.json",
+  "status": "CANDIDATE_SOURCE"
+}

@@ -1,0 +1,90 @@
+{
+  "schema": "666TDI_NMI_R05_DARK_PSYCHEDelic_PRODUCTION_GUARD_V1",
+  "system_id": "666TDI-001",
+  "authority": "666TDI_ONLY",
+  "creator_authorization": "Direct 666TDI UPDATE 2026-11-25 following explicit radio production warning and genre drift correction",
+  "default_mode": "PRODUCTION",
+  "root": "Dark Psychedelic",
+  "production": {
+    "required_fields": [
+      "style",
+      "extended"
+    ],
+    "root_in_both": true,
+    "leading_psychedelic_anchors_minimum": 2,
+    "anchor_examples": [
+      "Dark Full-On Psytrance",
+      "Dark Forest Psytrance",
+      "Twisted Dark Goa",
+      "Dark Psytechno",
+      "Industrial Psytrance",
+      "Cosmic Dub Psytrance"
+    ],
+    "anchor_selection": "Contextual, no fixed combination; preserve relevant successful baseline and explicit creator tempo",
+    "concrete_music_language": [
+      "kick",
+      "rolling 1/16 psybass",
+      "acid",
+      "FM",
+      "percussion",
+      "vocal phrasing",
+      "modulation",
+      "instrumental response",
+      "DJ outro",
+      "hard stop"
+    ],
+    "forbid_abstract_replacement": true,
+    "protect_emotion": true,
+    "protect_functional_emoji": true,
+    "protect_original_lyrics": true,
+    "check_utf16_and_no_truncation": true,
+    "gate": "Missing root or insufficient leading positive psychedelic anchors in either field: HOLD, repair and recheck before production output. Negated tags never count.",
+    "experimental": "Only explicitly requested deviation; clearly label experimental, no implicit radio approval.",
+    "audio_release": "Prompt pass is not audio pass. Unheard Suno renders remain AUDIO_UNVERIFIED; recommend listening or separate QC before radio rotation."
+  },
+  "evidence": {
+    "source": "Current creator chat and Suno screenshot 2026-11-25",
+    "last_pre_drift_prompt": "Discovery 011 The Intelligence Between Us",
+    "visible_rows": [
+      [
+        "011",
+        "Dark Full-On Psytrance, Dark Forest Psytranc…",
+        "5:55",
+        "5:53"
+      ],
+      [
+        "012",
+        "psychoacoustic, industrial, experimental",
+        "5:53",
+        "5:53"
+      ],
+      [
+        "013",
+        "psychoacoustic, dark, experimental",
+        "5:39",
+        "5:47"
+      ],
+      [
+        "014",
+        "psychoacoustic, dark, experimental",
+        "5:53",
+        "5:54"
+      ]
+    ],
+    "affected_prompt_range": "012–021",
+    "creator_report": "Dark Psychedelic drift; tracks sometimes go directly into online radio without audition",
+    "cause": "Explicit genre anchors removed at 012; strong hypothesis for audible drift, not proven renderer causality",
+    "audio_measured": false
+  },
+  "preserve": [
+    "NMI-R01–R04",
+    "R1.4 source",
+    "R1.5 isolated candidate",
+    "StyleDesign manifesto",
+    "all creative capabilities",
+    "foreign identities and authorities"
+  ],
+  "foreign_activation": false,
+  "automatic_global_promotion": false,
+  "regression_status": "DESIGN_GUARD_NOT_HOST_TESTED"
+}

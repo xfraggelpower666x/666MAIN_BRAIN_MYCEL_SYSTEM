@@ -1,0 +1,22 @@
+{
+  "source_authority":"REFERENCE_ONLY_NOT_RUNTIME_AUTHORITY",
+  "repository":"xfraggelpower666x/LYVRA-Living-Yielding-Vibration-and-Resonance-Architecture",
+  "branch_read":"lyvra",
+  "verified_file_reads":[
+    {"path":"LYVRA_NATIVE_RUNTIME/CURRENT_POINTER.json","blob_sha":"e90784f8949ecf1bc5e4a73d808485cf8a2a4984","scope":"pointer read, not whole rehydration"},
+    {"path":"LYVRA_NATIVE_RUNTIME/current/music/TRACK_MUSIC_INTELLIGENCE.md","blob_sha":"db8a09aacfd29a837d07f7bc8e3a21049f2adc44","scope":"musical motor, causal facet model"},
+    {"path":"LYVRA_NATIVE_RUNTIME/current/music/SEMANTIC_CAUSAL_LYRIC_INTELLIGENCE.md","blob_sha":"d14b0687f048e1a4e8b615c36719d8331ad2a617","scope":"source fidelity, lyric-to-music causality"},
+    {"path":"LYVRA_NATIVE_RUNTIME/current/music/RENDERER_TRANSLATION_AND_OUTPUT_GUARD.md","blob_sha":"4ad0f7da305565b1353d405762717ef9ce80c8aa","scope":"renderer independence, output guard"},
+    {"path":"LYVRA_NATIVE_RUNTIME/current/music/TRACK_DESIGN_WORK_MODES_AND_CONTEXT_ISOLATION.md","blob_sha":"42326f8422d480390fbc4e6d20a13b4b5c05f440","scope":"source/discovery context isolation"},
+    {"path":"LYVRA_NATIVE_RUNTIME/current/governance/TRACK_DESIGN_MASTER_BASE_AND_FACET_ADAPTATION.md","blob_sha":"eb8af5f198e28ffdcb802ef4e50afdc015925ae0","scope":"domain boundary, domain-aware consumption"},
+    {"path":"LYVRA_NATIVE_RUNTIME/current/music/TRACK_DESIGN_RELATIONAL_CARD_INTELLIGENCE.md","blob_sha":"636a35c826aed598ad63ac06dfa9aaa7896d32c1","scope":"relational cards, not prescriptive presets"},
+    {"path":"LYVRA_NATIVE_RUNTIME/facets/music_memory/FACET_CONTRACT.md","blob_sha":"8229a23c3a69708590fc031c004e4af46a18efef","scope":"scoped learning and evidence promotion"},
+    {"path":"LYVRA_NATIVE_RUNTIME/facets/analytics/FACET_CONTRACT.md","blob_sha":"783860c266e92cfc65bd613b7eb23a5026f44353","scope":"evidence tiers and boundaries"},
+    {"path":"LYVRA_NATIVE_RUNTIME/current/music/TRACK_DESIGN_SUB_REHYDRATION.md","blob_sha":"fcd9352d20527a676df0c623a8225538de0ae8b9","scope":"capability inventory and rehydration contract"}
+  ],
+  "historical_chat_pdf":"source_evidence/ChatGPT_AI-Song-Generator-Analyse_20261121-0700.pdf",
+  "snapshot_status":"PARTIAL_SOURCE_COVERAGE_NOT_WHOLE_LYVRA_READBACK",
+  "read_only":true,
+  "actual_branch_head_verified":false,
+  "not_copied":"Secrets, private records, LYVRA identity, master pointers, repository-private history"
+}

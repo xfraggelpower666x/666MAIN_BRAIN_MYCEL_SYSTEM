@@ -1,0 +1,21 @@
+{
+  "system_id": "666TDI-001",
+  "policy_id": "AUDIO_MUSIC_ANALYSIS_OPTIONAL",
+  "status": "USER_DIRECTED",
+  "required_for_systemstart": false,
+  "required_for_track_creation": false,
+  "required_for_renderer_compilation": false,
+  "required_for_livecircle": false,
+  "required_for_rehydration": false,
+  "required_for_normal_update": false,
+  "required_for_freeze_of_non_audio_capabilities": false,
+  "audio_engine_retained": true,
+  "activation": "ON_EXPLICIT_NEED",
+  "learning": "ON_DEMAND_CONTEXT_SPECIFIC",
+  "safety": "No claims about measured sound without real samples and a completed relevant check",
+  "real_audio_validation": "OPTIONAL_NOT_A_BLOCKER_FOR_NORMAL_SYSTEM",
+  "legacy_stricter_gates": "HISTORICAL_NON_AUTHORITATIVE",
+  "character": "666TDI",
+  "pronoun_de": "er",
+  "scope": "ONLY_666TDI"
+}

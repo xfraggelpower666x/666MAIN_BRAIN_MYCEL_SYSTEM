@@ -1,0 +1,95 @@
+{
+  "system_id": "666TDI-001",
+  "active_name": "KAIRON",
+  "revision": "R13",
+  "role": "GUIDANCE_AND_CONTINUITY",
+  "authority": "CREATOR_AND_NATIVE_GOVERNANCE",
+  "no_independent_execution": true,
+  "scope": "WORKSPACE_AND_LINEAGE",
+  "existing_music_adapter": "facets/daemon/CONTRACT.json",
+  "adapters": {
+    "identity": {
+      "trigger": "KAIRON CHARAKTER",
+      "requires_current_evidence": true
+    },
+    "track": {
+      "trigger": "KAIRON TRACKDESIGN",
+      "requires_current_evidence": true
+    },
+    "analytics": {
+      "trigger": "KAIRON MUSIC ANALYTICS",
+      "requires_current_evidence": true
+    },
+    "memory": {
+      "trigger": "KAIRON MUSIC MEMORY",
+      "requires_current_evidence": true
+    },
+    "continuity": {
+      "trigger": "KAIRON LIVECIRCLE",
+      "requires_current_evidence": true
+    },
+    "codeforge": {
+      "trigger": "KAIRON CODEFORGE",
+      "requires_current_evidence": true
+    },
+    "supercodeforge": {
+      "trigger": "KAIRON SUPERCODEFORGE",
+      "requires_current_evidence": true
+    },
+    "audit": {
+      "trigger": "KAIRON AUDIT",
+      "requires_current_evidence": true
+    },
+    "development": {
+      "trigger": "KAIRON UPDATE",
+      "requires_current_evidence": true
+    }
+  },
+  "required_state": [
+    "workspace",
+    "lineage",
+    "facet",
+    "last_verified_step",
+    "open_gates",
+    "next_action"
+  ],
+  "no_global_active_state": true,
+  "missing_evidence": "PARTIAL",
+  "status": "CANDIDATE_SOURCE",
+  "parallel_deployment": {
+    "revision": "R16",
+    "implementation": "whole/daemon/parallel.py",
+    "tests": "whole/daemon/test_parallel.py",
+    "maximum_parallel_default": true,
+    "modes": [
+      "MAXIMUM_PARALLEL",
+      "DEEP_EVOLUTION",
+      "REPAIR_REGRESSION",
+      "CREATIVE_EXPLORATION",
+      "INTEGRATION_FREEZE"
+    ],
+    "exact_default_ready_limit": 16,
+    "larger_sets": "GREEDY_MAXIMAL_NOT_PROVEN_MAXIMUM",
+    "no_auto_dispatch": true,
+    "completed_ids_require_verified_evidence": true,
+    "host_acceptance": "OPEN"
+  },
+  "active_architecture_supervision": {
+    "revision": "R17",
+    "module": "whole/daemon/supervision.mjs",
+    "requires_actual_receipts": true,
+    "never_claim_release_from_receipts": true
+  },
+  "context_recovery": {
+    "revision": "R18",
+    "module": "whole/daemon/supervision.mjs",
+    "read_only": true,
+    "scope": "KAIRON_ONLY",
+    "source_reference": {
+      "repository": "xfraggelpower666x/LYVRA-Living-Yielding-Vibration-and-Resonance-Architecture",
+      "head": "63c045fd55ada6e1511222c2eded03ff4e1079c2",
+      "blob": "514d37d46b8fd98acea49ffcdaf9e5636e8a7061"
+    },
+    "no_foreign_activation": true
+  }
+}

@@ -1,0 +1,249 @@
+{
+  "schema": "666TDI_NATIVE_UPDATE_AUTHORITY_V2",
+  "system_id": "666TDI-001",
+  "namespace": "666TDI",
+  "authorized_by": "DIRECT_USER_MESSAGE_2026-11-22",
+  "allowed_repository": "xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM",
+  "allowed_branch": "666MAIN_BRAIN",
+  "allowed_path_prefix": "PROJECTS/666TDI/",
+  "forbidden_foreign_writes": true,
+  "handoff_source_repo": "xfraggelpower666x/666CLICPRO",
+  "source_mode": "READ_ONLY",
+  "foreign_autoactivation": false,
+  "root_pointer_last": true,
+  "pre_change_backup_required": true,
+  "direct_readback_required": true,
+  "audio_optional": true,
+  "trigger_installation": "NOT_INSTALLED",
+  "registered_update_trigger": false,
+  "host_pass_claimed": false,
+  "scope": "ONLY_666TDI",
+  "consumer": "native/handoff_consumer.py",
+  "approved_action": "R11_NATIVE_ADOPTION_AND_TDI03_OPTIONAL_AUDIO_FIX;FORCE_REPAIR_R11_HEAD_DRIFT_ONLY",
+  "additional_authorization": {
+    "source": "DIRECT_USER_FORCE_REPAIR_2026-11-22",
+    "scope": "PROJECTS/666TDI/native/handoff_consumer.py;PROJECTS/666TDI/native/tests/test_handoff_consumer.py;PROJECTS/666TDI/governance/NATIVE_UPDATE_AUTHORITY.json;PROJECTS/666TDI/CURRENT_POINTER.json",
+    "permitted_operations": [
+      "VALIDATE_HISTORICAL_R11_COMMIT_TREE_BLOB",
+      "VALIDATE_UNCHANGED_R11_BLOB_AT_LATEST_CLIC_HEAD",
+      "TARGETED_REGRESSION",
+      "NATIVE_POINTER_LAST"
+    ],
+    "forbid_new_update_trigger": true,
+    "forbid_foreign_write": true,
+    "requires_pre_change_backup": true,
+    "requires_readback": true,
+    "r09": {
+      "source": "DIRECT_USER_MESSAGE_2026-11-23",
+      "scope": "PROJECTS/666TDI/source/engine/semantic_intelligence.py;PROJECTS/666TDI/source/engine/portable.py;PROJECTS/666TDI/source/tests/test_semantic_intelligence.py;PROJECTS/666TDI/source/registry/additive_modules.json;PROJECTS/666TDI/source/README.md;PROJECTS/666TDI/source/docs/R09_SEMANTIC_MUSIC_INTELLIGENCE.md;PROJECTS/666TDI/transfer/SOURCE_MANIFEST.json;PROJECTS/666TDI/CURRENT_POINTER.json",
+      "permitted_operations": [
+        "ADDITIVE_SEMANTIC_FUNCTION_INTERPRETATION",
+        "NEGATION_AND_AVOIDANCE_SCOPE",
+        "MUSICAL_FUNCTION_AND_COUNTERRELATION_ANALYSIS",
+        "TARGETED_REGRESSION",
+        "DIRECT_BLOB_READBACK",
+        "NATIVE_POINTER_LAST"
+      ],
+      "preserve_existing": true,
+      "no_foreign_activation": true,
+      "no_foreign_repository_writes": true,
+      "no_audio_requirement": true,
+      "no_automatic_global_learning": true,
+      "pre_change_backup": "backup/666tdi-r0.9-prechange-20261123",
+      "requires_direct_readback": true,
+      "pointer_last": true
+    },
+    "r10": {
+      "source": "DIRECT_USER_MESSAGE_2026-11-23T15:51:28Z",
+      "scope": [
+        "PROJECTS/666TDI/source/engine/creative_causal.py",
+        "PROJECTS/666TDI/source/engine/portable.py",
+        "PROJECTS/666TDI/source/tests/test_creative_causal.py",
+        "PROJECTS/666TDI/source/tests/test_portable.py",
+        "PROJECTS/666TDI/source/registry/additive_modules.json",
+        "PROJECTS/666TDI/source/README.md",
+        "PROJECTS/666TDI/source/docs/R10_CREATIVE_CAUSAL_EMERGENCE.md",
+        "PROJECTS/666TDI/facets/daemon/CONTRACT.json",
+        "PROJECTS/666TDI/README.md",
+        "PROJECTS/666TDI/transfer/SOURCE_MANIFEST.json",
+        "PROJECTS/666TDI/CURRENT_POINTER.json"
+      ],
+      "permitted_operations": [
+        "ADDITIVE_CREATIVE_CAUSAL_RELATION_ANALYSIS",
+        "R09_ENGINE_INTEGRATION",
+        "R11_DAEMON_DATA_CONTRACT",
+        "TARGETED_REGRESSION_SOURCE",
+        "DIRECT_COMMIT_TREE_BLOB_READBACK",
+        "NATIVE_POINTER_LAST"
+      ],
+      "preserve_existing": true,
+      "no_foreign_activation": true,
+      "no_foreign_repository_writes": true,
+      "no_audio_requirement": true,
+      "no_automatic_global_learning": true,
+      "pre_change_backup": "backup/666tdi-r1.0-prechange-20261123",
+      "requires_direct_readback": true,
+      "pointer_last": true
+    },
+    "r11_visual_daemon": {
+      "source": "DIRECT_USER_MESSAGE_2026-11-23T16:11:07Z",
+      "scope": "PROJECTS/666TDI_ONLY",
+      "operations": [
+        "LOCAL_VISUAL_DAEMON_IMPLEMENTATION",
+        "DEVICE_PREFLIGHT",
+        "R10_READ_ONLY_UI_CONSUMPTION",
+        "LOCAL_JSON_HANDOFF",
+        "SOURCE_MANIFEST_READBACK",
+        "POINTER_LAST"
+      ],
+      "pre_change_backup": "backup/666tdi-r1.1-daemon-prechange-20261123",
+      "preserve_existing": true,
+      "no_foreign_repository_writes": true,
+      "no_automatic_audio": true,
+      "no_global_learning": true,
+      "no_suno_execution": true,
+      "native_host_acceptance": "OPEN",
+      "requires_direct_readback": true,
+      "pointer_last": true
+    },
+    "r12_track_preanalysis": {
+      "source": "DIRECT_USER_NEXT_R1.2_MESSAGE_2026-11-23T17:47:13Z",
+      "scope": "PROJECTS/666TDI_ONLY",
+      "operations": [
+        "ADDITIVE_TRACK_PREANALYSIS",
+        "LOCAL_DAEMON_FORECAST_VISUALIZATION",
+        "CREATOR_ALTERNATIVE_CARDS",
+        "DEVICE_GATE_PRESERVATION",
+        "SOURCE_MANIFEST_AND_POINTER_PUBLICATION"
+      ],
+      "pre_change_backup": "backup/666tdi-r1.2-preanalysis-prechange-20261123",
+      "preserve_existing": true,
+      "no_foreign_repository_writes": true,
+      "no_audio_requirement": true,
+      "no_suno_execution": true,
+      "no_global_learning": true,
+      "host_acceptance": "NOT_EXECUTED",
+      "pointer_last": true
+    },
+    "r13_device_intelligence": {
+      "source": "DIRECT_USER_NEXT_R1.3_2026-11-23T17:56:08Z",
+      "scope": "PROJECTS/666TDI_ONLY",
+      "operations": [
+        "ADDITIVE_DEVICE_OUTPUT_ADAPTER",
+        "R11_R12_UI_ROUTE_INTEGRATION",
+        "UTF16_COPY_GUARD",
+        "CREATOR_REPORTED_PROFILE_REFERENCE",
+        "TARGETED_TEST_SOURCES",
+        "POINTER_LAST"
+      ],
+      "pre_change_backup": "backup/666tdi-r1.3-device-prechange-20261123",
+      "preserve_existing": true,
+      "no_foreign_repository_writes": true,
+      "no_suno_execution": true,
+      "no_global_learning": true,
+      "host_acceptance": "OPEN"
+    },
+    "r14_creator_evidence": {
+      "source": "DIRECT_USER_MESSAGE_2026-11-23T18:20:27Z",
+      "scope": "PROJECTS/666TDI_ONLY",
+      "operations": [
+        "LOCAL_CREATOR_EVIDENCE_ENGINE",
+        "EXPLICIT_FEEDBACK_LEDGER",
+        "CONTRADICTION_AWARE_REPORT",
+        "R11_DAEMON_UI_ADDITION",
+        "TARGETED_REGRESSION",
+        "MANIFEST_INTEGRITY",
+        "CURRENT_POINTER_LAST"
+      ],
+      "pre_change_backup": "backup/666tdi-r1.4-learning-prechange-20261123",
+      "preserve_existing": true,
+      "foreign_repo_writes": false,
+      "no_auto_suno_execution": true,
+      "no_auto_global_promotion": true,
+      "other_systems": "READ_ONLY_METHOD_SOURCES_NO_ACTIVATION_OR_MUTATION",
+      "python_host_acceptance": "PARTIAL",
+      "native_browser_acceptance": "OPEN",
+      "pointer_last": true
+    },
+    "r14_daemon_http_audit_repair": {
+      "source": "DIRECT_USER_AUDIT_REPAIR_2026-11-23T18:48:48Z",
+      "scope": "PROJECTS/666TDI_ONLY",
+      "operations": [
+        "HOST_ORIGIN_VALIDATION_HARDENING",
+        "TRUTHFUL_API_STATUS",
+        "LOCAL_HTTP_REGRESSION_TESTS",
+        "SOURCE_MANIFEST_REPAIR",
+        "CURRENT_POINTER_LAST"
+      ],
+      "pre_change_backup": "backup/666tdi-audit-repair-http-guard-20261123",
+      "preserve_existing": true,
+      "foreign_writes": false,
+      "no_suno_execution": true,
+      "no_global_learning": true,
+      "python_test_execution": "OPEN",
+      "browser_acceptance": "OPEN",
+      "pointer_last": true
+    },
+    "nmi_r01": {
+      "source": "DIRECT_USER_MESSAGE_2026-11-24T22:33:05Z",
+      "scope": "PROJECTS/666TDI_ONLY",
+      "operations": [
+        "ADDITIVE_GPT_NATIVE_KNOWLEDGE",
+        "DNA_PROTECTION",
+        "REGRESSION_GUARD",
+        "POINTER_BOUND_REHYDRATION"
+      ],
+      "pre_change_backup": "backup/666tdi-native-dna-prechange-20261124",
+      "preserve_existing": true,
+      "foreign_writes": false,
+      "python_pc_development": false,
+      "automatic_promotion": false,
+      "pointer_last": true,
+      "requires_direct_readback": true
+    },
+    "nmi_r02": {
+      "source": "DIRECT_USER_MESSAGE_2026-11-24T22:40:22Z",
+      "scope": "PROJECTS/666TDI_ONLY",
+      "operations": [
+        "CHAT_CONTEXT_AUDIT",
+        "ADDITIVE_LYRICAL_KNOWLEDGE",
+        "POINTER_BOUND_REHYDRATION"
+      ],
+      "backup": "backup/666tdi-nmi-r02-prechange-20261124",
+      "preserve_existing": true,
+      "foreign_writes": false,
+      "pointer_last": true,
+      "requires_direct_readback": true,
+      "automatic_promotion": false
+    },
+    "nmi_r03": {
+      "source": "DIRECT_USER_UPDATE_2026-11-24T22:53:32Z",
+      "scope": "PROJECTS/666TDI_ONLY",
+      "operations": [
+        "TRACK_LOCAL_CREATOR_EVIDENCE",
+        "NATIVE_SEMANTIC_REINFORCEMENT_REVIEW",
+        "POINTER_BOUND_REHYDRATION"
+      ],
+      "backup": "backup/666tdi-nmi-r03-prechange-20261124",
+      "preserve_existing": true,
+      "foreign_writes": false,
+      "pointer_last": true,
+      "requires_direct_readback": true,
+      "automatic_promotion": false
+    },
+    "nmi_r04": {
+      "source": "DIRECT_USER_SAVE_UPDATE_2026-11-24T23:04:14Z",
+      "scope": "PROJECTS/666TDI_ONLY",
+      "operations": [
+        "TRACK_LOCAL_AUDIO_EVIDENCE",
+        "POINTER_BOUND_REHYDRATION"
+      ],
+      "backup": "backup/666tdi-nmi-r04-audio-prechange-20261125",
+      "preserve_existing": true,
+      "foreign_writes": false,
+      "pointer_last": true,
+      "requires_direct_readback": true,
+      "automatic_promotion": false
+    }
+  }
+}

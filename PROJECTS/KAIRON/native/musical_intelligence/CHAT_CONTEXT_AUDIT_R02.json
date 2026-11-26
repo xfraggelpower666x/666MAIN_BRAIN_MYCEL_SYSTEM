@@ -1,0 +1,76 @@
+{
+  "schema": "666TDI_CHAT_CONTEXT_AUDIT_V1",
+  "system_id": "666TDI-001",
+  "base": "34b14b973ff38b27fd6c3903a986df0db39e0c89",
+  "findings": [
+    {
+      "id": "NMI-B01",
+      "finding": "MuseLift and emotional language workflow absent from R01",
+      "repair": "Add lyrical intelligence overlay; retain R01 bindings",
+      "status": "REPAIR_CANDIDATE"
+    },
+    {
+      "id": "NMI-B02",
+      "finding": "Prior chat visual labs were prototypes not persistent runtime",
+      "repair": "Store native textual workflow; do not claim UI installation",
+      "status": "CLARIFIED"
+    },
+    {
+      "id": "NMI-B03",
+      "finding": "R01 research matrix contains 30 algorithm refs despite chat summary saying 29",
+      "repair": "Correct evidence count in audit; preserve original file",
+      "status": "VERIFIED_COUNT_CORRECTION"
+    },
+    {
+      "id": "NMI-B04",
+      "finding": "Actual successful historical prompt/audio baseline and fresh-chat host acceptance not evidenced",
+      "repair": "Keep HOLD and open acceptance; no invented outcome",
+      "status": "OPEN"
+    },
+    {
+      "id": "NMI-B05",
+      "finding": "Existing R1.5 candidate and Python HTTP acceptance independent",
+      "repair": "Preserve and defer",
+      "status": "PRESERVED"
+    }
+  ],
+  "regression_cases": [
+    {
+      "test": "Original lyric immutable",
+      "expected": "A proposed alternate is separate",
+      "status": "STATIC_CONTRACT_REVIEW_NOT_RUNTIME_TEST"
+    },
+    {
+      "test": "Emotional contrast",
+      "expected": "Anger and hope can coexist; no forced simplification",
+      "status": "STATIC_CONTRACT_REVIEW_NOT_RUNTIME_TEST"
+    },
+    {
+      "test": "Generic vocabulary",
+      "expected": "No mandatory signal/neon/void",
+      "status": "STATIC_CONTRACT_REVIEW_NOT_RUNTIME_TEST"
+    },
+    {
+      "test": "Fast vocal",
+      "expected": "Suggest stress and breath without claiming exact timing",
+      "status": "STATIC_CONTRACT_REVIEW_NOT_RUNTIME_TEST"
+    },
+    {
+      "test": "Renderer budget",
+      "expected": "No silent truncation or new field",
+      "status": "STATIC_CONTRACT_REVIEW_NOT_RUNTIME_TEST"
+    },
+    {
+      "test": "Missing baseline",
+      "expected": "HOLD; no success promotion",
+      "status": "STATIC_CONTRACT_REVIEW_NOT_RUNTIME_TEST"
+    },
+    {
+      "test": "Foreign source",
+      "expected": "Reference only; no activation",
+      "status": "STATIC_CONTRACT_REVIEW_NOT_RUNTIME_TEST"
+    }
+  ],
+  "host_acceptance": "OPEN",
+  "musical_acceptance": "OPEN"
+}

@@ -1,0 +1,74 @@
+{
+  "schema": "666TDI_NATIVE_REGRESSION_GUARD_V1",
+  "system_id": "666TDI-001",
+  "baseline": "Last creator-confirmed relevant successful prompt and outcome, exact model/device/fields where known; missing baseline = OPEN, never fabricate",
+  "checks": [
+    {
+      "id": "M01",
+      "criterion": "Identität und Creator-Intent"
+    },
+    {
+      "id": "M02",
+      "criterion": "Stabiler physischer Kern, rollende Bewegung wenn beabsichtigt"
+    },
+    {
+      "id": "M03",
+      "criterion": "Kontrast, Druck, Entladung, individuelle Dynamik"
+    },
+    {
+      "id": "M04",
+      "criterion": "Lebendige Klangkommunikation"
+    },
+    {
+      "id": "M05",
+      "criterion": "Stabiler LOW, bewegliches Umfeld, Monoschutz"
+    },
+    {
+      "id": "M06",
+      "criterion": "Originaltext, Bedeutung, Verständlichkeit, Identität"
+    },
+    {
+      "id": "M07",
+      "criterion": "Bewährte Suno-Sprache, keine stille Kürzung, bestätigte Geräteprofile"
+    },
+    {
+      "id": "M08",
+      "criterion": "Mixbarkeit, bewusste Übergänge und Enden"
+    },
+    {
+      "id": "M09",
+      "criterion": "Keine ungewollte Genre-, Tempo- oder Strukturvorgabe"
+    },
+    {
+      "id": "M10",
+      "criterion": "Creator-Erfolge und Gegenbelege erhalten"
+    }
+  ],
+  "decisions": {
+    "PASS": "All applicable protections maintained, relevant improvement evidenced, explicit creator approval; track-local only",
+    "HOLD": "Missing evidence, mixed or uncertain result; retain baseline",
+    "FAIL": "Unrequested regression; retain baseline and isolate candidate"
+  },
+  "comparison": {
+    "retain_original": true,
+    "one_primary_change_when_practical": true,
+    "record_renderer_model_device_and_settings": true,
+    "record_prompt_and_outcome": true,
+    "repeat_if_stochastic": true,
+    "creator_feedback_required_for_success_claim": true,
+    "audio_measurement_optional": true,
+    "no_causal_proof_from_single_pair": true,
+    "no_automatic_global_promotion": true
+  },
+  "static_cases": [
+    "Negation remains a constraint",
+    "No silent truncation; explicit rephrasing and field budget review",
+    "Do not infer tempo from duration",
+    "No fixed genre or BPM override",
+    "Preserve lyrics and terminal vocal guard when requested",
+    "No unverified DSP or neurological claims",
+    "No fixed 8-chapter or 4C authority",
+    "No new provider fields without evidence"
+  ],
+  "status": "DESIGN_CONTRACT_NOT_RUNTIME_TESTED"
+}

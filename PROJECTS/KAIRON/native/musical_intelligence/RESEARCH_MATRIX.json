@@ -1,0 +1,144 @@
+{
+  "schema": "666TDI_RESEARCH_MATRIX_V1",
+  "system_id": "666TDI-001",
+  "external": {
+    "repo": "gantasmo/theDAW",
+    "commit": "960b2972e691cfe3ac1d931c3ad7822b1581fc35",
+    "documents": [
+      {
+        "path": "docs/guides/lyric-analysis.md",
+        "insight": "Phonetik, Prosodie, Reim und Lautbeziehungen; keine automatische Textänderung",
+        "status": "REVIEWED_DOCUMENT_NOT_NATIVE_VALIDATION"
+      },
+      {
+        "path": "docs/guides/lyric-notebook.md",
+        "insight": "Originalschutz, getrennte Varianten und bewusstes Freigeben",
+        "status": "REVIEWED_DOCUMENT_NOT_NATIVE_VALIDATION"
+      },
+      {
+        "path": "docs/reference/features/03-chimera.md",
+        "insight": "Rollen, Komplementarität, Bassübergabe und Übergangskohärenz",
+        "status": "REVIEWED_DOCUMENT_NOT_NATIVE_VALIDATION"
+      },
+      {
+        "path": "docs/guides/notation-and-score.md",
+        "insight": "Motivik, Zeit, Harmonie, Instrumentenfunktion",
+        "status": "REVIEWED_DOCUMENT_NOT_NATIVE_VALIDATION"
+      },
+      {
+        "path": "docs/guides/sing-along-and-lyrics.md",
+        "insight": "Intent, Performance und tatsächliches Ergebnis trennen",
+        "status": "REVIEWED_DOCUMENT_NOT_NATIVE_VALIDATION"
+      },
+      {
+        "path": "docs/design/loom.md",
+        "insight": "Rekursion, fraktale lokale Variation, Emergenz",
+        "status": "REVIEWED_DOCUMENT_NOT_NATIVE_VALIDATION"
+      },
+      {
+        "path": "docs/guides/sway-perform-live.md",
+        "insight": "Temporäre und anhaltende Zustände, Formanten, Subharmonik",
+        "status": "REVIEWED_DOCUMENT_NOT_NATIVE_VALIDATION"
+      },
+      {
+        "path": "docs/guides/rhythm-analysis.md",
+        "insight": "Puls, Polymetrik, Akzente, Synkopen",
+        "status": "REVIEWED_DOCUMENT_NOT_NATIVE_VALIDATION"
+      },
+      {
+        "path": "docs/guides/song-sections.md",
+        "insight": "Mehrskalige Form und transformierte Wiederkehr",
+        "status": "REVIEWED_DOCUMENT_NOT_NATIVE_VALIDATION"
+      },
+      {
+        "path": "docs/guides/nodefi.md",
+        "insight": "Typisierte Signal- und Modulationsbeziehungen",
+        "status": "REVIEWED_DOCUMENT_NOT_NATIVE_VALIDATION"
+      },
+      {
+        "path": "docs/guides/hrtf-spatializer.md",
+        "insight": "Raum, Entfernung und Bewegungsbahnen",
+        "status": "REVIEWED_DOCUMENT_NOT_NATIVE_VALIDATION"
+      },
+      {
+        "path": "docs/guides/dj-and-genealogy.md",
+        "insight": "Mixbarkeit und gerichtete Herkunft",
+        "status": "REVIEWED_DOCUMENT_NOT_NATIVE_VALIDATION"
+      },
+      {
+        "path": "docs/guides/underfit-propagation.md",
+        "insight": "Isolation und Versionierung; kein Modelltraining",
+        "status": "REVIEWED_DOCUMENT_NOT_NATIVE_VALIDATION"
+      },
+      {
+        "path": "docs/guides/prompting.md",
+        "insight": "Kompakte semantische Übersetzung; providerbezogen",
+        "status": "REVIEWED_DOCUMENT_NOT_NATIVE_VALIDATION"
+      },
+      {
+        "path": "docs/guides/vocal-suite-plan.md",
+        "insight": "Vokale Klangtransformation als Plan, nicht Laufzeitnachweis",
+        "status": "REVIEWED_DOCUMENT_NOT_NATIVE_VALIDATION"
+      }
+    ],
+    "algorithm_refs": [
+      "backend/modules/composer/counterpoint.py",
+      "backend/modules/composer/form.py",
+      "backend/modules/composer/harmony.py",
+      "backend/modules/composer/voiceleading.py",
+      "backend/modules/composer/orchestrate.py",
+      "backend/modules/composer/profile.py",
+      "backend/modules/composer/canon.py",
+      "backend/modules/composer/fugue.py",
+      "backend/modules/composer/meter.py",
+      "backend/modules/composer/stylebook.py",
+      "backend/modules/shards/service.py",
+      "backend/modules/shards/extract.py",
+      "backend/modules/creative_neural/dsp.py",
+      "backend/modules/creative_neural/router.py",
+      "backend/modules/creative_fx/router.py",
+      "backend/modules/restoration/dsp.py",
+      "backend/modules/lineagescale/graph.py",
+      "backend/modules/lineage/records.py",
+      "backend/modules/analysis/prompt.py",
+      "backend/modules/chimera/arrange.py",
+      "backend/modules/chimera/harmony.py",
+      "backend/modules/chimera/render.py",
+      "backend/modules/chimera/tempo.py",
+      "backend/modules/chimera/structure.py",
+      "backend/modules/sections/finder.py",
+      "backend/modules/rhythm/engine.py",
+      "backend/modules/suno/router.py",
+      "backend/modules/lyria/router.py",
+      "backend/modules/magenta/router.py"
+    ],
+    "license": "MIT; no external source code copied",
+    "review": "PARTIAL_STATIC_RESEARCH"
+  },
+  "own": {
+    "repo": "xfraggelpower666x/666-sounds-psytrance-engine",
+    "commit": "f8a97ecd928f9ade293a0717f72a111a0e30d439",
+    "refs": [
+      "src/production.calc.js",
+      "src/lyvra.facets.calc.js",
+      "src/psycho.calc.js",
+      "src/engine4d.calc.js",
+      "app.js",
+      "matrix.js",
+      "lyric.engine.js",
+      "lyric.templates.js",
+      "juno.model.js",
+      "PsyPromptPanel.tsx"
+    ],
+    "exclude": [
+      "silent truncation",
+      "duration parsed as BPM",
+      "fixed genre conflict auto-fix",
+      "unverified neurological effects",
+      "unverified provider limits and model labels",
+      "numeric DSP promises in Suno"
+    ],
+    "review": "PARTIAL_STATIC_RESEARCH"
+  },
+  "promotion": "CANDIDATE_ONLY"
+}

@@ -1,0 +1,10 @@
+.buildenv/
+.pyinstaller-build/
+.pyinstaller-spec/
+dist/
+dist-backend/
+logs/
+electron/node_modules/
+*.pyc
+__pycache__/
+electron/renderer/bootscreen.png

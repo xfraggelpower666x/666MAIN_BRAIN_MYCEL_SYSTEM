@@ -1,0 +1,108 @@
+{
+  "schema": "666TDI_NMI_R10_GENRE_MOTOR_FIELD_V1",
+  "system_id": "666TDI-001",
+  "authority": "666TDI_ONLY",
+  "extends": [
+    "NMI-R05",
+    "NMI-R06",
+    "NMI-R07",
+    "NMI-R08",
+    "NMI-R09"
+  ],
+  "source": {
+    "creator": "Direct authorized update 2026-11-25T22:35:30Z",
+    "method_reference": {
+      "repository": "xfraggelpower666x/LYVRA-Living-Yielding-Vibration-and-Resonance-Architecture",
+      "head": "63c045fd55ada6e1511222c2eded03ff4e1079c2",
+      "files": {
+        "TRACK_MUSIC_INTELLIGENCE.md": "db8a09aacfd29a837d07f7bc8e3a21049f2adc44",
+        "RENDERER_TRANSLATION_AND_OUTPUT_GUARD.md": "4ad0f7da305565b1353d405762717ef9ce80c8aa",
+        "TRACK_DESIGN_RELATIONAL_CARD_INTELLIGENCE.md": "636a35c826aed598ad63ac06dfa9aaa7896d32c1"
+      },
+      "role": "Read-only method evidence; three explicit genre slots are creator's new 666TDI refinement, not asserted LYVRA rule"
+    }
+  },
+  "genre_front": {
+    "fields": [
+      "Style",
+      "Extended"
+    ],
+    "production_required": true,
+    "metadata_prefix": "Optional explicit BPM and relevant key, then immediately three distinct positive dark-psychedelic genre anchors before any other descriptive clauses.",
+    "slot_1": "Dark Psychedelic",
+    "slot_2_3": "Two distinct contextually appropriate dark psychedelic musical genres; examples below are open, not rotation",
+    "examples": [
+      "Dark Full-On Psytrance",
+      "Dark Forest Psytrance",
+      "Twisted Dark Goa",
+      "Dark Psytrance",
+      "Dark Psytechno",
+      "Dark Industrial Psytrance",
+      "Dark Cosmic Dub Psytrance"
+    ],
+    "not_genre_anchors": [
+      "psychoacoustic",
+      "experimental",
+      "industrial alone",
+      "internal capability names",
+      "negative or excluded genres"
+    ],
+    "gate": "HOLD if either final field lacks three distinct leading positive anchors including R05 root, or intervening descriptive text displaces them. Repair then recheck. No silent truncation. Explicit experimental scope per R05 is not production approval.",
+    "position_evidence": "Early priority is a native empirical working assumption, not official Suno weighting proof."
+  },
+  "fields": {
+    "LOW": {
+      "role": "Physical time authority and forward traction",
+      "protect": [
+        "stable tempo/grid",
+        "readable kick and bass",
+        "mono sub",
+        "transient clarity",
+        "DJ entry/exit"
+      ],
+      "vary": [
+        "kick timbre and envelope",
+        "bass pitch and articulation",
+        "note subdivision where appropriate",
+        "accent pattern",
+        "pressure contour",
+        "motor material"
+      ],
+      "rule": "Motor identity is function, not identical sound. Straight rolling 16ths are a useful baseline, not universal preset. Local alternative pulses require current musical reason and clear timing."
+    },
+    "LOWER_MID": {
+      "role": "Motor-linked rhythmic orientation and bass-adjacent support",
+      "rule": "Retain enough connection to physical grid; not fixed EQ boundaries or 50/50 ratio."
+    },
+    "UPPER_MID": {
+      "role": "Creative transformation, thematic sound dialogue, directed chaos, motif mutation",
+      "rule": "Allow irregular accents, acid/FM or other relevant voices; protect intelligibility and do not imply mandatory instrumentation."
+    },
+    "HIGH": {
+      "role": "Perceptual freedom and spectral/spatial motion",
+      "rule": "May create apparent acceleration, reversal, depth, orbit or surprise without real tempo drift or loss of physical orientation. No guaranteed stereo rear localization."
+    }
+  },
+  "relations": {
+    "principle": "All fields communicate reciprocally; LOW owns real time, not total compositional authority. High events may provoke partial MID escalation; MID can reshape perceived motor pressure; LOW can support or contrast events through intentional dynamics without losing temporal identity.",
+    "psychoacoustics": "R09 cross-cutting dimension, not isolated HIGH-only effect. Preserve lower-field stability while selectively amplifying, attenuating and redirecting perception.",
+    "chaos": "Wildness retains meaningful differences and direction; no flattening or arbitrary genre drift.",
+    "repair": "If movement undermines physical timing or masks the kick, relocate or reshape only offending relationship; preserve artistic tension. No automatic rewrite of creator intent.",
+    "no_fixed_frequency_matrix": true,
+    "no_fixed_ratio": true
+  },
+  "assembly": "Check final literal prompts for genre front, individual functional motor/MID/HIGH cues, R06 integrated maximum clean club mastering, R07 lyrical isolation, R09 meaningful chaos and psychoacoustic language when relevant, UTF16 limits, meaningful emojis and ending. No internal pseudo-commands. Compare actual preceding prompt pairs for anti-sameness; shared root and time authority are not novelty or proof of sameness.",
+  "preserve": "NMI-R01–R09 and prior files, R1.4 Python source, isolated R1.5 candidate, native identities",
+  "foreign_activation": false,
+  "automatic_promotion": false,
+  "implementation": "GPT-native additive contract; no Python or renderer execution claimed",
+  "dj_stable_motor": {
+    "source": "Direct creator clarification 2026-11-25T22:36:27Z",
+    "entry": "Establish original target BPM, meter, phase and readable grid in DJ entry zone.",
+    "interior": "Allow intentional musically motivated local motor or pulse variation; distinguish articulation and apparent speed from actual tempo or meter changes. No uncontrolled tempo drift. Actual tempo excursions only if explicitly intended, restricted to nonmixing interior, with deliberate recovery.",
+    "exit": "Restore original entry BPM, meter, beat/downbeat phase and readable stable motor before DJ exit mix window; maintain through final beat-bearing exit. No tempo drift, rubato, unintended half-time or grid ambiguity in mix zones.",
+    "window": "Choose track-specific mixable phrase length, normally 16 or 32 bars when appropriate; not a fixed duration mandate.",
+    "prompt": "Include compact functional original BPM/grid and return-to-entry-tempo instruction in both Style and Extended; specify exit behavior in lyric arrangement cues when relevant.",
+    "audio_gate": "Prompt compliance is not DJ audio verification. Actual render needs beatgrid inspection, tempo comparison across entry/exit and listening; if unavailable AUDIO_UNVERIFIED/DJ_SYNC_UNVERIFIED. No invented tolerance or guarantee."
+  }
+}

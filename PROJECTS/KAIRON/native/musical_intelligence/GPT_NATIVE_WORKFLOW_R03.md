@@ -1,0 +1,3 @@
+# NMI-R03 — Track-local feedback and semantic reinforcement
+
+Read and verify R01, R02, then R03 bindings from Current. Apply existing contracts first. Use SEMANTIC_REINFORCEMENT_R03.json as native final-output review; no fixed emoji quota or automatic changes to creator-approved text. Read RIDERS_CREATOR_FEEDBACK_R03.json only as track-local creator evidence, not universal musical authority. Exact historical draft is preserved; actual submitted renderer fields and audio are not independently verified. Candidate emoji variant requires creator review, especially silence vs vacuum. Keep comparative regression HOLD until adequate evidence. No changes to Python, livecircle, triggers or R1.5 candidate.

@@ -1,0 +1,136 @@
+{
+  "schema": "666TDI_LYRICAL_INTELLIGENCE_R02_V1",
+  "system_id": "666TDI-001",
+  "authority": "666TDI_ONLY",
+  "status": "NATIVE_WORKFLOW_ADOPTED_RESEARCH_CANDIDATE_ONLY",
+  "extends": "NMI-R01",
+  "sources": [
+    {
+      "url": "https://www.muselift.com/psy-trance-lyrics-generator/",
+      "review": "PUBLIC_PAGE_READ_2026-11-24; generator not executed; implementation unknown",
+      "insights": [
+        "emotion, theme, vocal style and tempo feel as distinct dimensions",
+        "anchor phrase, purposeful repetition, breath and syllable fit, human detail and tension/release"
+      ]
+    },
+    {
+      "origin": "USER_SUPPLIED_CHAT_WORD_BANK_2026-11-24",
+      "review": "USER_TEXT_NOT_PROVIDER_IMPLEMENTATION",
+      "categories": [
+        "Heartbreak",
+        "Hope",
+        "Anger",
+        "Nostalgia",
+        "Joy",
+        "Longing",
+        "Fear",
+        "Calm",
+        "Ambition"
+      ]
+    },
+    {
+      "origin": "CHAT_DERIVED_ORIGINAL_CANDIDATES",
+      "categories": [
+        "Psychedelic",
+        "Dark Ritual",
+        "Cybernetic",
+        "Pressure",
+        "Transformation"
+      ]
+    }
+  ],
+  "workflow": [
+    "Preserve exact source lyrics and successful renderer baseline; separate alternatives.",
+    "Identify emotional intent, concrete human detail, narrative change, vocal role and section function; do not force a universal emotional arc.",
+    "Select words by context, phonetic stress, syllable count, breath, articulation, rhyme/assonance and rhythmic fit; distinguish approximate linguistic analysis from measured audio.",
+    "Use contrast and transformation of an anchor only when musically motivated; preserve deliberate repetitions and silence.",
+    "Relate voice to motor, synth response, pressure, space and ending; protect intelligibility and intentional original text.",
+    "Translate only musically useful instructions into existing Suno fields; no new fields, no silent truncation, no automatic parenthetical command convention, no claimed exact renderer behavior.",
+    "Apply M01–M10 and NMI-R01 regression guard before any promotion; creator-confirmed comparison needed; missing baseline HOLD."
+  ],
+  "lexicon": {
+    "mode": "OPEN_CONTEXTUAL_NOT_FIXED_DICTIONARY",
+    "examples": {
+      "heartbreak": [
+        "hollow",
+        "unravel",
+        "aftertaste"
+      ],
+      "hope": [
+        "ember",
+        "bloom",
+        "forward"
+      ],
+      "anger": [
+        "rupture",
+        "iron",
+        "storm"
+      ],
+      "nostalgia": [
+        "amber",
+        "letters",
+        "memory"
+      ],
+      "joy": [
+        "cherish",
+        "spark",
+        "float"
+      ],
+      "longing": [
+        "horizon",
+        "unsaid",
+        "echo"
+      ],
+      "fear": [
+        "shiver",
+        "abyss",
+        "fragile"
+      ],
+      "calm": [
+        "breath",
+        "still",
+        "afterglow"
+      ],
+      "ambition": [
+        "forge",
+        "momentum",
+        "soar"
+      ],
+      "psychedelic": [
+        "orbit",
+        "recursion",
+        "morph"
+      ],
+      "dark_ritual": [
+        "omen",
+        "obsidian",
+        "veil"
+      ],
+      "cybernetic": [
+        "circuit",
+        "voltage",
+        "feedback"
+      ],
+      "pressure": [
+        "thrust",
+        "recoil",
+        "converge"
+      ],
+      "transformation": [
+        "reconnect",
+        "unfold",
+        "rebirth"
+      ]
+    },
+    "note": "Representative words from supplied context, not full external bank; generate fresh alternatives, no mandatory vocabulary or repeated neon/signal/void template."
+  },
+  "prohibitions": [
+    "No external generator calls",
+    "No fixed pop/folk/hip-hop style import",
+    "No automatic lyric replacement",
+    "No guaranteed phonetic/acoustic effects",
+    "No automatic global learning",
+    "No Python/PC development",
+    "No foreign activation"
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "active_track_id": "track-72c377757ffe",
+  "created_utc": "2026-11-21T06:08:02.072519+00:00",
+  "events": [
+    {
+      "detail": {
+        "mode": "SOURCE",
+        "track_id": "track-72c377757ffe"
+      },
+      "hash": "629d10ba2e5ba05b2b66a26d9cb8fa241e04ece8717631d1b8e83afa9fa9ada5",
+      "kind": "TRACK_CREATED",
+      "prev_hash": "GENESIS",
+      "seq": 1,
+      "utc": "2026-11-21T06:08:02.749320+00:00"
+    },
+    {
+      "detail": {
+        "candidate_cards": 5,
+        "track_id": "track-72c377757ffe"
+      },
+      "hash": "f2049db93bcefc0527758fba03e2c080d8e3917bf1c2e8284c6fda29b0eb25c1",
+      "kind": "INTENT_ANALYZED",
+      "prev_hash": "629d10ba2e5ba05b2b66a26d9cb8fa241e04ece8717631d1b8e83afa9fa9ada5",
+      "seq": 2,
+      "utc": "2026-11-21T06:08:03.871296+00:00"
+    },
+    {
+      "detail": {
+        "renderer": "lyria2_asg",
+        "status": "PARTIAL",
+        "track_id": "track-72c377757ffe"
+      },
+      "hash": "ee892389c62acf0a21c6344bfa5a30c0a61985b3ccf1fd115ef8f13ca6b7cbaf",
+      "kind": "COMPILED",
+      "prev_hash": "f2049db93bcefc0527758fba03e2c080d8e3917bf1c2e8284c6fda29b0eb25c1",
+      "seq": 3,
+      "utc": "2026-11-21T06:08:04.465807+00:00"
+    },
+    {
+      "detail": {
+        "revision": 3
+      },
+      "hash": "5ff2c07ba23baf0af294279c844e6be207d68f1f9821d44d8e30a6f2609fbcd8",
+      "kind": "HANDOFF_CREATED",
+      "prev_hash": "ee892389c62acf0a21c6344bfa5a30c0a61985b3ccf1fd115ef8f13ca6b7cbaf",
+      "seq": 4,
+      "utc": "2026-11-21T06:08:05.083950+00:00"
+    }
+  ],
+  "foreign_repo_write_allowed": false,
+  "local_authority": "666TDI-001",
+  "revision": 4,
+  "schema": "portable-track-livecircle-v1",
+  "system_id": "666TDI-001",
+  "track_ids": [
+    "track-72c377757ffe"
+  ],
+  "updated_utc": "2026-11-21T06:08:05.083976+00:00",
+  "version": "2.5.0",
+  "previous_system_id": "PMITD-001",
+  "identity_migration_note": "Only identity metadata changed; existing signed event chain untouched"
+}
