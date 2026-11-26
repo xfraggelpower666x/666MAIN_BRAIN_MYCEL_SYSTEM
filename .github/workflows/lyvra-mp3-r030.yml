@@ -56,7 +56,7 @@ jobs:
       - run: python tools/bulk/audio_r030.py adapters
   windows:
     runs-on: windows-2022
-    timeout-minutes: 20
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: PROJECTS/LYVRA_MP3_COMMAND_CENTER
@@ -67,12 +67,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
       - run: npm install --no-audit --no-fund
       - run: npm run check
+      - shell: pwsh
+        run: ./tools/electron-runtime-r061-adapter.ps1 -RepairMarker
+      - shell: pwsh
+        run: ./tools/stage-portable-r032.ps1
       - run: npx --no-install electron-builder --win --dir --publish never
       - shell: pwsh
-        run: |
-          $exe = Get-ChildItem dist/win-unpacked/*.exe | Select-Object -First 1
-          if (!$exe) { throw 'Missing packaged executable' }
-          Get-FileHash $exe.FullName -Algorithm SHA256
-          Write-Output "WINDOWS_BUILD_PASS commit=$env:GITHUB_SHA"
+        run: ./tools/smoke-portable-r032.ps1
