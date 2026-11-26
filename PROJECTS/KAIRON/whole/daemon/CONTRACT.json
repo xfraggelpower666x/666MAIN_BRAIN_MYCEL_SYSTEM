@@ -148,7 +148,7 @@
     "WINDOWS_CONSUMER_INTEGRATION"
   ],
   "automatic_host_oversteer_watchdog": {
-    "revision": "R20.6",
+    "revision": "R20.7",
     "mode": "AUTO_FUCK_HORST",
     "module": "whole/daemon/development_watchdog.py",
     "guidance": "whole/daemon/guidance.py",
@@ -163,6 +163,10 @@
     "automatic_host_interception": false,
     "auto_dispatch": false,
     "production_promotion": false,
-    "legacy_direct_fuck_horst_preserved": true
+    "legacy_direct_fuck_horst_preserved": true,
+    "task_scoped_evidence_required": true,
+    "previous_source_write_does_not_suppress_new_loop": true,
+    "loop_reset_requires_matching_trusted_write_event": true,
+    "observability_limit": "GUIDANCE_INVOCATIONS_WITH_HISTORY_ONLY"
   }
 }
