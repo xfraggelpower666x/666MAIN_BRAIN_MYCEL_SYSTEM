@@ -32,7 +32,7 @@ def _terms(text: str, terms: tuple[str, ...]) -> list[str]:
     return sorted(set(matches))
 
 
-def evaluate(track: dict) -> dict:
+def evaluate(track: dict, *, causal_report=None) -> dict:
     """Return read-only candidates for the existing track, never save or promote.
 
     No cross-system evidence, no global learning, no inference of measured audio.
@@ -86,5 +86,10 @@ def evaluate(track: dict) -> dict:
             'foreign_authority':'REFERENCE_ONLY',
             'limitations':['NO_AUDIO_MEASUREMENT','NO_AUTOMATIC_GLOBAL_LEARNING',
                            'COMPLEX_NEGATIONS_REQUIRE_REVIEW']}
+    if causal_report is not None:
+        from .preset_evidence import attach
+        attach(result, causal_report, track.get('track_id'))
     result['mandala_arrangement']=arrange(result)
+    if result['mandala_arrangement'] is not None and 'causal_evidence' in result:
+        result['mandala_arrangement']['causal_evidence']=result['causal_evidence']
     return result
