@@ -42,6 +42,8 @@ def read_versions(root, preset_id):
         if path.is_symlink():
             raise ValueError('PRESET_SYMLINK')
         row=json.loads(path.read_text(encoding='utf-8'))
+        if not isinstance(row,dict):
+            raise ValueError('PRESET_INTEGRITY')
         version=len(rows)+1
         if (row.get('system_id')!='666TDI-001' or row.get('preset_id')!=preset_id
                 or row.get('version')!=version or path.name!=f'{version:08d}.json'
@@ -97,9 +99,12 @@ def persist(root, preset_id, report, *, creator_approved=False, expected_version
             os.link(tmp,target)
         except FileExistsError as exc:
             raise ValueError('PRESET_VERSION_CONFLICT') from exc
+        except OSError as exc:
+            # Fail closed on filesystems without atomic hardlink support.
+            raise ValueError('PRESET_ATOMIC_PUBLICATION_UNAVAILABLE') from exc
     finally:
         os.unlink(tmp)
     verified=read_versions(root,preset_id)
-    if verified[-1]!=row:
+    if len(verified)<row['version'] or verified[row['version']-1]!=row:
         raise ValueError('PRESET_READBACK_MISMATCH')
     return row

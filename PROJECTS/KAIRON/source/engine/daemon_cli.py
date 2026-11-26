@@ -91,7 +91,7 @@ def preanalysis(payload: dict) -> dict:
         "causal": causal,
         "preanalysis": preanalysis,
         "context_preset": context_report,
-        "preset_review_sha256": portable.sha(context_report),
+        "preset_review_sha256": portable.sha({"intent":intent,"context":context_report,"device":device,"bars":bars}),
         "device_output": renderer,
         "menu": [
             {"id":"device", "label":"Gerät & Workflow", "status":"COMPLETE"},
@@ -199,6 +199,8 @@ class Handler(BaseHTTPRequestHandler):
                 "preanalysis_read_only": True,
                 "feedback_requires_explicit_creator_confirmation": True,
                 "feedback_writes_local": True,
+                "preset_writes_local": True,
+                "preset_requires_explicit_creator_confirmation": True,
                 "global_learning": False
             })
         else:

@@ -1,6 +1,6 @@
 {
   "system_id": "666TDI-001",
-  "source_file_count": 120,
+  "source_file_count": 121,
   "source_files": {
     "README.md": "e19ce33fac348c8e7a3c4d6c2e2c0e9e0958f9906012025cb17ac483abcdb498",
     "START_666TDI_DAEMON.bat": "9bc36ce36725a7a6c3cc492c7ceb0b348154379f24d16fe9877870d84eb2264c",
@@ -40,7 +40,7 @@
     "engine/context_preset.py": "d3487c2919904e3953c55588740b8ba301143422901ad79edbcc190b8b5a16c1",
     "engine/creative_causal.py": "e0db34c3490c5ed3bdbda918ddc47fbd149db50d96fa973bd37d674e4239e796",
     "engine/creator_learning.py": "bcb7ea969dc02622e680f38d481ebdd363e714746ca61b430d69bf95e6fe2687",
-    "engine/daemon_cli.py": "b26ab16407502ae2b4b0c0a1031ac7cc9e46b063e52ffa8a7a8219785fa0724c",
+    "engine/daemon_cli.py": "1a0b86bae392973812c6607548ac75cc7745e8574079d03c5f53775e2393a734",
     "engine/daemon_static/index.html": "c1f6aa9fe69c5e08967c5d1b317f8922206c2cde0fc2cb77ca25b466807a741e",
     "engine/device_output.py": "fdc00183a9904a3e59f54405607a82b871ff0d33b010755dc37217c95c0cab61",
     "engine/evolution.py": "db6bd8a3ec87de2bd2c707d1e40d90ef55fa2b6d31e812ca6dc130afa2fab7f9",
@@ -54,7 +54,7 @@
     "engine/pattern_cli.py": "3ced409958adf5d321cfdf714e456f65c125c572eb9550f5cdf4cf94ef78d3f8",
     "engine/pattern_relations.py": "ba353a67868293beedd1942ab375f82c64f1b245a6bc0038386bdb3c6272a45b",
     "engine/portable.py": "646e996df19a17853e18f90ec42f7d666c0a1124b8fc2f7e530abfd7e9f96e5b",
-    "engine/preset_evidence.py": "e3df6f456f5e252f220dec44da733df64f7559a877651f6470a2b45caabe17cf",
+    "engine/preset_evidence.py": "d69031f23d0a57a4f4e47f3fc41bcff1bd73512781c6f003f66ba958b0a1b282",
     "engine/production_quality.py": "fc43387f2d9f98af9e9ba5018985167660064b9670be1e0548e225d29b37feeb",
     "engine/relational.py": "1db708640cdcd4ae0a37abca43ebaeb87f00adecc44d4da00118617afb7df0d0",
     "engine/relational_cli.py": "519c445cf5c77522bc957b560e6b0b7fac1d3f791d0ecf5169763311ba17bd16",
@@ -121,7 +121,8 @@
     "tests/test_track_preanalysis.py": "a15d36e6367f27738ab835083be46a65c8ac5916369c1b949869c5ef46328a96",
     "tests/test_native_consumer_r213.py": "9840ec03fdee0622ac6ed649f9c2faeb78e7e2d598c0db999da5eb2538cc2ff9",
     "tests/test_emergent_evolution_r213.py": "91f7ca755f728c97675104e66d4edd955b997dc1b1887320844191867775304c",
-    "tests/test_preset_surface_r213.py": "a06e0a1ea710dd7c855279518b2265b8346cdda67efc85aea43640ef2c1b05a8"
+    "tests/test_preset_surface_r213.py": "a06e0a1ea710dd7c855279518b2265b8346cdda67efc85aea43640ef2c1b05a8",
+    "tests/test_preset_http_r213.py": "f8f4d0a507a833112c1444d428dc4ff8917439dc229d4c98d2b8f3c342a912d3"
   },
   "source_git_sha1": {
     "README.md": "83577b17ef012ce50061118b5fd8382796ad2da2",
@@ -162,7 +163,7 @@
     "engine/context_preset.py": "ab50e28455064b8e70ed06ee5d3654135b005de0",
     "engine/creative_causal.py": "7e00a5576b34b78474e9cb6b54ff1fcb82848dae",
     "engine/creator_learning.py": "f27bf9e7d850e861c10c48d5767f32c9a8a5c3aa",
-    "engine/daemon_cli.py": "e5ecacd3b932fd49a4a590b72e3692e840cf0306",
+    "engine/daemon_cli.py": "183bfdbdd7e603b0ab6e38232e1b1c3dc5e091a1",
     "engine/daemon_static/index.html": "bffec576d9b9e4d6499a8050868e42f15b97eac0",
     "engine/device_output.py": "2d072cd470165763cff77cb934bc97095f48efda",
     "engine/evolution.py": "9af80f2baab903448b95a7c7e48e7484519742df",
@@ -176,7 +177,7 @@
     "engine/pattern_cli.py": "b107ced6aad1662d41e72d449daa1a23c52be676",
     "engine/pattern_relations.py": "a3784ed2d865a37ce597d992c3e171b5e04a1a70",
     "engine/portable.py": "ded0ae68552e6bd90fd13f733b801c5b0a1dac94",
-    "engine/preset_evidence.py": "d7db32ff78163175a379762746606daf417ef8b1",
+    "engine/preset_evidence.py": "0cca16f03f22736c295f70cb9ed09fa4e3f1be02",
     "engine/production_quality.py": "9d54d063a4a5a2d3449f768d6d3bb8a8040e1e3f",
     "engine/relational.py": "7f925ae98b39144aace30baad8f450b3f634741e",
     "engine/relational_cli.py": "9ef64ca9cdb6867e02828b3d4b912332fc24ffda",
@@ -243,7 +244,8 @@
     "tests/test_track_preanalysis.py": "e4e59f6a4739ee4020efa39c7ba826b32681564d",
     "tests/test_native_consumer_r213.py": "bcae3516574685d06de5c32531fe87ba81d936d9",
     "tests/test_emergent_evolution_r213.py": "fc8e059717cdab39c1b37ad0d044c9497f3d9c6e",
-    "tests/test_preset_surface_r213.py": "5b38256028b6ca4415afbbf404c8d8e06adb63a3"
+    "tests/test_preset_surface_r213.py": "5b38256028b6ca4415afbbf404c8d8e06adb63a3",
+    "tests/test_preset_http_r213.py": "94f944da18f39e7ffcada82db513e9fad5d2dbc2"
   },
   "source_archive_sha256": "4f0741ef3fdf438772fda6d406baaca02eddd4262ef9681bdc2517955c1703d1",
   "source_origin": "666TDI_v2.5_ADDITIVE_R08_PORTABLE.zip",
@@ -253,10 +255,10 @@
   ],
   "scope": "PROJECTS/KAIRON/source",
   "preserve_existing": true,
-  "source_manifest_revision": "R21.3-native-ui",
-  "source_tree_base_commit": "ba09e65be5aa439d38dbd0f8c982203553b9991b",
+  "source_manifest_revision": "R21.3-http-acceptance",
+  "source_tree_base_commit": "69c7021edf4d5858e672ce76fd28bd92ee372146",
   "source_tree_base_sha": "e1e3e7fd77a0438690e8e0cbb1cf0418f2315e2e",
   "source_archive_sha256_semantics": "HISTORICAL_ORIGINAL_ARCHIVE_NOT_CURRENT_TREE",
   "integrity_method": "UNCHANGED_GIT_BLOB_REUSE; CHANGED_UTF8_SHA256_AND_CI_RAW_BYTES",
-  "previous_manifest_blob": "aedbff06bce9f0f37c27be94588611ead2807a33"
+  "previous_manifest_blob": "d64e9728bad854deff864f854af82ad6b164e906"
 }
