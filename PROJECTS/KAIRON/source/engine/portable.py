@@ -125,7 +125,8 @@ def analyze(track):
     from . import semantic_intelligence as semantic
     out['analysis']['semantic_intelligence']=semantic.assess(out)
     from . import creative_causal as causal
-    out['analysis']['creative_causal']=causal.assess(out)
+    out['analysis']['creative_causal']=causal.assess(
+        out, semantic_report=out['analysis']['semantic_intelligence'])
     # R20.9: lyric/context Guard-Audit-Trigger is advisory and preserves the native intent.
     from . import context_preset
     out['analysis']['context_preset']=context_preset.evaluate(
