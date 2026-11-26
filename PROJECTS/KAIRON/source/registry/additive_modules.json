@@ -285,6 +285,14 @@
       "windows_optional": true,
       "creator_approval_required": true,
       "audio_verified": false
+    },
+    "mandala_r211": {
+      "status": "CANDIDATE_SOURCE_IMPLEMENTED_FULL_REGRESSION_OPEN",
+      "source": "engine/mandala.py",
+      "consumer": "engine/context_preset.py",
+      "tests": "tests/test_mandala.py",
+      "automatic_promotion": false,
+      "audio_verified": false
     }
   },
   "native_framework_priority_r205": {

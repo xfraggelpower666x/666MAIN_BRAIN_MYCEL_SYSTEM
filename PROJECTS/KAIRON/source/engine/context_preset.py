@@ -74,7 +74,8 @@ def evaluate(track: dict) -> dict:
     elif {'FX','DYNAMICS','MOTION'}.issubset(active) and evidence_count>=4: classification='PRESET_CANDIDATE'
     else: classification='TRACK_ONLY'
     mandala = bool('MANTRA' in active and {'SPACE','DYNAMICS'} & active)
-    return {'schema':'KAIRON_CONTEXT_GAT_R209','system_id':'666TDI-001',
+    from .mandala import arrange
+    result = {'schema':'KAIRON_CONTEXT_GAT_R209','system_id':'666TDI-001',
             'classification':classification,'signal_evidence':evidence,
             'negated_signals':excluded,'functional_relations':relations,
             'mandala_candidate':mandala,'mandala_status':'REVIEW_ONLY' if mandala else 'NOT_SELECTED',
@@ -84,3 +85,5 @@ def evaluate(track: dict) -> dict:
             'foreign_authority':'REFERENCE_ONLY',
             'limitations':['NO_AUDIO_MEASUREMENT','NO_AUTOMATIC_GLOBAL_LEARNING',
                            'COMPLEX_NEGATIONS_REQUIRE_REVIEW']}
+    result['mandala_arrangement']=arrange(result)
+    return result
