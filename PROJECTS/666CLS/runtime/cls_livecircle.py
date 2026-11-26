@@ -10,6 +10,7 @@ import shutil
 import sys
 import tempfile
 from pathlib import Path
+from cls_source_checkpoint import verify_source_checkpoint
 from zipfile import ZIP_DEFLATED, ZipFile
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -193,6 +194,7 @@ def rehydrate(root):
     require(sha(release / "MANIFEST.json") == pointer["manifest_sha256"], "Release-Manifest weicht ab")
     counts = inspect_release(release, version)
     require(pointer["domains"] == counts, "Pointer-Zähler weichen ab")
+    verify_source_checkpoint(root, pointer)
     return {"status": "VERIFIZIERT", "system_id": SYSTEM, "version": version,
             "domains": counts, "total": sum(counts.values()), "schema_version": SCHEMA,
             "authority": AUTHORITY, "source": release_path, "next_step": circle["next_step"]}
