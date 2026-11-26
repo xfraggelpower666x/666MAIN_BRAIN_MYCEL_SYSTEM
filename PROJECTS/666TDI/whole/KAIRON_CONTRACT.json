@@ -1,0 +1,40 @@
+{
+  "system_id": "666TDI-001",
+  "active_name": "KAIRON",
+  "status": "STAGED_CANDIDATE",
+  "authority": "ONE_NATIVE_CORE",
+  "surfaces": [
+    "CHAT",
+    "PLUGIN",
+    "WINDOWS"
+  ],
+  "capabilities": [
+    "IDENTITY_CHARACTER",
+    "MUSICAL_INTELLIGENCE",
+    "PSYCHOACOUSTICS",
+    "SEMANTIC_CAUSAL_INTELLIGENCE",
+    "CREATIVE_CHAOS",
+    "MUSIC_MEMORY",
+    "VISUAL_INTELLIGENCE",
+    "ANALYTICS_LEARNING",
+    "LIVECIRCLE",
+    "SELF_GOVERNANCE",
+    "CODEFORGE",
+    "SUPERCODEFORGE"
+  ],
+  "preserve": [
+    "all existing NMI revisions",
+    "historical event chain",
+    "plugin backend ID",
+    "Windows application ID and user data",
+    "R05.7 recovery"
+  ],
+  "cutover_requires": [
+    "full path and source manifest migration",
+    "all native consumers updated",
+    "plugin guarded release and readback",
+    "Windows regression",
+    "pointer-last publication"
+  ],
+  "no_foreign_writes": true
+}
