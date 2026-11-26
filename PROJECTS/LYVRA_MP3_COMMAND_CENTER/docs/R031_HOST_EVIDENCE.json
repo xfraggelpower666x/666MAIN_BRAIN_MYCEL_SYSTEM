@@ -1,0 +1,124 @@
+{
+  "schema": "lyvra.mp3.host-evidence.v1",
+  "release": "R03.1",
+  "status": "CANDIDATE_FROZEN_HOST_SCOPE",
+  "tested_commit": "eee59035644f5af4a1ef0bacd24c22f8519d3b8b",
+  "tested_tree": "3a484c28f29e9d20d3b14459860be2247fb4ea4e",
+  "run_id": 45727743574,
+  "run_attempt": 1,
+  "run_conclusion": "success",
+  "source_backup": "backup/lyvra-mp3-r031-tested-eee5903",
+  "production_head": "9b1000512924f1294eb73227746ac4b27f5d27f6",
+  "originals_published": 263,
+  "originals_total": 308,
+  "host_jobs": {
+    "adapters": {
+      "job_id": 139601763938,
+      "conclusion": "success",
+      "receipts": [
+        {
+          "gate": "adapters",
+          "commit": "eee59035644f5af4a1ef0bacd24c22f8519d3b8b",
+          "status": "PASS",
+          "source_preserved": true
+        }
+      ],
+      "log_evidence": [
+        "2026-11-26T00:18:33.9013552Z # pass 9",
+        "2026-11-26T00:18:33.9013662Z # fail 0",
+        "2026-11-26T00:18:35.6779136Z Ran 26 tests in 1.640s",
+        "2026-11-26T00:18:36.6838528Z {\"gate\": \"adapters\", \"commit\": \"eee59035644f5af4a1ef0bacd24c22f8519d3b8b\", \"status\": \"PASS\", \"source_preserved\": true}"
+      ]
+    },
+    "windows": {
+      "job_id": 139601764335,
+      "conclusion": "success",
+      "receipts": [],
+      "log_evidence": [
+        "2026-11-26T00:18:50.8833078Z # pass 9",
+        "2026-11-26T00:18:50.8834258Z # fail 0",
+        "2026-11-26T00:18:59.8598136Z SHA256          77BD9D574063C1BA7F89220E5BEDF02CCC13B7FB47C7B02BD98AD3FF5A5DC882       D:\\a\\666MAIN_BRAIN_MYCEL_SYSTEM…",
+        "2026-11-26T00:18:59.8626612Z WINDOWS_BUILD_PASS commit=eee59035644f5af4a1ef0bacd24c22f8519d3b8b"
+      ]
+    },
+    "dsp": {
+      "job_id": 139601764390,
+      "conclusion": "success",
+      "receipts": [
+        {
+          "gate": "offline_dependencies",
+          "pywavelets": "1.8.0",
+          "sounddevice_installed": "0.5.6",
+          "physical_audio": "NOT_TESTED"
+        },
+        {
+          "gate": "offline_dsp_mode",
+          "mode": "STFT",
+          "commit": "eee59035644f5af4a1ef0bacd24c22f8519d3b8b",
+          "status": "PASS",
+          "frames": 132300,
+          "channels": 2,
+          "sample_rate": 44100,
+          "sha256": "94d67c6ab9e1f7700d8381a17f017427331ab75c7e0395c5a9efdafa902a2f78"
+        },
+        {
+          "gate": "offline_dsp_mode",
+          "mode": "Wavelet",
+          "commit": "eee59035644f5af4a1ef0bacd24c22f8519d3b8b",
+          "status": "PASS",
+          "frames": 132300,
+          "channels": 2,
+          "sample_rate": 44100,
+          "sha256": "cdb3d5906ebbf83295af42efbb6202eab321aaf71619c8affd4b7f1f71113faf"
+        },
+        {
+          "gate": "offline_dsp_mode",
+          "mode": "Both",
+          "commit": "eee59035644f5af4a1ef0bacd24c22f8519d3b8b",
+          "status": "PASS",
+          "frames": 132300,
+          "channels": 2,
+          "sample_rate": 44100,
+          "sha256": "c2d4f0aa4796ec54a06604fcb1ee83affcc81c97d40923105a04ff8d766e8e3a"
+        },
+        {
+          "gate": "dsp",
+          "commit": "eee59035644f5af4a1ef0bacd24c22f8519d3b8b",
+          "status": "PASS",
+          "source_preserved": true
+        }
+      ],
+      "log_evidence": [
+        "2026-11-26T00:18:41.8559475Z {\"gate\": \"offline_dependencies\", \"pywavelets\": \"1.8.0\", \"sounddevice_installed\": \"0.5.6\", \"physical_audio\": \"NOT_TESTED\"}",
+        "2026-11-26T00:18:41.8560997Z {\"gate\": \"offline_dsp_mode\", \"mode\": \"STFT\", \"commit\": \"eee59035644f5af4a1ef0bacd24c22f8519d3b8b\", \"status\": \"PASS\", \"frames\": 132300, \"channels\": 2, \"sample_rate\": 44100, \"sha256\": \"94d67c6ab9e1f7700d8381a17f017427331ab75c7e0395c5a9efdafa902a2f78\"}",
+        "2026-11-26T00:18:41.8563092Z {\"gate\": \"offline_dsp_mode\", \"mode\": \"Wavelet\", \"commit\": \"eee59035644f5af4a1ef0bacd24c22f8519d3b8b\", \"status\": \"PASS\", \"frames\": 132300, \"channels\": 2, \"sample_rate\": 44100, \"sha256\": \"cdb3d5906ebbf83295af42efbb6202eab321aaf71619c8affd4b7f1f71113faf\"}",
+        "2026-11-26T00:18:41.8564907Z {\"gate\": \"offline_dsp_mode\", \"mode\": \"Both\", \"commit\": \"eee59035644f5af4a1ef0bacd24c22f8519d3b8b\", \"status\": \"PASS\", \"frames\": 132300, \"channels\": 2, \"sample_rate\": 44100, \"sha256\": \"c2d4f0aa4796ec54a06604fcb1ee83affcc81c97d40923105a04ff8d766e8e3a\"}",
+        "2026-11-26T00:18:41.8566239Z {\"gate\": \"dsp\", \"commit\": \"eee59035644f5af4a1ef0bacd24c22f8519d3b8b\", \"status\": \"PASS\", \"source_preserved\": true}"
+      ]
+    },
+    "binary": {
+      "job_id": 139601764396,
+      "conclusion": "success",
+      "receipts": [
+        {
+          "gate": "provider_binary",
+          "commit": "eee59035644f5af4a1ef0bacd24c22f8519d3b8b",
+          "status": "PASS",
+          "sha": "e3327c3bf0f98b4608437c1cb33189856a2ea9be",
+          "sha256": "981729d4e1e010d7ded1c8d93aecc9d7a13b6b8286cf16feffca2f9f885cd5f7",
+          "bytes": 9
+        }
+      ],
+      "log_evidence": [
+        "2026-11-26T00:18:09.2312508Z {\"gate\": \"provider_binary\", \"commit\": \"eee59035644f5af4a1ef0bacd24c22f8519d3b8b\", \"status\": \"PASS\", \"sha\": \"e3327c3bf0f98b4608437c1cb33189856a2ea9be\", \"sha256\": \"981729d4e1e010d7ded1c8d93aecc9d7a13b6b8286cf16feffca2f9f885cd5f7\", \"bytes\": 9}"
+      ]
+    }
+  },
+  "limitations": [
+    "Synthetic 9-byte binary probe only; no original binary asset approval",
+    "Offline DSP synthetic 3-second stereo fixture, not perceptual quality or physical playback",
+    "Windows unpacked package build, not interactive GUI or standalone runtime",
+    "45 original files remain HOLD; no ZIP publication; no production promotion",
+    "Evidence-only descendant commit not itself CI-tested; executable source unchanged"
+  ]
+}
