@@ -1,0 +1,47 @@
+{
+  "status": "INLINE_JS_FIXTURES_PASS",
+  "tests": [
+    {
+      "name": "direct recovery",
+      "pass": true
+    },
+    {
+      "name": "quoted inert",
+      "pass": true
+    },
+    {
+      "name": "foreign context",
+      "pass": true
+    },
+    {
+      "name": "missing current",
+      "pass": true
+    },
+    {
+      "name": "verified drift",
+      "pass": true
+    },
+    {
+      "name": "suspected drift",
+      "pass": true
+    },
+    {
+      "name": "foreground preserves workspace",
+      "pass": true
+    },
+    {
+      "name": "planning not building",
+      "pass": true
+    },
+    {
+      "name": "unverified receipt rejected",
+      "pass": true
+    },
+    {
+      "name": "source not host pass",
+      "pass": true
+    }
+  ],
+  "scope": "functions executed in JS tool before source publication; imported module and host not tested",
+  "production_promotion": false
+}

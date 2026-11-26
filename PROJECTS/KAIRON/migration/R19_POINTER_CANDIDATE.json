@@ -1,0 +1,22 @@
+{
+  "system_id": "666TDI-001",
+  "namespace": "KAIRON",
+  "status": "STAGED_NOT_CURRENT",
+  "root": "PROJECTS/KAIRON/",
+  "branch": "integration/666tdi-windows-buildkit-r0113-20261126",
+  "legacy_pointer_blob": "7e41c723d3207bf55523773d86523f9566ac18bd",
+  "legacy_pointer_path": "PROJECTS/666TDI/CURRENT_POINTER.json",
+  "identity": "identity/KAIRON_MIGRATION_R01.json",
+  "triggers": "triggers/KAIRON_REGISTRY_CANDIDATE.json",
+  "whole": "whole/KAIRON_CONTRACT.json",
+  "authority": "migration/R19_AUTHORITY_CANDIDATE.json",
+  "required_gates": [
+    "ACTIVE_PATH_CONSUMERS",
+    "SOURCE_MANIFEST",
+    "PLUGIN_RELEASE",
+    "WINDOWS_HOST",
+    "REGRESSION",
+    "DIRECT_READBACK"
+  ],
+  "production_cutover": false
+}

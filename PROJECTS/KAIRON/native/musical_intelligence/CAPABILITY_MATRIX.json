@@ -1,0 +1,85 @@
+{
+  "system_id": "666TDI-001",
+  "rows": [
+    {
+      "id": "M01",
+      "capability": "Musical DNA",
+      "protect": "Identität und Creator-Intent",
+      "extend": "Motivik, Kontrapunkt, Komplementarität",
+      "native": "source/engine/semantic_intelligence.py",
+      "status": "PROTECTED_BASELINE_EXTENSION_CANDIDATE"
+    },
+    {
+      "id": "M02",
+      "capability": "Motor",
+      "protect": "Stabiler physischer Kern, rollende Bewegung wenn beabsichtigt",
+      "extend": "Lokale Polymetrik, Akzentvariation",
+      "native": "source/engine/semantic_intelligence.py",
+      "status": "PROTECTED_BASELINE_EXTENSION_CANDIDATE"
+    },
+    {
+      "id": "M03",
+      "capability": "Pressure",
+      "protect": "Kontrast, Druck, Entladung, individuelle Dynamik",
+      "extend": "Mehrskalige Form",
+      "native": "source/engine/creative_causal.py",
+      "status": "PROTECTED_BASELINE_EXTENSION_CANDIDATE"
+    },
+    {
+      "id": "M04",
+      "capability": "Psy FX",
+      "protect": "Lebendige Klangkommunikation",
+      "extend": "Fraktale, Rekursion, Signalantworten",
+      "native": "source/engine/creative_causal.py",
+      "status": "PROTECTED_BASELINE_EXTENSION_CANDIDATE"
+    },
+    {
+      "id": "M05",
+      "capability": "Space",
+      "protect": "Stabiler LOW, bewegliches Umfeld, Monoschutz",
+      "extend": "Räumliche Bahnen und funktionale Modulation",
+      "native": "source/engine/relational.py",
+      "status": "PROTECTED_BASELINE_EXTENSION_CANDIDATE"
+    },
+    {
+      "id": "M06",
+      "capability": "Voice/Lyrics",
+      "protect": "Originaltext, Bedeutung, Verständlichkeit, Identität",
+      "extend": "Phonetik, Prosodie, Formanten, Performance",
+      "native": "source/engine/semantic_intelligence.py",
+      "status": "PROTECTED_BASELINE_EXTENSION_CANDIDATE"
+    },
+    {
+      "id": "M07",
+      "capability": "Renderer",
+      "protect": "Bewährte Suno-Sprache, keine stille Kürzung, bestätigte Geräteprofile",
+      "extend": "Kompakte funktionale Übersetzung",
+      "native": "source/engine/device_output.py",
+      "status": "PROTECTED_BASELINE_EXTENSION_CANDIDATE"
+    },
+    {
+      "id": "M08",
+      "capability": "DJ",
+      "protect": "Mixbarkeit, bewusste Übergänge und Enden",
+      "extend": "Genealogie, Seam und Rollenübergabe",
+      "native": "source/engine/track_preanalysis.py",
+      "status": "PROTECTED_BASELINE_EXTENSION_CANDIDATE"
+    },
+    {
+      "id": "M09",
+      "capability": "Creative freedom",
+      "protect": "Keine ungewollte Genre-, Tempo- oder Strukturvorgabe",
+      "extend": "Produktive Dissonanz und kontrollierte Mutation",
+      "native": "source/engine/creative_causal.py",
+      "status": "PROTECTED_BASELINE_EXTENSION_CANDIDATE"
+    },
+    {
+      "id": "M10",
+      "capability": "Learning",
+      "protect": "Creator-Erfolge und Gegenbelege erhalten",
+      "extend": "Vergleichbare Experimente, Herkunft, Gegenhypothesen",
+      "native": "source/engine/creator_learning.py",
+      "status": "PROTECTED_BASELINE_EXTENSION_CANDIDATE"
+    }
+  ]
+}

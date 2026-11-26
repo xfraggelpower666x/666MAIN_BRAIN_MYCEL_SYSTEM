@@ -1,0 +1,15 @@
+{
+  "active_track_id": "track-72c377757ffe",
+  "created_utc": "2026-11-21T06:08:05.082390+00:00",
+  "foreign_authority": "REFERENCE_ONLY",
+  "next_step": "run controlled renderer A/B test with genuine audio",
+  "open_gates": [
+    "REAL_AUDIO_VALIDATION",
+    "PROVIDER_FIELD_FRESHNESS",
+    "CAUSAL_GRAPH_DEEP_SEMANTIC_VALIDATION"
+  ],
+  "revision": 3,
+  "schema": "portable-track-handoff-v1",
+  "system_id": "666TDI-001",
+  "name": "666 Track Design Intelligenz v2.5"
+}

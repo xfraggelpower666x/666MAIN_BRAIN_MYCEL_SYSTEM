@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "project_name": "666TDI Music Intelligence Studio",
+  "project_directory": ".",
+  "python_entry": "tdi_backend.py",
+  "python_args": [],
+  "requirements_file": "requirements.txt",
+  "test_command": [
+    "tools/run_tdi_regression.py"
+  ],
+  "launch_mode": "python_backend",
+  "backend_port": 8766,
+  "backend_health_url": "http://127.0.0.1:8766/health",
+  "backend_ui_url": "http://127.0.0.1:8766/",
+  "electron": {
+    "fullscreen": true,
+    "kiosk": false,
+    "app_id": "com.666soundsdesign.tdi",
+    "product_name": "666TDI Music Intelligence Studio"
+  },
+  "boot_image": "electron/renderer/assets/bootscreen-source.jpeg",
+  "install_policy": "prompt",
+  "update_existing_tools": false,
+  "build_policy": "fail_closed",
+  "notes": "Native 666TDI sibling source required; no independent music authority."
+}

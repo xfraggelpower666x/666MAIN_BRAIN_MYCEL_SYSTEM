@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>666TDI DAEMON · Musical Intelligence</title>
+<style>
+:root{--bg:#080a16;--surface:#111527;--panel:#151a31;--line:#343b5c;--text:#f4f5ff;--muted:#9aa7c5;--cyan:#58f4f6;--pink:#ff56bd;--purple:#b37aff;--lime:#8ef3b1;--amber:#ffcc83;--radius:17px}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 17% -10%,#2a174b 0,transparent 38%),radial-gradient(ellipse at 95% 0,#102a45 0,transparent 30%),var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Arial,sans-serif}
+button,input,textarea,select{font:inherit;color:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+a{color:var(--cyan)}.shell{max-width:1540px;min-height:100vh;display:grid;grid-template-columns:265px minmax(0,1fr);margin:auto}.sidebar{background:#0d1021e8;border-right:1px solid var(--line);padding:28px 17px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:28px}
+.logo{font-weight:900;font-size:24px;letter-spacing:.12em;color:var(--text);text-shadow:0 0 24px #d966ed90}.logo em{font-style:normal;color:var(--cyan)}.tiny{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}.sidebar nav{display:grid;gap:9px}.navitem{width:100%;border:1px solid transparent;background:transparent;border-radius:12px;text-align:left;padding:12px;color:var(--muted);display:flex;align-items:center;gap:12px}.navitem.active{border-color:#8867d7;background:#2b2149;color:#fff}.navitem.ready .dot{background:var(--lime)}.dot{width:8px;height:8px;border-radius:50%;background:#727993;flex:none}
+.sidebar .bottom{margin-top:auto;border:1px solid #334063;border-radius:13px;padding:13px;font-size:12px;color:var(--muted)}.live{color:var(--lime)}main{min-width:0;padding:32px clamp(16px,3vw,54px) 56px}
+.eyebrow{color:var(--cyan);font-size:11px;letter-spacing:.24em;font-weight:700}.header{display:flex;justify-content:space-between;gap:20px;align-items:start;flex-wrap:wrap}.header h1{font-size:clamp(30px,4vw,52px);line-height:1.1;letter-spacing:-.04em;margin:8px 0}.header p{color:var(--muted);max-width:720px;margin:0}.pill{border:1px solid #3f5272;border-radius:30px;padding:7px 12px;font-size:11px;color:var(--cyan);background:#142336}
+.card{background:linear-gradient(150deg,#171a31 0,#11152a 95%);border:1px solid var(--line);border-radius:var(--radius);padding:22px;min-width:0;box-shadow:0 17px 48px #0002}.card h2{font-size:19px;margin:0 0 10px}.card h3{font-size:14px;margin:0 0 7px}.card p{margin:7px 0;color:var(--muted)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.section{margin-top:22px}.subtle{font-size:12px;color:var(--muted)}.required{color:var(--pink)}.step{display:inline-flex;gap:7px;align-items:center;color:var(--cyan);font-size:12px;font-weight:700;margin-bottom:11px}.device-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.device{border:1px solid #38435c;background:#10192b;border-radius:14px;padding:18px;text-align:left;min-height:132px;transition:transform .15s,border .15s;display:flex;flex-direction:column;justify-content:space-between}
+.device:hover{transform:translateY(-2px);border-color:var(--cyan)}.device.selected{border:2px solid var(--cyan);background:#133042;box-shadow:0 0 22px #2adce735}
+.device strong{display:block;font-size:18px}.device small{color:var(--muted)}.device .emoji{font-size:29px}.notice{border-left:3px solid var(--amber);background:#32281e90;padding:11px 14px;border-radius:8px;color:#ffe6ba;font-size:12px;margin-top:13px}
+label{display:block;font-size:12px;color:#dce2f5;margin-bottom:6px;font-weight:650}.field{display:flex;flex-direction:column;gap:6px}.field input,.field textarea{background:#0b1022;border:1px solid #3c4565;border-radius:11px;padding:12px;outline:none;width:100%}.field textarea{resize:vertical;min-height:92px}.field input:focus,.field textarea:focus{border-color:var(--cyan)}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.wide{grid-column:1/-1}
+.primary{border:none;background:linear-gradient(90deg,#49e4ef,#b17dfb);color:#090d1c;padding:13px 20px;border-radius:12px;font-weight:900;box-shadow:0 8px 25px #42cbd52b}.primary:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}.ghost{border:1px solid #465174;background:#191e37;padding:10px 14px;border-radius:10px}.ghost:hover{border-color:var(--cyan)}.controls{display:flex;gap:11px;align-items:center;flex-wrap:wrap;margin-top:20px}.status{font-size:13px;color:var(--muted)}.status.err{color:#ff979e}.status.ok{color:var(--lime)}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.metric{border:1px solid #384365;border-radius:12px;padding:16px;background:#10192d}.metric b{font-size:30px;color:var(--cyan);display:block}.metric span{color:var(--muted);font-size:11px}.analysis-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:18px}
+.relation{background:#10182b;border:1px solid #374765;padding:13px;border-radius:12px;margin-top:9px}.relation strong{color:var(--cyan)}.relation p{font-size:12px;margin:6px 0}.meta{font-size:11px;color:var(--muted);word-wrap:break-word}.tag{font-size:10px;letter-spacing:.07em;border:1px solid #556c84;border-radius:20px;padding:4px 8px;color:var(--cyan);display:inline-block;margin:3px 4px 0 0}.tag.pink{color:var(--pink);border-color:#8c4d7b}.tag.amber{color:var(--amber);border-color:#9a7044}.tag.green{color:var(--lime);border-color:#427960}
+.musical-map{display:flex;flex-direction:column;align-items:center;gap:9px;margin:12px 0}.mapnode{width:90%;text-align:center;border:1px solid #577ba3;border-radius:12px;padding:10px;background:#12233b}.maprow{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:9px}.maprow .mapnode{width:100%;border-color:#744e9b}.arrow{color:var(--purple);font-size:18px}.bar{height:7px;border-radius:12px;background:#293552;overflow:hidden}.bar span{display:block;background:linear-gradient(90deg,var(--cyan),var(--pink));height:100%;border-radius:12px}
+.decisions{display:grid;gap:11px}.decision{background:#10182a;border:1px solid #3b4765;padding:15px;border-radius:13px}.decision .choices{display:flex;gap:7px;margin-top:12px;flex-wrap:wrap}.choice{font-size:12px;border:1px solid #455574;border-radius:8px;padding:7px 9px;background:#1b2741}.choice.active{border-color:var(--lime);color:var(--lime);background:#18372d}.divider{height:1px;background:var(--line);margin:18px 0}.empty{color:var(--muted);border:1px dashed #475274;padding:18px;border-radius:12px;text-align:center}.hide{display:none!important}.footer{padding:16px 0;color:var(--muted);font-size:11px}
+@media(max-width:1080px){.shell{grid-template-columns:1fr}.sidebar{position:static;height:auto;gap:12px;padding:14px 20px}.sidebar nav{display:flex;overflow:auto}.navitem{min-width:180px}.sidebar .bottom{display:none}.analysis-grid{grid-template-columns:1fr}}
+@media(max-width:700px){main{padding:22px 14px}.grid,.formgrid,.device-grid{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}.header h1{font-size:31px}.card{padding:16px}.grid3{grid-template-columns:1fr}.wide{grid-column:auto}}
+
+.forecast-top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.forecast-scroll{overflow-x:auto;margin-top:16px;padding-bottom:7px}
+.timeline{min-width:700px;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:5px;align-items:end;min-height:196px}
+.chapter{border:1px solid #48587a;border-radius:12px;background:#121c35;padding:9px 6px;min-height:150px;display:flex;flex-direction:column;justify-content:end;gap:7px}
+.chapter h3{font-size:10px;line-height:1.35;margin:0;overflow-wrap:anywhere}
+.chapter .bar{height:65px;display:flex;align-items:end;background:transparent}
+.chapter .bar span{height:var(--energy);width:100%;border-radius:7px 7px 2px 2px;background:linear-gradient(180deg,#fc68c8,#735bda,#4df1ec)}
+.chapter .meta{font-size:10px}
+.layer-compare{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.layerbox{background:#10172c;border:1px solid #435474;padding:12px;border-radius:12px}
+.layerbox b{color:#74eff2}
+.alternative{background:#10192c;border:1px solid #4c507c;border-radius:12px;padding:13px;margin:9px 0}
+.alternative .options{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}
+.alternative .option{border:1px solid #455574;border-radius:9px;padding:10px;background:#172039}
+.alternative .option b{color:#d4b6fc}
+@media(max-width:700px){.layer-compare{grid-template-columns:1fr 1fr}.alternative .options{grid-template-columns:1fr}}
+.device-choices{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+.device-choices select,.device-choices textarea{width:100%;border:1px solid #485375;background:#0e1429;color:#fff;border-radius:10px;padding:11px}
+.route-note{font-size:12px;color:#b7bdd7}
+.output-fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.output-card{border:1px solid #405375;background:#101831;border-radius:13px;padding:15px}
+.output-card textarea{min-height:145px;width:100%;background:#090f22;color:#f0f4ff;border:1px solid #4a5371;padding:11px;border-radius:9px;resize:vertical;white-space:pre-wrap}
+.output-card h3{display:flex;justify-content:space-between;gap:8px}
+.output-count{font-size:11px;color:var(--muted);margin:5px 0 10px}
+.output-count.bad{color:#ff9e9e}
+@media(max-width:700px){.device-choices,.output-fields{grid-template-columns:1fr}}
+.learning-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.learning-grid input,.learning-grid textarea,.learning-grid select{width:100%;background:#0b1022;border:1px solid #3c4565;border-radius:11px;padding:12px;color:var(--text)}.learning-grid textarea{min-height:86px}.feedback-row{margin:9px 0;padding:13px;background:#10182b;border:1px solid #3e4763;border-radius:12px}.learning-caution{border-left:3px solid var(--pink);padding:10px 14px;background:#3116296e;color:#ffe2f5}.learning-status{color:var(--cyan)}@media(max-width:700px){.learning-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+ <div><div class="logo">666<em>TDI</em></div><div class="tiny">Creative Intelligence / R1.3</div></div>
+ <nav id="nav" aria-label="Daemon Menü">
+  <button class="navitem active" type="button" data-target="device-section"><span class="dot"></span>01 · Device Preflight</button>
+  <button class="navitem" type="button" data-target="intent-section"><span class="dot"></span>02 · Creator Intent</button>
+  <button class="navitem" type="button" data-target="results-section"><span class="dot"></span>03 · Musical Forecast</button>
+  <button class="navitem" type="button" data-target="decisions-section"><span class="dot"></span>04 · Decision Support</button>
+  <button class="navitem" type="button" data-target="learning-section"><span class="dot"></span>05 · Creator Evidence</button>
+  <button class="navitem" type="button" data-target="handoff-section"><span class="dot"></span>06 · Handoff</button>
+ </nav>
+ <div class="bottom"><div class="live">● LOCAL ENGINE · R1.0</div><div>666TDI-001 · Keine Suno-Verbindung</div><div>Keine globale Lernmutation · Kein Audio gerendert</div></div>
+</aside>
+<main>
+ <header class="header">
+  <div><div class="eyebrow">NEON CYBER / NATIVE VISUAL DAEMON</div><h1>Musik verstehen.<br>Entscheidungen begründen.</h1><p>Musikalische Voranalyse mit semantischer Evidenz, kausalen Funktionsbeziehungen, produktiver Spannung und Creator-Entscheidungen.</p></div>
+  <div class="pill" id="engine-status">● ENGINE CONNECTING</div>
+ </header>
+ <section class="section card" id="device-section">
+  <div class="step">01 / DEVICE PREFLIGHT <span class="required">· erforderlich</span></div>
+  <h2>Wo arbeitest du mit Suno?</h2><p>Deine Wahl bestimmt den späteren Ausgabekontext. Musikalische Entscheidungen bleiben geräteunabhängig.</p>
+  <div class="device-grid">
+   <button type="button" class="device" data-device="IPHONE_SUNO_APP" aria-pressed="false"><span class="emoji" aria-hidden="true">📱</span><span><strong>iPhone · Suno App</strong><small>Custom-Eingabe, mobile Feldroute. Keine PC-Regler voraussetzen.</small></span></button>
+   <button type="button" class="device" data-device="PC_SUNO_BROWSER" aria-pressed="false"><span class="emoji" aria-hidden="true">🖥️</span><span><strong>PC · Suno Browser</strong><small>Web-Feldroute, tatsächlich verfügbare Controls später prüfen.</small></span></button>
+  </div>
+  <div class="device-choices">
+   <div id="iphone-route" class="hide">
+    <label for="iphone-main-choice">iPhone Custom: Main Input benutzen?</label>
+    <select id="iphone-main-choice"><option value="no">Nein – ohne Main Input</option><option value="yes">Ja – Main Input ausdrücklich verwenden</option></select>
+    <div id="main-authoring" class="hide"><label for="iphone-main-text">Main Input · optional, ausschließlich eigene Eingabe</label><textarea id="iphone-main-text" rows="3" placeholder="Eigene Event-Storyboard-Angaben oder bewusst leer lassen"></textarea></div>
+   </div>
+   <div id="pc-route" class="hide">
+    <label for="pc-slider-choice">Duration-Slider im aktuellen PC-Browser sichtbar?</label>
+    <select id="pc-slider-choice"><option value="unknown">Noch nicht bestätigt</option><option value="yes">Ja, sichtbar</option><option value="no">Nein, nicht sichtbar</option></select>
+    <div id="pc-duration-wrap" class="hide"><label for="pc-duration">Gewählte Slider-Dauer (MM:SS) · optional</label><input id="pc-duration" placeholder="5:40" maxlength="5"></div>
+   </div>
+  </div>
+  <p class="route-note">Gerätebelege stammen aus früheren Creator-Workflows. Die aktuelle Suno-Oberfläche wird hier nicht automatisch ausgelesen.</p>
+  <div class="notice">Ohne Geräteauswahl kein Track-Analyse-Auftrag. Keine Live-Suno-Felder oder Modellrechte werden behauptet.</div>
+ </section>
+ <section class="section card" id="intent-section">
+  <div class="step">02 / MUSICAL INTENT INTAKE</div>
+  <h2>Was soll musikalisch entstehen?</h2>
+  <p>Die R1.0-Engine untersucht die musikalischen Funktionen. Nutze konkrete Begriffe zu Motor, Vocals, Klangschichten und Dramaturgie – keine Pflicht zum Standard-Preset.</p>
+  <form id="intent-form" autocomplete="off">
+   <div class="formgrid">
+    <div class="field"><label for="title">Tracktitel</label><input id="title" maxlength="240" placeholder="z. B. Amazing Journeys"></div>
+    <div class="field"><label for="genre">Genre</label><input id="genre" maxlength="500" placeholder="Dark Goa / Dark Psytrance"></div>
+    <div class="field"><label for="bpm">Tempo (BPM) · optional</label><input id="bpm" inputmode="numeric" type="number" min="1" max="350" placeholder="148"></div>
+    <div class="field"><label for="total-bars">Taktziel · optional (4/4)</label><input id="total-bars" inputmode="numeric" type="number" min="32" max="2048" placeholder="z. B. 224"><span class="subtle">Nur Planungswert, keine garantierte Suno-Länge.</span></div>
+    <div class="field"><label for="energy">Energie / Spannung</label><input id="energy" maxlength="2000" placeholder="build tension, escalating pressure"></div>
+    <div class="field wide"><label for="story">Musikalische Absicht & Geschichte</label><textarea id="story" maxlength="12000" placeholder="Worum geht die Reise? Welche Gefühle und Veränderungen sollen hörbar sein?"></textarea></div>
+    <div class="field"><label for="motor">LOW · Kick, Bass, Groove</label><textarea id="motor" maxlength="12000" placeholder="dry kick, stable sub, relentless forward motion, rolling psybass"></textarea></div>
+    <div class="field"><label for="mid">MID · Acid, FM, Instrumente</label><textarea id="mid" maxlength="12000" placeholder="dense acid layers, metallic FM counterpoints"></textarea></div>
+    <div class="field"><label for="high">HIGH · Raum & Effekte</label><textarea id="high" maxlength="12000" placeholder="spatial motion, stereo orbit, moving high field"></textarea></div>
+    <div class="field"><label for="voice">VOICE · Stimme & Charakter</label><textarea id="voice" maxlength="12000" placeholder="clear vocal, dry centered voice"></textarea></div>
+    <div class="field wide"><label for="structure">Arrangement & Spannungsbogen</label><textarea id="structure" maxlength="12000" placeholder="deep break, transformation, variation, final release"></textarea></div>
+    <div class="field"><label for="ending">Bewusstes Ende</label><textarea id="ending" maxlength="12000" placeholder="clear ending, final landing"></textarea></div>
+    <div class="field"><label for="avoid">Ausgeschlossen / vermeiden</label><textarea id="avoid" maxlength="12000" placeholder="avoid swing bass, no static loop"></textarea></div>
+    <div class="field wide"><label for="lyrics">Lyrics / Voice Story · optional</label><textarea id="lyrics" maxlength="12000" placeholder="Originale Lyrics bleiben unverändert. Semantische Hypothesen sind keine automatischen Kompositionsbefehle."></textarea></div>
+    <div class="field wide"><label for="psychoacoustics">Psychoakustische Absicht · optional</label><textarea id="psychoacoustics" maxlength="12000" placeholder="spatial depth, rotation and call and response"></textarea></div>
+   </div>
+   <div class="controls">
+    <button type="submit" class="primary" id="analyze-button" disabled>✦ Musikalische Voranalyse</button>
+    <button type="button" class="ghost" id="clear-button">Eingaben leeren</button>
+    <span id="status" class="status" role="status" aria-live="polite">Wähle zuerst dein Suno-Gerät.</span>
+   </div>
+  </form>
+ </section>
+ <section class="section hide" id="results-section" aria-live="polite">
+  <div class="metrics">
+   <div class="metric"><b id="count-functions">0</b><span>Musikalische Funktionen</span></div>
+   <div class="metric"><b id="count-relations">0</b><span>Funktionsbeziehungen</span></div>
+   <div class="metric"><b id="count-emergences">0</b><span>Emergenz-Hypothesen</span></div>
+   <div class="metric"><b id="count-conflicts">0</b><span>Spannungsfelder</span></div>
+  </div>
+  <div class="analysis-grid section">
+   <article class="card"><div class="step">03 / MUSIC RELATIONSHIP INTELLIGENCE</div><h2>Beziehungen und musikalische Funktionen</h2><p>Diese Zusammenhänge werden aus deiner Eingabe von der bestehenden R0.9/R1.0-Engine abgeleitet. Sie sind keine gemessenen Audioeigenschaften.</p><div id="relation-list"></div></article>
+   <article class="card"><div class="step">CAUSAL VISUAL MAP</div><h2>Absicht → Wechselwirkung</h2>
+    <div class="musical-map"><div class="mapnode">CREATOR INTENT</div><div class="arrow">↓</div><div class="maprow"><div class="mapnode">FUNCTION SUPPORT</div><div class="mapnode">PRODUCTIVE TENSION</div></div><div class="arrow">↓</div><div class="mapnode">EVIDENCE-BOUND CONSEQUENCES</div></div>
+    <div class="divider"></div><h3>Semantische Abdeckung</h3><div class="bar"><span id="coverage-bar" style="width:0"></span></div><p class="subtle">Visualisiert die Anzahl erkannter Funktionen relativ zum Katalog; kein musikalischer Qualitätswert.</p><div id="function-tags"></div>
+   </article>
+  </div>
+ </section>
+ <section class="section card hide" id="forecast-section">
+  <div class="step">R1.2 / MUSICAL CHAPTER INTELLIGENCE</div>
+  <div class="forecast-top"><h2>Musikalische Kapitel & zeitliche Entwicklung</h2><span class="pill" id="forecast-duration">Keine Dauer abgeleitet</span></div>
+  <p>Die acht Kapitel sind Vorschläge aus der bestehenden R1.0-Funktionsanalyse. Energieprofile sind qualitative Entwurfswerte, keine Messung. Story-Ereignisse werden nicht erfunden.</p>
+  <div class="forecast-scroll"><div class="timeline" id="forecast-timeline"></div></div>
+  <div class="divider"></div>
+  <h2>LOW / MID / HIGH / VOICE – Wechselwirkungen</h2>
+  <div class="layer-compare" id="forecast-layers"></div>
+  <div class="divider"></div>
+  <h2>Musikalische Alternativentscheidungen</h2>
+  <p>Zwei Wege pro belegter Emergenz: Beziehung erhalten oder Arrangement ändern. Keine Alternative wird automatisch ausgewählt.</p>
+  <div id="forecast-alternatives"></div>
+ </section>
+ <section class="section card hide" id="decisions-section">
+  <div class="step">04 / CREATOR DECISION SUPPORT</div><h2>Bewusst entscheiden statt automatisch reparieren</h2>
+  <p>Jede Entscheidung bleibt beim Creator. Wir zeigen Wirkung, Gegenfaktum und Evidenz. Musikalische Reibung kann erwünscht sein.</p>
+  <div class="decisions" id="decision-list"></div>
+  <div class="divider"></div><h3>Konflikt-Hypothesen</h3><div id="collision-list"></div>
+ </section>
+ <section class="section card hide" id="device-output-section">
+  <div class="step">R1.3 / DEVICE-AWARE SUNO OUTPUT</div>
+  <h2>Ausgabeübersetzung · exakt gezählte Copy-Felder</h2>
+  <p>Die Übersetzung übernimmt ausschließlich die vorhandenen Creator-Angaben. Sie erfindet keine Lyrics oder neue musikalische Entscheidungen. Die Zeichenbudgets stammen aus der geprüften LYVRA-Workflow-Referenz, nicht aus einer aktuellen Suno-Provider-Messung.</p>
+  <div id="device-output-meta" class="notice"></div>
+  <div class="output-fields" id="device-output-fields"></div>
+  <div id="device-main-card" class="output-card hide" style="margin-top:12px">
+    <h3>iPhone Main Input · optional</h3>
+    <textarea id="device-main-text" readonly></textarea>
+    <p id="device-main-count" class="output-count"></p>
+    <button type="button" class="ghost" id="device-main-copy">Main Input kopieren</button>
+  </div>
+  <div id="device-guidance" class="subtle" style="margin-top:14px"></div>
+ </section>
+ <section class="section card" id="learning-section">
+  <div class="step">R1.4 / CREATOR EVIDENCE LEARNING · EXPLICIT APPROVAL</div>
+  <h2>Musikalische Entscheidung → tatsächlich gehörtes Ergebnis</h2>
+  <p>Hier dokumentierst du deine Bewertung eines wirklichen Track-Ergebnisses. Nur der ausdrücklich bestätigte Klick auf „Feedback lokal speichern“ schreibt in TDI-Lokaldateien. Keine automatische Suno-Bewertung.</p>
+  <div class="learning-grid">
+   <div class="field"><label for="learn-track">Track-ID (eigene eindeutige Kennung)</label><input id="learn-track" maxlength="96" placeholder="z.B. track-my-song-v1"></div>
+   <div class="field"><label for="learn-decision">Bewertete musikalische Entscheidung</label><input id="learn-decision" maxlength="160" placeholder="z.B. VOICE_LAYER_NEGOTIATION" list="learn-decisions"><datalist id="learn-decisions"></datalist></div>
+   <div class="field"><label for="learn-category">Musikalischer Bereich</label><select id="learn-category"><option value="MOTOR">LOW / Motor</option><option value="VOICE">Vocals</option><option value="ARRANGEMENT">Arrangement</option><option value="PRESSURE">Druck</option><option value="DYNAMICS">Dynamik</option><option value="ATMOSPHERE">Atmosphäre</option><option value="ENDING">Ende</option><option value="OTHER">Sonstiges</option></select></div>
+   <div class="field"><label for="learn-rating">Deine Bewertung</label><select id="learn-rating"><option value="SUCCESS">Erfolgreich</option><option value="MIXED">Gemischt</option><option value="UNSUCCESSFUL">Nicht erfolgreich</option></select></div>
+   <div class="field wide"><label for="learn-intent">Was sollte die Entscheidung erreichen?</label><textarea id="learn-intent" maxlength="1600" placeholder="Die ursprüngliche musikalische Absicht – keine neue Regel"></textarea></div>
+   <div class="field wide"><label for="learn-outcome">Was hast du im tatsächlichen Ergebnis gehört?</label><textarea id="learn-outcome" maxlength="1600" placeholder="Konkrete Creator-Beobachtung, keine erfundene Audiomessung"></textarea></div>
+   <div class="field wide"><label for="learn-note">Zusatznotiz / Gegenbeleg (optional)</label><textarea id="learn-note" maxlength="1600"></textarea></div>
+   <div class="field wide"><label for="learn-hash">SHA-256 des Audios (optional, nur wenn tatsächlich bekannt)</label><input id="learn-hash" maxlength="64" placeholder="64 hex Zeichen oder leer lassen"></div>
+  </div>
+  <div class="learning-caution">Ein Creator-Bericht ist ein wertvoller Outcome-Beleg, aber kein unabhängig bewiesener Kausalzusammenhang. Ein einzelner Track erzeugt niemals eine globale Regel. Widersprüche bleiben erhalten.</div>
+  <div class="controls">
+   <label><input type="checkbox" id="learn-consent"> Ich bestätige ausdrücklich diese eigene Bewertung und den lokalen Speichervorgang.</label>
+   <button class="primary" id="learn-save" type="button">Feedback lokal speichern</button>
+   <button class="ghost" id="learn-read" type="button">Track-Lernbericht lesen</button>
+  </div>
+  <p id="learn-status" class="learning-status" role="status" aria-live="polite">Noch kein Feedback gespeichert.</p>
+  <div id="learn-report"></div>
+ </section>
+ <section class="section card hide" id="handoff-section">
+  <div class="step">05 / AUDITABLE HANDOFF</div><h2>Deine Voranalyse sichern</h2>
+  <p>Exportiere die Analyse mit deinen Entscheidungen als JSON oder kopiere die musikalischen Entscheidungsgründe. Ohne automatische Suno-Übertragung.</p>
+  <div class="controls"><button class="primary" id="download-button" type="button">↓ JSON exportieren</button><button class="ghost" id="copy-button" type="button">Entscheidungen kopieren</button><span id="export-status" class="status" role="status"></span></div>
+  <div class="notice">Nur ein lokaler Browser-Download. Kein GitHub-Write, keine Track-Erstellung und kein Suno-Render. Die R1.0-Engine bleibt die musikalische Quelle.</div>
+ </section>
+ <footer class="footer">666TDI-001 · LOCAL R1.4 DAEMON · VISUAL UI · R1.0 CREATIVE CAUSAL ENGINE · NO FOREIGN AUTHORITY · AUDIO UNVERIFIED</footer>
+</main>
+</div>
+<script>
+"use strict";
+const selected={device:null,result:null,choices:{},editedFields:{}};
+const $=id=>document.getElementById(id);
+const fields=["title","genre","bpm","energy","story","motor","mid","high","voice","structure","ending","avoid","lyrics","psychoacoustics"];
+const text=(node,value)=>{node.textContent=String(value??"");return node;};
+const el=(tag,cls,parent,value)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(value!==undefined)text(n,value);if(parent)parent.append(n);return n;};
+const badge=(parent,value,cls="")=>el("span","tag "+cls,parent,value);
+function invalidateAnalysis(message){
+ if(!selected.result)return;
+ selected.result=null;selected.choices={};selected.editedFields={};
+ for(const id of ["results-section","forecast-section","decisions-section","device-output-section","handoff-section"])$(id).classList.add("hide");
+ if(message)statusText(message,false);
+ updateNav();
+}
+function changeDevice(value){
+ if(selected.device!==value)invalidateAnalysis("Gerät geändert. Voranalyse muss neu erstellt werden.");
+ selected.device=value;
+ $("iphone-route").classList.toggle("hide",value!=="IPHONE_SUNO_APP");
+ $("pc-route").classList.toggle("hide",value!=="PC_SUNO_BROWSER");
+ document.querySelectorAll(".device").forEach(button=>{
+  const active=button.dataset.device===value;
+  button.classList.toggle("selected",active);
+  button.setAttribute("aria-pressed",String(active));
+ });
+ $("analyze-button").disabled=false;
+ statusText("Gerät: "+(value==="IPHONE_SUNO_APP"?"iPhone Suno App":"PC Suno Browser")+". Jetzt Track-Idee eingeben.",false);
+ updateNav();
+}
+function statusText(value,error){text($("status"),value);$("status").className="status "+(error?"err":"ok");}
+function updateNav(){
+ document.querySelectorAll(".navitem").forEach((btn,i)=>{
+  btn.classList.toggle("ready",i===0?!!selected.device:i===1?!!selected.result:i<5?!!selected.result:false);
+ });
+}
+document.querySelectorAll(".device").forEach(b=>b.addEventListener("click",()=>changeDevice(b.dataset.device)));
+function routeChanged(){
+ $("main-authoring").classList.toggle("hide",$("iphone-main-choice").value!=="yes");
+ $("pc-duration-wrap").classList.toggle("hide",$("pc-slider-choice").value!=="yes");
+ invalidateAnalysis("Ausgabeweg geändert. Neu analysieren, um veraltete Ergebnisse zu vermeiden.");
+}
+for(const id of ["iphone-main-choice","iphone-main-text","pc-slider-choice","pc-duration"])
+ $(id).addEventListener("input",routeChanged);
+function readRoute(){
+ if(selected.device==="IPHONE_SUNO_APP")
+  return {iphone_main_input:$("iphone-main-choice").value==="yes",main_input_text:$("iphone-main-choice").value==="yes"?$("iphone-main-text").value:""};
+ return {pc_duration_slider_visible:$("pc-slider-choice").value==="unknown"?null:$("pc-slider-choice").value==="yes",
+         pc_selected_duration:$("pc-slider-choice").value==="yes"?$("pc-duration").value.trim():""};
+}
+document.querySelectorAll(".navitem").forEach(b=>b.addEventListener("click",()=>{
+ const target=$(b.dataset.target);
+ if(target.classList.contains("hide")){statusText("Führe zuerst die Voranalyse durch.",true);return;}
+ document.querySelectorAll(".navitem").forEach(n=>n.classList.toggle("active",n===b));
+ target.scrollIntoView({behavior:"smooth",block:"start"});
+}));
+$("intent-form").addEventListener("input",()=>invalidateAnalysis("Eingaben geändert. Bitte Voranalyse erneut ausführen."));
+$("clear-button").addEventListener("click",()=>{
+ fields.forEach(f=>$(f).value="");$("total-bars").value="";selected.result=null;selected.choices={};selected.editedFields={};
+ for(const id of ["results-section","forecast-section","decisions-section","device-output-section","handoff-section"])$(id).classList.add("hide");
+ statusText(selected.device?"Eingaben geleert. Gerät bleibt ausgewählt.":"Wähle zuerst dein Gerät.",false);updateNav();
+});
+function readIntent(){
+ const intent={};
+ for(const f of fields){intent[f]=f==="bpm" ? ($(f).value.trim()===""?"":Number($(f).value)) : $(f).value.trim();}
+ return intent;
+}
+function renderRelations(data){
+ const root=$("relation-list");root.replaceChildren();
+ if(!data.causal.relations.length && !data.causal.emergences.length){
+  el("div","empty",root,"Noch keine belegbaren Funktionsbeziehungen. Ergänze konkrete musikalische Aufgaben.");return;
+ }
+ for(const r of data.causal.relations){
+  const card=el("div","relation",root);
+  el("strong","",card,r.functions.join(" ⇄ "));
+  badge(card,r.relation);
+  el("p","",card,r.rationale);
+  const details=el("details","",card);el("summary","meta",details,"Evidenz anzeigen");
+  for(const [key,arr] of Object.entries(r.evidence||{})){el("div","meta",details,key+": "+arr.map(a=>a.field+" · "+a.phrase).join("; "));}
+ }
+ for(const r of data.causal.emergences){
+  const card=el("div","relation",root);
+  el("strong","",card,r.id.replaceAll("_"," "));
+  badge(card,r.relation,"pink");el("p","",card,r.effect);
+  el("div","meta",card,"Gegenfaktum: "+r.counterfactual);
+ }
+}
+function renderDecisions(data){
+ const root=$("decision-list");root.replaceChildren();
+ const list=data.causal.decisions||[];
+ if(!list.length){el("div","empty",root,"Keine automatische Entscheidung. Zusätzliche musikalische Angaben können neue Hypothesen ermöglichen.");}
+ for(const d of list){
+  const box=el("article","decision",root);el("h3","",box,d.emergence.replaceAll("_"," "));
+  badge(box,"REQUIRES CREATOR","pink");el("p","",box,d.reason);
+  el("div","meta",box,"Vorschlag: "+d.recommendation);
+  const row=el("div","choices",box);
+  for(const [id,label] of [["preserve","Spannung erhalten"],["adapt","Gezielt gestalten"],["reject","Nicht übernehmen"]]){
+   const btn=el("button","choice",row,label);btn.type="button";
+   btn.classList.toggle("active",selected.choices[d.emergence]===id);
+   btn.addEventListener("click",()=>{
+    selected.choices[d.emergence]=id;
+    row.querySelectorAll("button").forEach(b=>b.classList.toggle("active",b===btn));
+   });
+  }
+ }
+ const collisions=$("collision-list");collisions.replaceChildren();
+ if(!data.causal.collisions.length)el("div","empty",collisions,"Kein explizites Kollisionpaar im aktuellen Regelsatz gefunden. Dies beweist nicht, dass keine musikalischen Konflikte existieren.");
+ for(const c of data.causal.collisions){
+  const box=el("div","relation",collisions);
+  el("strong","",box,c.functions.join(" ↔ "));
+  badge(box,c.status,"amber");el("p","",box,c.reason);
+  el("div","meta",box,c.interpretation+" · Nicht audioverifiziert");
+ }
+}
+function renderForecast(data){
+ const f=data.preanalysis; if(!f)return;
+ const duration=$("forecast-duration");
+ const time=f.planned_duration_seconds;
+ text(duration,time===null?"Keine automatische Längenschätzung":("≈ "+Math.floor(time/60)+":"+String(Math.round(time%60)).padStart(2,"0")+" · 4/4 rechnerisch · "+f.bar_target+" Takte"));
+ const timeline=$("forecast-timeline");timeline.replaceChildren();
+ for(const c of f.chapters){
+  const card=el("article","chapter",timeline);
+  const bar=el("div","bar",card);const meter=el("span","",bar);meter.style.setProperty("--energy",Math.round(c.relative_energy*100)+"%");
+  el("h3","",card,c.index.toString().padStart(2,"0")+" · "+c.label);
+  el("div","meta",card,c.bars===null?"Takte offen":(c.bars+" Takte · "+(c.start_bar_zero_based+1)+"–"+c.end_bar_exclusive));
+  const detail=el("details","",card);el("summary","meta",detail,c.status==="EVIDENCE_SUPPORTED_CANDIDATE"?"Begründet":"Optional");
+  el("p","subtle",detail,c.reason);
+  el("p","meta",detail,c.supported_by_functions.length?"Belege: "+c.supported_by_functions.join(", "):"Kein Funktionsbeleg: Creator-Review");
+ }
+ const layers=$("forecast-layers");layers.replaceChildren();
+ for(const item of f.layers){
+  const card=el("div","layerbox",layers);el("b","",card,item.layer);
+  el("p","subtle",card,item.musical_role);
+  badge(card,item.status,item.provided?"green":"amber");
+  el("p","meta",card,item.supported_functions.length?item.supported_functions.join(" · "):"Keine belegte Funktion");
+ }
+ const alt=$("forecast-alternatives");alt.replaceChildren();
+ if(!f.alternatives.length)el("div","empty",alt,"Keine belegte alternative Emergenzentscheidung. Keine Story oder Funktion wird erfunden.");
+ for(const a of f.alternatives){
+  const card=el("article","alternative",alt);
+  el("h3","",card,a.id.replaceAll("_"," "));
+  const options=el("div","options",card);
+  const left=el("div","option",options);el("b","",left,a.option_a.name);el("p","subtle",left,a.option_a.effect);
+  const right=el("div","option",options);el("b","",right,a.option_b.name);el("p","subtle",right,a.option_b.tradeoff);
+  el("p","meta",card,"Funktionen: "+a.functions.join(", ")+" · Creator-Entscheidung erforderlich");
+ }
+}
+function utf16Length(v){return String(v).length;}
+function renderDeviceOutput(data){
+ const out=data.device_output;
+ const parent=$("device-output-fields");parent.replaceChildren();
+ selected.editedFields={};
+ text($("device-output-meta"),"Route: "+out.route+" · Quelle: Creator-Referenz, keine Live-Suno-Verifikation · kein automatischer Render");
+ for(const key of out.field_order){
+  const f=out.fields[key];
+  const card=el("div","output-card",parent);
+  el("h3","",card,key.toUpperCase());
+  const ta=el("textarea","",card);ta.value=f.text;ta.setAttribute("aria-label",key+" Copy-Inhalt");
+  selected.editedFields[key]=f.text;
+  const count=el("div","output-count",card);
+  const copy=el("button","ghost",card,"Feld kopieren");copy.type="button";
+  const report=()=>{
+   const val=ta.value,used=utf16Length(val),ok=used<=f.reference_budget;
+   selected.editedFields[key]=val;
+   text(count,used+" / "+f.reference_budget+" UTF-16 · "+(ok?"Referenzbudget eingehalten":"Über Referenzbudget – manuell korrigieren"));
+   count.classList.toggle("bad",!ok);copy.disabled=!ok||!val.trim();
+  };
+  ta.addEventListener("input",report);
+  copy.addEventListener("click",async()=>{
+   try{await navigator.clipboard.writeText(ta.value);text(count,utf16Length(ta.value)+" / "+f.reference_budget+" UTF-16 · exakt kopiert");}
+   catch(e){text(count,"Clipboard nicht verfügbar – Text manuell kopieren");}
+  });report();
+ }
+ const main=$("device-main-card");main.classList.toggle("hide",out.main_input===null);
+ if(out.main_input!==null){
+  $("device-main-text").value=out.main_input.text;
+  text($("device-main-count"),utf16Length(out.main_input.text)+" UTF-16 · Main-Limit nicht unabhängig verifiziert");
+  $("device-main-copy").disabled=!out.main_input.copy_ready;
+ }
+ const help=$("device-guidance");help.replaceChildren();
+ for(const line of out.guidance)el("p","subtle",help,"• "+line);
+}
+$("device-main-copy").addEventListener("click",async()=>{
+ try{await navigator.clipboard.writeText($("device-main-text").value);text($("device-main-count"),"Main Input exakt kopiert");}
+ catch(e){text($("device-main-count"),"Clipboard nicht verfügbar");}
+});
+// Preserve manual creator edits; replace only prior automatic suggestions on new tracks.
+for(const id of ["learn-decision","learn-intent"])
+ $(id).addEventListener("input",()=>{delete $(id).dataset.autoSuggestion;});
+function suggestEvidenceChoices(data){
+ const list=$("learn-decisions");list.replaceChildren();
+ const suggestions=data.causal.decisions||[];
+ for(const item of suggestions){const option=document.createElement("option");option.value=item.emergence;list.append(option);}
+ const choice=$("learn-decision");
+ if(!choice.value.trim()||choice.dataset.autoSuggestion==="true"){
+  choice.value=suggestions.length?suggestions[0].emergence:"";
+  choice.dataset.autoSuggestion="true";
+ }
+ const intention=$("learn-intent");
+ if(!intention.value.trim()||intention.dataset.autoSuggestion==="true"){
+  intention.value=(data.intent.story||data.intent.structure||data.intent.motor||"").slice(0,1600);
+  intention.dataset.autoSuggestion="true";
+ }
+}
+function render(data){
+ selected.result=data;selected.choices={};
+ $("results-section").classList.remove("hide");
+ $("forecast-section").classList.remove("hide");
+ $("decisions-section").classList.remove("hide");
+ $("handoff-section").classList.remove("hide");
+ $("device-output-section").classList.remove("hide");
+ text($("count-functions"),data.causal.functions.length);
+ text($("count-relations"),data.causal.relations.length);
+ text($("count-emergences"),data.causal.emergences.length);
+ text($("count-conflicts"),data.causal.collisions.length);
+ $("coverage-bar").style.width=Math.min(100,Math.round(data.semantic.functions.length/15*100))+"%";
+ const tags=$("function-tags");tags.replaceChildren();
+ for(const f of data.semantic.functions)badge(tags,f.id,f.status==="EXPLICITLY_CONSTRAINED"?"amber":"green");
+ renderRelations(data);renderForecast(data);renderDecisions(data);renderDeviceOutput(data);suggestEvidenceChoices(data);updateNav();
+ $("results-section").scrollIntoView({behavior:"smooth",block:"start"});
+}
+$("intent-form").addEventListener("submit",async event=>{
+ event.preventDefault();
+ if(!selected.device){statusText("DEVICE_PREFLIGHT_REQUIRED",true);return;}
+ const button=$("analyze-button");button.disabled=true;statusText("R1.0 analysiert deine musikalische Absicht …",false);
+ try{
+  const response=await fetch("/api/preanalysis",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({device:selected.device,intent:readIntent(),total_bars:$("total-bars").value,route_context:readRoute()})});
+  const data=await response.json();
+  if(!response.ok)throw new Error(data.error||"ANALYSIS_FAILED");
+  render(data);statusText("Voranalyse erstellt – Hypothesen, nicht Audio-Beweise.",false);
+ }catch(err){statusText("Analyse nicht möglich: "+err.message,true);}
+ finally{button.disabled=!selected.device;}
+});
+async function evidenceRequest(path,payload){
+ const response=await fetch(path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+ const data=await response.json();
+ if(!response.ok)throw new Error(data.error||"FEEDBACK_REQUEST_FAILED");
+ return data;
+}
+function renderEvidenceReport(data){
+ const root=$("learn-report");root.replaceChildren();
+ const heading=el("h3","",root,"Tracklokaler Bericht · "+data.observations+" Bewertungen");
+ badge(root,data.status,data.has_contradictions?"pink":"green");
+ if(!data.relations.length)el("div","empty",root,"Für diesen Track liegen noch keine Bewertungen vor.");
+ for(const relation of data.relations){
+  const card=el("div","feedback-row",root);
+  el("strong","",card,relation.category+" / "+relation.decision_id);
+  badge(card,relation.status,relation.contradiction?"pink":"amber");
+  el("p","meta",card,"Ergebnisse: "+JSON.stringify(relation.counts)+" · "+relation.observations+" lokale Beobachtungen");
+  el("p","subtle",card,relation.claim);
+ }
+}
+$("learn-save").addEventListener("click",async()=>{
+ const status=$("learn-status"),saveButton=$("learn-save");
+ if(saveButton.disabled)return;
+ if(!$("learn-consent").checked){text(status,"CREATOR_CONFIRMATION_REQUIRED");return;}
+ saveButton.disabled=true;
+ const route=selected.result?.device_output?.route||"UNKNOWN";
+ const payload={track_id:$("learn-track").value.trim(),decision_id:$("learn-decision").value.trim(),
+  category:$("learn-category").value,rating:$("learn-rating").value,
+  intent_summary:$("learn-intent").value,observed_outcome:$("learn-outcome").value,
+  creator_note:$("learn-note").value,artifact_sha256:$("learn-hash").value.trim(),
+  device_route:route,creator_confirmed:true};
+ try{
+  const result=await evidenceRequest("/api/feedback",payload);
+  text(status,"Lokal gespeichert: "+result.id+" · keine globale Regel.");
+  $("learn-consent").checked=false;
+  const report=await evidenceRequest("/api/learning/read",{track_id:payload.track_id});
+  renderEvidenceReport(report);
+ }catch(e){text(status,"Feedback-Anfrage fehlgeschlagen oder Rücklesung nicht verfügbar: "+e.message);}
+ finally{saveButton.disabled=false;}
+});
+$("learn-read").addEventListener("click",async()=>{
+ try{renderEvidenceReport(await evidenceRequest("/api/learning/read",{track_id:$("learn-track").value.trim()}));
+ text($("learn-status"),"Lernbericht gelesen · keine Mutation");}
+ catch(e){text($("learn-status"),"Fehler: "+e.message);}
+});
+function exportObject(){
+ return {...selected.result,creator_edited_copy_fields:{...selected.editedFields},creator_decisions:{...selected.choices},creator_decisions_source:"EXPLICIT_BROWSER_SELECTION",decision_review_status:Object.keys(selected.choices).length?"PARTIAL_OR_FULL_CREATOR_REVIEW":"UNREVIEWED",exported_by:"LOCAL_BROWSER_NO_REPOSITORY_WRITE"};
+}
+$("download-button").addEventListener("click",()=>{
+ if(!selected.result)return;
+ const body=JSON.stringify(exportObject(),null,2);
+ const url=URL.createObjectURL(new Blob([body],{type:"application/json"}));
+ const a=document.createElement("a");a.href=url;a.download="666TDI-R13-device-output.json";a.click();
+ URL.revokeObjectURL(url);text($("export-status"),"Lokaler Download ausgelöst.");
+});
+$("copy-button").addEventListener("click",async()=>{
+ if(!selected.result)return;
+ const lines=selected.result.causal.decisions.map(d=>d.emergence+": "+d.reason+" | "+d.recommendation+" | Creator: "+(selected.choices[d.emergence]||"UNREVIEWED"));
+ const payload=lines.join("\n")||"Keine begründeten Entscheidungskarten vorhanden.";
+ try{await navigator.clipboard.writeText(payload);text($("export-status"),"Entscheidungen kopiert.");}
+ catch(err){text($("export-status"),"Clipboard nicht verfügbar; nutze den JSON-Export.");}
+});
+fetch("/api/status").then(r=>r.json()).then(data=>{
+ text($("engine-status"),data.status==="LOCAL_VISUAL_DAEMON_READY"?"● R1.0 ENGINE CONNECTED":"● ENGINE UNVERIFIED");
+}).catch(()=>text($("engine-status"),"● ENGINE OFFLINE"));
+updateNav();
+</script>
+</body>
+</html>

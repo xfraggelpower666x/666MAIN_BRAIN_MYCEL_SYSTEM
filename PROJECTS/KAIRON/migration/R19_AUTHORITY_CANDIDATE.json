@@ -1,0 +1,16 @@
+{
+  "system_id": "666TDI-001",
+  "namespace": "KAIRON",
+  "authority": "KAIRON_ONLY",
+  "status": "STAGED_NOT_PRODUCTIVE",
+  "allowed_repository": "xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM",
+  "allowed_branch": "integration/666tdi-windows-buildkit-r0113-20261126",
+  "allowed_path_prefix": "PROJECTS/KAIRON/",
+  "legacy_authority_blob": "8984e45e49508ba58a3a298c7fe6a6289a28d732",
+  "legacy_authority_preserved": true,
+  "authorized_by": "DIRECT_USER_R19_2026-11-26",
+  "no_foreign_writes": true,
+  "prechange_backup": "backup/kairon-pre-r19-20261126",
+  "pointer_last": true,
+  "production_cutover": false
+}

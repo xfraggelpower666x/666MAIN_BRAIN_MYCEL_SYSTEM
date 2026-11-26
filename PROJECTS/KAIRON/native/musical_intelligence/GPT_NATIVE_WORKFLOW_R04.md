@@ -1,0 +1,3 @@
+# NMI-R04 — Audioevidenz (tracklokal)
+
+R01–R03 unverändert rehydrieren, danach gebundene R04-Evidenz lesen. Audioanalyse bleibt optional und kein allgemeines Start-Gate. Messwerte an SHA256-identifizierte Dateien binden; Creator-Urteile, Messungen, Designabsichten und Kausalhypothesen getrennt halten. Die beiden Riders-v2-Dateien sind keine nachgewiesene Emoji-A/B-Paarung. Bei zukünftiger Zuordnung erst tatsächliche Prompts, Modell, Gerät und Creator-Vergleich erfragen bzw. lesen. Keine globale Promotion; keine automatischen BPM-/Dauer-/Stilkorrekturen. Bei Bedarf vergleichbare Messung erneut ausführen. Original-WAV-Dateien sind nicht im Git-Repository gespeichert. Kein Python-/PC-Entwicklungsauftrag, keine Änderung bestehender Guards.

@@ -1,0 +1,11 @@
+{
+  "system_id": "666TDI-001",
+  "authority": "native Chat Framework",
+  "plugin_id": "plugins_6b07740c65d88191b08a593d460e6630",
+  "release_id": "pluginrel_6b07740e8e7c81919de635bd490dcb89",
+  "version": "0.1.0",
+  "canonical_pointer_blob": "7e41c723d3207bf55523773d86523f9566ac18bd",
+  "host_acceptance": "OPEN",
+  "windows_parity": "PARTIAL",
+  "promotion": false
+}

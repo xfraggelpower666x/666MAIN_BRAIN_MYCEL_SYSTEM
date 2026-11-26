@@ -1,0 +1,46 @@
+{
+  "schema": "666TDI_NATIVE_MUSICAL_INTELLIGENCE_V1",
+  "system_id": "666TDI-001",
+  "authority": "666TDI_ONLY",
+  "version": "NMI-R01",
+  "base_commit": "5bcea08c9dec3b2c96891ca29c9bb3075bd16475",
+  "mode": "GPT_NATIVE_FIRST",
+  "continuous_learning_required": true,
+  "existing_capability_regression": "FORBIDDEN",
+  "unrequested_style_override": "FORBIDDEN",
+  "automatic_global_promotion": false,
+  "foreign_activation": false,
+  "python_pc_development": "DEFERRED",
+  "audio_optional": true,
+  "source_precedence": [
+    "DIRECT_CURRENT_CREATOR_INTENT",
+    "VERIFIED_NATIVE_CURRENT_AND_PROTECTED_SUCCESSFUL_BASELINE",
+    "CREATOR_CONFIRMED_TRACK_EVIDENCE",
+    "EXTERNAL_RESEARCH_CANDIDATES"
+  ],
+  "matrix": "CAPABILITY_MATRIX.json",
+  "research": "RESEARCH_MATRIX.json",
+  "workflow": "GPT_NATIVE_WORKFLOW.md",
+  "regression": "REGRESSION_GUARD.json",
+  "rehydration": {
+    "entry": "CURRENT_POINTER.json",
+    "read_all": [
+      "CONTRACT.json",
+      "CAPABILITY_MATRIX.json",
+      "RESEARCH_MATRIX.json",
+      "REGRESSION_GUARD.json",
+      "GPT_NATIVE_WORKFLOW.md"
+    ],
+    "apply_in_chat": true,
+    "host_acceptance": "OPEN",
+    "no_new_trigger": true
+  },
+  "preserve": [
+    "R0.5–R1.4",
+    "4C additive non-authoritative contract",
+    "source manifest and all 94 source files",
+    "livecircle",
+    "trigger registry",
+    "R1.5 separate candidate"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "system_id": "666TDI-001",
+  "facet_id": "666TDI-4C-MUSIC-CANDIDATE",
+  "owner_identity": "666TDI",
+  "pronoun_de": "er",
+  "authority": "ADDITIVE_NON_AUTHORITATIVE_CANDIDATE",
+  "source": "User supplied 4C MASTER SYSTEM v2.0 HARDENED",
+  "axes": [
+    "CORE",
+    "CHARACTER",
+    "CONTROL",
+    "CHAOS"
+  ],
+  "global_bpm_override": false,
+  "kick_always_on_override": false,
+  "anti_clone_auto_rebuild": false,
+  "required_audio_testing": false,
+  "compatible_without_audio": true,
+  "cross_system_authority": false,
+  "no_delete": true,
+  "no_replacement": true,
+  "scope": "PROJECTS/666TDI/facets/4c"
+}

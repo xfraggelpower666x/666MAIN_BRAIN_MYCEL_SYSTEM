@@ -1,0 +1,230 @@
+{
+  "schema": "666TDI_NMI_R10_REFERENCE_REGRESSION_V1",
+  "fixtures": [
+    {
+      "id": "valid_both",
+      "style": "146 BPM, Dark Psychedelic, Dark Full-On Psytrance, Dark Forest Psytrance, tight kick and rolling bass. Restore 146 BPM and stable original beatgrid before DJ outro.",
+      "extended": "146 BPM, Dark Psychedelic, Dark Full-On Psytrance, Dark Forest Psytrance, tight kick and rolling bass. Restore 146 BPM and stable original beatgrid before DJ outro.",
+      "expected": "PASS"
+    },
+    {
+      "id": "metadata_optional",
+      "style": "Dark Psychedelic, Dark Psytrance, Twisted Dark Goa, kick",
+      "extended": "146 BPM, Dark Psychedelic, Dark Full-On Psytrance, Dark Forest Psytrance, tight kick and rolling bass. Restore 146 BPM and stable original beatgrid before DJ outro.",
+      "expected": "PASS"
+    },
+    {
+      "id": "key_metadata",
+      "style": "146 BPM, F minor, Dark Psychedelic, Dark Forest Psytrance, Dark Psytechno, kick",
+      "extended": "146 BPM, Dark Psychedelic, Dark Full-On Psytrance, Dark Forest Psytrance, tight kick and rolling bass. Restore 146 BPM and stable original beatgrid before DJ outro.",
+      "expected": "PASS"
+    },
+    {
+      "id": "front_displaced",
+      "style": "146 BPM, Experimental, Dark Psychedelic, Dark Full-On Psytrance, Dark Forest Psytrance",
+      "extended": "146 BPM, Dark Psychedelic, Dark Full-On Psytrance, Dark Forest Psytrance, tight kick and rolling bass. Restore 146 BPM and stable original beatgrid before DJ outro.",
+      "expected": "HOLD"
+    },
+    {
+      "id": "duplicate",
+      "style": "Dark Psychedelic, Dark Forest Psytrance, Dark Forest Psytrance",
+      "extended": "146 BPM, Dark Psychedelic, Dark Full-On Psytrance, Dark Forest Psytrance, tight kick and rolling bass. Restore 146 BPM and stable original beatgrid before DJ outro.",
+      "expected": "HOLD"
+    },
+    {
+      "id": "negation",
+      "style": "Dark Psychedelic, no Dark Full-On Psytrance, Dark Forest Psytrance",
+      "extended": "146 BPM, Dark Psychedelic, Dark Full-On Psytrance, Dark Forest Psytrance, tight kick and rolling bass. Restore 146 BPM and stable original beatgrid before DJ outro.",
+      "expected": "HOLD"
+    },
+    {
+      "id": "extended_missing",
+      "style": "146 BPM, Dark Psychedelic, Dark Full-On Psytrance, Dark Forest Psytrance, tight kick and rolling bass. Restore 146 BPM and stable original beatgrid before DJ outro.",
+      "extended": "Dark Psychedelic, Dark Forest Psytrance, kick",
+      "expected": "HOLD"
+    },
+    {
+      "id": "stable_entry_exit",
+      "entryBpm": 146,
+      "exitBpm": 146,
+      "entryMeter": "4/4",
+      "exitMeter": "4/4",
+      "gridRestored": true,
+      "exitStable": true,
+      "expected": "PASS"
+    },
+    {
+      "id": "intentional_interior_variation",
+      "entryBpm": 146,
+      "exitBpm": 146,
+      "entryMeter": "4/4",
+      "exitMeter": "4/4",
+      "interiorVariation": true,
+      "explicit": true,
+      "gridRestored": true,
+      "exitStable": true,
+      "expected": "PASS"
+    },
+    {
+      "id": "exit_tempo_drift",
+      "entryBpm": 146,
+      "exitBpm": 145,
+      "entryMeter": "4/4",
+      "exitMeter": "4/4",
+      "gridRestored": true,
+      "exitStable": true,
+      "expected": "HOLD"
+    },
+    {
+      "id": "same_bpm_wrong_grid",
+      "entryBpm": 146,
+      "exitBpm": 146,
+      "entryMeter": "4/4",
+      "exitMeter": "4/4",
+      "gridRestored": false,
+      "exitStable": true,
+      "expected": "HOLD"
+    },
+    {
+      "id": "unstable_exit",
+      "entryBpm": 146,
+      "exitBpm": 146,
+      "entryMeter": "4/4",
+      "exitMeter": "4/4",
+      "gridRestored": true,
+      "exitStable": false,
+      "expected": "HOLD"
+    },
+    {
+      "id": "meter_not_restored",
+      "entryBpm": 146,
+      "exitBpm": 146,
+      "entryMeter": "4/4",
+      "exitMeter": "3/4",
+      "gridRestored": true,
+      "exitStable": true,
+      "expected": "HOLD"
+    },
+    {
+      "id": "unintended_interior_tempo_excursion",
+      "entryBpm": 146,
+      "exitBpm": 146,
+      "entryMeter": "4/4",
+      "exitMeter": "4/4",
+      "interiorVariation": true,
+      "explicit": false,
+      "gridRestored": true,
+      "exitStable": true,
+      "expected": "HOLD"
+    },
+    {
+      "id": "missing_exit_evidence",
+      "entryBpm": 146,
+      "expected": "OPEN"
+    }
+  ],
+  "results": [
+    {
+      "id": "valid_both",
+      "expected": "PASS",
+      "actual": "PASS",
+      "pass": true
+    },
+    {
+      "id": "metadata_optional",
+      "expected": "PASS",
+      "actual": "PASS",
+      "pass": true
+    },
+    {
+      "id": "key_metadata",
+      "expected": "PASS",
+      "actual": "PASS",
+      "pass": true
+    },
+    {
+      "id": "front_displaced",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "pass": true
+    },
+    {
+      "id": "duplicate",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "pass": true
+    },
+    {
+      "id": "negation",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "pass": true
+    },
+    {
+      "id": "extended_missing",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "pass": true
+    },
+    {
+      "id": "stable_entry_exit",
+      "expected": "PASS",
+      "actual": "PASS",
+      "pass": true
+    },
+    {
+      "id": "intentional_interior_variation",
+      "expected": "PASS",
+      "actual": "PASS",
+      "pass": true
+    },
+    {
+      "id": "exit_tempo_drift",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "pass": true
+    },
+    {
+      "id": "same_bpm_wrong_grid",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "pass": true
+    },
+    {
+      "id": "unstable_exit",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "pass": true
+    },
+    {
+      "id": "meter_not_restored",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "pass": true
+    },
+    {
+      "id": "unintended_interior_tempo_excursion",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "pass": true
+    },
+    {
+      "id": "missing_exit_evidence",
+      "expected": "OPEN",
+      "actual": "OPEN",
+      "pass": true
+    }
+  ],
+  "passed": 15,
+  "total": 15,
+  "method": [
+    "function front(s){const a=s.split(\",\").map(x=>x.trim().toLowerCase());if(/^\\d+(?:\\.\\d+)? bpm$/.test(a[0]))a.shift();if(/^[a-g][#b]? (major|minor)$/.test(a[0]))a.shift();const pool=[\"dark full-on psytrance\",\"dark forest psytrance\",\"twisted dark goa\",\"dark psytrance\",\"dark psytechno\",\"dark industrial psytrance\",\"dark cosmic dub psytrance\"];return a[0]===\"dark psychedelic\"&&pool.includes(a[1])&&pool.includes(a[2])&&a[1]!==a[2]}",
+    "function review(f){if(\"style\" in f)return front(f.style)&&front(f.extended)?\"PASS\":\"HOLD\";if([\"exitBpm\",\"entryMeter\",\"exitMeter\",\"gridRestored\",\"exitStable\"].some(k=>f[k]===undefined))return \"OPEN\";return f.entryBpm===f.exitBpm&&f.entryMeter===f.exitMeter&&f.gridRestored&&f.exitStable&&(!f.interiorVariation||f.explicit)?\"PASS\":\"HOLD\"}"
+  ],
+  "limitations": [
+    "Genre checker uses finite example vocabulary and comma-delimited synthetic prompts; native contract remains open to contextual genres",
+    "DJ metadata is supplied, not extracted from audio",
+    "PASS means reference case only, not production or DJ sync clearance",
+    "No Python or independent host execution"
+  ]
+}

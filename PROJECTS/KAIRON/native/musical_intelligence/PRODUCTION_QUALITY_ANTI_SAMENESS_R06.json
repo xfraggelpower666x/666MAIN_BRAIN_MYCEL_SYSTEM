@@ -1,0 +1,109 @@
+{
+  "schema": "666TDI_NMI_R06_PRODUCTION_QUALITY_V1",
+  "system_id": "666TDI-001",
+  "authority": "666TDI_ONLY",
+  "source": "Direct creator update 2026-11-25; radio production feedback: five or six tracks sound like the same beat with changed text; Universal repair unsatisfactory",
+  "preserved_r05": {
+    "DARK_PSYCHEDELIC_PRODUCTION_GUARD_R05.json": "6a92e3718db86ab27b75a501d38b05d48a2af739",
+    "GPT_NATIVE_WORKFLOW_R05.md": "2ea953a9f97723214a6e43558e1908f449f3def2"
+  },
+  "native_relations": [
+    {
+      "path": "source/engine/pattern_relations.py",
+      "blob": "a3784ed2d865a37ce597d992c3e171b5e04a1a70",
+      "function": "static_repetition counterrelation; preserve recurrence with transformation"
+    },
+    {
+      "path": "source/engine/creative_causal.py",
+      "blob": "bcfd39792e73ba55d06b2a096596978adde4ab48",
+      "function": "TRANSFORMING_RECURRENCE and EXPECTATION_PAYOFF"
+    },
+    {
+      "path": "source/engine/track_preanalysis.py",
+      "blob": "3baa17192a8241ebca7dc202de06b30a6a4a45e4",
+      "function": "optional dynamic chapters, variation and contrast"
+    },
+    {
+      "path": "native/musical_intelligence/CAPABILITY_MATRIX.json",
+      "blob": "bd6842ec0fa5f72710a512125b26a4e9eb735151",
+      "function": "M02 M03 M07 M09 M10"
+    }
+  ],
+  "mastering": {
+    "required_in": [
+      "style",
+      "extended"
+    ],
+    "semantic_requirements": [
+      "club-ready mastering",
+      "maximum clean perceived loudness",
+      "punchy preserved transients",
+      "controlled mono subbass",
+      "clear spectral and vocal separation",
+      "preserved dynamics",
+      "no clipping",
+      "no excessive limiting or overcompression",
+      "no unwanted digital crackle or artifacts"
+    ],
+    "compact_example": "Club-ready master, maximum clean loudness 🔊, punchy transients, tight mono sub, clear separation, preserved dynamics, no clipping, no overcompression or digital artifacts.",
+    "no_fixed_lufs_target": true,
+    "no_guaranteed_render": true
+  },
+  "comparison": {
+    "scope": "recent distinct productions, prioritize last 5–6 where available; include closer relevant earlier baseline",
+    "fields": [
+      "beat",
+      "bassline",
+      "groove",
+      "instrumentation",
+      "vocals",
+      "builds",
+      "drops",
+      "atmosphere"
+    ],
+    "additional_context": [
+      "bpm",
+      "positive genre anchors",
+      "motif",
+      "arrangement",
+      "model",
+      "device",
+      "settings"
+    ],
+    "source_order": [
+      "exact final Style and Extended",
+      "lyric musical directives only",
+      "creator-confirmed audio feedback",
+      "explicit unknown"
+    ],
+    "exclude_from_novelty": [
+      "title",
+      "sung lyric changes",
+      "branding",
+      "emoji count",
+      "shared root tags",
+      "mastering and safety boilerplate",
+      "renamed internal concepts"
+    ],
+    "compare": "For each axis cite concrete musical cues from both final prompt pairs; classify SAME, MEANINGFULLY_DIFFERENT, MIXED, or UNKNOWN. Compare musical function, not adjective synonyms. Missing reference never counts as difference. Beat includes kick pattern and timbre; bass includes subdivision, articulation, pitch motion and rests; groove includes accents and percussion timing.",
+    "hold": "If beat/bass/groove are substantially repeated with no meaningful arrangement or dynamic distinction, HOLD and redesign before production output. Changing only lyric, BPM, genre labels or synth names cannot clear repeated motor. Preserve intentional creator-requested continuity, explicitly record it. No fixed rotation, no compulsory count of changed axes, no automatic BPM changes.",
+    "missing": "PARTIAL_REFERENCE; report actual count and missing fields; do not claim diversity verified; recover exact prior prompts if available; no invented history.",
+    "output": "Per-track concrete evidence and rationale; prompt review distinct from actual audio comparison; no numerical audio similarity without measurement."
+  },
+  "radio": {
+    "prompt_pass_not_audio_pass": true,
+    "unheard": "AUDIO_UNVERIFIED",
+    "recommendation": "Audition or separate audio QC before rotation; do not automatically modify radio."
+  },
+  "preserve": [
+    "R01–R05",
+    "R1.4 source",
+    "R1.5 candidate",
+    "original lyrics and prompts",
+    "functional emoji",
+    "creator-selected silence policy",
+    "foreign identities"
+  ],
+  "foreign_activation": false,
+  "automatic_global_promotion": false
+}

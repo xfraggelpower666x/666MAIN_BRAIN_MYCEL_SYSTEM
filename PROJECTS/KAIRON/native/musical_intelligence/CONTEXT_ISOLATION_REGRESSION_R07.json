@@ -1,0 +1,236 @@
+{
+  "schema": "666TDI_R07_CONTEXT_FIXTURE_V1",
+  "scope": "synthetic explicit semantic labels only; no natural-language extraction or host execution",
+  "fixtures": [
+    {
+      "id": "cars_to_bikes_clean",
+      "mode": "independent",
+      "current": [
+        "bicycle"
+      ],
+      "prior": [
+        "car"
+      ],
+      "used": [
+        "bicycle"
+      ],
+      "expected": "PASS"
+    },
+    {
+      "id": "cars_to_bikes_leak",
+      "mode": "independent",
+      "current": [
+        "bicycle"
+      ],
+      "prior": [
+        "car"
+      ],
+      "used": [
+        "bicycle",
+        "car"
+      ],
+      "expected": "HOLD"
+    },
+    {
+      "id": "explicit_continuation",
+      "mode": "continuation",
+      "target": "A",
+      "priorId": "A",
+      "authorized": [
+        "car"
+      ],
+      "current": [
+        "journey"
+      ],
+      "prior": [
+        "car",
+        "garage"
+      ],
+      "used": [
+        "journey",
+        "car"
+      ],
+      "expected": "PASS"
+    },
+    {
+      "id": "continuation_scope_leak",
+      "mode": "continuation",
+      "target": "A",
+      "priorId": "A",
+      "authorized": [
+        "car"
+      ],
+      "current": [
+        "journey"
+      ],
+      "prior": [
+        "car",
+        "garage"
+      ],
+      "used": [
+        "journey",
+        "garage"
+      ],
+      "expected": "HOLD"
+    },
+    {
+      "id": "ambiguous_continuation",
+      "mode": "continuation",
+      "current": [
+        "journey"
+      ],
+      "prior": [
+        "car"
+      ],
+      "used": [
+        "journey"
+      ],
+      "expected": "OPEN"
+    },
+    {
+      "id": "current_source_overlap",
+      "mode": "independent",
+      "current": [
+        "car",
+        "bicycle"
+      ],
+      "prior": [
+        "car"
+      ],
+      "used": [
+        "car",
+        "bicycle"
+      ],
+      "expected": "PASS"
+    },
+    {
+      "id": "manifesto_leak",
+      "mode": "independent",
+      "current": [
+        "alienation"
+      ],
+      "prior": [
+        "manifesto"
+      ],
+      "used": [
+        "alienation",
+        "manifesto"
+      ],
+      "expected": "HOLD"
+    },
+    {
+      "id": "source_fidelity",
+      "mode": "independent",
+      "current": [
+        "manifesto"
+      ],
+      "prior": [
+        "manifesto"
+      ],
+      "used": [
+        "manifesto"
+      ],
+      "expected": "PASS"
+    },
+    {
+      "id": "wrong_continuation_target",
+      "mode": "continuation",
+      "target": "B",
+      "priorId": "A",
+      "authorized": [
+        "car"
+      ],
+      "current": [
+        "journey"
+      ],
+      "prior": [
+        "car"
+      ],
+      "used": [
+        "car"
+      ],
+      "expected": "OPEN"
+    },
+    {
+      "id": "missing_history",
+      "mode": "independent",
+      "current": [
+        "bicycle"
+      ],
+      "prior": null,
+      "used": [
+        "bicycle"
+      ],
+      "expected": "PARTIAL_REFERENCE"
+    }
+  ],
+  "results": [
+    {
+      "id": "cars_to_bikes_clean",
+      "expected": "PASS",
+      "actual": "PASS",
+      "pass": true
+    },
+    {
+      "id": "cars_to_bikes_leak",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "pass": true
+    },
+    {
+      "id": "explicit_continuation",
+      "expected": "PASS",
+      "actual": "PASS",
+      "pass": true
+    },
+    {
+      "id": "continuation_scope_leak",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "pass": true
+    },
+    {
+      "id": "ambiguous_continuation",
+      "expected": "OPEN",
+      "actual": "OPEN",
+      "pass": true
+    },
+    {
+      "id": "current_source_overlap",
+      "expected": "PASS",
+      "actual": "PASS",
+      "pass": true
+    },
+    {
+      "id": "manifesto_leak",
+      "expected": "HOLD",
+      "actual": "HOLD",
+      "pass": true
+    },
+    {
+      "id": "source_fidelity",
+      "expected": "PASS",
+      "actual": "PASS",
+      "pass": true
+    },
+    {
+      "id": "wrong_continuation_target",
+      "expected": "OPEN",
+      "actual": "OPEN",
+      "pass": true
+    },
+    {
+      "id": "missing_history",
+      "expected": "PARTIAL_REFERENCE",
+      "actual": "PARTIAL_REFERENCE",
+      "pass": true
+    }
+  ],
+  "passed": 10,
+  "total": 10,
+  "method": "function check(f){if(f.mode===\"continuation\"&&(!f.target||f.target!==f.priorId))return \"OPEN\";if(!Array.isArray(f.prior))return \"PARTIAL_REFERENCE\";const allowed=new Set([...f.current,...(f.mode===\"continuation\"?(f.authorized||[]):[])]);return f.used.some(x=>f.prior.includes(x)&&!allowed.has(x))?\"HOLD\":\"PASS\"}",
+  "limitations": [
+    "Reference checker executed in JS tool environment, not native host",
+    "Does not test generated lyrics, musical sameness, R05/R06 automated guards or Suno audio"
+  ]
+}

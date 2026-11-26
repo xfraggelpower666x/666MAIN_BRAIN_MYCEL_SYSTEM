@@ -1,0 +1,238 @@
+{
+  "schema": "666TDI_NMI_R09_REFERENCE_REGRESSION_V1",
+  "scope": "Synthetic declared flags; reference decision logic only",
+  "fixtures": [
+    {
+      "id": "wild_with_direction",
+      "wild": true,
+      "direction": true,
+      "expected": "CANDIDATE"
+    },
+    {
+      "id": "wild_without_direction",
+      "wild": true,
+      "expected": "REVIEW"
+    },
+    {
+      "id": "oddity_in_genre",
+      "oddity": true,
+      "currentCause": true,
+      "expected": "CANDIDATE"
+    },
+    {
+      "id": "unrequested_genre_drift",
+      "oddity": true,
+      "genreDrift": true,
+      "expected": "HOLD"
+    },
+    {
+      "id": "artistic_dissonance",
+      "dissonance": true,
+      "expected": "CANDIDATE"
+    },
+    {
+      "id": "technical_damage",
+      "wild": true,
+      "direction": true,
+      "damage": true,
+      "expected": "HOLD"
+    },
+    {
+      "id": "upper_motion_low_stable",
+      "perceptual": true,
+      "lowStable": true,
+      "expected": "CANDIDATE"
+    },
+    {
+      "id": "low_anchor_damage",
+      "perceptual": true,
+      "lowDamage": true,
+      "expected": "HOLD"
+    },
+    {
+      "id": "unverified_rear_claim",
+      "perceptual": true,
+      "unverifiedClaim": true,
+      "expected": "HOLD"
+    },
+    {
+      "id": "prior_manifesto_leak",
+      "themeLeak": true,
+      "expected": "HOLD"
+    },
+    {
+      "id": "mastering_or_root_loss",
+      "guardFail": true,
+      "expected": "HOLD"
+    },
+    {
+      "id": "no_mandatory_chaos",
+      "expected": "REVIEW"
+    },
+    {
+      "id": "arbitrary_oddity",
+      "oddity": true,
+      "expected": "REVIEW"
+    },
+    {
+      "id": "combined_forces",
+      "wild": true,
+      "direction": true,
+      "oddity": true,
+      "currentCause": true,
+      "perceptual": true,
+      "lowStable": true,
+      "expected": "CANDIDATE"
+    }
+  ],
+  "results": [
+    {
+      "id": "wild_with_direction",
+      "actual": {
+        "status": "CANDIDATE",
+        "audioVerified": false,
+        "automaticPromotion": false,
+        "mandatorySequence": false
+      },
+      "pass": true
+    },
+    {
+      "id": "wild_without_direction",
+      "actual": {
+        "status": "REVIEW",
+        "audioVerified": false,
+        "automaticPromotion": false,
+        "mandatorySequence": false
+      },
+      "pass": true
+    },
+    {
+      "id": "oddity_in_genre",
+      "actual": {
+        "status": "CANDIDATE",
+        "audioVerified": false,
+        "automaticPromotion": false,
+        "mandatorySequence": false
+      },
+      "pass": true
+    },
+    {
+      "id": "unrequested_genre_drift",
+      "actual": {
+        "status": "HOLD",
+        "audioVerified": false,
+        "automaticPromotion": false,
+        "mandatorySequence": false
+      },
+      "pass": true
+    },
+    {
+      "id": "artistic_dissonance",
+      "actual": {
+        "status": "CANDIDATE",
+        "audioVerified": false,
+        "automaticPromotion": false,
+        "mandatorySequence": false
+      },
+      "pass": true
+    },
+    {
+      "id": "technical_damage",
+      "actual": {
+        "status": "HOLD",
+        "audioVerified": false,
+        "automaticPromotion": false,
+        "mandatorySequence": false
+      },
+      "pass": true
+    },
+    {
+      "id": "upper_motion_low_stable",
+      "actual": {
+        "status": "CANDIDATE",
+        "audioVerified": false,
+        "automaticPromotion": false,
+        "mandatorySequence": false
+      },
+      "pass": true
+    },
+    {
+      "id": "low_anchor_damage",
+      "actual": {
+        "status": "HOLD",
+        "audioVerified": false,
+        "automaticPromotion": false,
+        "mandatorySequence": false
+      },
+      "pass": true
+    },
+    {
+      "id": "unverified_rear_claim",
+      "actual": {
+        "status": "HOLD",
+        "audioVerified": false,
+        "automaticPromotion": false,
+        "mandatorySequence": false
+      },
+      "pass": true
+    },
+    {
+      "id": "prior_manifesto_leak",
+      "actual": {
+        "status": "HOLD",
+        "audioVerified": false,
+        "automaticPromotion": false,
+        "mandatorySequence": false
+      },
+      "pass": true
+    },
+    {
+      "id": "mastering_or_root_loss",
+      "actual": {
+        "status": "HOLD",
+        "audioVerified": false,
+        "automaticPromotion": false,
+        "mandatorySequence": false
+      },
+      "pass": true
+    },
+    {
+      "id": "no_mandatory_chaos",
+      "actual": {
+        "status": "REVIEW",
+        "audioVerified": false,
+        "automaticPromotion": false,
+        "mandatorySequence": false
+      },
+      "pass": true
+    },
+    {
+      "id": "arbitrary_oddity",
+      "actual": {
+        "status": "REVIEW",
+        "audioVerified": false,
+        "automaticPromotion": false,
+        "mandatorySequence": false
+      },
+      "pass": true
+    },
+    {
+      "id": "combined_forces",
+      "actual": {
+        "status": "CANDIDATE",
+        "audioVerified": false,
+        "automaticPromotion": false,
+        "mandatorySequence": false
+      },
+      "pass": true
+    }
+  ],
+  "passed": 14,
+  "total": 14,
+  "method": "function review(f){return {status:f.genreDrift||f.damage||f.lowDamage||f.unverifiedClaim||f.themeLeak||f.guardFail?\"HOLD\":(f.wild&&f.direction)||(f.oddity&&f.currentCause)||f.dissonance||(f.perceptual&&f.lowStable)?\"CANDIDATE\":\"REVIEW\",audioVerified:false,automaticPromotion:false,mandatorySequence:false}}",
+  "limitations": [
+    "Flags supplied, not inferred from actual music or prompts",
+    "No native host or Python integration tested",
+    "No audio measurements or renderer execution"
+  ]
+}
