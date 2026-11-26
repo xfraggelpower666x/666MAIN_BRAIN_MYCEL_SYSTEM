@@ -1,0 +1,78 @@
+name: LYVRA MP3 R03 isolated acceptance
+on:
+  push:
+    branches: [integration/lyvra-mp3-r025-bulk]
+    paths:
+      - 'PROJECTS/LYVRA_MP3_COMMAND_CENTER/**'
+      - '.github/workflows/lyvra-mp3-r030.yml'
+permissions:
+  contents: read
+jobs:
+  binary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Independent provider bytes
+        run: python PROJECTS/LYVRA_MP3_COMMAND_CENTER/tools/bulk/provider_r030.py
+  dsp:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: PROJECTS/LYVRA_MP3_COMMAND_CENTER
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: sudo apt-get update -qq && sudo apt-get install -y libportaudio2 ffmpeg
+      - run: python -m pip install numpy scipy soundfile PyWavelets sounddevice pyloudnorm Pillow mutagen
+      - run: python tools/bulk/audio_r030.py dsp
+  adapters:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: PROJECTS/LYVRA_MP3_COMMAND_CENTER
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg libportaudio2
+      - run: python -m pip install numpy scipy soundfile PyWavelets sounddevice pyloudnorm Pillow mutagen
+      - run: npm run check
+      - run: python -m unittest discover -s tools/bulk -p 'test_*.py' -v
+      - run: python tools/bulk/audio_r030.py adapters
+  windows:
+    runs-on: windows-2022
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: PROJECTS/LYVRA_MP3_COMMAND_CENTER
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npm run check
+      - run: npx --no-install electron-builder --win --dir --publish never
+      - shell: pwsh
+        run: |
+          $exe = Get-ChildItem dist/win-unpacked/*.exe | Select-Object -First 1
+          if (!$exe) { throw 'Missing packaged executable' }
+          Get-FileHash $exe.FullName -Algorithm SHA256
+          Write-Output "WINDOWS_BUILD_PASS commit=$env:GITHUB_SHA"
