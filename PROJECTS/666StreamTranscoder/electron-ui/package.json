@@ -1,15 +1,56 @@
 {
   "name": "666-streamtranscoder-electron-ui",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "private": true,
   "description": "Additive, disconnected Electron interface preview for 666StreamTranscoder v3.0",
   "main": "main.cjs",
   "scripts": {
     "start": "electron .",
     "check": "node --check main.cjs && node --check preload.cjs && node --check renderer.js",
-    "test": "node --test tests/*.test.cjs"
+    "test": "node --test tests/*.test.cjs",
+    "build:windows-preview": "electron-builder --win portable nsis --x64"
   },
   "devDependencies": {
-    "electron": "^35.7.5"
+    "electron": "^35.7.5",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.666soundsdesign.streamtranscoder.preview",
+    "productName": "666StreamTranscoder UI PREVIEW",
+    "directories": {
+      "output": "dist-preview"
+    },
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "renderer.js",
+      "status-contract.cjs",
+      "index.html",
+      "style.css",
+      "neon-polish.css",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false
+    },
+    "artifactName": "666StreamTranscoder-UI-PREVIEW-${version}-${arch}.${ext}"
   }
 }

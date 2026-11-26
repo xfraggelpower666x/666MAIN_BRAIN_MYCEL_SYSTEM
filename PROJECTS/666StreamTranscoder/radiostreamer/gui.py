@@ -17,6 +17,7 @@ from .config import (BUILTIN, HOST_MODES, BITRATES, CACHE_DIR, DATA_DIR, DEFAULT
                      mixxx_profile_exists, save_settings)
 from .engine import Broadcaster, Playlist
 from .resin3.monitor_engine import LocalMonitor
+from .resin3.desktop_status import write_desktop_status, remove_desktop_status
 from .resin3.control_plane import RoutePlan
 from .lastfm import CREATE_KEY_URL, LastFM, LastFMError, Scrobbler
 from .protocol import StreamError, listener_url, open_source_connection, source_port, update_metadata
@@ -42,6 +43,7 @@ class App:
         self.queue_version = -1
         self.saved_version = -1
         self.ffmpeg = tools.ffmpeg()
+        self._desktop_status_last = 0.0
 
         first_run = not SETTINGS_FILE.exists()
         cfg = load_settings()
@@ -1102,6 +1104,7 @@ class App:
         SetupWizard(self)
 
     def on_close(self):
+        remove_desktop_status()
         self.save()
         if self.broadcaster:
             self.broadcaster.stop()
@@ -1173,6 +1176,16 @@ class App:
             self.save()
         self.update_meter()
         self.update_stats()
+        # Additive read-only desktop telemetry. Audio flow never depends on disk I/O.
+        if time.monotonic() - self._desktop_status_last >= 1.0:
+            self._desktop_status_last = time.monotonic()
+            try:
+                write_desktop_status(status=getattr(self, "status_state", "off"),
+                                     broadcaster=self.broadcaster, monitor=self.monitor,
+                                     input_dbfs=getattr(self, "input_level", None),
+                                     output_dbfs=getattr(self, "output_level", None))
+            except OSError:
+                pass
         self.root.after(100, self.poll)
 
     def update_meter(self):
