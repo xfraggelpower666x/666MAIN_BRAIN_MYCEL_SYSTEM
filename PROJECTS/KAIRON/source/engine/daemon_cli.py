@@ -67,11 +67,13 @@ def preanalysis(payload: dict) -> dict:
             raise ValueError("INVALID_BAR_TARGET") from None
         if not 32 <= bars <= 2048:
             raise ValueError("INVALID_BAR_TARGET")
-    # R1.0 and R0.9 remain the only musical analysis engines.
+    # Bestehende Analyse-Engines; Evidenzpfade werden ausschließlich hostseitig gesetzt.
     semantic = semantic_intelligence.assess(intent)
     causal = creative_causal.assess(intent)
     preanalysis = track_preanalysis.assess(intent, semantic, causal, total_bars=bars)
-    renderer = device_output.translate(intent, device, payload.get("route_context"))
+    renderer = device_output.translate(intent, device, payload.get("route_context"),
+                                       evidence_root=portable.DATA,
+                                       historical_root=portable.ROOT / "evidence")
     device_labels = {
         "IPHONE_SUNO_APP": "iPhone · Suno App",
         "PC_SUNO_BROWSER": "PC · Suno Browser",

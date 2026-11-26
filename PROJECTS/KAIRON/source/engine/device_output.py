@@ -37,7 +37,7 @@ def _field(value,budget):
                   else "CREATOR_SOURCE_EMPTY" if not value.strip()
                   else "WITHIN_CREATOR_REPORTED_REFERENCE_BUDGET"}
 
-def translate(intent, device, route_context=None, *, evidence_root=None):
+def translate(intent, device, route_context=None, *, evidence_root=None, historical_root=None):
  """Create exact counted copy payloads from creator text without silent truncation."""
  if not isinstance(intent,dict): raise ValueError("INVALID_INTENT")
  if device not in ("IPHONE_SUNO_APP","PC_SUNO_BROWSER"): raise ValueError("DEVICE_PREFLIGHT_REQUIRED")
@@ -123,7 +123,7 @@ def translate(intent, device, route_context=None, *, evidence_root=None):
   "fields":fields,"main_input":main_output,
   "semantic_reinforcement_audit":semantic_guard.review(fields,intent),
   "motor_intelligence_audit":motor_intelligence.assess(intent,fields,production_context.get("dj_plan")),
-  "production_quality_audit":production_quality.assess(fields,intent,production_context,evidence_root=evidence_root),
+  "production_quality_audit":production_quality.assess(fields,intent,production_context,evidence_root=evidence_root,historical_root=historical_root),
   "pc_duration_control":{"visibility":"CREATOR_CONFIRMED_VISIBLE" if visible is True
           else "CREATOR_CONFIRMED_NOT_VISIBLE" if visible is False else "NOT_CONFIRMED",
           "selected_duration":duration if visible is True else "",

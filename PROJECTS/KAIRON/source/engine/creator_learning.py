@@ -144,7 +144,7 @@ def assess(root,track_id):
    "NO_AUTOMATIC_GLOBAL_RULE","CONTRADICTIONS_PRESERVED"]}
 
 
-def music_memory_audit(root, context, current_track=None):
+def music_memory_audit(root, context, current_track=None, *, historical_root=None):
  """Read native verified feedback; never write or infer a rendered prompt."""
  if current_track is not None: current_track=_track(current_track)
  records=[]; feedback=[]; rows=[]
@@ -161,7 +161,8 @@ def music_memory_audit(root, context, current_track=None):
   if "music_context" in row and row.get("creator_confirmed") is True:
    record={**base,"context":row["music_context"],"creator_confirmed":True,"decision_id":row["category"]+":"+row["decision_id"],"rating":row["rating"],"observed_outcome":row["observed_outcome"]}
    record["sha256"]=music_memory.digest(record); feedback.append(record)
- historical=Path(root).resolve()/"historical_music_memory.json"
+ historical=Path(root if historical_root is None else historical_root).resolve()/"historical_music_memory.json"
+ if historical_root is not None and not historical.is_file(): raise ValueError("HISTORICAL_SOURCE_MISSING")
  observations=[]; notes=[]
  if historical.exists():
   if historical.is_symlink(): raise ValueError("HISTORICAL_SYMLINK")

@@ -65,7 +65,7 @@ def duration(plan):
     if any(type(x) not in (int,float) or not 0<=x<=60 for x in (start,end)): return {'status':'REVIEW','audio_verified':False}
     return {'status':'THEORETICAL','seconds':round(bars*240/bpm+start+end,2),'audio_verified':False}
 
-def assess(fields,intent,context=None,*,evidence_root=None):
+def assess(fields,intent,context=None,*,evidence_root=None,historical_root=None):
     context={} if context is None else context
     if not isinstance(context,dict): raise ValueError('INVALID_PRODUCTION_CONTEXT')
     pair={k:fields[k]['text'] for k in ('style','extended')}
@@ -73,7 +73,7 @@ def assess(fields,intent,context=None,*,evidence_root=None):
     if not isinstance(history,list): raise ValueError('INVALID_HISTORY')
     memory=None
     if evidence_root is not None:
-        memory=creator_learning.music_memory_audit(evidence_root,context.get('music_context',{}),context.get('current_track'))
+        memory=creator_learning.music_memory_audit(evidence_root,context.get('music_context',{}),context.get('current_track'),historical_root=historical_root)
         history=history+memory['prompt_history']
     comparisons=[]; seen=set()
     for item in reversed(history):
