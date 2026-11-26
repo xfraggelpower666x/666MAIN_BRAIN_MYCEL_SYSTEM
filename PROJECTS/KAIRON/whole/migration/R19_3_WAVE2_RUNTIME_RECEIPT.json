@@ -1,0 +1,56 @@
+{
+  "system_id": "666TDI-001",
+  "namespace": "KAIRON",
+  "revision": "R19.3_WAVE2",
+  "tested_commit": "a61e8b4569abd7e112da35b8d56570ef8f5315f9",
+  "backup": "backup/kairon-r193-wave2-pre-a61e8b4",
+  "production_promotion": false,
+  "host_acceptance": "OPEN",
+  "runtime": {
+    "python": "3.13.5",
+    "node": "22.16.0",
+    "platform": "linux"
+  },
+  "verified_new_execution": [
+    {
+      "suite": "Rehydration synthetic parity fixtures",
+      "command": "python -m unittest -v test_parity",
+      "passed": 7,
+      "failed": 0,
+      "exit_code": 0,
+      "blobs": {
+        "rehydration/parity.py": "82f9c35a3a2e8db718f4cdea2c758468459232c3",
+        "rehydration/test_parity.py": "940a8e97783560c9b3bfa9b200dcff27662bd56a"
+      }
+    },
+    {
+      "suite": "Electron settings store",
+      "command": "node --test windows_studio/tests/settings_store.test.cjs",
+      "passed": 5,
+      "failed": 0,
+      "exit_code": 0,
+      "blobs": {
+        "windows_studio/electron/settings-store.cjs": "332ab05dfcde6127ddc4be5e02aa581e86d23825",
+        "windows_studio/tests/settings_store.test.cjs": "c63c92fce1e2558f86d6b58f94d792cb25599aa5"
+      }
+    }
+  ],
+  "prior_chat_report": {
+    "passed": 24,
+    "scope": "R16 R17 R18",
+    "execution_receipts": "PRIOR_CHAT_REPORTED_NOT_REEXECUTED",
+    "local_blobs_rechecked": {
+      "whole/daemon/parallel.py": "aa4f10ec4e75ed3d8a81491180a61ab4befbcc41",
+      "whole/daemon/test_parallel.py": "23ecdfd5dbf44d20e5bd02792b5706d0ab457420",
+      "whole/daemon/supervision.mjs": "10156e77995a5b015640c6f7709399800381b9ba"
+    }
+  },
+  "open": [
+    "Native Handoff",
+    "Musical Engine",
+    "Real Candidate Pointer parity",
+    "Windows host",
+    "Plugin host"
+  ],
+  "status": "PARTIAL"
+}
