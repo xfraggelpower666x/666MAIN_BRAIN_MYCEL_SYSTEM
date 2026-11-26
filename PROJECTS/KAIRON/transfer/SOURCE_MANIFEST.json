@@ -1,6 +1,6 @@
 {
   "system_id": "666TDI-001",
-  "source_file_count": 121,
+  "source_file_count": 122,
   "source_files": {
     "README.md": "e19ce33fac348c8e7a3c4d6c2e2c0e9e0958f9906012025cb17ac483abcdb498",
     "START_666TDI_DAEMON.bat": "9bc36ce36725a7a6c3cc492c7ceb0b348154379f24d16fe9877870d84eb2264c",
@@ -122,7 +122,8 @@
     "tests/test_native_consumer_r213.py": "9840ec03fdee0622ac6ed649f9c2faeb78e7e2d598c0db999da5eb2538cc2ff9",
     "tests/test_emergent_evolution_r213.py": "91f7ca755f728c97675104e66d4edd955b997dc1b1887320844191867775304c",
     "tests/test_preset_surface_r213.py": "a06e0a1ea710dd7c855279518b2265b8346cdda67efc85aea43640ef2c1b05a8",
-    "tests/test_preset_http_r213.py": "f8f4d0a507a833112c1444d428dc4ff8917439dc229d4c98d2b8f3c342a912d3"
+    "tests/test_preset_http_r213.py": "f8f4d0a507a833112c1444d428dc4ff8917439dc229d4c98d2b8f3c342a912d3",
+    "browser_acceptance/test_browser.py": "fb3c313740be9ce966611f604507918e4e6aa5090757abef56ef538aa7342b6b"
   },
   "source_git_sha1": {
     "README.md": "83577b17ef012ce50061118b5fd8382796ad2da2",
@@ -245,7 +246,8 @@
     "tests/test_native_consumer_r213.py": "bcae3516574685d06de5c32531fe87ba81d936d9",
     "tests/test_emergent_evolution_r213.py": "fc8e059717cdab39c1b37ad0d044c9497f3d9c6e",
     "tests/test_preset_surface_r213.py": "5b38256028b6ca4415afbbf404c8d8e06adb63a3",
-    "tests/test_preset_http_r213.py": "94f944da18f39e7ffcada82db513e9fad5d2dbc2"
+    "tests/test_preset_http_r213.py": "94f944da18f39e7ffcada82db513e9fad5d2dbc2",
+    "browser_acceptance/test_browser.py": "5d8b2eb45cabb93a8eef239ab984356f2058eac2"
   },
   "source_archive_sha256": "4f0741ef3fdf438772fda6d406baaca02eddd4262ef9681bdc2517955c1703d1",
   "source_origin": "666TDI_v2.5_ADDITIVE_R08_PORTABLE.zip",
@@ -255,10 +257,10 @@
   ],
   "scope": "PROJECTS/KAIRON/source",
   "preserve_existing": true,
-  "source_manifest_revision": "R21.3-http-acceptance",
-  "source_tree_base_commit": "69c7021edf4d5858e672ce76fd28bd92ee372146",
+  "source_manifest_revision": "R21.3-browser-acceptance",
+  "source_tree_base_commit": "d3db2ca650b470f54b61985b7335910977a53487",
   "source_tree_base_sha": "e1e3e7fd77a0438690e8e0cbb1cf0418f2315e2e",
   "source_archive_sha256_semantics": "HISTORICAL_ORIGINAL_ARCHIVE_NOT_CURRENT_TREE",
   "integrity_method": "UNCHANGED_GIT_BLOB_REUSE; CHANGED_UTF8_SHA256_AND_CI_RAW_BYTES",
-  "previous_manifest_blob": "d64e9728bad854deff864f854af82ad6b164e906"
+  "previous_manifest_blob": "1c1408c2c37ea3f8a73843e14e318621d2dc063c"
 }
