@@ -91,5 +91,22 @@
       "blob": "514d37d46b8fd98acea49ffcdaf9e5636e8a7061"
     },
     "no_foreign_activation": true
+  },
+  "authorized_execution_runtime": {
+    "revision": "R19.6",
+    "module": "whole/daemon/connector_runtime.py",
+    "trust_gate": "whole/daemon/execution_trust.py",
+    "execution_authority": "whole/daemon/execution_bridge.py",
+    "receipt": "whole/migration/R19_6_RUNTIME_RECEIPT.json",
+    "scope": "ONLY_KAIRON_CANDIDATE",
+    "explicit_execution_required": true,
+    "independent_trusted_head_required": true,
+    "require_commit_tree_blob_membership": true,
+    "automatic_dispatch": false,
+    "supported_commit_format": "UNSIGNED_CANONICAL_RECONSTRUCTABLE_ONLY",
+    "direct_connector_transport": "AUTHORIZED_CALLER_CALLBACK_OR_SNAPSHOT",
+    "local_native_regression": "21_OF_21_PASS",
+    "host_acceptance": "OPEN",
+    "production_promotion": false
   }
 }

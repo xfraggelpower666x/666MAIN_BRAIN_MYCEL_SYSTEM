@@ -1,0 +1,106 @@
+{
+  "system_id": "666TDI-001",
+  "namespace": "KAIRON",
+  "revision": "R19.6",
+  "scope": "CANDIDATE_ONLY",
+  "repository": "xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM",
+  "branch": "integration/kairon-r19-native-20261126",
+  "base_commit": "2f374738359feaff564e73fd90c5b52766b26529",
+  "base_tree": "4e51f81b5a28b23a7a75785beef0db368d792472",
+  "backup_branch": "backup/kairon-r196-runtime-pre-2f37473",
+  "backup_readback": "MATCHES_BASE_COMMIT",
+  "source_acquisition": "AUTHORIZED_GITHUB_GIT_DATA_API_AND_BASE64_FILE_READS; LOCAL_BYTE_RECONSTRUCTION",
+  "raw_objects_verified": {
+    "commits": 1,
+    "trees": 8,
+    "blobs": 6
+  },
+  "local_environment": {
+    "python": "3.13.5",
+    "git": "2.47.3",
+    "platform": "linux"
+  },
+  "new_and_preserved_source_blobs": {
+    "whole/daemon/execution_trust.py": "e09ffca2c18e1c4aa1f5dbb659163340989cf062",
+    "whole/daemon/test_execution_trust.py": "34bb03947235970c3b7b04a6da3fa2c090c72c46",
+    "whole/daemon/connector_runtime.py": "4c752b6a3b8be6e604834da4d9ba32b3e1242d1c",
+    "whole/daemon/test_connector_runtime.py": "cd07b62922e369ced9e4a4e1e4128734c6c7a23f",
+    "whole/daemon/CONTRACT.json": "8e1933c3a8a53a6800d8c35efb63b81fbd6ddce7",
+    "whole/daemon/execution_bridge.py": "5441a8baccbb61a0211002bb5a01b3381e108c1f"
+  },
+  "native_source_blobs": {
+    "source/engine/__init__.py": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "source/engine/semantic_intelligence.py": "51cbcd4cc26dd44425eccfcee1984935c624988f",
+    "source/engine/creative_causal.py": "bcfd39792e73ba55d06b2a096596978adde4ab48",
+    "source/tests/test_semantic_intelligence.py": "f75689c91ecd3830e33e29257197c734b8dcb7a9",
+    "source/tests/test_creative_causal.py": "69cc2a5dd947c4d21e77e580ed05f49e4e36b422",
+    "whole/daemon/execution_bridge.py": "5441a8baccbb61a0211002bb5a01b3381e108c1f"
+  },
+  "local_regression": {
+    "command": "python -m unittest -v test_execution_trust test_connector_runtime",
+    "execution_trust_passed": 11,
+    "connector_runtime_passed": 11,
+    "failed": 0,
+    "log_sha256": "bc95877dad0e54ebc29e9ccce27941efcae2b4343bf6ce461298d5450998dbf6"
+  },
+  "native_regression": {
+    "passed": 21,
+    "failed": 0,
+    "via": "execute_native -> run_verified -> original execution_bridge.run -> unittest subprocess",
+    "suites": [
+      {
+        "test": "source/tests/test_semantic_intelligence.py",
+        "test_count": 12,
+        "status": "PROCESS_EXIT_ZERO",
+        "exit_code": 0,
+        "membership_status": "COMMIT_TREE_BLOB_VERIFIED",
+        "cases": [
+          "test_arrangement_can_resolve_collision_candidate",
+          "test_avoid_swing_is_constraint_not_support",
+          "test_constraint_field_never_supports_function",
+          "test_empty_input_is_not_invented",
+          "test_function_explains_why",
+          "test_motor_and_bass_swing_collision",
+          "test_negation_does_not_create_positive_support",
+          "test_negation_scope_does_not_leak_to_next_clause",
+          "test_positive_function_evidence",
+          "test_reject_non_object",
+          "test_track_local_read_only_contract",
+          "test_voice_and_dense_layers_collision"
+        ]
+      },
+      {
+        "test": "source/tests/test_creative_causal.py",
+        "test_count": 9,
+        "status": "PROCESS_EXIT_ZERO",
+        "exit_code": 0,
+        "membership_status": "COMMIT_TREE_BLOB_VERIFIED",
+        "cases": [
+          "test_arrangement_does_not_claim_audio_resolution",
+          "test_empty_input_does_not_invent",
+          "test_expectation_payoff",
+          "test_invalid_input",
+          "test_low_anchor_and_spatial_motion_complement",
+          "test_motor_and_contrast_emerge",
+          "test_read_only_track_local",
+          "test_transforming_recurrence",
+          "test_voice_layer_tension_not_error"
+        ]
+      }
+    ],
+    "receipt_sha256": "913e810968224feaa9422f2c2b04ed9a471a3da95cc3ee9920834e12a9686df3",
+    "cli_replay": "BOTH_NATIVE_SUITES_PASS"
+  },
+  "total_distinct_suite_cases_passed": 43,
+  "limitations": [
+    "Git transport DNS unavailable; authorized API data transferred and reconstructed locally.",
+    "Unsigned reconstructable commit format only; unsupported or mismatched objects fail closed.",
+    "Transport callbacks require an authorized host; no automatic connector dispatch or OS sandbox.",
+    "Native musical tests are not rendered-audio validation or full-system acceptance.",
+    "Branch protection detail endpoint returned 403; branch metadata unprotected and repository rulesets empty.",
+    "No ChatBackup complete raw audit, R17/R18 host execution, Windows host, plugin host or production promotion."
+  ],
+  "production_promotion": false,
+  "current_pointer": "WITHHELD_UNCHANGED",
+  "host_acceptance": "OPEN"
+}
