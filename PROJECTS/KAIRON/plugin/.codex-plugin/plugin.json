@@ -1,25 +1,24 @@
 {
   "interface": {
+    "category": "Productivity",
     "capabilities": [
       "Interactive"
     ],
-    "category": "Productivity",
+    "developerName": "FRAGGLEPOWER666",
+    "displayName": "KAIRON MUSIC INTELLIGENCE",
+    "shortDescription": "KAIRON \u00b7 Native Music Intelligence",
+    "longDescription": "One native KAIRON ChatGPT music framework with existing 666TDI-001 identity, semantically causal music reasoning, track-local learning, LiveCircle, verified GitHub candidate source, and separate plugin release acceptance. Windows optional.",
     "defaultPrompt": [
       "KAIRON SYSTEMSTART",
       "KAIRON TRACKDESIGN",
       "KAIRON STATUS"
-    ],
-    "developerName": "FRAGGLEPOWER666",
-    "displayName": "KAIRON MUSIC DESIGN",
-    "longDescription": "Native 666TDI skills with repository-first rehydration, musical design, LiveCircle and evidence-led visual guidance.",
-    "shortDescription": "Native Music Intelligence"
+    ]
   },
   "name": "666tdi-music-design",
-  "version": "0.1.0",
-  "description": "Repository-first 666TDI music design, native continuity, visual intelligence and governed triple-surface evolution.",
+  "version": "0.1.1",
+  "description": "KAIRON native ChatGPT Music Intelligence: one 666TDI-001 identity, one original plugin, governed candidate continuity, semantic causal track design and music memory; Windows optional.",
   "author": {
-    "name": "FRAGGLEPOWER666",
-    "email": "dirk.meereis@t-online.de"
+    "name": "FRAGGLEPOWER666"
   },
   "keywords": [],
   "skills": "./skills"

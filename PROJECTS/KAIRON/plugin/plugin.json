@@ -1,29 +1,28 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "666tdi-music-design",
+  "version": "0.1.1",
+  "description": "KAIRON native ChatGPT Music Intelligence: one 666TDI-001 identity, one original plugin, governed candidate continuity, semantic causal track design and music memory; Windows optional.",
   "author": {
-    "email": "dirk.meereis@t-online.de",
     "name": "FRAGGLEPOWER666"
   },
-  "description": "Repository-first KAIRON native ChatGPT music framework and its one identity-bound plugin; Windows is an optional bonus.",
   "extensions": {
     "com.openai": {
       "interface": {
+        "category": "Productivity",
         "capabilities": [
           "Interactive"
         ],
-        "category": "Productivity",
+        "developerName": "FRAGGLEPOWER666",
+        "displayName": "KAIRON MUSIC INTELLIGENCE",
+        "shortDescription": "KAIRON · Native Music Intelligence",
+        "longDescription": "One native KAIRON ChatGPT music framework with existing 666TDI-001 identity, semantically causal music reasoning, track-local learning, LiveCircle, verified GitHub candidate source, and separate plugin release acceptance. Windows optional.",
         "defaultPrompt": [
           "KAIRON SYSTEMSTART",
           "KAIRON TRACKDESIGN",
           "KAIRON STATUS"
-        ],
-        "developerName": "FRAGGLEPOWER666",
-        "displayName": "KAIRON MUSIC DESIGN",
-        "longDescription": "One KAIRON native ChatGPT framework and plugin identity, repository-first rehydration, music intelligence, LiveCircle, evidence-led continuity. Windows optional.",
-        "shortDescription": "Native Music Intelligence"
+        ]
       }
     }
-  },
-  "name": "666tdi-music-design",
-  "version": "0.1.0"
+  }
 }

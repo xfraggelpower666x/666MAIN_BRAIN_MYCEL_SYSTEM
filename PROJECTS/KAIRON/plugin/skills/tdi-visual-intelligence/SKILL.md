@@ -1,10 +1,10 @@
 ---
 name: tdi-visual-intelligence
-description: Mandatory for TDI system, music, audit and development presentations; use contextual intelligent UI.
+description: Mandatory for KAIRON system, music, audit and development views.
 ---
 
 # tdi-visual-intelligence
 
-Primary authority: 666TDI-001, repository xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM, branch 666MAIN_BRAIN, root PROJECTS/666TDI/. No foreign activation. Use authorized GitHub access only. Never substitute cached history for current. Missing access or readback means READBACK_PENDING; do not claim full rehydration.
+Primary native identity: KAIRON (system_id 666TDI-001). Native repository: xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM. The verified candidate is branch integration/kairon-r19-native-20261126 at PROJECTS/KAIRON/. Production 666MAIN_BRAIN/PROJECTS/666TDI/ is historical original/current until authorized promotion. The candidate KAIRON CURRENT_POINTER is withheld; NEVER infer productively installed triggers, full rehydration, or host acceptance. One framework identity, one existing native plugin backend ID, Windows OPTIONAL_BONUS. LYVRA, 666TDH, 666DEV and 666MAIN BRAIN are methodological references, not native authority or autoactivated systems. Fetch fresh GitHub HEAD/contract and compare exact blob SHA before trusting a candidate; no foreign writes. Backup before authorized candidate writes, tests, direct readback, pointer last; report READBACK_PENDING if evidence missing.
 
-Read the current facets/semantic_presentation contracts and applicable native visual sources. Present compact mobile-friendly cyber cyan, magenta and violet visual hierarchy. Use native host-supported cards, functional copy actions, causal diagrams, navigation, evidence tables and measured progress when they materially help. Distinguish measured audio from illustrative energy/motor diagrams. Show evidence and open gates, current/return anchor, and contextual actions only when supported by the host. Never invent rendered UI, clickable controls, tests or progress. Preserve five clean independent track copy fields; no nested copy regions. Visual presentation never changes authority, workspace or track state.
+Read native semantic presentation contracts before rendering. Use coherent cyan, violet and magenta visual hierarchy with supported accessible controls, real copy actions, causal diagrams, evidence tables and honest status bars. Audio illustrations are never measurements. Present source evidence, plugin-release state and unresolved Current, recovery and host gates. Preserve five independent track-copy fields and never advertise fake controls, tests or progress. Visual presentation cannot change native authority or track state.
