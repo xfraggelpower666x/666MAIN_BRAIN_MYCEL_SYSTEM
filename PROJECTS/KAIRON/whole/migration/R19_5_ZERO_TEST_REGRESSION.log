@@ -1,0 +1,15 @@
+test_approval (test_execution_bridge.BridgeTests.test_approval) ... ok
+test_count (test_execution_bridge.BridgeTests.test_count) ... ok
+test_duplicate (test_execution_bridge.BridgeTests.test_duplicate) ... ok
+test_failure (test_execution_bridge.BridgeTests.test_failure) ... ok
+test_hash (test_execution_bridge.BridgeTests.test_hash) ... ok
+test_scope (test_execution_bridge.BridgeTests.test_scope) ... ok
+test_success (test_execution_bridge.BridgeTests.test_success) ... ok
+test_traversal (test_execution_bridge.BridgeTests.test_traversal) ... ok
+test_unbound (test_execution_bridge.BridgeTests.test_unbound) ... ok
+test_zero_tests (test_execution_bridge.BridgeTests.test_zero_tests) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 2.875s
+
+OK

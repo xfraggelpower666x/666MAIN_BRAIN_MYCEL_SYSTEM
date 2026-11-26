@@ -57,8 +57,11 @@ def run(bundle):
         else:
             raise ValueError('UNSUPPORTED_TEST')
         result = subprocess.run(cmd, cwd=root, env=env, capture_output=True, text=True, timeout=120)
-        return {'system_id':'666TDI-001','commit':bundle['commit'],'test':test,'blobs':{k:blob(v) for k,v in sources.items()},'exit_code':result.returncode,'stdout':result.stdout,'stderr':result.stderr,'status':'PROCESS_EXIT_ZERO' if result.returncode==0 else 'REGRESSION_FAILED','production_release':False,'host_acceptance':'OPEN'}
+        count = re.search(r'^Ran (\d+) tests? in ', result.stderr, re.M) if test.endswith('.py') else re.search(r'^# tests (\d+)$', result.stdout, re.M)
+        executed = int(count.group(1)) if count else 0
+        status = 'NO_TESTS_EXECUTED' if count and executed == 0 else ('REGRESSION_FAILED' if result.returncode else ('PROCESS_EXIT_ZERO' if executed > 0 else 'NO_TESTS_EXECUTED'))
+        return {'test_count':executed,'system_id':'666TDI-001','commit':bundle['commit'],'test':test,'blobs':{k:blob(v) for k,v in sources.items()},'exit_code':result.returncode,'stdout':result.stdout,'stderr':result.stderr,'status':status,'production_release':False,'host_acceptance':'OPEN'}
 
 
 if __name__ == '__main__':
-    result=run(json.load(sys.stdin)); print(json.dumps(result, ensure_ascii=False)); sys.exit(result['exit_code'])
+    result=run(json.load(sys.stdin)); print(json.dumps(result, ensure_ascii=False)); sys.exit(result['exit_code'] or (2 if result['status'] != 'PROCESS_EXIT_ZERO' else 0))

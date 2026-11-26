@@ -10,6 +10,10 @@ def bundle(code=b'import unittest\nclass T(unittest.TestCase):\n def test_ok(sel
 class BridgeTests(unittest.TestCase):
     def test_success(self):
         r=run(bundle()); self.assertEqual(r['exit_code'],0); self.assertIn('Ran 1 test',r['stderr']); self.assertFalse(r['production_release'])
+    def test_zero_tests(self):
+        r=run(bundle(b'import unittest\n')); self.assertEqual(r['status'],'NO_TESTS_EXECUTED'); self.assertEqual(r['test_count'],0)
+    def test_count(self):
+        self.assertEqual(run(bundle())['test_count'],1)
     def test_failure(self):
         r=run(bundle(b'import unittest\nclass T(unittest.TestCase):\n def test_bad(self): self.fail()\n')); self.assertNotEqual(r['exit_code'],0); self.assertEqual(r['status'],'REGRESSION_FAILED')
     def test_hash(self):
