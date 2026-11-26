@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "sceeri-intelligence",
-  "version": "0.87.8",
+  "version": "0.87.9",
   "description": "ChatGPT-Facetten für Code-Analyse, Entwicklung, Tests, Recovery, Zeitsemantik und sichere LLM-Workflows.",
   "author": {
     "name": "FRAGGELPOWER666"
