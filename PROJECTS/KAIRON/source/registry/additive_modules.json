@@ -235,6 +235,16 @@
       "no_audio_claim": true,
       "no_auto_promotion": true,
       "no_new_controller": true
+    },
+    "production_quality_r201": {
+      "status": "CANDIDATE_LOCAL_REGRESSION_PASS_HOST_OPEN",
+      "source": "engine/production_quality.py",
+      "consumer": "engine/device_output.py",
+      "tests": "tests/test_production_quality.py",
+      "reference_blob": "9a6170b412015191f7e58755f3e1a4e1ce81c4cb",
+      "no_audio_claim": true,
+      "no_auto_promotion": true,
+      "no_new_controller": true
     }
   }
 }

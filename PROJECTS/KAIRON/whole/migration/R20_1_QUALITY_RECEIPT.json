@@ -1,0 +1,33 @@
+{
+  "system_id": "666TDI-001",
+  "namespace": "KAIRON",
+  "revision": "R20.1",
+  "base_commit": "01d9894c9c85261fa404cf3dbab7e364a9a89380",
+  "backup_branch": "backup/kairon-r201-quality-pre-01d9894",
+  "source_blobs": {
+    "source/engine/production_quality.py": "32718e1552f5748a7b3a8b6777bcaeeb336cecd4",
+    "source/engine/device_output.py": "38d75f6d6e53a4b2add96e3fa00762a28ad5ad8f",
+    "source/tests/test_production_quality.py": "f68de8d223679a6af385d3ffe5a520bd9e982bf3",
+    "source/registry/additive_modules.json": "b251ae47682f858543868a1191e03b09d8cc062b"
+  },
+  "regression": {
+    "scope": "previous local execution; original log verified and preserved, not rerun in closeout",
+    "command": "python -m unittest discover -s tests -v",
+    "passed": 116,
+    "failed": 0,
+    "existing": 102,
+    "new_context": 14,
+    "log_blob": "563818c113dd7339c02fb6e427bebe72756bfc17",
+    "log_sha256": "8ec67d89c6a6ee76a55ef66520dddce2cb4f755e63e489012777afed131f74b2"
+  },
+  "limitations": [
+    "Original local SHA256SUMS was inherited from R20.0 and does not cover new files; source hashes calculated during closeout",
+    "Finite phrase vocabulary, not audio similarity",
+    "History must be supplied; no automatic history recovery",
+    "Declared DJ plan and theoretical 4/4 duration only",
+    "Full endguard timing and host regression remain open",
+    "A10-A15 incomplete"
+  ],
+  "production_promotion": false,
+  "current_pointer": "WITHHELD"
+}
