@@ -39,6 +39,13 @@ jobs:
           result = unittest.TextTestRunner(verbosity=2).run(suite)
           raise SystemExit(0 if result.wasSuccessful() and result.testsRun else 1)
           PY
+      - name: Bind pinned supervision snapshot
+        if: always()
+        run: |
+          git fetch --no-tags --depth=1 origin 2f374738359feaff564e73fd90c5b52766b26529
+          python3 PROJECTS/KAIRON/whole/daemon/build_snapshot.py "$RUNNER_TEMP/kairon-snapshot.json"
+          echo "KAIRON_SNAPSHOT=$RUNNER_TEMP/kairon-snapshot.json" >> "$GITHUB_ENV"
+          echo "KAIRON_RECEIPT=$RUNNER_TEMP/kairon-receipt.json" >> "$GITHUB_ENV"
       - name: Whole daemon regression (nonzero test count)
         if: always()
         working-directory: PROJECTS/KAIRON/whole/daemon
