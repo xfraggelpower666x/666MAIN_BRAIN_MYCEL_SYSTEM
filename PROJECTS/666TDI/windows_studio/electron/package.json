@@ -1,0 +1,54 @@
+{
+  "name": "666tdi-music-intelligence-studio",
+  "version": "0.1.0",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:portable": "electron-builder --win portable --x64",
+    "build:setup": "electron-builder --win nsis --x64"
+  },
+  "devDependencies": {
+    "electron": "^35.7.5",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.666soundsdesign.tdi",
+    "productName": "666TDI Music Intelligence Studio",
+    "asar": true,
+    "directories": {
+      "output": "../dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "settings-preload.cjs",
+      "settings-store.cjs",
+      "renderer/**/*",
+      "config.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../dist-backend/backend",
+        "to": "backend"
+      }
+    ],
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "artifactName": "${productName}-${version}-SETUP-${arch}.${ext}"
+    },
+    "win": {
+      "target": [
+        "portable",
+        "nsis"
+      ],
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "portable": {
+      "artifactName": "${productName}-${version}-PORTABLE-${arch}.${ext}"
+    }
+  }
+}
