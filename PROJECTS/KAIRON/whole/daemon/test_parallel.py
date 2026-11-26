@@ -1,7 +1,7 @@
 import unittest
 from parallel import plan
 
-P = 'PROJECTS/666TDI/'
+P = 'PROJECTS/KAIRON/'
 
 
 def task(key, reads=(), writes=(), deps=(), auth=True, barrier=False, mode='DEEP_EVOLUTION'):
@@ -32,6 +32,9 @@ class ParallelTests(unittest.TestCase):
         self.assertEqual(plan([task('a', reads=['a'], deps=['b']),task('b', reads=['b'], deps=['a'])])['status'],'PLAN_PARTIAL')
     def test_foreign(self):
         t=task('a',reads=['a']); t['reads']=['PROJECTS/LYVRA/a']
+        with self.assertRaisesRegex(ValueError,'FOREIGN_SCOPE'): plan([t])
+    def test_legacy_active_scope_denied(self):
+        t=task('a',reads=['a']); t['reads']=['PROJECTS/666TDI/a']
         with self.assertRaisesRegex(ValueError,'FOREIGN_SCOPE'): plan([t])
     def test_traversal(self):
         with self.assertRaisesRegex(ValueError,'INVALID_SCOPE'): plan([task('a',reads=['../a'])])

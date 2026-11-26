@@ -70,7 +70,7 @@ def inspect(root:pathlib.Path,payload:bytes, remote:bool=False)->dict:
     authority=json.loads((root/'governance/NATIVE_UPDATE_AUTHORITY.json').read_text('utf-8'))
     manifest=json.loads((root/'transfer/SOURCE_MANIFEST.json').read_text('utf-8'))
     if pointer.get('system_id')!=SYSTEM or authority.get('system_id')!=SYSTEM:raise ValueError('NATIVE_IDENTITY_MISMATCH')
-    if authority.get('allowed_path_prefix')!='PROJECTS/666TDI/' or authority.get('foreign_autoactivation') is not False:
+    if authority.get('allowed_path_prefix')!='PROJECTS/KAIRON/' or authority.get('foreign_autoactivation') is not False:
         raise ValueError('INVALID_NATIVE_SCOPE')
     if pointer.get('audio_analysis_required') is not False:raise ValueError('AUDIO_OPTIONAL_CONTRACT_VIOLATION')
     source=root/'source'

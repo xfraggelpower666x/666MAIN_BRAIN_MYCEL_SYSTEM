@@ -5,7 +5,7 @@ from http.server import ThreadingHTTPServer
 ROOT = Path(sys._MEIPASS).resolve() if getattr(sys, "frozen", False) else Path(__file__).resolve().parent
 SOURCE = ROOT / "native_source" if getattr(sys, "frozen", False) else ROOT.parent / "source"
 if not SOURCE.is_dir():
-    raise SystemExit("NATIVE_SOURCE_MISSING: place windows_studio inside PROJECTS/666TDI")
+    raise SystemExit("NATIVE_SOURCE_MISSING: place windows_studio inside PROJECTS/KAIRON")
 from tools.verify_native_binding import verify
 BINDING_ROOT = ROOT / "native_bundle" / "windows_studio" if getattr(sys, "frozen", False) else ROOT
 BINDING_STATUS = verify(BINDING_ROOT)

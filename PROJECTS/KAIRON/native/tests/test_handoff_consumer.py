@@ -11,12 +11,13 @@ class R11Tests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'HANDOFF_BLOB_MISMATCH'):mod.validate_handoff(b'{}')
     def test_scope(self):
         a=json.loads((ROOT/'governance/NATIVE_UPDATE_AUTHORITY.json').read_text('utf-8'))
-        self.assertEqual(a['allowed_path_prefix'],'PROJECTS/666TDI/')
+        self.assertEqual(a['allowed_path_prefix'],'PROJECTS/KAIRON/')
         self.assertFalse(a['foreign_autoactivation'])
         self.assertFalse(a['registered_update_trigger'])
     def test_manifest(self):
         m=json.loads((ROOT/'transfer/SOURCE_MANIFEST.json').read_text('utf-8'))
-        self.assertEqual(len(m['source_files']),71)
+        self.assertEqual(len(m['source_files']),m['source_file_count'])
+        self.assertGreaterEqual(len(m['source_files']),71)
         for p,digest in m['source_files'].items():
             self.assertEqual(hashlib.sha256((ROOT/'source'/p).read_bytes()).hexdigest(),digest,p)
     def test_audio_optional(self):

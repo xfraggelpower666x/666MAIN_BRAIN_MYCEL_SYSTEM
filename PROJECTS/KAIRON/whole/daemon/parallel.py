@@ -12,7 +12,7 @@ def _scope(value):
     p = PurePosixPath(value)
     if p.is_absolute() or any(x in ('', '.', '..') for x in value.split('/')):
         raise ValueError('INVALID_SCOPE')
-    if p.parts[:2] != ('PROJECTS', '666TDI'):
+    if p.parts[:2] != ('PROJECTS', 'KAIRON'):
         raise ValueError('FOREIGN_SCOPE')
     return p.parts
 
