@@ -73,5 +73,23 @@
     "no_auto_dispatch": true,
     "completed_ids_require_verified_evidence": true,
     "host_acceptance": "OPEN"
+  },
+  "active_architecture_supervision": {
+    "revision": "R17",
+    "module": "whole/daemon/supervision.mjs",
+    "requires_actual_receipts": true,
+    "never_claim_release_from_receipts": true
+  },
+  "context_recovery": {
+    "revision": "R18",
+    "module": "whole/daemon/supervision.mjs",
+    "read_only": true,
+    "scope": "KAIRON_ONLY",
+    "source_reference": {
+      "repository": "xfraggelpower666x/LYVRA-Living-Yielding-Vibration-and-Resonance-Architecture",
+      "head": "63c045fd55ada6e1511222c2eded03ff4e1079c2",
+      "blob": "514d37d46b8fd98acea49ffcdaf9e5636e8a7061"
+    },
+    "no_foreign_activation": true
   }
 }

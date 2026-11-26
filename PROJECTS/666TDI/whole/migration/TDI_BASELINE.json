@@ -1,0 +1,620 @@
+{
+  "system_id": "666TDI-001",
+  "production_head": "9de79206d5946781609dffb1a9950287c320d692",
+  "candidate_base": "9e3fc350ad808e701e103105b8e9d654e5d79e1b",
+  "original_files": [
+    {
+      "path": "CURRENT_POINTER.json",
+      "sha": "7e41c723d3207bf55523773d86523f9566ac18bd"
+    },
+    {
+      "path": "README.md",
+      "sha": "0de8bbf314c7e82c5fd557e664e69d60217b5391"
+    },
+    {
+      "path": "facets/4c/CONTRACT.json",
+      "sha": "e5a1e31268434bcd3c0b8c6d084756182262af81"
+    },
+    {
+      "path": "facets/4c/README.md",
+      "sha": "756d3bd7b42a8040a2d4ed29e45eee98956e15e3"
+    },
+    {
+      "path": "facets/4c/evaluator.py",
+      "sha": "5304d4788da281d000bc78d8aa29f849057ffb24"
+    },
+    {
+      "path": "facets/4c/test_evaluator.py",
+      "sha": "004c5f05480ee1a187c4e88300d5a98a36ae3740"
+    },
+    {
+      "path": "facets/daemon/CONTRACT.json",
+      "sha": "2fcf116bb9c2592a73495394c61b3507b1031bee"
+    },
+    {
+      "path": "facets/semantic_presentation/CONTRACT.json",
+      "sha": "e86a61c875acad87aed95d727cdfbe6158cf936a"
+    },
+    {
+      "path": "facets/semantic_presentation/R01_ADAPTATION.md",
+      "sha": "5140b39e4b2d4ea9440f564b3823f1517d46f81d"
+    },
+    {
+      "path": "facets/semantic_presentation/adapter.py",
+      "sha": "f902728531074c4e79334295b92026e489b44989"
+    },
+    {
+      "path": "governance/AUDIO_MUSIC_ANALYSIS_OPTIONAL.json",
+      "sha": "840033e36869b065b7d775966786478756af7162"
+    },
+    {
+      "path": "governance/NATIVE_UPDATE_AUTHORITY.json",
+      "sha": "8984e45e49508ba58a3a298c7fe6a6289a28d732"
+    },
+    {
+      "path": "identity/CHARACTER.json",
+      "sha": "d7d30d40688908f525778f8d2dfbfab397b887f8"
+    },
+    {
+      "path": "inbox/CLIC-TO-666TDI-R11-20261122-01.json",
+      "sha": "b9dfe4a3e153dc494f3966e216787cbf8918c529"
+    },
+    {
+      "path": "livecircle/CURRENT_STATE.json",
+      "sha": "33baee74e65869272edcfff83ebaf94033b2a462"
+    },
+    {
+      "path": "native/R11_AUDIT.md",
+      "sha": "4231443bdefb129889e9dd3477a8306c2d677cbc"
+    },
+    {
+      "path": "native/R11_HEAD_DRIFT_FORCE_REPAIR_20261122.md",
+      "sha": "440e697df623a83a35e1ae632866c3d7e6cb16c1"
+    },
+    {
+      "path": "native/R11_VALIDATION.md",
+      "sha": "a03a2720ed21c1de928bee0b927a084c9e2bce40"
+    },
+    {
+      "path": "native/handoff_consumer.py",
+      "sha": "2df5ee28c06ce0209fb53544234bc0b0f488c89c"
+    },
+    {
+      "path": "native/musical_intelligence/CAPABILITY_MATRIX.json",
+      "sha": "bd6842ec0fa5f72710a512125b26a4e9eb735151"
+    },
+    {
+      "path": "native/musical_intelligence/CHAT_CONTEXT_AUDIT_R02.json",
+      "sha": "efe8185f3eba589746fd539cd3a46aa1632c136f"
+    },
+    {
+      "path": "native/musical_intelligence/CONTEXT_ISOLATION_REGRESSION_R07.json",
+      "sha": "d21f25946226964d89eaaf38f99584c4f4ecf1da"
+    },
+    {
+      "path": "native/musical_intelligence/CONTRACT.json",
+      "sha": "669972d67be88ce9b5b6cb6e467d715fcbbda3e0"
+    },
+    {
+      "path": "native/musical_intelligence/DARK_PSYCHEDELIC_PRODUCTION_GUARD_R05.json",
+      "sha": "6a92e3718db86ab27b75a501d38b05d48a2af739"
+    },
+    {
+      "path": "native/musical_intelligence/DIRECTED_CHAOS_CURIOSITY_PSYCHOACOUSTIC_FIELD_R09.json",
+      "sha": "2ecd7861730dc501c21f3650d71d1cdb918a26a5"
+    },
+    {
+      "path": "native/musical_intelligence/GENRE_FRONT_MOTOR_MID_HIGH_R10.json",
+      "sha": "4750e7cda4d5e4bf3bd360200b48597fb361cfe8"
+    },
+    {
+      "path": "native/musical_intelligence/GENRE_MOTOR_DJ_REGRESSION_R10.json",
+      "sha": "36d19a0d14164e8de3d19b022e6f75b4d4821991"
+    },
+    {
+      "path": "native/musical_intelligence/GPT_NATIVE_WORKFLOW.md",
+      "sha": "e8cd9a91d2bb86f959888a79e11f1ec67c6f027a"
+    },
+    {
+      "path": "native/musical_intelligence/GPT_NATIVE_WORKFLOW_R02.md",
+      "sha": "e2871184b3909f39502e19d58b9a4a9924ff5a3b"
+    },
+    {
+      "path": "native/musical_intelligence/GPT_NATIVE_WORKFLOW_R03.md",
+      "sha": "3f07ae9505cd311d3135907439ee901ebcec269f"
+    },
+    {
+      "path": "native/musical_intelligence/GPT_NATIVE_WORKFLOW_R04.md",
+      "sha": "b9a381c89d0376cbdfdfbdc7d7b9e2589ee77374"
+    },
+    {
+      "path": "native/musical_intelligence/GPT_NATIVE_WORKFLOW_R05.md",
+      "sha": "2ea953a9f97723214a6e43558e1908f449f3def2"
+    },
+    {
+      "path": "native/musical_intelligence/GPT_NATIVE_WORKFLOW_R06.md",
+      "sha": "efd704940a714a258ff6aa8334bd564e3142653c"
+    },
+    {
+      "path": "native/musical_intelligence/GPT_NATIVE_WORKFLOW_R07.md",
+      "sha": "da1fa85dd710d4346fb78c8eabda23c61b4f015c"
+    },
+    {
+      "path": "native/musical_intelligence/GPT_NATIVE_WORKFLOW_R08.md",
+      "sha": "93496f2fa7f89f8ec2068dfdaef64c52b37e32ef"
+    },
+    {
+      "path": "native/musical_intelligence/GPT_NATIVE_WORKFLOW_R09.md",
+      "sha": "dc379ae5c1dd486fef6fbc8eb596aca5298f3810"
+    },
+    {
+      "path": "native/musical_intelligence/GPT_NATIVE_WORKFLOW_R10.md",
+      "sha": "16643529462e8ad5b40660781ba75d1c60feb97a"
+    },
+    {
+      "path": "native/musical_intelligence/LYRICAL_INTELLIGENCE_R02.json",
+      "sha": "49e78c31226bb50339d90e079ec77a6657401254"
+    },
+    {
+      "path": "native/musical_intelligence/MUSICAL_FORCES_REGRESSION_R09.json",
+      "sha": "8cfcf32b7ec41c65785521d08e8c6faca62c1664"
+    },
+    {
+      "path": "native/musical_intelligence/PRODUCTION_QUALITY_ANTI_SAMENESS_R06.json",
+      "sha": "9a6170b412015191f7e58755f3e1a4e1ce81c4cb"
+    },
+    {
+      "path": "native/musical_intelligence/REGRESSION_GUARD.json",
+      "sha": "10106e5811accb5bcf0b474d1f745ca38e99e267"
+    },
+    {
+      "path": "native/musical_intelligence/RELATIONAL_POSSIBILITY_UNDERSTANDING_R08.json",
+      "sha": "1a0e127ebfb72ca28d543bdb7c60c446487d75cb"
+    },
+    {
+      "path": "native/musical_intelligence/RESEARCH_MATRIX.json",
+      "sha": "17ce732707e46524ff23a9f7c69ddfe6c2af909b"
+    },
+    {
+      "path": "native/musical_intelligence/RIDERS_AUDIO_EVIDENCE_R04.json",
+      "sha": "180f268b71ed919439b94b119c1997641bc3a6ec"
+    },
+    {
+      "path": "native/musical_intelligence/RIDERS_CREATOR_FEEDBACK_R03.json",
+      "sha": "b860f62d5182ded86aa448eca53ae079d5d156d2"
+    },
+    {
+      "path": "native/musical_intelligence/SEMANTIC_CREATIVE_INDEPENDENCE_R07.json",
+      "sha": "faf747ac5ec0f186965bdaf7627b540d545e70f1"
+    },
+    {
+      "path": "native/musical_intelligence/SEMANTIC_REINFORCEMENT_R03.json",
+      "sha": "ebb5ec8b2baa484a1703f825f643cbb171a18cee"
+    },
+    {
+      "path": "native/musical_intelligence/UNDERSTANDING_EVOLUTION_REGRESSION_R08.json",
+      "sha": "b7ab4977f1b75ea111bd34ca5898ee524cf0ab86"
+    },
+    {
+      "path": "native/requirements-audio.txt",
+      "sha": "5e18a9aaa9fcbdb65f2ce1a47cb08d17e6c2c387"
+    },
+    {
+      "path": "native/tests/test_handoff_consumer.py",
+      "sha": "f4d3f3c91c8af21a52083f21df708a5bba105623"
+    },
+    {
+      "path": "native/tests/test_semantic_presentation.py",
+      "sha": "3ec2ec03143185b542b41beda956fe7bef332fc3"
+    },
+    {
+      "path": "outbox/666CLIC/666TDI-TO-666CLIC-R11-20261122-01.json",
+      "sha": "f37865eb6984a9b1cffd5e98422b986f12f2de28"
+    },
+    {
+      "path": "rehydration/rehydrate.py",
+      "sha": "76b53f336b546d093ed45064062ddbfb24a370fc"
+    },
+    {
+      "path": "source/README.md",
+      "sha": "83577b17ef012ce50061118b5fd8382796ad2da2"
+    },
+    {
+      "path": "source/START_666TDI_DAEMON.bat",
+      "sha": "61bce2845dd3f8a45b48cc33c8d4e4c203c96219"
+    },
+    {
+      "path": "source/docs/ADDITIVE_MIGRATION_AUDIT_R03.md",
+      "sha": "815f542840d947c7b6751e6a0f039ed6528033d5"
+    },
+    {
+      "path": "source/docs/ARCHITECTURE.md",
+      "sha": "eefc724da84c45f03ee4fbddaabf2385489acf1d"
+    },
+    {
+      "path": "source/docs/ARCHIVE_CHECK_REPORT.json",
+      "sha": "cee744b811a1111861a5276e54ef26b12fb4c39f"
+    },
+    {
+      "path": "source/docs/CURRENT_PRESERVATION_READBACK.json",
+      "sha": "744d57b3515f3159e51d56e746fe8617b9a6bafd"
+    },
+    {
+      "path": "source/docs/FINAL_TEST_REPORT.txt",
+      "sha": "b499712aab82fa3da5fa79dc29f59e2db467cab3"
+    },
+    {
+      "path": "source/docs/IDENTITY_MIGRATION.md",
+      "sha": "bbafebb3e8bd461aadf422abe3447ae9501c5061"
+    },
+    {
+      "path": "source/docs/R04_BASELINE_PRESERVATION.json",
+      "sha": "4b7639f8c54c82634e429250c5a14ff9dc70fd68"
+    },
+    {
+      "path": "source/docs/R04_SOURCE_MAPPING.md",
+      "sha": "20700e56f4ecb8d3f75f04daa77b0156ccce8d82"
+    },
+    {
+      "path": "source/docs/R04_TEST_REPORT.txt",
+      "sha": "592165635b77bf6f548917333df566d6dee9d12f"
+    },
+    {
+      "path": "source/docs/R05_PRESERVATION_REPORT.json",
+      "sha": "dd23d99ce91c3b5459c4ce565c95d4c34349006b"
+    },
+    {
+      "path": "source/docs/R05_RELATIONAL_ENGINE_AUDIT.md",
+      "sha": "6e30a2aca9f72e4f42c479562f6b507d80ccd223"
+    },
+    {
+      "path": "source/docs/R06_INTAKE_AND_ADDON_AUDIT.md",
+      "sha": "d6c634d1f50b3f8443f938ccbdd876e34745320f"
+    },
+    {
+      "path": "source/docs/R06_PRESERVATION_READBACK.json",
+      "sha": "14b421f5f8987aa0a8053680a39d9d742d303238"
+    },
+    {
+      "path": "source/docs/R06_TEST_REPORT.txt",
+      "sha": "eb434f52d9591ffb8f08d84206dda490cb7f3bbd"
+    },
+    {
+      "path": "source/docs/R07_EXAMPLE_ASSESSMENT.json",
+      "sha": "d18fc202e7516bd88368448182a1b74cb0278083"
+    },
+    {
+      "path": "source/docs/R07_PRESERVATION_READBACK.json",
+      "sha": "d1b44f9a5542a84e30e397d04f9b9381b8160116"
+    },
+    {
+      "path": "source/docs/R07_RELATIONAL_PATTERN_AUDIT.md",
+      "sha": "5326d5f2bd52d0096f768d0a9df1742a4d997f7b"
+    },
+    {
+      "path": "source/docs/R07_TEST_REPORT.txt",
+      "sha": "2712ad26772e886b8cb9fe0ae619892e189f91f9"
+    },
+    {
+      "path": "source/docs/R08_CAUSAL_AUDIO_AUDIT.md",
+      "sha": "18a2e3c0789e84b64f1adcd7083127a19c31a2ed"
+    },
+    {
+      "path": "source/docs/R08_PRESERVATION_READBACK.json",
+      "sha": "3149fd99f7ed9453d01de722d1a05144d7d7c662"
+    },
+    {
+      "path": "source/docs/R09_SEMANTIC_MUSIC_INTELLIGENCE.md",
+      "sha": "df090482ead7e6f0d189d6037a33d4a0c2b5ce97"
+    },
+    {
+      "path": "source/docs/R10_CREATIVE_CAUSAL_EMERGENCE.md",
+      "sha": "e8b9806618902e98e12b1172659f90ade1d70b18"
+    },
+    {
+      "path": "source/docs/R11_VISUAL_DAEMON_IMPLEMENTATION.md",
+      "sha": "aaa3366f3b65407437c7254c23191aea3754a790"
+    },
+    {
+      "path": "source/docs/R12_TRACK_PREANALYSIS.md",
+      "sha": "f04896bbc3386759cfde14ea9758bfaae48c1eba"
+    },
+    {
+      "path": "source/docs/R13_DEVICE_INTELLIGENCE.md",
+      "sha": "aefeeeacd479e0da9cc017c074724eca6e804a05"
+    },
+    {
+      "path": "source/docs/R14_CREATOR_EVIDENCE_LEARNING.md",
+      "sha": "6f15a175cca3ba726dbf63fc5b542d024f24794f"
+    },
+    {
+      "path": "source/docs/R14_DAEMON_HTTP_AUDIT_REPAIR_20261123.md",
+      "sha": "8d3d2571ad3f7abedd47c6a46fa09f1a42f36559"
+    },
+    {
+      "path": "source/docs/SOURCE_AUDIT.md",
+      "sha": "1068b2c23fc75b7d0e75833a729f98e4f258a227"
+    },
+    {
+      "path": "source/docs/TEST_REPORT.md",
+      "sha": "b45cb0ecefdbfae88bf95cc3a2cb899e3b47a4ae"
+    },
+    {
+      "path": "source/engine/__init__.py",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "source/engine/audio_cli.py",
+      "sha": "c6389314c15ea39985de0d93fd19b2f41d7a58ed"
+    },
+    {
+      "path": "source/engine/audio_feedback.py",
+      "sha": "532838c15eec7a458dc27d22ad5499f3d5f2c90e"
+    },
+    {
+      "path": "source/engine/cli.py",
+      "sha": "b30ab81a6ac5f121d5081e7819a2c81122b3cbf9"
+    },
+    {
+      "path": "source/engine/creative_causal.py",
+      "sha": "bcfd39792e73ba55d06b2a096596978adde4ab48"
+    },
+    {
+      "path": "source/engine/creator_learning.py",
+      "sha": "a92914b9a508546139d42e02485bc8540d79ec65"
+    },
+    {
+      "path": "source/engine/daemon_cli.py",
+      "sha": "096ccc45e61b40ebf335a64db592ff0398229da6"
+    },
+    {
+      "path": "source/engine/daemon_static/index.html",
+      "sha": "4fd4cef446b8e6fae85f2b1be469fe938d755ee7"
+    },
+    {
+      "path": "source/engine/device_output.py",
+      "sha": "bc763216ec94f754ca173aa7da3d703dc94cc31e"
+    },
+    {
+      "path": "source/engine/evolution.py",
+      "sha": "9af80f2baab903448b95a7c7e48e7484519742df"
+    },
+    {
+      "path": "source/engine/evolution_cli.py",
+      "sha": "84457bc24727c3d45c8e923a8827baa8f656f7b3"
+    },
+    {
+      "path": "source/engine/heritage.py",
+      "sha": "6409cd48d9a7934cf6cdf14729f32e551124431d"
+    },
+    {
+      "path": "source/engine/heritage_cli.py",
+      "sha": "ce41c39b2547d7bb52c7b488a359749e83adf8fe"
+    },
+    {
+      "path": "source/engine/pattern_cli.py",
+      "sha": "b107ced6aad1662d41e72d449daa1a23c52be676"
+    },
+    {
+      "path": "source/engine/pattern_relations.py",
+      "sha": "a3784ed2d865a37ce597d992c3e171b5e04a1a70"
+    },
+    {
+      "path": "source/engine/portable.py",
+      "sha": "232ee182fcb5f661b88dd225bbdf49caf857fd20"
+    },
+    {
+      "path": "source/engine/relational.py",
+      "sha": "7f925ae98b39144aace30baad8f450b3f634741e"
+    },
+    {
+      "path": "source/engine/relational_cli.py",
+      "sha": "9ef64ca9cdb6867e02828b3d4b912332fc24ffda"
+    },
+    {
+      "path": "source/engine/semantic_cli.py",
+      "sha": "c8bd3eb537027cccf453073ab554e38673c14d0d"
+    },
+    {
+      "path": "source/engine/semantic_intelligence.py",
+      "sha": "51cbcd4cc26dd44425eccfcee1984935c624988f"
+    },
+    {
+      "path": "source/engine/source_adapters.py",
+      "sha": "aa0e75d6ff83ec1bb5e0b86e7d976724027332c0"
+    },
+    {
+      "path": "source/engine/source_cli.py",
+      "sha": "c05864844614cb9f2edd20106895c46e859990b8"
+    },
+    {
+      "path": "source/engine/track_preanalysis.py",
+      "sha": "3baa17192a8241ebca7dc202de06b30a6a4a45e4"
+    },
+    {
+      "path": "source/examples/intent.json",
+      "sha": "8ea7d4c97f1b20af1274648cf8d81ea9168c89a1"
+    },
+    {
+      "path": "source/legacy_r01/README.md",
+      "sha": "8d57c2551a3c2c6fbe2ff525f981cfbe668ec0ee"
+    },
+    {
+      "path": "source/legacy_r01/docs/QUELLEN_UND_GRENZEN.md",
+      "sha": "302c6e0a242053f29d4d4e2ec6f0dbda69df8aa7"
+    },
+    {
+      "path": "source/legacy_r01/examples/intent.json",
+      "sha": "3a948394dcd20673d5281016fc9ee24b7f3c5721"
+    },
+    {
+      "path": "source/legacy_r01/examples/lyria_output.json",
+      "sha": "efb7ab63ff70b870feb96305c099fa56b8252ac4"
+    },
+    {
+      "path": "source/legacy_r01/src/music_arch.py",
+      "sha": "839744e15a89ab96cd480673d7f6d0f1d6c24504"
+    },
+    {
+      "path": "source/legacy_r01/tests/test_arch.py",
+      "sha": "9c8a904b482bbf293ebe41df071922307dc6cb75"
+    },
+    {
+      "path": "source/registry/additive_modules.json",
+      "sha": "9e556063ca89ae78f34320eec8e7d4f296f1d109"
+    },
+    {
+      "path": "source/registry/identity_current.json",
+      "sha": "4e95f66309ff20034004a2ddca77177bc1c5a2ac"
+    },
+    {
+      "path": "source/registry/r04_intake_inventory.json",
+      "sha": "4a194a4be25a978b419abbbb1e1b728e171c3132"
+    },
+    {
+      "path": "source/registry/r06_intake_inventory.json",
+      "sha": "abf58b9d181c69efe22b900e14102a95b617b688"
+    },
+    {
+      "path": "source/registry/r06_music_candidates.json",
+      "sha": "956b7d725c18bdd5078f0488518739b359f4a043"
+    },
+    {
+      "path": "source/registry/source_registry.json",
+      "sha": "15a8eb5ede6077e001e9b394a1de4c37cbecaa56"
+    },
+    {
+      "path": "source/registry/triggers.json",
+      "sha": "498f452996a9ffac59bb683cbfc718e685ea4d6e"
+    },
+    {
+      "path": "source/registry/upload_evidence_sha256.json",
+      "sha": "0d2a5082543762a3f6b56205cf270e55f6766a0d"
+    },
+    {
+      "path": "source/runtime/R03_HANDOFF.md",
+      "sha": "db4a3931b946616f688473d9b0fabdc9c24c0324"
+    },
+    {
+      "path": "source/runtime/R04_HANDOFF.md",
+      "sha": "660fc25187aadec4dddcc409917f7863014f9dae"
+    },
+    {
+      "path": "source/runtime/R05_HANDOFF.md",
+      "sha": "5c357dd7704ee0a89f339590e72cac6a0c81381c"
+    },
+    {
+      "path": "source/runtime/R06_HANDOFF.md",
+      "sha": "c28af4d43fff41080430c025daa7d7fcd91cd6d5"
+    },
+    {
+      "path": "source/runtime/R07_HANDOFF.md",
+      "sha": "6e7b956745a77b17da850fdc4c89f53384599a83"
+    },
+    {
+      "path": "source/runtime/R08_HANDOFF.md",
+      "sha": "f12c2e9b1a3f0fa9b2d92043ac86ba3728695aa7"
+    },
+    {
+      "path": "source/runtime/character.json",
+      "sha": "d7d30d40688908f525778f8d2dfbfab397b887f8"
+    },
+    {
+      "path": "source/runtime/compiled/track-72c377757ffe--lyria2_asg.json",
+      "sha": "d18937ffa29830a52ba176dac628a646c3cc9018"
+    },
+    {
+      "path": "source/runtime/handoff.json",
+      "sha": "905b616b1145f32732750744f4b484185c8e7c1e"
+    },
+    {
+      "path": "source/runtime/livecircle.json",
+      "sha": "33baee74e65869272edcfff83ebaf94033b2a462"
+    },
+    {
+      "path": "source/runtime/tracks/track-72c377757ffe.json",
+      "sha": "7dc6bd67db002fbf0be246598a3ea3a206c05531"
+    },
+    {
+      "path": "source/tests/test_audio_feedback.py",
+      "sha": "ae2672251e7f6d3de24bab36e2942cbc37dd704a"
+    },
+    {
+      "path": "source/tests/test_creative_causal.py",
+      "sha": "69cc2a5dd947c4d21e77e580ed05f49e4e36b422"
+    },
+    {
+      "path": "source/tests/test_creator_learning.py",
+      "sha": "6d44c7e9ea317257c8fb7e9d7ce3cc5fc3ab37e6"
+    },
+    {
+      "path": "source/tests/test_daemon.py",
+      "sha": "97dd83233a2633c1596a15e711c6f184da31852b"
+    },
+    {
+      "path": "source/tests/test_daemon_http_guard.py",
+      "sha": "70f15d8d98b3b3a6c458ba10a76b418916b8a9b6"
+    },
+    {
+      "path": "source/tests/test_device_output.py",
+      "sha": "52db625ac478b67eb398cfdc3b865e08c6af2a04"
+    },
+    {
+      "path": "source/tests/test_evolution.py",
+      "sha": "c5f8a535be1bdd850244e2d618a6e707c1626689"
+    },
+    {
+      "path": "source/tests/test_heritage.py",
+      "sha": "72faaeb3d53bb56cdc6be5d2bae1e61cc07a31a7"
+    },
+    {
+      "path": "source/tests/test_pattern_relations.py",
+      "sha": "7f289e3ef1febcdaacf1d2f12e9543fc739572a3"
+    },
+    {
+      "path": "source/tests/test_portable.py",
+      "sha": "a9bbcdbadea37a1f398a81355d18b1e8b8760438"
+    },
+    {
+      "path": "source/tests/test_relational.py",
+      "sha": "22be73ad772f12074861238b94a798719364983c"
+    },
+    {
+      "path": "source/tests/test_semantic_intelligence.py",
+      "sha": "f75689c91ecd3830e33e29257197c734b8dcb7a9"
+    },
+    {
+      "path": "source/tests/test_source_adapters.py",
+      "sha": "c57286fac4eb21b4abca8d00c6febd3c4edb541f"
+    },
+    {
+      "path": "source/tests/test_track_preanalysis.py",
+      "sha": "e4e59f6a4739ee4020efa39c7ba826b32681564d"
+    },
+    {
+      "path": "transfer/BASELINE_ANCHOR.json",
+      "sha": "f4cd4943012c6f17dc30be638e88268dde438679"
+    },
+    {
+      "path": "transfer/EXPECTED_CORE_SHA256.json",
+      "sha": "fed5a00260ec317ef8c257ce68212bddf62f4b55"
+    },
+    {
+      "path": "transfer/R08_UPDATE_PROGRESS.json",
+      "sha": "676457e6ef83da6c6163d8db373adb59271fff41"
+    },
+    {
+      "path": "transfer/SOURCE_MANIFEST.json",
+      "sha": "5cc2de3d6371b81b99e20ae2bc000b7efea6e506"
+    },
+    {
+      "path": "triggers/TRIGGER_REGISTRY.json",
+      "sha": "4c5f514563172f029a6904947be9d2e9da77f5e8"
+    }
+  ],
+  "count": 152,
+  "original_missing": 0,
+  "original_changed": 0,
+  "scope": "BLOB_PARITY_NOT_RUNTIME",
+  "production_pointer_unchanged": true
+}

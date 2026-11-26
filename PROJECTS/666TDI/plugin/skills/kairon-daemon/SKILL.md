@@ -7,3 +7,6 @@ Read the authorized current pointer and whole/daemon/CONTRACT.json, whole/visual
 
 ## R16 Maximum parallel deployment
 For every relevant process, resolve independent workstreams, dependencies, read/write scopes, permission and evidence. Use whole/daemon/parallel.py where an authorized Python runtime exists; otherwise derive a clearly labeled plan without claiming execution. Offer selectable alternatives for deep evolution, repair/regression, creative exploration, integration/freeze. Combine maximum safe parallel work by default; keep integration barriers and pointer-last serial. Dispatch only via existing authorized tools and direct task scope. Report actual receipts separately from plans. Never infer completed dependencies from a proposed wave.
+
+## R17/R18
+Apply kairon-active-architecture-supervision and kairon-context-recovery in every relevant process. Distinguish actual receipts from proposed work. Keep context recovery read-only; use authorized update flow for repairs.

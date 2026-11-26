@@ -33,10 +33,19 @@
     "KAIRON AUDIT",
     "KAIRON MUSIC MEMORY",
     "KAIRON MUSIC ANALYTICS",
-    "KAIRON VISUAL"
+    "KAIRON VISUAL",
+    "KAIRON VORNE",
+    "KAIRON FUCK HORST"
   ],
   "chat_trigger_installation": "NOT_INSTALLED",
   "scope": "ONLY_KAIRON",
   "foreign_triggers_in_sources_inert": true,
-  "legacy_namespace": "HISTORICAL_ONLY_AFTER_CUTOVER"
+  "legacy_namespace": "HISTORICAL_ONLY_AFTER_CUTOVER",
+  "contextual_aliases": {
+    "FUCK HORST": {
+      "requires_active_namespace": "KAIRON",
+      "direct_only": true,
+      "ambiguous": "NO_ACTIVATION"
+    }
+  }
 }
