@@ -21,6 +21,11 @@ jobs:
         with:
           persist-credentials: false
           sparse-checkout: PROJECTS/KAIRON
+      - name: Install declared audio test dependencies
+        run: |
+          python3 -m venv "$RUNNER_TEMP/kairon-venv"
+          "$RUNNER_TEMP/kairon-venv/bin/python" -m pip install -r PROJECTS/KAIRON/native/requirements-audio.txt
+          echo "$RUNNER_TEMP/kairon-venv/bin" >> "$GITHUB_PATH"
       - name: Native source regression (nonzero test count)
         working-directory: PROJECTS/KAIRON/source
         run: |
@@ -35,6 +40,7 @@ jobs:
           raise SystemExit(0 if result.wasSuccessful() and result.testsRun else 1)
           PY
       - name: Whole daemon regression (nonzero test count)
+        if: always()
         working-directory: PROJECTS/KAIRON/whole/daemon
         run: |
           python3 - <<'PY'
