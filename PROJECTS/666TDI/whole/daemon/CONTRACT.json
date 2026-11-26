@@ -1,0 +1,59 @@
+{
+  "system_id": "666TDI-001",
+  "active_name": "KAIRON",
+  "revision": "R13",
+  "role": "GUIDANCE_AND_CONTINUITY",
+  "authority": "CREATOR_AND_NATIVE_GOVERNANCE",
+  "no_independent_execution": true,
+  "scope": "WORKSPACE_AND_LINEAGE",
+  "existing_music_adapter": "facets/daemon/CONTRACT.json",
+  "adapters": {
+    "identity": {
+      "trigger": "KAIRON CHARAKTER",
+      "requires_current_evidence": true
+    },
+    "track": {
+      "trigger": "KAIRON TRACKDESIGN",
+      "requires_current_evidence": true
+    },
+    "analytics": {
+      "trigger": "KAIRON MUSIC ANALYTICS",
+      "requires_current_evidence": true
+    },
+    "memory": {
+      "trigger": "KAIRON MUSIC MEMORY",
+      "requires_current_evidence": true
+    },
+    "continuity": {
+      "trigger": "KAIRON LIVECIRCLE",
+      "requires_current_evidence": true
+    },
+    "codeforge": {
+      "trigger": "KAIRON CODEFORGE",
+      "requires_current_evidence": true
+    },
+    "supercodeforge": {
+      "trigger": "KAIRON SUPERCODEFORGE",
+      "requires_current_evidence": true
+    },
+    "audit": {
+      "trigger": "KAIRON AUDIT",
+      "requires_current_evidence": true
+    },
+    "development": {
+      "trigger": "KAIRON UPDATE",
+      "requires_current_evidence": true
+    }
+  },
+  "required_state": [
+    "workspace",
+    "lineage",
+    "facet",
+    "last_verified_step",
+    "open_gates",
+    "next_action"
+  ],
+  "no_global_active_state": true,
+  "missing_evidence": "PARTIAL",
+  "status": "CANDIDATE_SOURCE"
+}
