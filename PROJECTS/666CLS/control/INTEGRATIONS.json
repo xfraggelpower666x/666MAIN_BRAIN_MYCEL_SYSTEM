@@ -38,7 +38,7 @@
         }
       },
       "sha256": {
-        "runtime/cls_livecircle.py": "a0559a0efee682b962bbaa813676d17a0e0d4c7afae5510cffe658a86f55321c",
+        "runtime/cls_livecircle.py": "98cbedb93c491490c52ee5d2d20790ce4b62f1111f9d2533cf75b7ab41e284d3",
         "tests/test_livecircle.py": "fde66dd744115be0e0f4a2c4eb97409f3b8d910396c56c4d0da14e09b5fc0134",
         "skills/cls-release/SKILL.md": "02a1fc4485f207d8ab2725b6de8c3e232c05a5f5410d4db6ffb04b1ddd473160",
         "README.md": "2bb10ac984a4fbbf1c7dcc442bddb917b617735b3170a04c199e5cc2692891e8",
@@ -151,6 +151,21 @@
       "sha256": {
         "facets/cures/CLS_REFERENCE_INTERFACE_R08.json": "9984321120f409257d0da2418290de5109c64cc98ba5e9063dd3450857a5dddf",
         "facets/cures/R08_REFERENCE_ACCEPTANCE_20261123.json": "978d91f1dfda4a96c52d5e69c67eb69ce96ca375e66d13f5f9378323ae9aeff9"
+      }
+    },
+    {
+      "name": "666CLS R09 Isolated Source Checkpoint",
+      "role": "NATIVE_READ_ONLY_MANIFEST_AND_BOUNDARY_VERIFICATION",
+      "scope": "CLS_OWNED_SOURCE_EVIDENCE_NOT_PFS_NATIVE_RUNTIME",
+      "source": {
+        "original_runtime_preserved": true,
+        "checkpoint": "CURES_R08_ISOLATED_FULL_SOURCE_20261125",
+        "foreign_native_authority": "UNCHANGED",
+        "candidate_execution": false
+      },
+      "sha256": {
+        "runtime/cls_source_checkpoint.py": "21a9aa095b94ace04779852bcaac9edef17eefee98a308a39cb48271dedb036e",
+        "tests/test_cls_source_checkpoint.py": "687b6e4d587118ace05f2dcf6d148a93ae6f147d89195385f061389aade2a7be"
       }
     }
   ]
