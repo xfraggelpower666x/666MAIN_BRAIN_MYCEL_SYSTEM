@@ -152,9 +152,12 @@ function EnsureDependencies {
  EnsurePythonBuilder
 }
 function CheckRuntime{
+ $expected=@{ 'ffmpeg.exe'='1a65d5b0b10d8d9a81d2824a3538046a40ed3607c906b335a166add87613f705'; 'ffprobe.exe'='54b944d6095c4588d7548424d7acd5118390a9d4f01b1c92f841547fc9a7429c' }
  foreach($name in @('ffmpeg.exe','ffprobe.exe')){
   $binary=Join-Path $root "tools/ffmpeg/$name"
   if(-not (Test-Path $binary)){throw "Missing bundled tool: $name"}
+  $actual=(Get-FileHash -LiteralPath $binary -Algorithm SHA256).Hash.ToLowerInvariant()
+  if($actual -ne $expected[$name]){throw "Original binary SHA256 mismatch for $name; do not package unverified bytes"}
   & $binary -version | Select-Object -First 1
   if($LASTEXITCODE -ne 0){throw "$name failed to start"}
  }
