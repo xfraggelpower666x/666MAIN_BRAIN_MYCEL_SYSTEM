@@ -146,5 +146,23 @@
     "WINDOWS_PACKAGING",
     "WINDOWS_EXE",
     "WINDOWS_CONSUMER_INTEGRATION"
-  ]
+  ],
+  "automatic_host_oversteer_watchdog": {
+    "revision": "R20.6",
+    "mode": "AUTO_FUCK_HORST",
+    "module": "whole/daemon/development_watchdog.py",
+    "guidance": "whole/daemon/guidance.py",
+    "tests": [
+      "whole/daemon/test_development_watchdog.py",
+      "whole/daemon/test_guidance_watchdog.py"
+    ],
+    "minimum_repeated_nonbuild_steps": 3,
+    "requires_trusted_receipts_for_build_claims": true,
+    "blocks_repeated_planning_without_source_evidence": "ADVISORY_ESCALATION",
+    "automatic_detection_on_guidance_call": true,
+    "automatic_host_interception": false,
+    "auto_dispatch": false,
+    "production_promotion": false,
+    "legacy_direct_fuck_horst_preserved": true
+  }
 }

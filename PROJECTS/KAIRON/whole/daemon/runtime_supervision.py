@@ -14,12 +14,13 @@ BASE = 'f95229f549196522142e1b59a83c7d3d9a64ae6d'
 TESTED = '2f374738359feaff564e73fd90c5b52766b26529'
 ROOT = Path(__file__).resolve().parents[2]
 PINS = {
-    'whole/daemon/CONTRACT.json': '59b0158e643e6266b30628bd551fdbe7b60d9b84',
+    'whole/daemon/CONTRACT.json': 'ae52024b5abce436dac0cd5721b504869a24fb96',
     'whole/daemon/supervision.mjs': '10156e77995a5b015640c6f7709399800381b9ba',
-    'whole/daemon/guidance.py': 'b11de07254e60fc5f9787766deda763394b41c04',
+    'whole/daemon/guidance.py': '594de3184b718d49f137904ada2451dffb1569c0',
     'whole/daemon/connector_runtime.py': '4c752b6a3b8be6e604834da4d9ba32b3e1242d1c',
     'whole/daemon/execution_trust.py': 'e09ffca2c18e1c4aa1f5dbb659163340989cf062',
     'whole/daemon/execution_bridge.py': '5441a8baccbb61a0211002bb5a01b3381e108c1f',
+    'whole/daemon/development_watchdog.py': '8616815f8f8639a247d01033cb49ec8523804430',
     'whole/visual/MENU.json': '4e9693337ad06c514206211224503cd7303e6b8f',
 }
 SUITES = {'source/tests/test_creative_causal.py': 9,
@@ -92,7 +93,7 @@ def run(snapshot, state, *, trusted_base, execute=False, test='source/tests/test
         local['open_gates'].append('NATIVE_REGRESSION')
     local['last_verified_step'] = {'evidence_ref':ref} if passed else None
     local['next_action'] = None
-    view = guidance(local, root=ROOT)
+    view = guidance(local, root=ROOT, trusted_receipts=receipts)
     return {'revision':'R19.7','status':'CANDIDATE_REGRESSION_VERIFIED' if passed else 'REGRESSION_FAILED',
             'integration_base':BASE,'tested_commit':TESTED,'receipt_ref':ref,'execution':result,
             'supervision':js,'guidance':view,'release_authorized':False,'production_promotion':False,

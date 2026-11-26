@@ -1,8 +1,9 @@
 """KAIRON shared read-only guidance; never dispatches actions."""
 import json
 from pathlib import Path
+from development_watchdog import evaluate
 ROOT=Path(__file__).resolve().parents[2]
-def guidance(state, root=ROOT):
+def guidance(state, root=ROOT, *, trusted_receipts=()):
     menu=json.loads((root/'whole/visual/MENU.json').read_text(encoding='utf-8'))
     contract=json.loads((root/'whole/daemon/CONTRACT.json').read_text(encoding='utf-8'))
     if not isinstance(state,dict): raise ValueError('INVALID_STATE')
@@ -20,4 +21,14 @@ def guidance(state, root=ROOT):
     blocking = [g for g in gates if not isinstance(g,str) or g not in optional] if isinstance(gates,list) else []
     deferred = [g for g in gates if isinstance(g,str) and g in optional] if isinstance(gates,list) else []
     ready=not missing and not blocking
-    return {'system_id':contract['system_id'],'name':'KAIRON','status':'GUIDANCE_READY' if ready else 'PARTIAL','missing':missing,'open_gates':gates if isinstance(gates,list) else [],'blocking_gates':blocking,'optional_windows_gates':deferred,'menu':menu['menu'],'next_action':state.get('next_action') if ready else None,'dispatch_performed':False,'evidence_independently_verified':False}
+    # Auto-Beobachtung ist ausschließlich beratend und nie eine Freigabe.
+    # Aktive Ausführungsbelege dürfen nur vom Aufrufer der geprüften Runtime kommen.
+    watchdog=evaluate(state.get('development_history', []),system_id=state['system_id'],
+                      active_namespace=state.get('active_namespace','KAIRON'),
+                      trusted_receipts=trusted_receipts,current_task=state.get('current_task'))
+    return {'system_id':contract['system_id'],'name':'KAIRON','status':'GUIDANCE_READY' if ready else 'PARTIAL',
+            'missing':missing,'open_gates':gates if isinstance(gates,list) else [],
+            'blocking_gates':blocking,'optional_windows_gates':deferred,'menu':menu['menu'],
+            'next_action':state.get('next_action') if ready else None,
+            'development_watchdog':watchdog,'dispatch_performed':False,
+            'evidence_independently_verified':False}
