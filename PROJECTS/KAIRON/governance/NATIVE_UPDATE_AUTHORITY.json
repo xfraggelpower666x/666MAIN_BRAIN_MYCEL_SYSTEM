@@ -19,7 +19,7 @@
   "host_pass_claimed": false,
   "scope": "ONLY_KAIRON_CANDIDATE",
   "consumer": "native/handoff_consumer.py",
-  "approved_action": "R19.2_ACTIVE_CONSUMER_MIGRATION",
+  "approved_action": "R20_5_NATIVE_FRAMEWORK_RESTORATION",
   "additional_authorization": {
     "source": "DIRECT_USER_FORCE_REPAIR_2026-11-22",
     "scope": "PROJECTS/666TDI/native/handoff_consumer.py;PROJECTS/666TDI/native/tests/test_handoff_consumer.py;PROJECTS/666TDI/governance/NATIVE_UPDATE_AUTHORITY.json;PROJECTS/666TDI/CURRENT_POINTER.json",
@@ -253,5 +253,21 @@
     "scope": "ONLY_666TDI",
     "approved_action": "R11_NATIVE_ADOPTION_AND_TDI03_OPTIONAL_AUDIO_FIX;FORCE_REPAIR_R11_HEAD_DRIFT_ONLY"
   },
-  "production_promotion": false
+  "production_promotion": false,
+  "native_framework_priority": {
+    "revision": "R20.5",
+    "identity_authority": "KAIRON",
+    "system_id": "666TDI-001",
+    "framework": "NATIVE_CHATGPT_FRAMEWORK",
+    "repository_authority": "GITHUB_REPOSITORY",
+    "plugin_native_identity": "666TDI-001",
+    "native_plugin_count": 1,
+    "plugin_role": "NATIVE_FRAMEWORK_SURFACE",
+    "windows_role": "OPTIONAL_BONUS",
+    "windows_blocks_native_development": false,
+    "windows_blocks_native_release": false,
+    "windows_own_release_gates_preserved": true,
+    "developer_no_cross_system_merge": true,
+    "production_promotion": false
+  }
 }

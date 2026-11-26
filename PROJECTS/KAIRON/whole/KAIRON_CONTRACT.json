@@ -5,8 +5,7 @@
   "authority": "ONE_NATIVE_CORE",
   "surfaces": [
     "CHAT",
-    "PLUGIN",
-    "WINDOWS"
+    "PLUGIN"
   ],
   "capabilities": [
     "IDENTITY_CHARACTER",
@@ -31,10 +30,43 @@
   ],
   "cutover_requires": [
     "full path and source manifest migration",
-    "all native consumers updated",
+    "native Chat and single Plugin compatibility reviewed",
     "plugin guarded release and readback",
-    "Windows regression",
     "pointer-last publication"
   ],
-  "no_foreign_writes": true
+  "no_foreign_writes": true,
+  "optional_surfaces": [
+    "WINDOWS"
+  ],
+  "native_framework_priority": {
+    "revision": "R20.5",
+    "identity_authority": "KAIRON",
+    "system_id": "666TDI-001",
+    "framework": "NATIVE_CHATGPT_FRAMEWORK",
+    "repository_authority": "GITHUB_REPOSITORY",
+    "plugin_native_identity": "666TDI-001",
+    "native_plugin_count": 1,
+    "plugin_role": "NATIVE_FRAMEWORK_SURFACE",
+    "windows_role": "OPTIONAL_BONUS",
+    "windows_blocks_native_development": false,
+    "windows_blocks_native_release": false,
+    "windows_own_release_gates_preserved": true,
+    "developer_no_cross_system_merge": true,
+    "production_promotion": false
+  },
+  "lifecycle": [
+    "LAB",
+    "DEV",
+    "RELEASE_CANDIDATE",
+    "CURRENT"
+  ],
+  "plugin_release_production_requires": [
+    "verified native current",
+    "plugin release readback",
+    "plugin host acceptance for plugin promotion"
+  ],
+  "windows_release_requires": [
+    "Windows regression",
+    "Windows packaging and host acceptance"
+  ]
 }

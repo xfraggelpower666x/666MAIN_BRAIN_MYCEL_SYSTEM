@@ -4,8 +4,7 @@
   "revision": "R12",
   "required_surfaces": [
     "CHAT",
-    "PLUGIN",
-    "WINDOWS"
+    "PLUGIN"
   ],
   "menu": [
     {
@@ -51,5 +50,8 @@
   "show_evidence": true,
   "show_return_anchor": true,
   "legacy_visual_contract": "facets/semantic_presentation/CONTRACT.json",
-  "status": "CANDIDATE_SOURCE"
+  "status": "CANDIDATE_SOURCE",
+  "optional_surfaces": [
+    "WINDOWS"
+  ]
 }

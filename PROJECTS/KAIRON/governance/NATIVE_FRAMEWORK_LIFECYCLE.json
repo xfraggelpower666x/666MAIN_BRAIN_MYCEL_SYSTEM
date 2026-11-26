@@ -1,0 +1,59 @@
+{
+  "system_id": "666TDI-001",
+  "name": "KAIRON",
+  "revision": "R20.5",
+  "authority": "KAIRON_NATIVE_CHATGPT_FRAMEWORK",
+  "source_of_truth": {
+    "repository": "xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM",
+    "branch": "integration/kairon-r19-native-20261126",
+    "path": "PROJECTS/KAIRON/",
+    "state": "STAGED_CANDIDATE_NOT_PRODUCTIVE"
+  },
+  "native_surfaces": [
+    "CHAT",
+    "PLUGIN"
+  ],
+  "native_plugin_count": 1,
+  "windows": {
+    "role": "OPTIONAL_BONUS",
+    "native_release_gate": false,
+    "source_preservation": true,
+    "independent_windows_acceptance": true
+  },
+  "lifecycle": {
+    "states": [
+      "LAB",
+      "DEV",
+      "RELEASE_CANDIDATE",
+      "CURRENT"
+    ],
+    "direct_lab_to_current": false,
+    "promotion_requires": [
+      "structural_validation",
+      "causal_semantic_validation",
+      "fresh_rehydration",
+      "recovery_check",
+      "commit_readback"
+    ]
+  },
+  "continuity": {
+    "present_self": "repository verified current only",
+    "active_past": "LiveCircle, Git history, creator evidence, checkpoints",
+    "deep_past": "historical backups and chats as evidence only",
+    "silent_development_loss": false,
+    "backup_promotes_to_current": false
+  },
+  "plugin": {
+    "role": "SAME_NATIVE_IDENTITY_ONE_PLUGIN",
+    "plugin_manifest": "plugin/plugin.json",
+    "release_binding": "plugin/release-binding.json",
+    "host_acceptance": "OPEN",
+    "no_automatic_release": true
+  },
+  "safety": {
+    "no_foreign_activation": true,
+    "no_cross_system_merge": true,
+    "no_production_promotion": true,
+    "pointer_last": true
+  }
+}

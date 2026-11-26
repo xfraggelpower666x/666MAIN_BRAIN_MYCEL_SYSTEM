@@ -14,13 +14,13 @@ BASE = 'f95229f549196522142e1b59a83c7d3d9a64ae6d'
 TESTED = '2f374738359feaff564e73fd90c5b52766b26529'
 ROOT = Path(__file__).resolve().parents[2]
 PINS = {
-    'whole/daemon/CONTRACT.json': '4df47fdd3818f1de2117407b38a3e219f919cdd7',
+    'whole/daemon/CONTRACT.json': '59b0158e643e6266b30628bd551fdbe7b60d9b84',
     'whole/daemon/supervision.mjs': '10156e77995a5b015640c6f7709399800381b9ba',
-    'whole/daemon/guidance.py': '3050c782948443a639950b92d7c39c2f18ed2a72',
+    'whole/daemon/guidance.py': 'b11de07254e60fc5f9787766deda763394b41c04',
     'whole/daemon/connector_runtime.py': '4c752b6a3b8be6e604834da4d9ba32b3e1242d1c',
     'whole/daemon/execution_trust.py': 'e09ffca2c18e1c4aa1f5dbb659163340989cf062',
     'whole/daemon/execution_bridge.py': '5441a8baccbb61a0211002bb5a01b3381e108c1f',
-    'whole/visual/MENU.json': '312957d2b1ad2f00f1a6abfe15314743701af1bc',
+    'whole/visual/MENU.json': '4e9693337ad06c514206211224503cd7303e6b8f',
 }
 SUITES = {'source/tests/test_creative_causal.py': 9,
           'source/tests/test_semantic_intelligence.py': 12}

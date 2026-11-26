@@ -268,5 +268,14 @@
       "no_global_learning": true,
       "explicit_evidence_root_required": true
     }
+  },
+  "native_framework_priority_r205": {
+    "system_id": "666TDI-001",
+    "identity_authority": "KAIRON",
+    "native_plugin_count": 1,
+    "plugin_role": "NATIVE_FRAMEWORK_SURFACE",
+    "windows_role": "OPTIONAL_BONUS",
+    "status": "CANDIDATE_POLICY",
+    "source": "whole/KAIRON_CONTRACT.json"
   }
 }

@@ -121,5 +121,30 @@
     "production_promotion": false,
     "host_acceptance": "OPEN",
     "native_current": "WITHHELD"
-  }
+  },
+  "native_framework_priority": {
+    "revision": "R20.5",
+    "identity_authority": "KAIRON",
+    "system_id": "666TDI-001",
+    "framework": "NATIVE_CHATGPT_FRAMEWORK",
+    "repository_authority": "GITHUB_REPOSITORY",
+    "plugin_native_identity": "666TDI-001",
+    "native_plugin_count": 1,
+    "plugin_role": "NATIVE_FRAMEWORK_SURFACE",
+    "windows_role": "OPTIONAL_BONUS",
+    "windows_blocks_native_development": false,
+    "windows_blocks_native_release": false,
+    "windows_own_release_gates_preserved": true,
+    "developer_no_cross_system_merge": true,
+    "production_promotion": false
+  },
+  "optional_windows_gates": [
+    "WINDOWS_BUILD",
+    "WINDOWS_PARITY",
+    "WINDOWS_HOST_ACCEPTANCE",
+    "WINDOWS_REGRESSION",
+    "WINDOWS_PACKAGING",
+    "WINDOWS_EXE",
+    "WINDOWS_CONSUMER_INTEGRATION"
+  ]
 }

@@ -15,5 +15,9 @@ def guidance(state, root=ROOT):
     if not isinstance(step,dict) or not step.get('evidence_ref'): missing.append('step_evidence')
     gates=state.get('open_gates')
     if not isinstance(gates,list): missing.append('open_gates_type')
-    ready=not missing and not gates
-    return {'system_id':contract['system_id'],'name':'KAIRON','status':'GUIDANCE_READY' if ready else 'PARTIAL','missing':missing,'open_gates':gates if isinstance(gates,list) else [],'menu':menu['menu'],'next_action':state.get('next_action') if ready else None,'dispatch_performed':False,'evidence_independently_verified':False}
+    optional = set(contract.get('optional_windows_gates', []))
+    # Nur registrierte Windows-Gates sind optional; alle anderen blockieren weiter.
+    blocking = [g for g in gates if not isinstance(g,str) or g not in optional] if isinstance(gates,list) else []
+    deferred = [g for g in gates if isinstance(g,str) and g in optional] if isinstance(gates,list) else []
+    ready=not missing and not blocking
+    return {'system_id':contract['system_id'],'name':'KAIRON','status':'GUIDANCE_READY' if ready else 'PARTIAL','missing':missing,'open_gates':gates if isinstance(gates,list) else [],'blocking_gates':blocking,'optional_windows_gates':deferred,'menu':menu['menu'],'next_action':state.get('next_action') if ready else None,'dispatch_performed':False,'evidence_independently_verified':False}
