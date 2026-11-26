@@ -13,12 +13,12 @@ class ParityTests(unittest.TestCase):
         self.addCleanup(self.tmp.cleanup)
         self.identity={'system_id':'666TDI-001'}
         self.put('identity/CHARACTER.json',dict(self.identity,pronoun_de='er'))
-        self.put('triggers/TRIGGER_REGISTRY.json',dict(self.identity,direct_chat_triggers=['666TDI STATUS']))
+        self.put('triggers/TRIGGER_REGISTRY.json',dict(self.identity,direct_chat_triggers=['KAIRON STATUS']))
         e={'seq':1,'prev_hash':'GENESIS','kind':'TEST'}
         e['hash']=hashlib.sha256(json.dumps(e,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()).hexdigest()
         self.put('livecircle/CURRENT_STATE.json',dict(self.identity,foreign_repo_write_allowed=False,revision=1,events=[e]))
         self.put('native/musical_intelligence/A.json',{})
-        self.p=dict(self.identity,native_musical_intelligence_r01={'root':'PROJECTS/666TDI/native/musical_intelligence/','bindings':{'A.json':blob(self.read('native/musical_intelligence/A.json'))}})
+        self.p=dict(self.identity,native_musical_intelligence_r01={'root':'PROJECTS/KAIRON/native/musical_intelligence/','bindings':{'A.json':blob(self.read('native/musical_intelligence/A.json'))}})
         self.put('CURRENT_POINTER.json',self.p)
         sha=blob(self.read('CURRENT_POINTER.json'))
         self.put('windows_studio/NATIVE_BINDING.json',dict(self.identity,pointer_git_blob_sha1=sha,expected_nmi_revisions=1,expected_nmi_bindings=1))
@@ -34,7 +34,7 @@ class ParityTests(unittest.TestCase):
         self.put('native/musical_intelligence/A.json',{'changed':True})
         with self.assertRaisesRegex(ValueError,'NMI_HASH'): audit(self.root)
     def test_duplicate_trigger(self):
-        self.put('triggers/TRIGGER_REGISTRY.json',dict(self.identity,direct_chat_triggers=['666TDI STATUS']*2))
+        self.put('triggers/TRIGGER_REGISTRY.json',dict(self.identity,direct_chat_triggers=['KAIRON STATUS']*2))
         with self.assertRaisesRegex(ValueError,'TRIGGER_REGISTRY'): audit(self.root)
     def test_chain_tamper(self):
         c=json.loads(self.read('livecircle/CURRENT_STATE.json'))

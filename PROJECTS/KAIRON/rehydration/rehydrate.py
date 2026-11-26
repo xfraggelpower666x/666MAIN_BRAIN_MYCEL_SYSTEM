@@ -9,6 +9,7 @@ def digest(data):
 def inspect():
     faults=[]
     pointer=load(ROOT/"CURRENT_POINTER.json")
+    if pointer.get("scope")!="PROJECTS/KAIRON" or pointer.get("namespace")!="KAIRON": faults.append("FOREIGN_ACTIVE_ROOT")
     circle=load(ROOT/"livecircle/CURRENT_STATE.json")
     triggers=load(ROOT/"triggers/TRIGGER_REGISTRY.json")
     character=load(ROOT/"identity/CHARACTER.json")

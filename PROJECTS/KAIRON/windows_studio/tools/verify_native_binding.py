@@ -19,7 +19,7 @@ def verify(studio):
     count=0
     for k in keys:
         entry=state[k]
-        if entry['root']!='PROJECTS/666TDI/native/musical_intelligence/':raise ValueError('FOREIGN_ROOT')
+        if entry['root']!='PROJECTS/KAIRON/native/musical_intelligence/':raise ValueError('FOREIGN_ROOT')
         for name,sha in entry['bindings'].items():
             f=(project/'native/musical_intelligence'/name).resolve()
             if not f.is_relative_to((project/'native/musical_intelligence').resolve()) or blob(f)!=sha:raise ValueError('NMI_BINDING_MISMATCH:'+name)

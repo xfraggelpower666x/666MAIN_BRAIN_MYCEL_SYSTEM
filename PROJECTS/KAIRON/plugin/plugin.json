@@ -13,12 +13,12 @@
         ],
         "category": "Productivity",
         "defaultPrompt": [
-          "666TDI SYSTEMSTART",
-          "666TDI TRACKDESIGN",
-          "666TDI STATUS"
+          "KAIRON SYSTEMSTART",
+          "KAIRON TRACKDESIGN",
+          "KAIRON STATUS"
         ],
         "developerName": "FRAGGLEPOWER666",
-        "displayName": "666T.D.I. MUSIC DESIGN",
+        "displayName": "KAIRON MUSIC DESIGN",
         "longDescription": "Native 666TDI skills with repository-first rehydration, musical design, LiveCircle and evidence-led visual guidance.",
         "shortDescription": "Native Music Intelligence"
       }

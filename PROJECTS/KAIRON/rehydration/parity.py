@@ -17,7 +17,7 @@ def audit(root):
     if any(x.get('system_id')!='666TDI-001' for x in (p,t,c,a)): raise ValueError('FOREIGN_IDENTITY')
     if a.get('pronoun_de')!='er' or c.get('foreign_repo_write_allowed') is not False: raise ValueError('IDENTITY_SCOPE')
     commands=t['direct_chat_triggers']
-    if not commands or len(commands)!=len(set(commands)) or any(not re.fullmatch(r'666TDI [A-Z]+(?: [A-Z]+)*',x) for x in commands): raise ValueError('TRIGGER_REGISTRY')
+    if not commands or len(commands)!=len(set(commands)) or any(not re.fullmatch(r'KAIRON [A-Z]+(?: [A-Z]+)*',x) for x in commands): raise ValueError('TRIGGER_REGISTRY')
     previous='GENESIS'
     for i,e in enumerate(c['events'],1):
         body=json.dumps({k:v for k,v in e.items() if k!='hash'},ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()
@@ -29,7 +29,7 @@ def audit(root):
     count=0
     for k in keys:
         e=p[k]
-        if e['root']!='PROJECTS/666TDI/native/musical_intelligence/' or not e['bindings']: raise ValueError('NMI_SCOPE')
+        if e['root']!='PROJECTS/KAIRON/native/musical_intelligence/' or not e['bindings']: raise ValueError('NMI_SCOPE')
         for name,sha in e['bindings'].items():
             if Path(name).name!=name or '/' in name or '\\' in name or name in ('.','..'): raise ValueError('NMI_PATH')
             if blob(read('native/musical_intelligence/'+name))!=sha: raise ValueError('NMI_HASH:'+name)

@@ -1,11 +1,11 @@
 {
   "schema": "666TDI_NATIVE_UPDATE_AUTHORITY_V2",
   "system_id": "666TDI-001",
-  "namespace": "666TDI",
+  "namespace": "KAIRON",
   "authorized_by": "DIRECT_USER_MESSAGE_2026-11-22",
   "allowed_repository": "xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM",
-  "allowed_branch": "666MAIN_BRAIN",
-  "allowed_path_prefix": "PROJECTS/666TDI/",
+  "allowed_branch": "integration/kairon-r19-native-20261126",
+  "allowed_path_prefix": "PROJECTS/KAIRON/",
   "forbidden_foreign_writes": true,
   "handoff_source_repo": "xfraggelpower666x/666CLICPRO",
   "source_mode": "READ_ONLY",
@@ -17,9 +17,9 @@
   "trigger_installation": "NOT_INSTALLED",
   "registered_update_trigger": false,
   "host_pass_claimed": false,
-  "scope": "ONLY_666TDI",
+  "scope": "ONLY_KAIRON_CANDIDATE",
   "consumer": "native/handoff_consumer.py",
-  "approved_action": "R11_NATIVE_ADOPTION_AND_TDI03_OPTIONAL_AUDIO_FIX;FORCE_REPAIR_R11_HEAD_DRIFT_ONLY",
+  "approved_action": "R19.2_ACTIVE_CONSUMER_MIGRATION",
   "additional_authorization": {
     "source": "DIRECT_USER_FORCE_REPAIR_2026-11-22",
     "scope": "PROJECTS/666TDI/native/handoff_consumer.py;PROJECTS/666TDI/native/tests/test_handoff_consumer.py;PROJECTS/666TDI/governance/NATIVE_UPDATE_AUTHORITY.json;PROJECTS/666TDI/CURRENT_POINTER.json",
@@ -245,5 +245,13 @@
       "requires_direct_readback": true,
       "automatic_promotion": false
     }
-  }
+  },
+  "historical_authority": {
+    "namespace": "666TDI",
+    "allowed_branch": "666MAIN_BRAIN",
+    "allowed_path_prefix": "PROJECTS/666TDI/",
+    "scope": "ONLY_666TDI",
+    "approved_action": "R11_NATIVE_ADOPTION_AND_TDI03_OPTIONAL_AUDIO_FIX;FORCE_REPAIR_R11_HEAD_DRIFT_ONLY"
+  },
+  "production_promotion": false
 }

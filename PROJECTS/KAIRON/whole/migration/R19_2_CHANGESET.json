@@ -1,0 +1,24 @@
+{
+  "system_id": "666TDI-001",
+  "base": "b426aad43caf66d6c3000d8a5c5f2a74398c5f94",
+  "active_root": "PROJECTS/KAIRON/",
+  "backup": "backup/kairon-r192-pre-b426aad",
+  "changed_paths": [
+    "rehydration/parity.py",
+    "rehydration/test_parity.py",
+    "windows_studio/tools/verify_native_binding.py",
+    "plugin/skills/tdi-systemstart/SKILL.md",
+    "plugin/skills/tdi-update/SKILL.md",
+    "plugin/skills/tdi-trigger-router/SKILL.md",
+    "plugin/plugin.json",
+    "plugin/.codex-plugin/plugin.json",
+    "windows_studio/NATIVE_BINDING.json",
+    "plugin/release-binding.json",
+    "governance/NATIVE_UPDATE_AUTHORITY.json",
+    "triggers/TRIGGER_REGISTRY.json",
+    "rehydration/rehydrate.py"
+  ],
+  "production_promotion": false,
+  "host_acceptance": "OPEN",
+  "pointer": "WITHHELD"
+}
