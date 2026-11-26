@@ -14,7 +14,7 @@
   },
   "apps": "./.app.json",
   "name": "sceeri-intelligence",
-  "version": "0.87.8",
+  "version": "0.87.9",
   "description": "ChatGPT-Facetten f\u00fcr Code-Analyse, Entwicklung, Tests, Recovery, Zeitsemantik und sichere LLM-Workflows.",
   "author": {
     "name": "FRAGGELPOWER666"
