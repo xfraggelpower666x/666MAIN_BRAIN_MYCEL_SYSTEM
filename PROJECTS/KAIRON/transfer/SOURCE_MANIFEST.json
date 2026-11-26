@@ -1,6 +1,6 @@
 {
   "system_id": "666TDI-001",
-  "source_file_count": 117,
+  "source_file_count": 118,
   "source_files": {
     "README.md": "e19ce33fac348c8e7a3c4d6c2e2c0e9e0958f9906012025cb17ac483abcdb498",
     "START_666TDI_DAEMON.bat": "9bc36ce36725a7a6c3cc492c7ceb0b348154379f24d16fe9877870d84eb2264c",
@@ -53,7 +53,7 @@
     "engine/musical_forces.py": "1cae57c5df0fbe18992feb3c651a226efcb9d13caf9076fcf1ba938e48a65652",
     "engine/pattern_cli.py": "3ced409958adf5d321cfdf714e456f65c125c572eb9550f5cdf4cf94ef78d3f8",
     "engine/pattern_relations.py": "ba353a67868293beedd1942ab375f82c64f1b245a6bc0038386bdb3c6272a45b",
-    "engine/portable.py": "4963fa23b7ba11b8c3500eb040b2ef943508d37624c674a461be32e5fea61a64",
+    "engine/portable.py": "646e996df19a17853e18f90ec42f7d666c0a1124b8fc2f7e530abfd7e9f96e5b",
     "engine/preset_evidence.py": "e9da2b6432f843ecc1813817a3b3a15cb7b6b6271daf30d769151c5f509e808c",
     "engine/production_quality.py": "fc43387f2d9f98af9e9ba5018985167660064b9670be1e0548e225d29b37feeb",
     "engine/relational.py": "1db708640cdcd4ae0a37abca43ebaeb87f00adecc44d4da00118617afb7df0d0",
@@ -118,7 +118,8 @@
     "tests/test_semantic_intelligence.py": "633213571f2f93cdd15ef70cc38d678a00e13ea19c1dc52e61548c0755e886c5",
     "tests/test_semantic_reinforcement.py": "194fc85022485adcfe4060dcf5a6d02831011c6c7eb5ba856179c79f58b3005d",
     "tests/test_source_adapters.py": "00e8dde49017bda1e29467bbdad51cc78803567bd47749e8a92e08a5b11daaab",
-    "tests/test_track_preanalysis.py": "a15d36e6367f27738ab835083be46a65c8ac5916369c1b949869c5ef46328a96"
+    "tests/test_track_preanalysis.py": "a15d36e6367f27738ab835083be46a65c8ac5916369c1b949869c5ef46328a96",
+    "tests/test_native_consumer_r213.py": "9840ec03fdee0622ac6ed649f9c2faeb78e7e2d598c0db999da5eb2538cc2ff9"
   },
   "source_git_sha1": {
     "README.md": "83577b17ef012ce50061118b5fd8382796ad2da2",
@@ -172,7 +173,7 @@
     "engine/musical_forces.py": "6a9e90afeed345e6c92bb918e4655955fa9bdeb9",
     "engine/pattern_cli.py": "b107ced6aad1662d41e72d449daa1a23c52be676",
     "engine/pattern_relations.py": "a3784ed2d865a37ce597d992c3e171b5e04a1a70",
-    "engine/portable.py": "2b808e55928eb7fc6c83f42941bb3dca7910d120",
+    "engine/portable.py": "ded0ae68552e6bd90fd13f733b801c5b0a1dac94",
     "engine/preset_evidence.py": "4824eb0c4a31318dd888fa475b309983be9eb266",
     "engine/production_quality.py": "9d54d063a4a5a2d3449f768d6d3bb8a8040e1e3f",
     "engine/relational.py": "7f925ae98b39144aace30baad8f450b3f634741e",
@@ -237,7 +238,8 @@
     "tests/test_semantic_intelligence.py": "f75689c91ecd3830e33e29257197c734b8dcb7a9",
     "tests/test_semantic_reinforcement.py": "888eca0d628ec88402c9ecdcfa5ba17dedbde02c",
     "tests/test_source_adapters.py": "c57286fac4eb21b4abca8d00c6febd3c4edb541f",
-    "tests/test_track_preanalysis.py": "e4e59f6a4739ee4020efa39c7ba826b32681564d"
+    "tests/test_track_preanalysis.py": "e4e59f6a4739ee4020efa39c7ba826b32681564d",
+    "tests/test_native_consumer_r213.py": "bcae3516574685d06de5c32531fe87ba81d936d9"
   },
   "source_archive_sha256": "4f0741ef3fdf438772fda6d406baaca02eddd4262ef9681bdc2517955c1703d1",
   "source_origin": "666TDI_v2.5_ADDITIVE_R08_PORTABLE.zip",
@@ -247,10 +249,10 @@
   ],
   "scope": "PROJECTS/KAIRON/source",
   "preserve_existing": true,
-  "source_manifest_revision": "R21.3",
-  "source_tree_base_commit": "219c57a188a61aa4ce606d547dc642451b9edd3a",
+  "source_manifest_revision": "R21.3-native-consumer",
+  "source_tree_base_commit": "de6e274559d5ddc7c156f6d724c0dbdabdc605d3",
   "source_tree_base_sha": "e1e3e7fd77a0438690e8e0cbb1cf0418f2315e2e",
   "source_archive_sha256_semantics": "HISTORICAL_ORIGINAL_ARCHIVE_NOT_CURRENT_TREE",
-  "integrity_method": "UNCHANGED_GIT_BLOB_REUSE_OF_HISTORICAL_SHA256; CHANGED_AND_NEW_RAW_BASE64_BYTES_SHA256",
-  "previous_manifest_blob": "5cc2de3d6371b81b99e20ae2bc000b7efea6e506"
+  "integrity_method": "UNCHANGED_GIT_BLOB_REUSE; CHANGED_UTF8_SHA256_AND_CI_RAW_BYTES",
+  "previous_manifest_blob": "8ac79862e78ed479bf7284c57890d3f3d8a96f1b"
 }

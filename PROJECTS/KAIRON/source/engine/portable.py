@@ -131,6 +131,22 @@ def analyze(track):
     from . import context_preset
     out['analysis']['context_preset']=context_preset.evaluate(
         out, causal_report=out['analysis']['creative_causal'])
+    # R21.3: reuse the already computed semantic and causal reports.
+    from . import track_preanalysis, creator_learning
+    analysis=out['analysis']
+    pre=track_preanalysis.assess(out, analysis['semantic_intelligence'], analysis['creative_causal'])
+    analysis['preanalysis']=pre
+    analysis['musical_forces']=pre['musical_forces']
+    # Context must be explicitly declared; unknown context cannot support reuse.
+    context=out.get('music_context', {})
+    if not isinstance(context, dict):
+        raise ValueError('INVALID_MUSIC_CONTEXT')
+    memory=creator_learning.music_memory_audit(DATA, context, out['track_id'],
+                                               historical_root=ROOT/'evidence')
+    # Do not copy historical prompts or lyrics into the new track.
+    analysis['music_memory']={'reference_count':memory['reference_count'],
+        'relations':memory['relations'], 'audio_verified':False,
+        'automatic_promotion':False, 'context_declared':bool(context)}
     out['analysis']['relations']=[{'from':'LOW','to':'MID/HIGH','reason':'Tempo/Phasenstabilität bei wahrnehmungsbezogener Bewegung','constraint':'LOW_STABLE'},
         {'from':'STORY','to':'ARRANGEMENT','reason':'Musikalische Ereignisse müssen eine nachvollziehbare Funktion haben','constraint':'NO_RANDOM_STORY_INVENTION'},
         {'from':'RENDERER','to':'INTENT','reason':'Renderer begrenzt Ausdruck, nicht musikalische Bedeutung','constraint':'NO_COMPOSITION_OVERRIDE'}]
