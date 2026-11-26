@@ -19,7 +19,7 @@
   "original_artwork_preserved_in_local_zip": true,
   "reference_source": "PROJECTS/666_FULL_LYRICS_INTELLIGENCE/DELIVERY_R06_1.json",
   "no_cross_system_adoption": true,
-  "next_action": "Publish complete 50-source-file package on isolated candidate branch and verify immutable GitHub readback; then Windows host Electron/NSIS/Portable tests, only then freeze production.",
+  "next_action": "Transfer five original PNG/WebP binary assets and exact historical README via authorized Windows publisher, then immutable 58/58 GitHub readback; run Windows GUI and Portable/NSIS tests before any production freeze. No branch authority promotion.",
   "github_candidate_files_readback": 11,
   "github_exact_new_code_blobs_readback": 8,
   "publication_transport": "PUBLISH_SOURCE_TO_GITHUB.bat + tools/publish-source-to-github.ps1 in LOCAL FULL ZIP",
@@ -34,7 +34,7 @@
   "local_source_zip": "666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01_11_2_AUDIT_REPAIR_FREEZE_CANDIDATE.zip",
   "local_zip_sha256": "8cadad8184d17ceb2198b3db7c2ef28e01dc392a8226544f8539b38d2ff2cd70",
   "source_freeze": "LOCAL_CANDIDATE_ONLY",
-  "production_freeze": "BLOCKED_WINDOWS_ACCEPTANCE_AND_FULL_SOURCE",
+  "production_freeze": "BLOCKED",
   "github_candidate_repairs": [
     "control-center/main.cjs spawn acknowledgement and renderer fail handling",
     "tools/electron-runtime-r061.ps1 marker rollback"
@@ -53,5 +53,11 @@
   "local_zip_sha256_verified": true,
   "local_zip": "666_UNIVERSAL_PYTHON_ELECTRON_BUILDKIT_R01_11_3_BUILD_MANAGER_APP_SETTINGS.zip",
   "publication_status_note": "All functional cleartext code and tests were published as independent GitHub files. Local ZIP contains original graphics and README. Only GitHub candidate branch changed. Production branch not promoted.",
-  "missing_transfer": "Use locally supplied PUBLISH_SOURCE_TO_GITHUB.bat from the original extracted ZIP to push all 58 exact files, including binary artwork, with backup and FETCH_HEAD blob readback. Never claim full release until 58/58."
+  "missing_transfer": "Use locally supplied PUBLISH_SOURCE_TO_GITHUB.bat from the original extracted ZIP to push all 58 exact files, including binary artwork, with backup and FETCH_HEAD blob readback. Never claim full release until 58/58.",
+  "audit_date": "2026-11-27",
+  "audit_receipt": "docs/A01_A05_AUDIT_2026-11-27.md",
+  "original_zip_sha256_verified": "9a221b23f2d9248ad361a82eb6132066694a12591e67fe266f6240b2867bd027",
+  "audit_systembackup_zip_sha256": "51ae544b1aa595f9112f36d4846317b60601f113d866a6621c57fbb6eac63d54",
+  "source_local_sha256": "58/58_PASS",
+  "systembackup": "LOCAL_ZIP_VERIFIED_NOT_REMOTE"
 }
