@@ -97,3 +97,18 @@ Gezielte Korrektur des nachweisbaren Electron-ENOENT-Fehlers durch CRLF in `node
 - `build/BUILD_WINDOWS.ps1` now uses its selected Python executable consistently for PyInstaller. Having only `python.exe` no longer fails an unrelated unconditional `Require py` gate.
 - `tests/test_r061_launcher_contract.py` adds three source-level contract assertions. Linux source test result: **23/23 PASS**, plus three Electron-related JavaScript syntax checks. No claim of Windows GUI/portable/NSIS acceptance from these tests.
 - The newer additive R06.1 neon Electron renderer is preserved exactly; this change makes **no modifications to renderer, Electron main/preload, Python engine, private database or project runtime pointer**.
+
+
+## R07 Electron Control Center
+
+A01: Existing Electron application extended with Lyrics Intelligence sidebar and neon metric cards.
+
+A02: Explainable deterministic local Python text metrics (section markers, repeated lines, top terms) and side-by-side two-record comparison. No audio, BPM or emotional diagnostics.
+
+A03: Read-only project cards from current SQLite records, with active and archived counts, category breakdown and source-name counts.
+
+A04: Archive full-text/category filter, paging, open archived records; existing explicit archive/ZIP workflow retained.
+
+A05: R06.1 STARTEN.bat, Electron SHA256 runtime repair, portable EXE and setup build unchanged. No auto-upgrade or personal data included.
+
+A06: Scoped repository publication and direct GitHub readback, pointer last. Windows Electron R07 acceptance not yet performed.

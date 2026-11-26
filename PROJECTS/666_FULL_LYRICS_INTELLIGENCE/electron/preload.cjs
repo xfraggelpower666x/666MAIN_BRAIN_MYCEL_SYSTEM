@@ -1,3 +1,3 @@
 const {contextBridge, ipcRenderer, webUtils}=require('electron');
-const allowed=['status','import','browse','list','record','correct','correct_batch','export','archive','projects','migrate','check','install','openFolder'];
+const allowed=['status','import','browse','list','record','correct','correct_batch','export','archive','projects','analyze','compare','project_insights','migrate','check','install','openFolder'];
 contextBridge.exposeInMainWorld('catalog',{...Object.fromEntries(allowed.map(k=>[k,(data={})=>ipcRenderer.invoke('catalog:'+k,data)])),pathsFromFiles:(files)=>Array.from(files).map(f=>webUtils.getPathForFile(f)).filter(Boolean)});

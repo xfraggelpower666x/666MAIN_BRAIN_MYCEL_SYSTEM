@@ -1,13 +1,13 @@
 'use strict';
 const $=id=>document.getElementById(id);
 const api=window.catalog;
-const state={queue:[],rows:[],selected:null,record:null,page:0,stats:null,archived:false,multi:new Set()};
+const state={queue:[],rows:[],selected:null,record:null,page:0,stats:null,archived:false,archivePage:0,multi:new Set()};
 const categories={lyrics:'Lyrics',style_prompt:'Style Prompt',prompt:'Prompt',framework:'Framework',code:'Code',diverse:'Diverse'};
 function node(tag,cls,text){const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=String(text);return el}
 function notice(txt,error=false){const flag=$('statusFlag');if(flag){flag.textContent=error?'● Fehler':'● Lokal';flag.setAttribute('aria-label',error?'Fehler bei letzter Aktion':'Lokale Datenbank');}const n=$('notice');n.textContent=txt;n.classList.remove('hidden');n.style.borderColor=error?'#ae536f':'#60577e';}
 function error(e){notice(e?.message||String(e),true)}
 async function task(fn){try{return await fn()}catch(e){error(e);return null}}
-function tab(name){document.querySelectorAll('.view').forEach(e=>e.classList.toggle('active',e.id===name));document.querySelectorAll('.nav').forEach(e=>{const active=e.dataset.tab===name;e.classList.toggle('active',active);if(active)e.setAttribute('aria-current','page');else e.removeAttribute('aria-current')});$('pageTitle').textContent=({dashboard:'Control Dashboard',import:'Universal Import Center',browser:'Datenbankbrowser',projects:'Projekt-Intelligence',archive:'Old Archive',system:'System & Dependencies'})[name];if(name==='browser')loadRows();if(name==='projects')loadProjects();if(name==='system')checkTools();if(name==='archive')loadArchived();}
+function tab(name){document.querySelectorAll('.view').forEach(e=>e.classList.toggle('active',e.id===name));document.querySelectorAll('.nav').forEach(e=>{const active=e.dataset.tab===name;e.classList.toggle('active',active);if(active)e.setAttribute('aria-current','page');else e.removeAttribute('aria-current')});$('pageTitle').textContent=({dashboard:'Control Dashboard',import:'Universal Import Center',browser:'Datenbankbrowser',analysis:'Lyrics Visual Intelligence',projects:'Projekt-Intelligence',archive:'Old Archive',system:'System & Dependencies'})[name];if(name==='browser')loadRows();if(name==='projects')loadProjectInsights();if(name==='system')checkTools();if(name==='archive')loadArchiveR07();}
 document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>tab(b.dataset.tab));document.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>tab(b.dataset.goto));
 async function refresh(){const s=await task(()=>api.status());if(!s)return;state.stats=s;$('mTotal').textContent=s.total.toLocaleString('de-DE');$('mArchived').textContent=s.archived.toLocaleString('de-DE');$('mImports').textContent=s.import_total.toLocaleString('de-DE');const counts={};s.projects.forEach(x=>counts[x.project]=(counts[x.project]||0)+x.count);$('mProjects').textContent=Object.keys(counts).length;const stat=$('projectStats');stat.replaceChildren();const max=Math.max(...Object.values(counts),1);Object.entries(counts).sort((a,b)=>b[1]-a[1]).forEach(([p,count])=>{const wrap=node('div','project-row');const head=node('div','project-name');head.append(node('span','',p),node('span','',count));const bar=node('div','bar');const inner=node('div','bar-inner');inner.style.width=100*count/max+'%';bar.append(inner);wrap.append(head,bar);stat.append(wrap)});if(!stat.children.length)stat.textContent='Noch keine Datensätze importiert.';const hist=$('importHistory');hist.replaceChildren();s.imports.forEach(x=>{const r=node('div','hist');r.append(node('span','',x.source_name),node('span',x.status==='done'?'ok':'fail',`${x.status} · +${x.inserted}`));hist.append(r)});if(!s.imports.length)hist.textContent='Noch keine Importläufe.';const select=$('filterProject');const old=select.value;select.replaceChildren(new Option('Alle Projekte',''));Object.keys(counts).sort().forEach(p=>select.add(new Option(p,p)));select.value=old;}
 function enqueue(paths,{replace=false}={}){let set=new Set(replace?[]:state.queue);paths.forEach(p=>{if(p)set.add(p)});state.queue=[...set];const q=$('queue');q.replaceChildren();state.queue.forEach(p=>{const row=node('div','queue-row');row.append(node('span','',p),node('span','ok','READY'));q.append(row)});if(!state.queue.length)q.textContent='Noch keine Dateien ausgewählt.';$('fileCount').textContent=state.queue.length+' DATEIEN'}
@@ -42,3 +42,55 @@ async function migrate(){const path='../legacy_r02/app/lyrics_library.db';// abs
  const r=await task(()=>api.migrate({bundled:true}));if(r){notice(`R02-Migration: ${r.inserted} neu, ${r.duplicates} bereits vorhanden.`);await refresh()}}
 $('migrateQuick').onclick=migrate;$('migrateLegacy').onclick=migrate;$('refresh').onclick=refresh;
 refresh();
+
+/* R07 additive intelligence UI: DOM textContent, no raw HTML or data mutation. */
+
+function metricCard(label,value){const box=node('div','intel-metric');box.append(node('small','',label),node('strong','',value));return box}
+function renderAnalysis(item){
+ const out=$('analysisResult');out.replaceChildren();
+ const m=item.metrics;
+ out.append(node('h3','',item.title),node('p','muted',item.project+' · '+item.category+' · '+(item.source_name||'Unbekannte Quelle')));
+ const cards=node('div','intel-metrics');
+ [['Wörter',m.word_count],['Textzeilen',m.line_count],['Abschnitte',m.section_count],['Wortvielfalt',m.unique_words],['Ø Wörter/Zeile',m.avg_words_per_line]].forEach(([k,v])=>cards.append(metricCard(k,v)));
+ out.append(cards);
+ const section=node('div','intel-box');section.append(node('h3','','Abschnittsstruktur'));
+ m.sections.forEach(x=>section.append(node('span','intel-chip',x.name+' · Zeile '+x.line)));
+ if(!m.sections.length)section.append(node('p','muted','Keine ausdrücklich markierten Lyrics-Abschnitte erkannt.'));
+ out.append(section);
+ const repetitions=node('div','intel-box');repetitions.append(node('h3','','Wiederholte Textzeilen'));
+ m.repeat_lines.forEach(x=>repetitions.append(node('div','intel-row',x.count+' ×  '+x.line)));
+ if(!m.repeat_lines.length)repetitions.append(node('p','muted','Keine wiederholten ganzen Textzeilen erkannt.'));
+ out.append(repetitions);
+ const terms=node('div','intel-box');terms.append(node('h3','','Häufige Begriffe'));const max=Math.max(1,...m.top_terms.map(x=>x.count));
+ m.top_terms.forEach(x=>{const wrap=node('div','intel-term');wrap.append(node('span','',x.term));const track=node('div','intel-track'),fill=node('div','intel-fill');fill.style.width=(x.count/max*100)+'%';track.append(fill);wrap.append(track,node('b','',x.count));terms.append(wrap)});
+ if(!m.top_terms.length)terms.append(node('p','muted','Keine auswertbaren Begriffe.'));
+ out.append(terms,node('p','muted',m.caveat));
+}
+$('analysisCurrent').onclick=()=>task(async()=>{if(!state.selected)return notice('Bitte erst im Browser einen Datensatz öffnen.');const item=await api.analyze({id:state.selected});renderAnalysis(item)});
+$('analysisCompare').onclick=()=>task(async()=>{const ids=[...state.multi];if(ids.length!==2)return notice('Für den Vergleich genau 2 Datensätze markieren.');const r=await api.compare({ids});const out=$('analysisResult');out.replaceChildren();out.append(node('h3','','Zwei Datensätze · Textvergleich'));const cards=node('div','intel-metrics');r.items.forEach(x=>cards.append(metricCard(x.title,x.metrics.word_count+' Wörter · '+x.metrics.line_count+' Zeilen')));out.append(cards,node('p','muted','Gemeinsame häufige Begriffe: '+(r.shared_top_terms.join(', ')||'keine')),node('p','muted',r.comparison_type))});
+$('analysisBrowse').onclick=()=>tab('browser');
+async function loadProjectInsights(){
+ const rows=await task(()=>api.project_insights());if(!rows)return;
+ const box=$('projectCards');box.replaceChildren();const largest=Math.max(1,...rows.map(x=>x.active));
+ rows.forEach(x=>{const card=node('article','project-card enhanced-project');card.append(node('strong','',x.project));
+ const grid=node('div','intel-metrics');grid.append(metricCard('Aktiv',x.active),metricCard('Archiviert',x.archived),metricCard('Quellen (je Kategorie summiert)',x.sources));card.append(grid);
+ const bar=node('div','bar'),fill=node('div','bar-inner');fill.style.width=(x.active/largest*100)+'%';bar.append(fill);card.append(bar);
+ const cats=node('div','intel-box');cats.append(node('small','muted','Kategorien'));Object.entries(x.categories).sort((a,b)=>b[1]-a[1]).forEach(([label,n])=>cats.append(node('span','intel-chip',(categories[label]||label)+' '+n)));card.append(cats);
+ const btn=node('button','btn outline','Im Datenbankbrowser öffnen');btn.onclick=()=>{tab('browser');$('filterProject').value=x.project;state.page=0;loadRows()};card.append(btn);box.append(card)});
+ if(!rows.length)box.textContent='Noch keine Projekte.';
+}
+$('projectRefresh').onclick=loadProjectInsights;
+async function loadArchiveR07(){
+ const r=await task(()=>api.list({archived:true,search:$('archiveSearch').value,category:$('archiveCategory').value,page:state.archivePage}));
+ if(!r)return;
+ const el=$('archiveList');el.replaceChildren();
+ if(!r.length&&state.archivePage>0){state.archivePage--;return loadArchiveR07()}
+ r.forEach(x=>{const b=node('button','result archive-result');b.append(node('strong','',x.title),node('small','',x.project+' · '+(categories[x.category]||x.category)+' · '+x.source_name));b.onclick=async()=>{tab('browser');await openRecord(x.id)};el.append(b)});
+ if(!r.length)el.textContent='Keine archivierten Datensätze für diesen Filter.';
+ $('archivePage').textContent=String(state.archivePage+1);$('archivePrevious').disabled=state.archivePage===0;$('archiveNext').disabled=r.length<100;
+}
+$('archiveSearch').onkeydown=e=>{if(e.key==='Enter'){state.archivePage=0;loadArchiveR07()}};
+$('archiveCategory').onchange=()=>{state.archivePage=0;loadArchiveR07()};
+$('archivePrevious').onclick=()=>{state.archivePage=Math.max(0,state.archivePage-1);loadArchiveR07()};
+$('archiveNext').onclick=()=>{state.archivePage++;loadArchiveR07()};
+$('showArchived').onclick=()=>{state.archivePage=0;loadArchiveR07()};

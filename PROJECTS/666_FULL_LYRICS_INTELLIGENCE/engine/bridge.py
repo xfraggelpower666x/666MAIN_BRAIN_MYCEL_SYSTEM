@@ -2,6 +2,7 @@
 from __future__ import annotations
 import sys,os,json,sqlite3,hashlib,re,zipfile,io,datetime,collections,pathlib,mimetypes,shutil,tempfile,stat
 from pathlib import Path
+from intelligence import analyze_record,compare_records,project_insights
 MAX_FILE=25*1024*1024
 MAX_ZIP_TOTAL=150*1024*1024
 MAX_ZIP_ENTRIES=2000
@@ -337,6 +338,9 @@ def run(arg):
   if action=='export':return export_records(c,base,data)
   if action=='archive':return archive(c,base,data)
   if action=='migrate':return migrate(c,base,data)
+  if action=='analyze':return analyze_record(c,data.get('id'))
+  if action=='compare':return compare_records(c,data.get('ids'))
+  if action=='project_insights':return project_insights(c)
   if action=='projects':
    return [{'project':p,'topics':collections.Counter(t for r in c.execute('SELECT topics FROM records WHERE project=?',(p,)) for t in json.loads(r[0])).most_common(6),'recommendation':'Quellen/Hashes mit dem nativen Hauptsystem vergleichen; keine automatische Promotion.', 'records':c.execute('SELECT count(*) FROM records WHERE project=?',(p,)).fetchone()[0]} for (p,) in c.execute('SELECT name FROM projects ORDER BY name')]
   raise ValueError('Unbekannte Aktion')
