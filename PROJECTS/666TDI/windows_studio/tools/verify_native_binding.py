@@ -25,6 +25,14 @@ def verify(studio):
             if not f.is_relative_to((project/'native/musical_intelligence').resolve()) or blob(f)!=sha:raise ValueError('NMI_BINDING_MISMATCH:'+name)
             count+=1
     if count!=binding['expected_nmi_bindings']:raise ValueError('NMI_BINDING_COUNT_MISMATCH')
-    return {'system_id':binding['system_id'],'status':'NATIVE_BINDINGS_VERIFIED','bindings':count,'pointer':blob(pointer)}
+    # R03: retain the original pinned guard, then verify cross-surface parity.
+    import importlib.util
+    spec=importlib.util.spec_from_file_location('tdi_native_parity',project/'rehydration'/'parity.py')
+    if spec is None or spec.loader is None: raise ValueError('PARITY_MODULE_MISSING')
+    module=importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    result=module.audit(project)
+    if result['status']!='SOURCE_BINDINGS_ALIGNED': raise ValueError('TRIPLE_SURFACE_PARITY_PENDING')
+    return {'system_id':binding['system_id'],'status':'NATIVE_BINDINGS_VERIFIED','bindings':count,'pointer':blob(pointer),'parity':result}
 
 if __name__=='__main__':print(json.dumps(verify(Path(__file__).resolve().parents[1]),indent=2))
