@@ -221,6 +221,20 @@
       "no_auto_promotion": true,
       "no_audio_claim": true,
       "no_new_controller": true
+    },
+    "motor_intelligence_r200": {
+      "status": "CANDIDATE_LOCAL_REGRESSION_PASS_HOST_OPEN",
+      "source": "engine/motor_intelligence.py",
+      "consumer": "engine/device_output.py",
+      "tests": "tests/test_motor_intelligence.py",
+      "references": [
+        "6a92e3718db86ab27b75a501d38b05d48a2af739",
+        "4750e7cda4d5e4bf3bd360200b48597fb361cfe8",
+        "36d19a0d14164e8de3d19b022e6f75b4d4821991"
+      ],
+      "no_audio_claim": true,
+      "no_auto_promotion": true,
+      "no_new_controller": true
     }
   }
 }

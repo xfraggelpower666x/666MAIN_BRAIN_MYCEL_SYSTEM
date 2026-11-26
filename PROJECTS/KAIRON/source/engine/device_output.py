@@ -5,7 +5,7 @@ R0.9–R1.2 musical intelligence stays device-independent and unchanged.
 """
 from __future__ import annotations
 import re
-from . import semantic_guard
+from . import semantic_guard, motor_intelligence
 
 SCHEMA="666TDI_DEVICE_OUTPUT_R13_V1"
 SYSTEM_ID="666TDI-001"
@@ -70,6 +70,7 @@ def translate(intent, device, route_context=None):
  title=value("title")
  # Source-faithful translation: labels only; no invented motifs/lyrics/musical instructions.
  extended=_join(
+  value("genre"),
   _section("Intent",value("story")),
   _section("Structure",value("structure")),
   _section("Energy",value("energy")),
@@ -118,6 +119,7 @@ def translate(intent, device, route_context=None):
   "source_integrity":"CREATOR_TEXT_ONLY_NO_AUTOMATIC_TRACK_REWRITE",
   "fields":fields,"main_input":main_output,
   "semantic_reinforcement_audit":semantic_guard.review(fields,intent),
+  "motor_intelligence_audit":motor_intelligence.assess(intent,fields),
   "pc_duration_control":{"visibility":"CREATOR_CONFIRMED_VISIBLE" if visible is True
           else "CREATOR_CONFIRMED_NOT_VISIBLE" if visible is False else "NOT_CONFIRMED",
           "selected_duration":duration if visible is True else "",

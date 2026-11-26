@@ -1,0 +1,32 @@
+{
+  "system_id": "666TDI-001",
+  "namespace": "KAIRON",
+  "revision": "R20.0",
+  "base_commit": "96e9d0db818af2596dc6bc0aea42a753300e364b",
+  "backup_branch": "backup/kairon-r200-motor-pre-96e9d0d",
+  "source_blobs": {
+    "source/engine/motor_intelligence.py": "a7a293a92784e70673ede5b007998586647ac895",
+    "source/engine/device_output.py": "52e15253838162230404b793fba1187046fdacec",
+    "source/tests/test_motor_intelligence.py": "d4a0decfcedb4e9287759cd942e38a418e19336a",
+    "source/registry/additive_modules.json": "202e0dec703764fc5392ec58272eba46df51d94b"
+  },
+  "regression": {
+    "python": "3.13.5",
+    "command": "python -m unittest discover -s tests -v",
+    "passed": 102,
+    "failed": 0,
+    "historical_reference": 15,
+    "new_context": 12,
+    "existing": 75,
+    "local_log_git_blob": "64356ab5841f8a2d031c0050a9d33b51090f3cda",
+    "local_log_sha256": "2e542ea1a8182297ce0605d3b41eea357678b4d166caa108d1a602626263733a"
+  },
+  "limitations": [
+    "Finite recognized genre vocabulary; unknown genres require review",
+    "Declared DJ plan is not audio analysis; normal adapter does not supply plan",
+    "Prompt motor cues are heuristic review only; no production approval",
+    "Full host regression and A09-A15 remain open"
+  ],
+  "production_promotion": false,
+  "current_pointer": "WITHHELD"
+}
