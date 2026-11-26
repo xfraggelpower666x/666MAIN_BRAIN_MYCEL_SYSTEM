@@ -34,6 +34,17 @@ class CreativeCausalR10Tests(unittest.TestCase):
   x=c.assess(t)
   self.assertEqual(t,before); self.assertEqual(x["system_id"],"666TDI-001")
   self.assertTrue(x["read_only"]); self.assertFalse(x["global_promotion"]); self.assertFalse(x["renderer_override"])
+ def test_reuses_native_semantic_report(self):
+  from unittest.mock import patch
+  t={'track_id':'reuse','lyrics':'mantra','structure':'evolving transformation'}
+  sem=c.semantic.assess(t); expected=c.assess(t)
+  with patch.object(c.semantic,'assess',side_effect=AssertionError('duplicate semantic analysis')):
+   self.assertEqual(c.assess(t,semantic_report=sem),expected)
+ def test_rejects_foreign_semantic_scope(self):
+  t={'track_id':'a'}; sem=c.semantic.assess(t)
+  for key,value in [('track_id','b'),('system_id','foreign'),('schema','foreign')]:
+   with self.assertRaisesRegex(ValueError,'SEMANTIC_SCOPE_MISMATCH'):
+    c.assess(t,semantic_report={**sem,key:value})
  def test_invalid_input(self):
   with self.assertRaises(ValueError): c.assess("not an object")
 
