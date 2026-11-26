@@ -54,6 +54,12 @@ class ContextGatTests(unittest.TestCase):
                 self.assertEqual(x['classification'],'PRESET_CANDIDATE')
                 self.assertTrue(x['mandala_candidate'])
                 self.assertFalse(x['preset_auto_save'])
+                self.assertIn('causal_evidence', x)
+                self.assertEqual(x['causal_evidence']['source'], result['analysis']['creative_causal']['schema'])
+                self.assertEqual(x['causal_evidence']['status'], 'CREATOR_REVIEW_REQUIRED')
+                self.assertFalse(x['causal_evidence']['automatic_promotion'])
+                self.assertEqual(x['mandala_arrangement']['causal_evidence'], x['causal_evidence'])
+                self.assertEqual(x['preset_candidate']['causal_evidence'], x['causal_evidence'])
         finally:
             portable.DATA=before
     def test_not_promoted_by_story(self):
