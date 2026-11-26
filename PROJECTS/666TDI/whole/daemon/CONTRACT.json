@@ -55,5 +55,23 @@
   ],
   "no_global_active_state": true,
   "missing_evidence": "PARTIAL",
-  "status": "CANDIDATE_SOURCE"
+  "status": "CANDIDATE_SOURCE",
+  "parallel_deployment": {
+    "revision": "R16",
+    "implementation": "whole/daemon/parallel.py",
+    "tests": "whole/daemon/test_parallel.py",
+    "maximum_parallel_default": true,
+    "modes": [
+      "MAXIMUM_PARALLEL",
+      "DEEP_EVOLUTION",
+      "REPAIR_REGRESSION",
+      "CREATIVE_EXPLORATION",
+      "INTEGRATION_FREEZE"
+    ],
+    "exact_default_ready_limit": 16,
+    "larger_sets": "GREEDY_MAXIMAL_NOT_PROVEN_MAXIMUM",
+    "no_auto_dispatch": true,
+    "completed_ids_require_verified_evidence": true,
+    "host_acceptance": "OPEN"
+  }
 }

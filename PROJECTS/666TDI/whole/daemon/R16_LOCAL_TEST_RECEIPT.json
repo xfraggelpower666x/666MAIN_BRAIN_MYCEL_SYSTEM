@@ -1,0 +1,14 @@
+{
+  "status": "LOCAL_FIXTURE_REGRESSION_PASS",
+  "python": "3.13.5",
+  "tests": 13,
+  "failures": 0,
+  "planner_blob": "a5501b043636339fe8c3a4df856094da8c5c91b7",
+  "test_blob": "18fe907ef7f655e342d60473575e2fc0358e0aa8",
+  "command": "python -m unittest -v test_parallel",
+  "scope": "planner only",
+  "native_host": "OPEN",
+  "windows_host": "OPEN",
+  "plugin_release": "UNCHANGED",
+  "production_promotion": false
+}
