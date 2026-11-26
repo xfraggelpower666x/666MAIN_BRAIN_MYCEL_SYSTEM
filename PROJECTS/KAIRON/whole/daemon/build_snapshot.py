@@ -14,13 +14,23 @@ def build():
     raw = git('cat-file', 'commit', TESTED)
     if oid('commit', raw) != TESTED:
         raise ValueError('COMMIT_HASH_MISMATCH')
-    fmt = '%T%x00%P%x00%an%x00%ae%x00%aI%x00%cn%x00%ce%x00%cI%x00%B'
-    fields = git('show', '-s', '--format='+fmt, TESTED).decode().split('\0')
-    tree, parents, an, ae, ad, cn, ce, cd, message = fields
-    meta = dict(sha=TESTED, tree=tree, parents=parents.split(),
-                author=dict(name=an,email=ae,date=ad),
-                committer=dict(name=cn,email=ce,date=cd),
-                message=message.rstrip('\n'), verification={'reason':'unsigned'})
+    # Read exact original headers/message instead of git show formatting.
+    headers, message = raw.split(b'\n\n', 1)
+    lines = headers.decode('utf-8').split('\n')
+    tree = lines[0].split(' ', 1)[1]
+    parents = [line[7:] for line in lines if line.startswith('parent ')]
+    from datetime import datetime, timezone
+    def identity(kind):
+        line = next(x for x in lines if x.startswith(kind+' '))[len(kind)+1:]
+        person, stamp, zone = line.rsplit(' ', 2)
+        name, email = person.rsplit(' <', 1)
+        return dict(name=name,email=email[:-1],date=datetime.fromtimestamp(int(stamp),timezone.utc).isoformat())
+    # raw_commit tries both no suffix and one newline. Preserve all other bytes.
+    body = message.decode('utf-8')
+    meta = dict(sha=TESTED, tree=tree, parents=parents,
+                author=identity('author'), committer=identity('committer'),
+                message=body[:-1] if body.endswith('\n') else body,
+                verification={'reason':'unsigned'})
     trees = {}
     files = {}
     for path in sorted(FILES):
