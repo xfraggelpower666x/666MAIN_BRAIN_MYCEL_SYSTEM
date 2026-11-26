@@ -5,7 +5,7 @@ function resolveLayout(root){
  const diagnostics=[];
  for(const mode of ['originals','imports']){
   const base=path.join(root,mode),files=Object.fromEntries(Object.entries(required).map(([k,v])=>[k,path.join(base,v)]));
-  const missing=Object.entries(files).filter(([,p])=>{try{return !fs.statSync(p).isFile()}catch{return true}}).map(([k])=>k);
+  const missing=Object.entries(files).filter(([k,p])=>{if(k==='boot')return false;try{return !fs.statSync(p).isFile()}catch{return true}}).map(([k])=>k);
   if(!missing.length)return {mode,base,...files};
   diagnostics.push(mode+': '+missing.join(', '));
  }

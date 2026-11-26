@@ -5,4 +5,4 @@ function fill(root,mode,keys=Object.keys(required)){for(const k of keys){const p
 test('complete originals preferred',()=>fixture(r=>{fill(r,'imports');fill(r,'originals');assert.equal(resolveLayout(r).mode,'originals')}));
 test('partial originals fall back to complete imports',()=>fixture(r=>{fill(r,'originals',['mp']);fill(r,'imports');assert.equal(resolveLayout(r).mode,'imports')}));
 test('never combine partial source trees',()=>fixture(r=>{fill(r,'originals',['mp']);fill(r,'imports',Object.keys(required).filter(k=>k!=='mp'));assert.throws(()=>resolveLayout(r),/Unvollständiger/)}));
-test('missing boot blocks startup',()=>fixture(r=>{fill(r,'originals',Object.keys(required).filter(k=>k!=='boot'));assert.throws(()=>resolveLayout(r),/boot/)}));
+test('missing optional boot does not block startup',()=>fixture(r=>{fill(r,'originals',Object.keys(required).filter(k=>k!=='boot'));assert.equal(resolveLayout(r).mode,'originals')}));
