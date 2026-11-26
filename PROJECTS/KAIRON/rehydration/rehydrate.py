@@ -8,7 +8,18 @@ def digest(data):
     return hashlib.sha256(json.dumps(data,ensure_ascii=False,sort_keys=True,separators=(",",":")).encode("utf-8")).hexdigest()
 def inspect():
     faults=[]
-    pointer=load(ROOT/"CURRENT_POINTER.json")
+    pointer_path=ROOT/"CURRENT_POINTER.json"
+    pointer=load(pointer_path) if pointer_path.is_file() else None
+    candidate=pointer is None
+    if candidate:
+        authority=load(ROOT/"governance/NATIVE_UPDATE_AUTHORITY.json")
+        contract=load(ROOT/"whole/KAIRON_CONTRACT.json")
+        if (authority.get("system_id")!="666TDI-001" or authority.get("namespace")!="KAIRON"
+            or authority.get("allowed_path_prefix")!="PROJECTS/KAIRON/"
+            or authority.get("production_promotion") is not False
+            or contract.get("system_id")!="666TDI-001" or contract.get("status")!="STAGED_CANDIDATE"):
+            faults.append("CANDIDATE_AUTHORITY_INVALID")
+        pointer={"system_id":"666TDI-001","scope":"PROJECTS/KAIRON","namespace":"KAIRON","status":"WITHHELD"}
     if pointer.get("scope")!="PROJECTS/KAIRON" or pointer.get("namespace")!="KAIRON": faults.append("FOREIGN_ACTIVE_ROOT")
     circle=load(ROOT/"livecircle/CURRENT_STATE.json")
     triggers=load(ROOT/"triggers/TRIGGER_REGISTRY.json")
@@ -31,6 +42,15 @@ def inspect():
     else:
         manifest=load(manifest_path)
         source=ROOT/"source"
+        if manifest.get("scope")!="PROJECTS/KAIRON/source" or manifest.get("system_id")!="666TDI-001":
+            faults.append("MANIFEST_AUTHORITY_INVALID")
+        # Compare tracked source files, not generated caches or local runtime outputs.
+        import subprocess
+        tracked=subprocess.check_output(["git","ls-files","-z","--","source"],cwd=ROOT).decode("utf-8").split("\0")
+        actual={p.removeprefix("source/") for p in tracked if p}
+        declared=set(manifest.get("source_files",{}))
+        for name in sorted(actual-declared): faults.append("UNMANIFESTED_SOURCE:"+name)
+        for name in sorted(declared-actual): faults.append("UNTRACKED_MANIFEST_SOURCE:"+name)
         for name,expected in manifest.get("source_files",{}).items():
             path=source/name
             if not path.is_file():faults.append("MISSING_SOURCE:"+name)
@@ -39,9 +59,10 @@ def inspect():
             faults.append("SOURCE_MANIFEST_COUNT_MISMATCH")
         for item in required:
             if not (source/item).is_file():faults.append("MISSING_REQUIRED_SOURCE:"+item)
-    if pointer.get("status")!="VERIFIZIERT_REPO_SOURCE":
+    if not candidate and pointer.get("status")!="VERIFIZIERT_REPO_SOURCE":
         faults.append("POINTER_READBACK_PENDING")
-    return {"system_id":"666TDI-001","status":"VERIFIZIERT_REPO_SOURCE" if not faults else "READBACK_PENDING",
+    return {"system_id":"666TDI-001","status":("CANDIDATE_INTEGRITY_VERIFIED" if candidate else "VERIFIZIERT_REPO_SOURCE") if not faults else "READBACK_PENDING",
+            "production_promotion":False if candidate else None, "candidate_only":candidate,
             "pointer_status":pointer.get("status"),"livecircle_revision":circle.get("revision"),
             "trigger_count":len(triggers.get("direct_chat_triggers",[])),"problems":faults}
 if __name__=="__main__":
