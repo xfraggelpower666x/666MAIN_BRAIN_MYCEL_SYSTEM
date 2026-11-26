@@ -1,0 +1,32 @@
+name: KAIRON browser acceptance
+on:
+  push:
+    branches: ['integration/kairon-r19-native-20261126']
+    paths:
+      - 'PROJECTS/KAIRON/source/**'
+      - '.github/workflows/kairon-browser-acceptance.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: kairon-browser-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  chromium:
+    if: github.ref == 'refs/heads/integration/kairon-r19-native-20261126'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          sparse-checkout: PROJECTS/KAIRON
+      - name: Install isolated browser dependencies
+        run: |
+          python3 -m venv "$RUNNER_TEMP/kairon-browser-venv"
+          "$RUNNER_TEMP/kairon-browser-venv/bin/python" -m pip install playwright==1.51.0
+          "$RUNNER_TEMP/kairon-browser-venv/bin/python" -m playwright install --with-deps chromium
+      - name: Real Chromium acceptance
+        working-directory: PROJECTS/KAIRON/source
+        run: |
+          "$RUNNER_TEMP/kairon-browser-venv/bin/python" -m unittest -v browser_acceptance.test_browser

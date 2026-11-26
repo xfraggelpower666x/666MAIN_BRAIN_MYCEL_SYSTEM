@@ -269,5 +269,18 @@
     "windows_own_release_gates_preserved": true,
     "developer_no_cross_system_merge": true,
     "production_promotion": false
+  },
+  "additional_exact_path_authorizations": {
+    "kairon_browser_acceptance": {
+      "path": ".github/workflows/kairon-browser-acceptance.yml",
+      "repository": "xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM",
+      "branch": "integration/kairon-r19-native-20261126",
+      "authorized_by": "DIRECT_USER_MESSAGE_2026-11-26T21:53:36Z",
+      "purpose": "Independent Chromium acceptance on public repository standard Linux runner",
+      "additional_paid_services": false,
+      "production_promotion": false,
+      "other_workflow_changes": false,
+      "pre_change_backup": "backup/kairon-r213-browser-ci-pre-3782541"
+    }
   }
 }
