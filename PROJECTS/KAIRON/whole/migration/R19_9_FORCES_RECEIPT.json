@@ -1,0 +1,38 @@
+{
+  "system_id": "666TDI-001",
+  "namespace": "KAIRON",
+  "revision": "R19.9",
+  "scope": "CANDIDATE_ONLY",
+  "base_commit": "24ed253442b37dbcf0dce429c783298a97edf21f",
+  "base_tree": "6a023e309931e073197a89f4f9bbd9b20d0e1ab9",
+  "backup_branch": "backup/kairon-r199-forces-pre-24ed253",
+  "blobs": {
+    "source/engine/musical_forces.py": "6a9e90afeed345e6c92bb918e4655955fa9bdeb9",
+    "source/engine/track_preanalysis.py": "51f60fabe9e0d098f374d2e853f4f4785c104d69",
+    "source/tests/test_musical_forces.py": "85a858f67ff5542e9e1ca94abdfff4d200c030e5",
+    "source/registry/additive_modules.json": "b45d62d8d45dc9dafc4a71155e7b419414ff5a91"
+  },
+  "reference_blob": "8cfcf32b7ec41c65785521d08e8c6faca62c1664",
+  "regression": {
+    "python": "3.13.5",
+    "command": "python -m unittest discover -s tests -v",
+    "reference": 14,
+    "context": 17,
+    "semantic": 12,
+    "causal": 9,
+    "total": 52,
+    "failed": 0,
+    "log_blob": "23564e85bb35b20bd0ca1523a4f7252e0aeb9826",
+    "log_sha256": "0e9577049406a13a903e76c7bff2d7e99cb5755f65abddd6ced46b1af563a3b7",
+    "fresh_replay": "52/52 PASS"
+  },
+  "limitations": [
+    "Text heuristics and declared reference flags, not audio measurement",
+    "Daemon host acceptance and full system regression open",
+    "R19.7 supervisor revision binding unchanged",
+    "A08-A15 incomplete"
+  ],
+  "production_promotion": false,
+  "current_pointer": "WITHHELD",
+  "host_acceptance": "OPEN"
+}

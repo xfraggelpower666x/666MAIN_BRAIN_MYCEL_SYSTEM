@@ -1,0 +1,57 @@
+test_arrangement_does_not_claim_audio_resolution (test_creative_causal.CreativeCausalR10Tests.test_arrangement_does_not_claim_audio_resolution) ... ok
+test_empty_input_does_not_invent (test_creative_causal.CreativeCausalR10Tests.test_empty_input_does_not_invent) ... ok
+test_expectation_payoff (test_creative_causal.CreativeCausalR10Tests.test_expectation_payoff) ... ok
+test_invalid_input (test_creative_causal.CreativeCausalR10Tests.test_invalid_input) ... ok
+test_low_anchor_and_spatial_motion_complement (test_creative_causal.CreativeCausalR10Tests.test_low_anchor_and_spatial_motion_complement) ... ok
+test_motor_and_contrast_emerge (test_creative_causal.CreativeCausalR10Tests.test_motor_and_contrast_emerge) ... ok
+test_read_only_track_local (test_creative_causal.CreativeCausalR10Tests.test_read_only_track_local) ... ok
+test_transforming_recurrence (test_creative_causal.CreativeCausalR10Tests.test_transforming_recurrence) ... ok
+test_voice_layer_tension_not_error (test_creative_causal.CreativeCausalR10Tests.test_voice_layer_tension_not_error) ... ok
+test_constraint (test_musical_forces.ContextTests.test_constraint) ... ok
+test_damage_hold (test_musical_forces.ContextTests.test_damage_hold) ... ok
+test_dialogue (test_musical_forces.ContextTests.test_dialogue) ... ok
+test_directed (test_musical_forces.ContextTests.test_directed) ... ok
+test_emotion_alone (test_musical_forces.ContextTests.test_emotion_alone) ... ok
+test_emotion_relation (test_musical_forces.ContextTests.test_emotion_relation) ... ok
+test_foreign (test_musical_forces.ContextTests.test_foreign) ... ok
+test_negated_damage (test_musical_forces.ContextTests.test_negated_damage) ... ok
+test_negation (test_musical_forces.ContextTests.test_negation) ... ok
+test_no_cross_track (test_musical_forces.ContextTests.test_no_cross_track) ... ok
+test_no_dialogue_from_lyrics (test_musical_forces.ContextTests.test_no_dialogue_from_lyrics) ... ok
+test_no_preset (test_musical_forces.ContextTests.test_no_preset) ... ok
+test_no_title_as_motor (test_musical_forces.ContextTests.test_no_title_as_motor) ... ok
+test_preanalysis_integration (test_musical_forces.ContextTests.test_preanalysis_integration) ... ok
+test_spectral_causal (test_musical_forces.ContextTests.test_spectral_causal) ... ok
+test_unverified_claim (test_musical_forces.ContextTests.test_unverified_claim) ... ok
+test_wild_alone (test_musical_forces.ContextTests.test_wild_alone) ... ok
+test_arbitrary_oddity (test_musical_forces.ReferenceTests.test_arbitrary_oddity) ... ok
+test_artistic_dissonance (test_musical_forces.ReferenceTests.test_artistic_dissonance) ... ok
+test_combined_forces (test_musical_forces.ReferenceTests.test_combined_forces) ... ok
+test_low_anchor_damage (test_musical_forces.ReferenceTests.test_low_anchor_damage) ... ok
+test_mastering_or_root_loss (test_musical_forces.ReferenceTests.test_mastering_or_root_loss) ... ok
+test_no_mandatory_chaos (test_musical_forces.ReferenceTests.test_no_mandatory_chaos) ... ok
+test_oddity_in_genre (test_musical_forces.ReferenceTests.test_oddity_in_genre) ... ok
+test_prior_manifesto_leak (test_musical_forces.ReferenceTests.test_prior_manifesto_leak) ... ok
+test_technical_damage (test_musical_forces.ReferenceTests.test_technical_damage) ... ok
+test_unrequested_genre_drift (test_musical_forces.ReferenceTests.test_unrequested_genre_drift) ... ok
+test_unverified_rear_claim (test_musical_forces.ReferenceTests.test_unverified_rear_claim) ... ok
+test_upper_motion_low_stable (test_musical_forces.ReferenceTests.test_upper_motion_low_stable) ... ok
+test_wild_with_direction (test_musical_forces.ReferenceTests.test_wild_with_direction) ... ok
+test_wild_without_direction (test_musical_forces.ReferenceTests.test_wild_without_direction) ... ok
+test_arrangement_can_resolve_collision_candidate (test_semantic_intelligence.SemanticIntelligenceR09Tests.test_arrangement_can_resolve_collision_candidate) ... ok
+test_avoid_swing_is_constraint_not_support (test_semantic_intelligence.SemanticIntelligenceR09Tests.test_avoid_swing_is_constraint_not_support) ... ok
+test_constraint_field_never_supports_function (test_semantic_intelligence.SemanticIntelligenceR09Tests.test_constraint_field_never_supports_function) ... ok
+test_empty_input_is_not_invented (test_semantic_intelligence.SemanticIntelligenceR09Tests.test_empty_input_is_not_invented) ... ok
+test_function_explains_why (test_semantic_intelligence.SemanticIntelligenceR09Tests.test_function_explains_why) ... ok
+test_motor_and_bass_swing_collision (test_semantic_intelligence.SemanticIntelligenceR09Tests.test_motor_and_bass_swing_collision) ... ok
+test_negation_does_not_create_positive_support (test_semantic_intelligence.SemanticIntelligenceR09Tests.test_negation_does_not_create_positive_support) ... ok
+test_negation_scope_does_not_leak_to_next_clause (test_semantic_intelligence.SemanticIntelligenceR09Tests.test_negation_scope_does_not_leak_to_next_clause) ... ok
+test_positive_function_evidence (test_semantic_intelligence.SemanticIntelligenceR09Tests.test_positive_function_evidence) ... ok
+test_reject_non_object (test_semantic_intelligence.SemanticIntelligenceR09Tests.test_reject_non_object) ... ok
+test_track_local_read_only_contract (test_semantic_intelligence.SemanticIntelligenceR09Tests.test_track_local_read_only_contract) ... ok
+test_voice_and_dense_layers_collision (test_semantic_intelligence.SemanticIntelligenceR09Tests.test_voice_and_dense_layers_collision) ... ok
+
+----------------------------------------------------------------------
+Ran 52 tests in 0.040s
+
+OK

@@ -210,6 +210,17 @@
       "no_audio_claim": true,
       "no_global_learning": true,
       "no_foreign_authority": true
+    },
+    "musical_forces_r199": {
+      "status": "CANDIDATE_LOCAL_REGRESSION_PASS_HOST_OPEN",
+      "source": "engine/musical_forces.py",
+      "consumer": "engine/track_preanalysis.py",
+      "tests": "tests/test_musical_forces.py",
+      "reference_blob": "8cfcf32b7ec41c65785521d08e8c6faca62c1664",
+      "scope": "TRACK_LOCAL_CREATOR_REVIEW",
+      "no_auto_promotion": true,
+      "no_audio_claim": true,
+      "no_new_controller": true
     }
   }
 }

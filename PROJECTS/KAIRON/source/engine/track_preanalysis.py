@@ -127,7 +127,9 @@ def assess(intent, semantic_result, causal_result, total_bars=None):
     else:
         seconds = None
         time_status = "NO_DURATION_INFERRED"
+    from .musical_forces import derive
     return {
+        "musical_forces": derive(intent, semantic_result, causal_result),
         "schema": SCHEMA, "system_id": "666TDI-001",
         "method": "RULE_DERIVED_FROM_EXISTING_R09_R10_MUSICAL_ANALYSIS",
         "status": "VISUAL_PREANALYSIS_CANDIDATE",
