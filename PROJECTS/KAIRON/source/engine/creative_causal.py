@@ -31,9 +31,13 @@ def _active(result):
 def _evidence(function):
  return [{"field":x.get("field"),"phrase":x.get("phrase"),"clause":x.get("clause"),"polarity":x.get("polarity"),"source":x.get("source")} for x in function.get("support_evidence",[])]
 
-def assess(track):
+def assess(track, *, semantic_report=None):
  if not isinstance(track,dict): raise ValueError("TRACK_INTENT_MUST_BE_OBJECT")
- sem=semantic.assess(track); active=_active(sem)
+ sem=semantic.assess(track) if semantic_report is None else semantic_report
+ if (not isinstance(sem,dict) or sem.get('schema')!=semantic.SCHEMA or
+     sem.get('system_id')!=SYSTEM_ID or sem.get('track_id')!=track.get('track_id')):
+  raise ValueError('SEMANTIC_SCOPE_MISMATCH')
+ active=_active(sem)
  constrained={x["id"]:x for x in sem.get("functions",[]) if x.get("status") in ("EXPLICITLY_CONSTRAINED","SUPPORTED_AND_CONSTRAINED")}
  relations=[]
  for pair,kind,why in RELATION_RULES:
