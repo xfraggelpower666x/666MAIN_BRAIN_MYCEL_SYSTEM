@@ -45,7 +45,7 @@ def evaluate(track: dict) -> dict:
     for field in fields:
         if not isinstance(track.get(field,''),str):
             raise ValueError('INVALID_FIELD:'+field)
-    text=' '.join(track.get(k,'') for k in fields).lower()
+    text='\n'.join(track.get(k,'') for k in fields).lower()
     # Avoid requirements cannot be treated as positive evidence. Explicit negative
     # clauses are excluded; ambiguous complex negations remain human-review.
     clauses=re.split(r'[,;\n.]|\bbut\b|\baber\b',text)
@@ -60,7 +60,8 @@ def evaluate(track: dict) -> dict:
     denied=' '.join(negatives)
     evidence={key:_terms(positive,terms) for key,terms in SIGNALS.items()}
     excluded={key:_terms(denied,terms) for key,terms in SIGNALS.items()}
-    active={k for k,v in evidence.items() if v}
+    conflicts=sorted(k for k,v in evidence.items() if v and excluded[k])
+    active={k for k,v in evidence.items() if v and not excluded[k]}
     relations=[{'relation':name,'from':a,'to':b,'impact':advice,'status':'CAUSAL_HYPOTHESIS'}
                for a,b,name,advice in RELATIONS if a in active and b in active]
     # A preset requires independently reusable structure, FX and dynamics.
@@ -69,7 +70,7 @@ def evaluate(track: dict) -> dict:
                  'replaceable_lyrics':True, 'lyrics_embedded':False,
                  'status':'REVIEW_ONLY', 'creator_approval_required':True,
                  'persistent_registration':False}
-    evidence_count=sum(bool(v) for v in evidence.values())
+    evidence_count=len(active)
     if not text.strip(): classification='REFERENCE_ONLY'
     elif {'FX','DYNAMICS','MOTION'}.issubset(active) and evidence_count>=4: classification='PRESET_CANDIDATE'
     else: classification='TRACK_ONLY'
@@ -77,7 +78,7 @@ def evaluate(track: dict) -> dict:
     from .mandala import arrange
     result = {'schema':'KAIRON_CONTEXT_GAT_R209','system_id':'666TDI-001',
             'classification':classification,'signal_evidence':evidence,
-            'negated_signals':excluded,'functional_relations':relations,
+            'negated_signals':excluded,'conflicting_signals':conflicts,'functional_relations':relations,
             'mandala_candidate':mandala,'mandala_status':'REVIEW_ONLY' if mandala else 'NOT_SELECTED',
             'preset_candidate':candidate if classification=='PRESET_CANDIDATE' else None,
             'source_lyrics_preserved':True,'audio_measured':False,
