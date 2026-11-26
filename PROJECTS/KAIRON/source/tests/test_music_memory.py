@@ -20,3 +20,13 @@ class MusicMemoryTests(unittest.TestCase):
         r=seal(context={'model':'a'},creator_confirmed=True,decision_id='motor',rating='SUCCESS')
         self.assertEqual(m.relations([r],{'model':'b'}),[])
     def test_unknown(self): self.assertEqual(m.relations([],{'model':'UNKNOWN'}),[])
+    def test_old_tamper_beyond_window(self):
+        old=self.pair(); old['style']='tampered'
+        newer=[seal(track_id=str(i),state='ISSUED',style=str(i),extended='cut') for i in range(6)]
+        with self.assertRaisesRegex(ValueError,'MEMORY_INTEGRITY_OR_SCOPE'): m.history([old]+newer)
+    def test_unknown_context_still_validates(self):
+        r=seal(context={},creator_confirmed=True,decision_id='motor',rating='SUCCESS'); r['rating']='MIXED'
+        with self.assertRaisesRegex(ValueError,'MEMORY_INTEGRITY_OR_SCOPE'): m.relations([r],{})
+    def test_window_preserved(self):
+        rows=[seal(track_id=str(i),state='ISSUED',style=str(i),extended='cut') for i in range(9)]
+        self.assertEqual(m.history(rows),rows[-6:])

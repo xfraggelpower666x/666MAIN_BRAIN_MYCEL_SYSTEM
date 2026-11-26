@@ -13,6 +13,7 @@ def history(records, current_track=None):
     for r in reversed(records):
         if r.get('system_id')!=SYSTEM_ID or r.get('sha256')!=digest(r):
             raise ValueError('MEMORY_INTEGRITY_OR_SCOPE')
+        if len(result)==6: continue
         if r.get('track_id')==current_track or r.get('state')!='ISSUED':
             continue
         if not all(isinstance(r.get(k),str) and r[k].strip() for k in ('style','extended')):
@@ -20,18 +21,16 @@ def history(records, current_track=None):
         key=(r['style'],r['extended'])
         if key in seen: continue
         seen.add(key); result.append(r)
-        if len(result)==6: break
     return list(reversed(result))
 
 def relations(feedback, context):
     """Exact declared context only; unknown context never supports reuse."""
-    if not context or any(v is None or v=='' or v=='UNKNOWN' for v in context.values()):
-        return []
+    known=bool(context) and not any(v is None or v=='' or v=='UNKNOWN' for v in context.values())
     groups={}
     for r in feedback:
         if r.get('system_id')!=SYSTEM_ID or r.get('sha256')!=digest(r):
             raise ValueError('MEMORY_INTEGRITY_OR_SCOPE')
-        if r.get('context')!=context or r.get('creator_confirmed') is not True: continue
+        if not known or r.get('context')!=context or r.get('creator_confirmed') is not True: continue
         if r.get('rating') not in ('SUCCESS','UNSUCCESSFUL','MIXED'): raise ValueError('INVALID_RATING')
         groups.setdefault(r['decision_id'],[]).append(r)
     out=[]
