@@ -245,6 +245,28 @@
       "no_audio_claim": true,
       "no_auto_promotion": true,
       "no_new_controller": true
+    },
+    "music_memory_r202": {
+      "status": "CANDIDATE_PUBLISHED_LOCAL_REGRESSION_PASS_HOST_OPEN",
+      "source": "engine/music_memory.py",
+      "consumers": [
+        "engine/creator_learning.py",
+        "engine/production_quality.py",
+        "engine/device_output.py"
+      ],
+      "tests": [
+        "tests/test_music_memory.py",
+        "tests/test_a10_integration.py",
+        "tests/test_historical_memory.py"
+      ],
+      "evidence": "evidence/historical_music_memory.json",
+      "published_commit": "eaac0f78fae5868a4de949139e3c30b025ccfe57",
+      "local_regression_passed": 140,
+      "scope": "TRACK_LOCAL_PROVENANCE_BOUND_REVIEW",
+      "no_audio_claim": true,
+      "no_auto_promotion": true,
+      "no_global_learning": true,
+      "explicit_evidence_root_required": true
     }
   }
 }

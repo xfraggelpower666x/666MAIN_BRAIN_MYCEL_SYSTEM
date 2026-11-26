@@ -1,0 +1,25 @@
+{
+  "system_id": "666TDI-001",
+  "revision": "R20.3",
+  "scope": "CONTINUITY_METADATA_ONLY",
+  "base_commit": "eaac0f78fae5868a4de949139e3c30b025ccfe57",
+  "backup_branch": "backup/kairon-r203-continuity-pre-eaac0f7",
+  "prior_a10_commit": "eaac0f78fae5868a4de949139e3c30b025ccfe57",
+  "prior_a10_tree": "28bc2afcfdf2371ddce1f2dedaf1d22a7b8cc4dc",
+  "prior_handoff_blob": "a4578c96ba0622983d1360c8466066814eb38ace",
+  "prior_registry_blob": "b251ae47682f858543868a1191e03b09d8cc062b",
+  "regression": {
+    "scope": "inherited local evidence, not rerun",
+    "passed": 140,
+    "log_blob": "0777ff607980db9239082c920ae9e3bc282408f4"
+  },
+  "historical_provenance_records": 11,
+  "production_promotion": false,
+  "current_pointer": "WITHHELD",
+  "open": [
+    "FULL_REPOSITORY_REGRESSION",
+    "HOST_EVIDENCE_ROOT_BINDING",
+    "R08_PARITY",
+    "HOST_ACCEPTANCE"
+  ]
+}
