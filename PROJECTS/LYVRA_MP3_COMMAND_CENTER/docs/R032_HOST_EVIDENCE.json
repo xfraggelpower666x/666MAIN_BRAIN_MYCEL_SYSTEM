@@ -1,0 +1,159 @@
+{
+  "schema": "lyvra.mp3.host-evidence.v1",
+  "release": "R03.2",
+  "status": "CANDIDATE_FROZEN_HOST_SCOPE",
+  "tested_commit": "57be79d44682a13202604a8a93e833709fdcc102",
+  "tested_tree": "914d876cb94bc6b941d0bacd24a970bf76b4aaab",
+  "run_id": 45745949583,
+  "run_attempt": 1,
+  "run_name": "LYVRA MP3 R03 isolated acceptance",
+  "run_event": "push",
+  "run_branch": "integration/lyvra-mp3-r025-bulk",
+  "run_created_at": "2026-11-26T02:59:00Z",
+  "run_conclusion": "success",
+  "workflow_url": "https://github.com/xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM/actions/runs/45745949583",
+  "source_backup": "backup/lyvra-mp3-r032-tested-57be79d",
+  "source_backup_readback": "57be79d44682a13202604a8a93e833709fdcc102",
+  "production_head": "UNCHANGED_NOT_PROMOTED",
+  "host_jobs": {
+    "adapters": {
+      "job_id": 139661938893,
+      "conclusion": "success",
+      "receipts": [
+        {
+          "gate": "node_regression",
+          "commit": "57be79d44682a13202604a8a93e833709fdcc102",
+          "status": "PASS",
+          "tests": 10,
+          "failed": 0
+        },
+        {
+          "gate": "adapters",
+          "commit": "57be79d44682a13202604a8a93e833709fdcc102",
+          "status": "PASS",
+          "python_tests": 26,
+          "source_preserved": true
+        }
+      ]
+    },
+    "windows": {
+      "job_id": 139661939059,
+      "conclusion": "success",
+      "receipts": [
+        {
+          "gate": "node_regression_windows",
+          "commit": "57be79d44682a13202604a8a93e833709fdcc102",
+          "status": "PASS",
+          "tests": 10,
+          "failed": 0
+        },
+        {
+          "gate": "runtime_stage",
+          "commit": "57be79d44682a13202604a8a93e833709fdcc102",
+          "status": "PASS",
+          "python": "3.11.9",
+          "python_provider": "actions/setup-python toolcache",
+          "ffmpeg": "7.1.1",
+          "ffmpeg_provider": "Chocolatey/Windows runner",
+          "sha256": {
+            "ffmpeg_exe": "B90225987BDD042CCA09A1EFB5E34E9848F2D1DBF5FBCD388753A44145522997",
+            "ffprobe_exe": "05E8FA639450F8191635192871AE37A3EC3E4638FA12F3B7D49C6522BA16A8ED",
+            "python_exe": "5F7B89A612C9B8AF1D6456CDFCD1DBE5CA630849E79AEBCED9BEE9A6694952EC"
+          }
+        },
+        {
+          "gate": "windows_packaging",
+          "commit": "57be79d44682a13202604a8a93e833709fdcc102",
+          "status": "PASS",
+          "mode": "electron-builder --win --dir --publish never",
+          "executable_sha256": "734E55729E522130A09AE213B7E33E755196D0FF94939B2CF45B961FDC999940"
+        },
+        {
+          "gate": "packaged_gui_smoke",
+          "commit": "57be79d44682a13202604a8a93e833709fdcc102",
+          "status": "PASS",
+          "receipt": {
+            "status": "PASS",
+            "packaged": true,
+            "visible": true,
+            "workerRoot": "dist/win-unpacked/resources/workers",
+            "python": "dist/win-unpacked/resources/runtime/python/python.exe",
+            "ffmpeg": "dist/win-unpacked/resources/runtime/ffmpeg/ffmpeg.exe",
+            "ffprobe": "dist/win-unpacked/resources/runtime/ffmpeg/ffprobe.exe"
+          },
+          "checks": [
+            "packaged Electron process started",
+            "Python/DSP dependency probe passed",
+            "FFmpeg -version passed",
+            "FFprobe -version passed",
+            "original MP3 engine probe emitted MP3_READY",
+            "HUD title and #choose/#restore selectors found",
+            "window visible"
+          ]
+        }
+      ]
+    },
+    "binary": {
+      "job_id": 139661939134,
+      "conclusion": "success",
+      "receipt": {
+        "gate": "provider_binary",
+        "commit": "57be79d44682a13202604a8a93e833709fdcc102",
+        "status": "PASS",
+        "sha": "e3327c3bf0f98b4608437c1cb33189856a2ea9be",
+        "sha256": "981729d4e1e010d7ded1c8d93aecc9d7a13b6b8286cf16feffca2f9f885cd5f7",
+        "bytes": 9
+      }
+    },
+    "dsp": {
+      "job_id": 139661939215,
+      "conclusion": "success",
+      "receipts": [
+        {
+          "gate": "offline_dsp_mode",
+          "mode": "STFT",
+          "commit": "57be79d44682a13202604a8a93e833709fdcc102",
+          "status": "PASS",
+          "frames": 132300,
+          "channels": 2,
+          "sample_rate": 44100,
+          "sha256": "4fe195373782c2c622958a2158030d519e8e26f755b6fdc2a44f7e418c4b4c45"
+        },
+        {
+          "gate": "offline_dsp_mode",
+          "mode": "Wavelet",
+          "commit": "57be79d44682a13202604a8a93e833709fdcc102",
+          "status": "PASS",
+          "frames": 132300,
+          "channels": 2,
+          "sample_rate": 44100,
+          "sha256": "cdb3d5906ebbf83295af42efbb6202eab321aaf71619c8affd4b7f1f71113faf"
+        },
+        {
+          "gate": "offline_dsp_mode",
+          "mode": "Both",
+          "commit": "57be79d44682a13202604a8a93e833709fdcc102",
+          "status": "PASS",
+          "frames": 132300,
+          "channels": 2,
+          "sample_rate": 44100,
+          "sha256": "1f06ba33ca422da6efb1c1c5d74c1384ddec9efdc0e32dae9ebdc3f7f31b9a70"
+        },
+        {
+          "gate": "dsp",
+          "commit": "57be79d44682a13202604a8a93e833709fdcc102",
+          "status": "PASS",
+          "source_preserved": true
+        }
+      ]
+    }
+  },
+  "limitations": [
+    "Windows CI unpacked x64 package only; no installer or public release artifact",
+    "GUI smoke verified visible window and HUD selectors; manual interactive workflow not tested",
+    "Physical audio device output not tested",
+    "DSP fixtures are synthetic; perceptual restoration quality not assessed",
+    "FFmpeg distribution licensing review remains separate; CI runtime is not a public asset approval",
+    "45 original source files remain HOLD; no ZIP publication; no production promotion"
+  ]
+}
