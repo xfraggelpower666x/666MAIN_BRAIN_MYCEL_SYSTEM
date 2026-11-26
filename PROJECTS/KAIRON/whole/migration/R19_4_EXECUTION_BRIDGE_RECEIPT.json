@@ -1,0 +1,37 @@
+{
+  "system_id": "666TDI-001",
+  "revision": "R19.4",
+  "base": "8ed40fbc5459e92fb10e4faf827c49e872be7ca7",
+  "backup": "backup/kairon-r194-execution-pre-8ed40fb",
+  "scope": "CANDIDATE_ONLY",
+  "new_tests": {
+    "command": "python -m unittest -v test_execution_bridge",
+    "passed": 8,
+    "failed": 0,
+    "exit_code": 0,
+    "seconds": 1.437,
+    "fixture": "synthetic",
+    "blobs": {
+      "whole/daemon/execution_bridge.py": "d2da3c3fd92d0eb5182c91641a58532d819dc48f",
+      "whole/daemon/test_execution_bridge.py": "ab722eecc244f0d1b9e24babd6af3a23c92adb58"
+    }
+  },
+  "prior_receipt": "b34db25e7168acecf11d55d68b41a0664fd4226a",
+  "limitations": [
+    "Caller must obtain trusted repository tree and supply matching Base64 bytes; SHA validation does not authenticate caller or commit.",
+    "Temporary directory and reduced environment are not an OS sandbox. Execute trusted reviewed tests only.",
+    "No automatic connector dispatch, no independent host acceptance, no actual Wave 3 regression, no production promotion.",
+    "Exit zero alone does not establish nonzero test count."
+  ],
+  "capability_sources": [
+    "LYVRA visual evidence distinction",
+    "ALIVE continuity presentation",
+    "CLIC causal outcome learning",
+    "MAIN BRAIN scoped coordination",
+    "Coding Profi implementation and test discipline",
+    "666DEV native continuity and permission gates",
+    "Linear task tracking proposed; connector call failed"
+  ],
+  "production_promotion": false,
+  "host_acceptance": "OPEN"
+}
