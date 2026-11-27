@@ -26,6 +26,13 @@
   "file_count": 16,
   "pre_change_backup": "backup/kairon-r22-pre-248a43c",
   "authority": false,
-  "status": "SOURCE_COPY_CANDIDATE",
-  "production_promotion": false
+  "status": "BACKUP_VERIFIED",
+  "production_promotion": false,
+  "backup_source_commit": "a97744b96a7daf029ec89f8ac80e5c8ff47295e2",
+  "backup_source_tree": "c316f4034704a19ed4ba0376dd8d2c982b05577e",
+  "checkpoint_pre_change_backup": "backup/kairon-r223-checkpoint-pre-a97744b",
+  "release_readback": "16_OF_16_DIRECT_CONTENT_MATCH_AT_R22_3",
+  "verified_regression_run": 45918260872,
+  "native_host_acceptance": "OPEN",
+  "automatic_connector_binding": "OPEN"
 }
