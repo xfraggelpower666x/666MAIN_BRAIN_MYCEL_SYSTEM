@@ -2,8 +2,8 @@
   "system_id": "666TDI-001",
   "authority": "native Chat Framework",
   "plugin_id": "plugins_6b07740c65d88191b08a593d460e6630",
-  "release_id": "pluginrel_6b086581e9ec81918a2fb88a690d9aa1",
-  "version": "0.1.1",
+  "release_id": "pluginrel_6b08cecbc32c8191bd848b88f07b0c40",
+  "version": "0.1.2",
   "canonical_pointer_blob": null,
   "host_acceptance": "OPEN",
   "windows_parity": "PARTIAL",
@@ -14,7 +14,9 @@
   "display_name": "KAIRON MUSIC INTELLIGENCE",
   "backend_package_name": "666tdi-music-design",
   "release_source": "PROJECTS/KAIRON/plugin/",
-  "release_readback": "PLUGIN_CREATOR_DIRECT_GET_PLUGIN_FILES",
+  "release_readback": "PLUGIN_CREATOR_DIRECT_GET_PLUGIN_FILES_16_OF_16",
   "candidate_branch": "integration/kairon-r19-native-20261126",
-  "windows_role": "OPTIONAL_BONUS"
+  "windows_role": "OPTIONAL_BONUS",
+  "previous_release_id": "pluginrel_6b086581e9ec81918a2fb88a690d9aa1",
+  "skill_count": 14
 }

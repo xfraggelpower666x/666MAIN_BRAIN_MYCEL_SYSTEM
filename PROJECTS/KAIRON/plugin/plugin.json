@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "666tdi-music-design",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "KAIRON native ChatGPT Music Intelligence: one 666TDI-001 identity, one original plugin, governed candidate continuity, semantic causal track design and music memory; Windows optional.",
   "author": {
     "name": "FRAGGLEPOWER666"
