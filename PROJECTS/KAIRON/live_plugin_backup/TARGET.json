@@ -1,0 +1,15 @@
+{
+  "schema": "KAIRON_R22_BACKUP_TARGET_V1",
+  "system_id": "666TDI-001",
+  "repository": "xfraggelpower666x/666MAIN_BRAIN_MYCEL_SYSTEM",
+  "branch": "integration/kairon-r19-native-20261126",
+  "path": "PROJECTS/KAIRON/live_plugin_backup/source/",
+  "checkpoint": "PROJECTS/KAIRON/live_plugin_backup/BACKUP_CURRENT.json",
+  "authority": false,
+  "role": "SECONDARY_LIVE_SOURCE_BACKUP",
+  "cost_limit": 0,
+  "plugin_id": "plugins_6b07740c65d88191b08a593d460e6630",
+  "source": "PLUGIN_CREATOR_DIRECT_READBACK",
+  "public_repository": true,
+  "delete_policy": "DENY_UNTIL_EXPLICIT_AUTHORIZATION"
+}

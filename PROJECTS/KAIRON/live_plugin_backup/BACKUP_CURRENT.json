@@ -1,0 +1,31 @@
+{
+  "schema": "KAIRON_R22_BACKUP_CURRENT_V1",
+  "system_id": "666TDI-001",
+  "source_commit": "248a43c9775c30309a77937af6bc586d88b83392",
+  "source_tree": "15ba764b3800f5035664cbdee0c02bf2dc0cd9ab",
+  "release_id": "pluginrel_6b08cecbc32c8191bd848b88f07b0c40",
+  "version": "0.1.2",
+  "files": {
+    ".codex-plugin/plugin.json": "22e33e6879fbde9190493cbe982f3fd212e66625",
+    "plugin.json": "261473e1fca768d57784443c975bb322390fa9e8",
+    "skills/kairon-active-architecture-supervision/SKILL.md": "d6d06a99cc8c13c897ade5acf5df4f8775f1c92e",
+    "skills/kairon-context-recovery/SKILL.md": "5942ed2811b187e9b1b9064a614ede7fc1bf0d34",
+    "skills/kairon-daemon/SKILL.md": "483a1170f333bb293fd4cd43653a63b4875f104d",
+    "skills/kairon-surface-parity/SKILL.md": "d4921a7074c1c3025caa0360751891cf1933a4f3",
+    "skills/kairon-visual-intelligence/SKILL.md": "d105db4ad1da33b5811a262a0ae662962e955be7",
+    "skills/tdi-audio-audit/SKILL.md": "59384daed7600eda7cb0bdd2995ee9032fa56fbc",
+    "skills/tdi-continuity/SKILL.md": "7ce4891f0c91162cd69a4ced890ed623d593c656",
+    "skills/tdi-creator-learning/SKILL.md": "1be53c1abeafa34433b558c26826254955714c3c",
+    "skills/tdi-musical-intelligence/SKILL.md": "fa9b2be85f21caa24a32f76157c54cf495827fbc",
+    "skills/tdi-systemstart/SKILL.md": "c4da2155898f0f60cdea2e05291daf330227e573",
+    "skills/tdi-track-design/SKILL.md": "7d588a77f7a59a60cefe4af4afcb6b1c3172b2de",
+    "skills/tdi-trigger-router/SKILL.md": "548ecb6ab42cdaa4196be5a52d03627496ec0891",
+    "skills/tdi-update/SKILL.md": "46174115053622771277140e9997275d377af52a",
+    "skills/tdi-visual-intelligence/SKILL.md": "e6a64345b16bc1efa152231c20e963a9e5c026f2"
+  },
+  "file_count": 16,
+  "pre_change_backup": "backup/kairon-r22-pre-248a43c",
+  "authority": false,
+  "status": "SOURCE_COPY_CANDIDATE",
+  "production_promotion": false
+}

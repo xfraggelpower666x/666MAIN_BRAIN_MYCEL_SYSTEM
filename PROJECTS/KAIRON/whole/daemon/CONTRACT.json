@@ -168,5 +168,18 @@
     "previous_source_write_does_not_suppress_new_loop": true,
     "loop_reset_requires_matching_trusted_write_event": true,
     "observability_limit": "GUIDANCE_INVOCATIONS_WITH_HISTORY_ONLY"
+  },
+  "post_update": {
+    "revision": "R22",
+    "module": "whole/daemon/update_coordinator.py",
+    "tests": "whole/daemon/test_update_coordinator.py",
+    "target": "live_plugin_backup/TARGET.json",
+    "trigger": "KAIRON UPDATE",
+    "execution": "AUTHORIZED_HOST_CALLBACK_REQUIRED",
+    "automatic_dispatch": false,
+    "native_pointer_mutation": false,
+    "release_cas": true,
+    "backup_cas": true,
+    "zero_additional_cost": true
   }
 }
