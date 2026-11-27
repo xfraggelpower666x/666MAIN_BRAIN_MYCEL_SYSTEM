@@ -14,7 +14,7 @@ BASE = 'f95229f549196522142e1b59a83c7d3d9a64ae6d'
 TESTED = '2f374738359feaff564e73fd90c5b52766b26529'
 ROOT = Path(__file__).resolve().parents[2]
 PINS = {
-    'whole/daemon/CONTRACT.json': '2e2ac3ff473b765d58937f8ae64d36dcc18f9a06',
+    'whole/daemon/CONTRACT.json': '6c2f6ac2590e7b43b5201aa0bf9cb033236b4d87',
     'whole/daemon/supervision.mjs': '10156e77995a5b015640c6f7709399800381b9ba',
     'whole/daemon/guidance.py': '594de3184b718d49f137904ada2451dffb1569c0',
     'whole/daemon/connector_runtime.py': '4c752b6a3b8be6e604834da4d9ba32b3e1242d1c',
