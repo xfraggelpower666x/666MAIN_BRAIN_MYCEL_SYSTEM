@@ -46,4 +46,16 @@ class PortableTests(unittest.TestCase):
  def test_intent_unchanged(self):
   a=p.create_track(self.intent);orig=json.loads(json.dumps(a));p.analyze(a);self.assertEqual(a,orig)
 
+ def test_compiler_preserves_advisory_musical_evidence(self):
+  t=p.analyze(p.create_track(self.intent)); before=p.canon(t)
+  r=p.compiler(t,'lyria2_asg'); e=r['graph_context']['musical_evidence']
+  for key in ('semantic_intelligence','creative_causal','context_preset','preanalysis','musical_forces','music_memory'):
+   self.assertEqual(e['reports'][key],t['analysis'][key])
+  self.assertEqual(e['evidence_sha256'],p.sha(e['reports']))
+  self.assertFalse(e['renderer_prompt_mutated']);self.assertFalse(e['audio_verified'])
+  self.assertFalse(e['automatic_promotion']);self.assertEqual(p.canon(t),before)
+ def test_compiler_without_analysis_remains_explicit(self):
+  t=p.create_track(self.intent);r=p.compiler(t,'lyria2_asg')
+  self.assertEqual(r['graph_context']['musical_evidence']['status'],'ANALYSIS_NOT_AVAILABLE')
+
 if __name__=='__main__': unittest.main()

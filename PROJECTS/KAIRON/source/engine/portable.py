@@ -167,6 +167,17 @@ def compiler(track, renderer):
     result['track_id']=track['track_id'];result['authority']=SYSTEM
     result['graph_context']={'candidate_cards':[c['card_id'] for c in track['analysis']['active_cards']],
        'causal_relations':copy.deepcopy(track['analysis']['relations']),'source_meaning_preserved_in_intent':True}
+    # R23: preserve advisory evidence without changing renderer prompts.
+    analysis = track['analysis']
+    keys = ('semantic_intelligence', 'creative_causal', 'context_preset',
+            'preanalysis', 'musical_forces', 'music_memory')
+    evidence = {k: copy.deepcopy(analysis[k]) for k in keys if k in analysis}
+    result['graph_context']['musical_evidence'] = {
+        'reports': evidence, 'report_keys': list(evidence),
+        'status': 'ADVISORY_CONTEXT_ONLY' if evidence else 'ANALYSIS_NOT_AVAILABLE',
+        'creator_review_required': True, 'renderer_prompt_mutated': False,
+        'audio_verified': False, 'automatic_promotion': False,
+        'evidence_sha256': sha(evidence)}
     result['warnings'].append('NO_REAL_AUDIO_VALIDATION_PERFORMED')
     result['status']='COMPILED_UNVERIFIED_AUDIO' if not result['omissions'] and len(result['warnings'])==1 else 'PARTIAL'
     result['source_intent_sha256']=sha({k:track.get(k) for k in fields})

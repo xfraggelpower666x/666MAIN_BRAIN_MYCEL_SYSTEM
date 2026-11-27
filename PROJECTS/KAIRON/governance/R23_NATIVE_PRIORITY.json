@@ -1,0 +1,13 @@
+{
+  "system_id": "666TDI-001",
+  "revision": "R23",
+  "chat_framework": "ACTIVE",
+  "original_plugin": "ACTIVE",
+  "windows_studio": "HOLD",
+  "windows_preserve_all": true,
+  "windows_blocks_native_release": false,
+  "python_connector_binding": "OPTIONAL_IF_NATIVE_REQUIRED",
+  "production_promotion": false,
+  "source": "DIRECT_USER_AUTHORIZATION_2026-11-27",
+  "native_host_acceptance": "OPEN"
+}
