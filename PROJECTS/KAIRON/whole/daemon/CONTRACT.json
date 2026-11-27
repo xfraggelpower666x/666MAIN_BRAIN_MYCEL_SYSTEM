@@ -170,7 +170,7 @@
     "observability_limit": "GUIDANCE_INVOCATIONS_WITH_HISTORY_ONLY"
   },
   "post_update": {
-    "revision": "R22",
+    "revision": "R22.2",
     "module": "whole/daemon/update_coordinator.py",
     "tests": "whole/daemon/test_update_coordinator.py",
     "target": "live_plugin_backup/TARGET.json",
@@ -180,6 +180,13 @@
     "native_pointer_mutation": false,
     "release_cas": true,
     "backup_cas": true,
-    "zero_additional_cost": true
+    "zero_additional_cost": true,
+    "host_adapter": "whole/daemon/post_update_host.py",
+    "host_entry": "run_post_update",
+    "host_tests": "whole/daemon/test_post_update_host.py",
+    "checkpoint_last": true,
+    "independent_source_readback": true,
+    "idempotent_reconciliation": true,
+    "host_acceptance": "OPEN"
   }
 }
