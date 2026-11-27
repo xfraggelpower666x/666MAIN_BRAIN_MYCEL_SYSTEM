@@ -2,8 +2,8 @@
   "system_id": "666TDI-001",
   "authority": "native Chat Framework",
   "plugin_id": "plugins_6b07740c65d88191b08a593d460e6630",
-  "release_id": "pluginrel_6b08cecbc32c8191bd848b88f07b0c40",
-  "version": "0.1.2",
+  "release_id": "pluginrel_6b08d9922a8081919580a3b16f10a36f",
+  "version": "0.1.3",
   "canonical_pointer_blob": null,
   "host_acceptance": "OPEN",
   "windows_parity": "PARTIAL",
@@ -17,6 +17,6 @@
   "release_readback": "PLUGIN_CREATOR_DIRECT_GET_PLUGIN_FILES_16_OF_16",
   "candidate_branch": "integration/kairon-r19-native-20261126",
   "windows_role": "OPTIONAL_BONUS",
-  "previous_release_id": "pluginrel_6b086581e9ec81918a2fb88a690d9aa1",
+  "previous_release_id": "pluginrel_6b08cecbc32c8191bd848b88f07b0c40",
   "skill_count": 14
 }
